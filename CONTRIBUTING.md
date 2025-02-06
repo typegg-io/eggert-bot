@@ -52,6 +52,9 @@ When adding the bot to a server, it will require the following **permissions**:
 - **Attach Files** - Allows the bot to attach images and other files
 - **Read Message History** – Ensures the bot can access previous messages in a channel
 
+#### Installation Context
+Under installation, ensure the **Guild Install** option is enabled. This allows the bot to be invited via an OAuth link.
+
 ### Step 4: Adding the Bot
 To invite the bot with the necessary permissions to a server, use the following OAuth link:
 
