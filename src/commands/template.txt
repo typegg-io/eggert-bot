@@ -1,0 +1,36 @@
+from discord.ext import commands
+from discord import Embed
+
+from database.users import get_user
+
+info = {
+    "name": "",
+    "aliases": [],
+    "description": "",
+    "parameters": "",
+}
+
+
+async def setup(bot: commands.bot):
+    await bot.add_cog(CommandName(bot))
+
+
+class CommandName(commands.Cog):
+    def __init__(self, bot):
+        self.bot = bot
+
+    @commands.command(aliases=info["aliases"])
+    async def command_name(self, ctx):
+        bot_user = get_user(ctx.author.id)
+
+        await run(ctx, bot_user)
+
+
+async def run(ctx: commands.Context, bot_user: dict):
+    embed = Embed(
+        title="Title",
+        description="description",
+        color=bot_user["theme"]["embed"],
+    )
+
+    await ctx.send(embed=embed)
