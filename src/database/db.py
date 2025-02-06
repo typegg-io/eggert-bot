@@ -1,5 +1,9 @@
+import os
 import sqlite3
 from typing import Optional
+
+folder_path = os.path.join(os.path.dirname(__file__), "..", "data")
+os.makedirs(folder_path, exist_ok=True)
 
 file = "./data/users.db"
 connection = sqlite3.connect(file)
