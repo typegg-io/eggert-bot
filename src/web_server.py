@@ -31,7 +31,7 @@ async def verify_user(request: web.Request):
                 return web.json_response({"error": "Invalid token."}, status=400)
 
             guild = app["bot"].get_guild(home_guild_id)
-            member = guild.get_member(int(discord_id))
+            member = await guild.fetch_member(int(discord_id))
             role = discord.utils.get(guild.roles, name="Verified")
 
             await member.add_roles(role)
