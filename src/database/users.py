@@ -18,7 +18,7 @@ def add_user(discord_id: str):
     user = {
         "discord_id": discord_id,
         "theme": json.dumps(default_theme),
-        "username": None,
+        "user_id": None,
     }
 
     db.run("""
