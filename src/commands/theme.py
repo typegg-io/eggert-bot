@@ -64,8 +64,8 @@ class Theme(commands.Cog):
             return await ctx.send(embed=invalid_color())
 
         if element != "embed":
-            color = ("#%06x" % color)  # Converting integer to hex string (#FFFFFF)
-        bot_user["theme"][element] = color
+            parsed_color = ("#%06x" % parsed_color)  # Converting integer to hex string (#FFFFFF)
+        bot_user["theme"][element] = parsed_color
 
         await run(ctx, bot_user)
 
