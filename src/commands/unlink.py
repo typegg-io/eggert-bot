@@ -4,7 +4,7 @@ import discord
 from discord import Embed
 from discord.ext import commands
 
-from config import bot_prefix as prefix, home_guild_id
+from config import bot_prefix as prefix, TYPEGG_GUILD_ID
 from database.users import get_user, unlink_user
 from utils.errors import red
 
@@ -60,9 +60,9 @@ class Unlink(commands.Cog):
 
 
 async def unverify_user(bot_instance: commands.Bot, discord_id: str):
-    guild = bot_instance.get_guild(home_guild_id)
+    guild = bot_instance.get_guild(TYPEGG_GUILD_ID)
     member = guild.get_member(int(discord_id))
-    role = discord.utils.get(guild.roles, name="Verified")
+    role = discord.utils.get(guild.roles, name="verified egg 🥚")
 
     await member.remove_roles(role)
 

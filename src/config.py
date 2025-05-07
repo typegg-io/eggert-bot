@@ -4,9 +4,12 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-bot_token = os.getenv("bot_token")
-secret = os.getenv("secret")
-home_guild_id = 703605179433484289  # TypeGG Official Server
+BOT_TOKEN = os.getenv("BOT_TOKEN")
+SECRET = os.getenv("SECRET")
+SITE_URL = os.getenv("SITE_URL")
+API_URL = os.getenv("API_URL")
+
+TYPEGG_GUILD_ID = 703605179433484289 # TypeGG Official Server
 bot_prefix = "-"
 
 # Bot themes

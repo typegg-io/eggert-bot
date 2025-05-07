@@ -24,7 +24,7 @@ class Link(commands.Cog):
 
     @commands.command(aliases=info["aliases"])
     async def link(self, ctx):
-        author = ctx.author.id
+        author = str(ctx.author.id)
         bot_user = get_user(author)
 
         if bot_user["user_id"]:
