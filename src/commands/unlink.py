@@ -6,7 +6,7 @@ from discord.ext import commands
 
 from config import bot_prefix as prefix, TYPEGG_GUILD_ID
 from database.users import get_user, unlink_user
-from utils.errors import red
+from utils.errors import RED
 
 info = {
     "name": "unlink",
@@ -16,7 +16,7 @@ info = {
 }
 
 
-async def setup(bot: commands.bot):
+async def setup(bot: commands.Bot):
     await bot.add_cog(Unlink(bot))
 
 
@@ -71,5 +71,5 @@ def not_verified():
     return Embed(
         title="Not Verified",
         description="Your account has not yet been verified.",
-        color=red
+        color=RED
     )

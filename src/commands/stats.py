@@ -16,7 +16,7 @@ info = {
 }
 
 
-async def setup(bot: commands.bot):
+async def setup(bot: commands.Bot):
     await bot.add_cog(Stats(bot))
 
 
@@ -31,7 +31,7 @@ class Stats(commands.Cog):
         if username == "me":
             username = bot_user["user_id"]
         if not username:
-            return await ctx.send(embed=errors.missing_parameter(info))
+            return await ctx.send(embed=errors.missing_arguments(info))
 
         await run(ctx, bot_user, username)
 
@@ -51,9 +51,9 @@ async def run(ctx: commands.Context, bot_user: dict, username: str):
 
     stats_field = (
         f"Global Ranking: #{stats['global_ranking']}\n"
-        f"Total PP: {stats['total_pp']}\n"
+        f"Total pp: {stats['total_pp']}\n"
         f"Highest WPM: {stats['highest_wpm']}\n"
-        f"Highest PP: {stats['highest_pp']}\n"
+        f"Highest pp: {stats['highest_pp']}\n"
     )
 
     embed.add_field(name="General", value=general_field, inline=False)

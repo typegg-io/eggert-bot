@@ -4,7 +4,7 @@ from discord.ext import commands
 from api.verification import generate_link
 from config import bot_prefix as prefix
 from database.users import get_user
-from utils.errors import red
+from utils.errors import RED
 
 info = {
     "name": "link",
@@ -13,10 +13,8 @@ info = {
     "parameters": "",
 }
 
-
-async def setup(bot: commands.bot):
+async def setup(bot: commands.Bot):
     await bot.add_cog(Link(bot))
-
 
 class Link(commands.Cog):
     def __init__(self, bot):
@@ -50,7 +48,7 @@ def already_verified():
         title="Already Verified",
         description="Your account is already linked.\n"
                     f"Run `{prefix}unlink` to unlink your account.",
-        color=red,
+        color=RED,
     )
 
 
@@ -59,5 +57,5 @@ def dms_disabled():
         title="Message Failed",
         description="Failed to send a direct message. Please enable\n"
                     "direct messages to receive the verification link.",
-        color=red,
+        color=RED,
     )

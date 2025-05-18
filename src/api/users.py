@@ -1,5 +1,20 @@
-import requests
 import random
+
+import aiohttp
+
+from config import API_URL
+from database.users import get_user
+
+async def get_tgg_user(discordID: str) -> dict:
+    user = get_user(discordID)
+    url = f"{API_URL}/user/{user['user_id']}/username"
+
+    async with aiohttp.ClientSession() as session:
+        async with session.get(url) as response:
+            if response.status == 200:
+                return await response.json()
+            else:
+                return {"error": f"API returned status {response.status}"}
 
 async def get_profile(username: str):
     url = ""

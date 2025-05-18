@@ -17,7 +17,7 @@ info = {
 }
 
 
-async def setup(bot: commands.bot):
+async def setup(bot: commands.Bot):
     await bot.add_cog(Best(bot))
 
 
@@ -32,7 +32,7 @@ class Best(commands.Cog):
         if username == "me":
             username = bot_user["user_id"]
         if not username:
-            return await ctx.send(embed=errors.missing_parameter(info))
+            return await ctx.send(embed=errors.missing_arguments(info))
 
         try:
             quote_count = int(quote_count)
@@ -45,7 +45,7 @@ class Best(commands.Cog):
 async def run(ctx: commands.Context, bot_user: dict, username: str, quote_count: Optional[int] = 50):
     top_quotes = await get_top_quotes(username, quote_count)
 
-    title = f"Top {quote_count} PP Quotes"
+    title = f"Top {quote_count} pp Quotes"
 
     file_name = f"top_{quote_count}_quotes_{username}.png"
     title += f" - {username}"

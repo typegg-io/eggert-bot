@@ -13,9 +13,11 @@ info = {
     "name": "help",
     "aliases": ["h"],
     "description": "Displays a list of available commands, or information about a specific command",
-    "parameters": "<command>",
+    "parameters": "[command]",
 }
 
+async def setup(bot):
+    await bot.add_cog(Help(bot))
 
 class Help(commands.Cog):
     def __init__(self, bot):
@@ -40,19 +42,20 @@ class Help(commands.Cog):
             return await ctx.send(embed=errors.unknown_command())
 
         command = command_dict[command]
-        await help_command(ctx, bot_user, command)
+        await help_command(ctx, bot_user, command) # type: ignore
 
 
 async def help_main(ctx: commands.Context, bot_user: dict):
     description = (
-        f"`{prefix}help` - Displays this message\n"
-        f"`{prefix}help [command]` - Displays help for a specific command\n"
-        f"`[ ]` represents required parameters\n"
-        f"`< >` represents optional parameters"
+        f"Use `{prefix}help [command]` to get information about a specific command.\n\n"
+        f"**Parameter Notation:**\n"
+        f"• Parameters in `[]` are optional\n"
+        f"• Parameters in `<>` are required\n"
+        f"• Parameters with `|` indicate a choice between options"
     )
 
     embed = Embed(
-        title="Help Page",
+        title="Command Help",
         description=description,
         color=bot_user["theme"]["embed"],
     )
@@ -62,8 +65,10 @@ async def help_main(ctx: commands.Context, bot_user: dict):
         if file.endswith(".py") and not file.startswith("_") and not file.startswith("help"):
             command_list.append(file[:-3])
 
-    commands_string = ", ".join(f"`{command}`" for command in command_list)
-    embed.add_field(name="Commands", value=commands_string, inline=False)
+    commands_string = ", ".join(f"`{command}`" for command in sorted(command_list))
+    embed.add_field(name="Available Commands", value=commands_string, inline=False)
+
+    embed.set_footer(text="Type !help [command] for more info on a command.")
 
     await ctx.send(embed=embed)
 
@@ -73,7 +78,7 @@ async def help_command(ctx: commands.Context, bot_user: dict, command_info: dict
     aliases = command_info["aliases"]
 
     embed = Embed(
-        title=f"Help for `{prefix}{name}`",
+        title=f"Help: {prefix}{name}",
         description=command_info['description'],
         color=bot_user["theme"]["embed"]
     )
@@ -85,20 +90,24 @@ async def help_command(ctx: commands.Context, bot_user: dict, command_info: dict
         parameter_string += "`"
 
         embed.add_field(
-            name="Parameters",
+            name="Usage",
             value=parameter_string,
             inline=False,
+        )
+
+    if "usages" in command_info and command_info["usages"]:
+        examples = "\n".join([f"`{prefix}{example}`" for example in command_info["usages"]])
+        embed.add_field(
+            name="Examples",
+            value=examples,
+            inline=False
         )
 
     if aliases:
         embed.add_field(
             name="Aliases",
-            value=", ".join([f"`{prefix}{alias}`" for alias in command_info['aliases']]),
+            value=", ".join([f"`{prefix}{alias}`" for alias in aliases]),
             inline=False
         )
 
     await ctx.send(embed=embed)
-
-
-async def setup(bot):
-    await bot.add_cog(Help(bot))

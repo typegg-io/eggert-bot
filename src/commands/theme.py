@@ -10,7 +10,7 @@ from database.users import get_user
 from graphs import sample
 from graphs.core import remove_file
 from utils import errors
-from utils.errors import red
+from utils.errors import RED
 
 elements = [
     "embed",
@@ -29,7 +29,7 @@ info = {
 }
 
 
-async def setup(bot: commands.bot):
+async def setup(bot: commands.Bot):
     await bot.add_cog(Theme(bot))
 
 
@@ -53,7 +53,7 @@ class Theme(commands.Cog):
             return await ctx.send(embed=invalid_element())
 
         if not color:
-            return await ctx.send(embed=errors.missing_parameter(info))
+            return await ctx.send(embed=errors.missing_arguments(info))
 
         if color == "off" and element == "grid":
             bot_user["theme"]["grid"] = None
@@ -110,7 +110,7 @@ def invalid_element():
     return Embed(
         title="Invalid Element",
         description="Element must be: " + ", ".join([f"`{element}`" for element in elements]),
-        color=red,
+        color=RED,
     )
 
 
@@ -118,5 +118,5 @@ def invalid_color():
     return Embed(
         title="Invalid Color",
         description="Color must be a valid hex code",
-        color=red,
+        color=RED,
     )

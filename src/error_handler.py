@@ -16,7 +16,7 @@ class ErrorHandler(commands.Cog):
 
         if isinstance(error, commands.MissingRequiredArgument):
             command_info = importlib.import_module(f"commands.{ctx.command.name}").info
-            return await ctx.send(embed=errors.missing_parameter(command_info))
+            return await ctx.send(embed=errors.missing_arguments(command_info))
 
         await ctx.send(embed=errors.unexpected_error())
 

@@ -42,7 +42,7 @@ async def check_and_assign_nwpm_role(bot, discord_id, user_id):
     """Check user's nWPM and assign appropriate role."""
     try:
         async with aiohttp.ClientSession() as session:
-            async with session.get(f"{API_URL}/api/users/{user_id}/nwpm") as response:
+            async with session.get(f"{API_URL}/user/{user_id}/nwpm") as response:
                 if response.status == 200:
                     data = await response.json()
                     nwpm = data.get("nwpm")
@@ -137,7 +137,7 @@ async def update_nwpm_roles(bot):
 
             async with aiohttp.ClientSession() as session:
                 async with session.post(
-                    f"{API_URL}/api/users/batch/nwpm",
+                    f"{API_URL}/batch/user/nwpm",
                     json={"user_ids": user_ids}
                 ) as response:
                     if response.status == 200:
@@ -205,7 +205,7 @@ async def update_nwpm_roles(bot):
                             except discord.errors.Forbidden as e:
                                 print(f"Permission error updating roles: {e}")
                             except Exception as e:
-                                print(f"Error processing user {user_id}: {e}")
+                                print(f"Error processing user {user_id}: {e}") # type: ignore
 
                         print(f"nWPM role update completed: {users_updated} updated, {users_skipped} skipped, {users_not_found} not found, {role_errors} role errors")
                     else:
