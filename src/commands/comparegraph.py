@@ -108,7 +108,7 @@ async def run(ctx: commands.Context, username1: str, username2: str, metric: str
         render("keegant", comparison_data, file_name)
 
         if first_user and second_user:
-            texts1 = first_user.get("textCount", 0)
+            texts1 = first_user.get("winCount", 0)
             gain1 = first_user.get("gain", 0)
             average_gain1 = first_user.get("averageGain", 0)
             biggest_gap1 = first_user.get("biggestGap", 0)
@@ -117,7 +117,7 @@ async def run(ctx: commands.Context, username1: str, username2: str, metric: str
             biggest_gap_self_wpm1 = first_user.get("biggestGapSelfWPM", 0)
             biggest_gap_other_wpm1 = first_user.get("biggestGapOtherWPM", 0)
 
-            texts2 = second_user.get("textCount", 0)
+            texts2 = second_user.get("winCount", 0)
             gain2 = second_user.get("gain", 0)
             average_gain2 = second_user.get("averageGain", 0)
             biggest_gap2 = second_user.get("biggestGap", 0)
