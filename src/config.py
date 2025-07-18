@@ -14,6 +14,15 @@ bot_prefix = "-"
 
 # Bot themes
 default_theme = {
+    "embed": 0x004B87,
+    "axis": "#777777",
+    "background": "#00031B",
+    "graph_background": "#00031B",
+    "grid": "#333333",
+    "line": "#00B5E2",
+    "text": "#ffffff"
+}
+light_theme = {
     "embed": 0x00AAD6,
     "axis": "#000000",
     "background": "#FFFFFF",

@@ -4,7 +4,7 @@ import matplotlib.colors as mcolors
 from discord import Embed, File
 from discord.ext import commands
 
-from config import default_theme, dark_theme
+from config import default_theme, dark_theme, light_theme
 from database import users
 from database.users import get_user
 from graphs import sample
@@ -41,8 +41,15 @@ class Theme(commands.Cog):
     async def theme(self, ctx, element: str, color: Optional[str]):
         bot_user = get_user(ctx.author.id)
 
-        if element == "dark":
-            bot_user["theme"] = dark_theme
+        themes = {
+            "dark": dark_theme,
+            "light": light_theme,
+            "default": default_theme,
+            "typegg": default_theme,
+        }
+        theme = themes.get(element, None)
+        if theme:
+            bot_user["theme"] = theme
             return await run(ctx, bot_user)
 
         elif element == "reset":

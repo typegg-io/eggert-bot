@@ -28,7 +28,7 @@ def apply_theme(ax: Axes, theme: dict):
     if theme["grid"] is None:
         ax.grid(False)
     else:
-        ax.grid(color=theme["grid"], alpha=0.5, linestyle=':')
+        ax.grid(color=theme["grid"])
 
     if 'line' in theme and theme['line'] in plt.colormaps():
         for i, line in enumerate(ax.get_lines()):
