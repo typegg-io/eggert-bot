@@ -5,7 +5,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 BOT_TOKEN = os.getenv("BOT_TOKEN")
-SECRET = os.getenv("SECRET")
+SECRET = os.getenv("SECRET", None)
 SITE_URL = os.getenv("SITE_URL")
 API_URL = os.getenv("API_URL")
 

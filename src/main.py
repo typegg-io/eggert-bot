@@ -3,7 +3,7 @@ import os
 import discord
 from discord.ext import commands
 
-from config import bot_prefix, BOT_TOKEN
+from config import bot_prefix, BOT_TOKEN, SECRET
 from web_server import start_web_server
 
 intents = discord.Intents.default()
@@ -17,7 +17,8 @@ bot.remove_command("help")
 async def on_ready():
     await load_commands()
     await bot.load_extension("error_handler")
-    await start_web_server(bot)
+    if SECRET:
+        await start_web_server(bot)
     print("Bot ready.")
 
 
