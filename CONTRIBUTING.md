@@ -87,20 +87,18 @@ Create a `.env` file in the project's root directory and include the following:
 
 ```
 BOT_TOKEN=[Your Bot Token]
-SECRET=[Your Shared Secret]
 API_URL=https://api.typegg.io
 SITE_URL=https://typegg.io
 ```
 
 - **`BOT_TOKEN`**: This is your bot's authentication token obtained in the **Creating a Bot** section.
-- **`SECRET`**: This SECRET is used for a secure communication between the official bot and TypeGG. It is not required for feature development, however the program will error if a value is not supplied. Set it as a placeholder for local development.
 
 ### Step 2: Configure Bot Settings
 
 Modify bot prefix in `config.py` if needed.
 
 ### Step 3: Run the Bot
-
+Make sure you are in the `src` directory, then run the following command:
 ```bash
 python main.py
 ```
