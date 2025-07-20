@@ -4,7 +4,7 @@ from discord.ext import commands
 info = {
     "name": "ping",
     "aliases": ["p"],
-    "description": "Displays the bot's latency.",
+    "description": "Displays the bot's latency",
     "parameters": "",
 }
 

@@ -137,7 +137,7 @@ web_server.py           # Web server to listen for verification requests
 
 ## Adding New Commands
 
-1. Navigate to `/commands`
+1. Navigate to `/commands`, under the appropriate subdirectory
 2. Create a new Python file for the command (file name should match the name of the command)
 3. Copy the code from `template.txt` into the new file
 4. Update the class name, and the function name to match the name of the command

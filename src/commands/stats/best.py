@@ -45,7 +45,7 @@ class Best(commands.Cog):
 async def run(ctx: commands.Context, bot_user: dict, username: str, quote_count: Optional[int] = 50):
     top_quotes = await get_top_quotes(username, quote_count)
 
-    title = f"Top {quote_count} pp Quotes"
+    title = f"Top {quote_count} PP Quotes"
 
     file_name = f"top_{quote_count}_quotes_{username}.png"
     title += f" - {username}"
