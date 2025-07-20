@@ -16,12 +16,14 @@ bot_prefix = "-"
 # Bot themes
 default_theme = {
     "embed": 0x004B87,
-    "axis": "#777777",
+    "axis": "#8E8E9F",
     "background": "#00031B",
     "graph_background": "#00031B",
-    "grid": "#333333",
+    "grid": "#8E8E9F",
+    "grid_opacity": 0.25,
     "line": "#00B5E2",
-    "text": "#ffffff"
+    "title": "#FFFFFF",
+    "text": "#8E8E9F"
 }
 light_theme = {
     "embed": 0x00AAD6,
@@ -29,7 +31,9 @@ light_theme = {
     "background": "#FFFFFF",
     "graph_background": "#FFFFFF",
     "grid": "#B0B0B0",
+    "grid_opacity": 1,
     "line": "#157EFD",
+    "title": "#000000",
     "text": "#000000",
 }
 dark_theme = {
@@ -38,6 +42,8 @@ dark_theme = {
     "background": "#111111",
     "graph_background": "#161616",
     "grid": "#333333",
+    "grid_opacity": 1,
     "line": "#157EFD",
-    "text": "#ffffff"
+    "title": "#FFFFFF",
+    "text": "#FFFFFF"
 }
