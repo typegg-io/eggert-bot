@@ -60,44 +60,28 @@ class Unlink(commands.Cog):
 
 
 async def unverify_user(bot_instance: commands.Bot, discord_id: str):
-    print(f"DEBUG: Looking for guild with ID {TYPEGG_GUILD_ID}")
-    print(f"DEBUG: Bot has {len(bot_instance.guilds)} guilds")
-    for g in bot_instance.guilds:
-        print(f"DEBUG: Guild: {g.name} (ID: {g.id})")
-
     guild = bot_instance.get_guild(TYPEGG_GUILD_ID)
     if not guild:
-        print(f"ERROR: Guild with ID {TYPEGG_GUILD_ID} not found")
+        print(f"Guild with ID {TYPEGG_GUILD_ID} not found")
         return
-
-    print(f"DEBUG: Found guild: {guild.name}")
-    print(f"DEBUG: Looking for member with ID {discord_id}")
-    print(f"DEBUG: Guild has {guild.member_count} members")
 
     member = guild.get_member(int(discord_id))
     if not member:
-        print(f"ERROR: Member with ID {discord_id} not found in guild {guild.name}")
+        print(f"Member with ID {discord_id} not found in guild {guild.name}")
         return
-
-    print(f"DEBUG: Found member: {member.name}")
-    print(f"DEBUG: Looking for role '{VERIFIED_ROLE_NAME}'")
-    print(f"DEBUG: Guild has {len(guild.roles)} roles")
-    for r in guild.roles:
-        print(f"DEBUG: Role: {r.name} (ID: {r.id})")
 
     role = discord.utils.get(guild.roles, name=VERIFIED_ROLE_NAME)
     if not role:
-        print(f"ERROR: Role '{VERIFIED_ROLE_NAME}' not found in guild {guild.name}")
+        print(f"Role '{VERIFIED_ROLE_NAME}' not found in guild {guild.name}")
         return
 
-    print(f"DEBUG: Found role: {role.name}")
     try:
         await member.remove_roles(role)
-        print(f"SUCCESS: Removed {VERIFIED_ROLE_NAME} role from {member.name}")
+        print(f"Removed {VERIFIED_ROLE_NAME} role from {member.name}")
     except discord.errors.Forbidden:
-        print(f"ERROR: Bot lacks permission to remove {VERIFIED_ROLE_NAME} role from {member.name}")
+        print(f"Bot lacks permission to remove {VERIFIED_ROLE_NAME} role from {member.name}")
     except Exception as e:
-        print(f"ERROR: Error removing {VERIFIED_ROLE_NAME} role from {member.name}: {e}")
+        print(f"Error removing {VERIFIED_ROLE_NAME} role from {member.name}: {e}")
 
 
 def not_verified():

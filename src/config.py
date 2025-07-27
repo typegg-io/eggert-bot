@@ -10,7 +10,7 @@ SITE_URL = os.getenv("SITE_URL")
 API_URL = os.getenv("API_URL")
 
 TYPEGG_GUILD_ID = 703605179433484289 # TypeGG Official Server
-VERIFIED_ROLE_NAME = "verifiedegg🥚"
+VERIFIED_ROLE_NAME = "Verified Egg 🥚"
 bot_prefix = "-"
 
 # Bot themes
