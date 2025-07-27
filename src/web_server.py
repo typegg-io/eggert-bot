@@ -6,7 +6,7 @@ from aiohttp import web
 from datetime import datetime, timezone
 from discord import Embed
 
-from config import API_URL, SECRET, TYPEGG_GUILD_ID
+from config import API_URL, SECRET, TYPEGG_GUILD_ID, VERIFIED_ROLE_NAME
 from database import users
 
 used_tokens = {}
@@ -254,18 +254,18 @@ async def verify_user(request: web.Request):
         member = guild.get_member(int(discord_id))
 
         if member:
-            role = discord.utils.get(guild.roles, name="verified egg 🥚")
+            role = discord.utils.get(guild.roles, name=VERIFIED_ROLE_NAME)
             if role:
                 try:
                     await member.add_roles(role)
-                    print(f"Assigned verified egg role to {member.name}")
+                    print(f"Assigned verifiedegg role to {member.name}")
                 except discord.errors.Forbidden:
                     return web.json_response({"error": "Bot lacks permission to assign roles."}, status=500)
                 except Exception as e:
                     print(f"Error assigning verified role: {e}")
                     return web.json_response({"error": "Failed to assign role."}, status=500)
             else:
-                print(f"'verified egg 🥚' role not found in guild {guild.name}")
+                print(f"'{VERIFIED_ROLE_NAME}' role not found in guild {guild.name}")
                 return web.json_response({"error": "Verification role not found."}, status=500)
 
             try:
