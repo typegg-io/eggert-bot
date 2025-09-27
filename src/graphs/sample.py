@@ -1,4 +1,4 @@
-from graphs.core import plt, apply_theme
+from graphs.core import plt, apply_theme, generate_file_name
 
 
 def render(theme: dict):
@@ -14,6 +14,8 @@ def render(theme: dict):
 
     apply_theme(ax, theme)
 
-    plt.savefig("sample_graph.png")
-
+    file_name = generate_file_name("sample")
+    plt.savefig(file_name)
     plt.close()
+
+    return file_name
