@@ -7,7 +7,7 @@ from datetime import datetime, timezone
 from discord import Embed
 
 from config import API_URL, SECRET, TYPEGG_GUILD_ID, VERIFIED_ROLE_NAME
-from database import users
+from database.bot.users import get_all_linked_users
 
 used_tokens = {}
 
@@ -110,7 +110,7 @@ async def update_nwpm_roles(bot):
                 await asyncio.sleep(3600)
                 continue
 
-            linked_users = users.get_all_linked_users()
+            linked_users = get_all_linked_users()
 
             if not linked_users:
                 print("No linked users found. Retrying in 60 minutes.")
