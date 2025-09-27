@@ -65,7 +65,7 @@ async def on_ready():
     else:
         loop = asyncio.get_running_loop()
         start_watcher(bot, loop)
-    print("Bot ready.")
+    log("Bot ready.")
 
 
 async def load_commands():

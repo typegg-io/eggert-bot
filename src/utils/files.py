@@ -1,6 +1,7 @@
 import os
 
 from config import SOURCE_DIR
+from utils.logging import log
 
 
 def get_command_groups():
@@ -17,4 +18,4 @@ def remove_file(file_name: str):
     try:
         os.remove(file_name)
     except FileNotFoundError:
-        print("File not found.")
+        log("File not found.")
