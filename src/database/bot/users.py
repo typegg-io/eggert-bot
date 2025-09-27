@@ -182,3 +182,12 @@ def unadmin_user(discord_id: str):
         SET isAdmin = 0
         WHERE discordId = ?
     """, [discord_id])
+
+
+def get_admin_users():
+    results = db.fetch("""
+        SELECT discordId FROM users
+        WHERE isAdmin = 1
+    """)
+
+    return results
