@@ -7,7 +7,7 @@ import aiosqlite
 folder_path = os.path.join(os.path.dirname(__file__), "..", "..", "data")
 os.makedirs(folder_path, exist_ok=True)
 
-file = "./data/typegg.db"
+file = os.path.join(folder_path, "typegg.db")
 
 reader = sqlite3.connect(file)
 reader.row_factory = sqlite3.Row
