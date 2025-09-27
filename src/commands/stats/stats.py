@@ -1,12 +1,10 @@
 from typing import Optional
 
-from discord import Embed
 from discord.ext import commands
 
-from api.users import get_profile
-from database.users import get_user
-from utils import errors
-from utils.strings import discord_timestamp
+from commands.base import Command
+from utils import urls, strings, stats
+from utils.messages import Page, Message, Field
 
 info = {
     "name": "stats",
@@ -16,50 +14,68 @@ info = {
 }
 
 
-async def setup(bot: commands.Bot):
-    await bot.add_cog(Stats(bot))
-
-
-class Stats(commands.Cog):
-    def __init__(self, bot):
-        self.bot = bot
-
+class Stats(Command):
     @commands.command(aliases=info["aliases"])
     async def stats(self, ctx, username: Optional[str] = "me"):
-        bot_user = get_user(ctx.author.id)
-
-        if username == "me":
-            username = bot_user["user_id"]
-        if not username:
-            return await ctx.send(embed=errors.missing_arguments(info))
-
-        await run(ctx, bot_user, username)
+        profile = await self.get_profile(ctx, username)
+        await run(ctx, profile)
 
 
-async def run(ctx: commands.Context, bot_user: dict, username: str):
-    stats = await get_profile(username)
+async def run(ctx: commands.Context, profile: dict):
+    fields = [
+        Field(
+            title="Performance",
+            content=(
+                f"**Total:** {profile["stats"]["totalPp"]:,.0f} pp\n"
+                f"**Best:** {profile["stats"]["bestPp"]["value"]:,.2f} pp\n"
+                f"**nWPM:** {profile["stats"]["nWpm"]:.2f} ({profile["stats"]["accuracy"]:.2%} accuracy)\n"
+                f"**Top Speed:** {profile["stats"]["bestWpm"]["value"]} WPM\n\n"
+            )
+        ),
+        Field(
+            title="Activity",
+            content=(
+                f"**Quotes:** {profile["stats"]["quotesTyped"]:,}\n"
+                f"**Races:** {profile["stats"]["races"]:,}\n"
+                f"**Solo:** {profile["stats"]["soloRaces"]:,} / "
+                f"**Multiplayer:** {profile["stats"]["multiplayerRaces"]:,}\n"
+                f"**Wins:** {profile["stats"]["wins"]:,} "
+                f"({0 if profile["stats"]["multiplayerRaces"] == 0
+                else profile["stats"]["wins"] / profile["stats"]["multiplayerRaces"]:.2%} win rate)\n"
+                f"**Level:** {stats.get_typegg_level(profile["stats"]["experience"]):,.2f} "
+                f"({profile["stats"]["experience"]:,.0f} XP)\n"
+                f"**Play Time:** {strings.format_duration(profile["stats"]["playTime"] / 1000)}\n"
+                f""
+            )
+        ),
+        Field(
+            title="About",
+            content=(
+                f"**Last Seen:** {strings.discord_date(profile["lastSeen"])}\n"
+                f"**Join Date:** {strings.discord_date(profile["joinDate"])}\n"
+                + (f"**Layout:** {profile["hardware"]["layout"]}\n" if profile["hardware"]["layout"] else "")
+                + (f"**Keyboard:** {profile["hardware"]["keyboard"]}\n" if profile["hardware"]["keyboard"] else "")
+                + (f"**Switches:** {profile["hardware"]["switches"]}\n" if profile["hardware"]["switches"] else "")
+                + f"**Profile Views:** {profile["profileViews"]}"
+            )
+        )
+    ]
 
-    embed = Embed(
-        title="Profile",
-        color=bot_user["theme"]["embed"],
+    country = profile["country"]
+    country_rank = f" / #{profile["countryRank"]} :flag_{country.lower()}:" if country else ""
+
+    page = Page(
+        description=(
+            f"**Rank**: #{profile["globalRank"]:,} :earth_americas:{country_rank}"
+        ),
+        fields=fields,
     )
 
-    general_field = f"Joined: {discord_timestamp(stats['joined'])}"
-    country = stats["country"]
-    if country:
-        general_field += f"\nCountry: :flag_{country}: {country.upper()}"
-
-    stats_field = (
-        f"Global Ranking: #{stats['global_ranking']}\n"
-        f"Total pp: {stats['total_pp']}\n"
-        f"Highest WPM: {stats['highest_wpm']}\n"
-        f"Highest pp: {stats['highest_pp']}\n"
+    message = Message(
+        ctx,
+        page=page,
+        url=urls.profile(profile["username"]),
+        profile=profile,
     )
 
-    embed.add_field(name="General", value=general_field, inline=False)
-    embed.add_field(name="Stats", value=stats_field, inline=False)
-
-    embed.set_thumbnail(url=stats["avatar"])
-    embed.set_author(name=username)
-
-    await ctx.send(embed=embed)
+    return await message.send()
