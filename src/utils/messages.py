@@ -159,9 +159,8 @@ class Message(View):
 
     def add_profile(self, embed):
         """Adds profile avatar and author section to the embed."""
-        username = self.profile.get("displayName", None)
-        if not username:
-            username = self.profile["username"]
+        username = self.profile["username"]
+        display_name = self.profile.get("displayName", username)
         author_icon = (
             f"https://flagsapi.com/{self.profile["country"].upper()}/flat/64.png"
             if self.profile["country"]
@@ -172,7 +171,7 @@ class Message(View):
             embed.set_thumbnail(url=self.profile["avatarUrl"])
 
         embed.set_author(
-            name=username,
+            name=display_name,
             url=urls.profile(username),
             icon_url=author_icon,
         )
@@ -317,9 +316,11 @@ class Message(View):
 
     def start(self):
         """Returns a fire-and-forget message, used for skeleton commands."""
+
         async def runner():
             await self.send()
             # await self.edit()
+
         return asyncio.create_task(runner())
 
     async def on_timeout(self):
