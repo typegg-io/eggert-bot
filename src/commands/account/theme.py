@@ -19,7 +19,7 @@ elements = {
     "embed": ["em"],
     "axis": ["ax"],
     "background": ["bg"],
-    "graph_background": ["graph", "gbg"],
+    "graph_background": ["graphbackground", "graph", "gbg"],
     "grid": ["#"],
     "grid_opacity": ["go"],
     "line": ["-"],
@@ -37,10 +37,11 @@ info = {
     "name": "theme",
     "aliases": ["st"],
     "description": "Allows for customization of embed and graph colors\n"
-                   "Pre-made themes:\n"
+                   + "\nElements:\n" + ", ".join([f"`{el}`" for el in elements]) +
+                   "\n\nPre-made themes:\n"
                    "`-theme typegg` (default)\n"
                    "`-theme dark`\n"
-                   "`-theme light`",
+                   "`-theme light`\n",
     "parameters": "[element] [color]",
 }
 
