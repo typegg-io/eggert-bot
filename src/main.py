@@ -9,7 +9,7 @@ from discord.ext import commands
 from watchdog.observers import Observer
 
 from commands.base import Command
-from config import BOT_PREFIX, BOT_TOKEN, SECRET, STAGING, TYPEGG_CHANNEL_ID, ROOT_DIR
+from config import BOT_PREFIX, BOT_TOKEN, STAGING, TYPEGG_CHANNEL_ID, SOURCE_DIR
 from database.bot.users import get_user_ids, get_total_commands, update_commands
 from utils import files
 from utils.logging import get_log_message, log
@@ -26,7 +26,6 @@ bot.remove_command("help")
 
 total_commands = sum(get_total_commands().values())
 users = get_user_ids()
-SOURCE_DIR = ROOT_DIR / "src"
 
 
 @bot.event
@@ -88,10 +87,12 @@ def start_watcher(bot, loop):
     thread = threading.Thread(target=observer.start, daemon=True)
     thread.start()
 
+
 def clear_image_cache():
     images = glob.glob("*.png")
     for file in images:
         os.remove(file)
+
 
 if __name__ == "__main__":
     clear_image_cache()

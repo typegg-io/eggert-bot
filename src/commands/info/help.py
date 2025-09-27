@@ -5,7 +5,7 @@ from typing import Optional
 from discord.ext import commands
 
 from commands.base import Command
-from config import BOT_PREFIX as prefix
+from config import BOT_PREFIX as prefix, SOURCE_DIR
 from utils import files
 from utils.errors import admin_command, unknown_command
 from utils.messages import Page, Message, Field
@@ -42,7 +42,7 @@ async def help_main(ctx: commands.Context):
         if group == "admin" and not ctx.user["isAdmin"]:
             continue
         command_list = []
-        for file in os.listdir(f"./commands/{group}"):
+        for file in os.listdir(SOURCE_DIR / "commands" / group):
             if file.endswith(".py") and not file.startswith("_") and not file.startswith("help"):
                 command_list.append(file[:-3])
         command_list.sort()
@@ -72,7 +72,7 @@ async def help_command(ctx: commands.Context, command_name: str):
     groups = files.get_command_groups()
     command = None
     for group in groups:
-        for file in os.listdir(f"./commands/{group}"):
+        for file in os.listdir(SOURCE_DIR / "commands" / group):
             if file.endswith(".py") and not file.startswith("_"):
                 module = importlib.import_module(f"commands.{group}.{file[:-3]}")
                 command_info = module.info
