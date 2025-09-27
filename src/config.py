@@ -1,32 +1,47 @@
 import os
+from pathlib import Path
 
 from dotenv import load_dotenv
 
+from utils.colors import DEFAULT
+
 load_dotenv()
 
+# Environment variables
 BOT_TOKEN = os.getenv("BOT_TOKEN")
 SECRET = os.getenv("SECRET", None)
 SITE_URL = os.getenv("SITE_URL")
 API_URL = os.getenv("API_URL")
 
-TYPEGG_GUILD_ID = 703605179433484289 # TypeGG Official Server
+# Webhooks
+MESSAGE_WEBHOOK = os.getenv("MESSAGE_WEBHOOK", None)
+ERROR_WEBHOOK = os.getenv("ERROR_WEBHOOK", None)
+
+# Bot configuration
+BOT_PREFIX = "-"
+TYPEGG_GUILD_ID = 703605179433484289
 VERIFIED_ROLE_NAME = "Verified Egg 🥚"
-bot_prefix = "-"
+TYPEGG_CHANNEL_ID = 1337196592905846864
+ROOT_DIR = Path(__file__).resolve().parents[1]
+STAGING = MESSAGE_WEBHOOK is None
+EIKO = 87926662364160000
+KEEGAN = 155481579005804544
 
 # Bot themes
-default_theme = {
-    "embed": 0x004B87,
-    "axis": "#8E8E9F",
+DEFAULT_THEME = {
+    "embed": DEFAULT,
+    "axis": "#8E8E8E",
     "background": "#00031B",
     "graph_background": "#00031B",
-    "grid": "#8E8E9F",
+    "grid": "#8E8E8E",
     "grid_opacity": 0.25,
     "line": "#00B5E2",
     "title": "#FFFFFF",
-    "text": "#8E8E9F"
+    "text": "#FFFFFF"
 }
-light_theme = {
-    "embed": 0x00AAD6,
+
+LIGHT_THEME = {
+    "embed": DEFAULT,
     "axis": "#000000",
     "background": "#FFFFFF",
     "graph_background": "#FFFFFF",
@@ -36,8 +51,9 @@ light_theme = {
     "title": "#000000",
     "text": "#000000",
 }
-dark_theme = {
-    "embed": 0x00AAD6,
+
+DARK_THEME = {
+    "embed": DEFAULT,
     "axis": "#777777",
     "background": "#111111",
     "graph_background": "#161616",
