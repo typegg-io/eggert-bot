@@ -3,6 +3,7 @@ from discord.ext import commands
 from api.quotes import get_quotes
 from commands.base import Command
 from utils import strings, urls
+from utils.errors import missing_arguments
 from utils.messages import Page, Message, paginate_data
 
 info = {
@@ -15,8 +16,11 @@ info = {
 
 class Search(Command):
     @commands.command(aliases=info["aliases"])
-    async def search(self, ctx, *args: str):
-        await run(ctx, " ".join(args))
+    async def search(self, ctx, *, query=None):
+        if not query:
+            return await ctx.send(embed=missing_arguments(info))
+
+        await run(ctx, query)
 
 
 def entry_formatter(quote):
