@@ -11,9 +11,20 @@ Thank you for your interest in contributing to Eggert! Follow the instructions h
 
    ```
    git clone https://github.com/typegg-io/eggert-bot
+   cd eggert-bot
+   ```
+3. (Recommended) Create and activate a virtual environment:
+   ```
+   python -m venv venv
+   
+   # On Linux/Mac:
+   source venv/bin/activate
+   
+   # On Windows (PowerShell):
+   .\venv\Scripts\activate
    ```
 
-3. Install dependencies:
+4. Install dependencies:
 
    ```
    pip install -r requirements.txt
@@ -43,15 +54,15 @@ Enable the bots required **intents**:
 
 1. Under the **Bot** tab, scroll to **Privileged Gateway Intents**
 2. Enable the following **intents**:
-   - **Message Content Intent** – Allows the bot to read user messages for commands
-   - **Server Members Intent** – Required to add/remove roles
+    - **Message Content Intent** – Allows the bot to read user messages for commands
+    - **Server Members Intent** – Required to add/remove roles
 
 When adding the bot to a server, it will require the following **permissions**:
 
 #### General Permissions
 
 - **Manage Roles** – Required to add and remove roles from users
-  - **Note**: The bot cannot manage roles above its own role
+    - **Note**: The bot cannot manage roles above its own role
 - **View Channels** - Required to view guild channels
 
 #### Text Permissions
@@ -98,7 +109,9 @@ SITE_URL=https://typegg.io
 Modify bot prefix in `config.py` if needed.
 
 ### Step 3: Run the Bot
+
 Make sure you are in the `src` directory, then run the following command:
+
 ```bash
 python main.py
 ```
