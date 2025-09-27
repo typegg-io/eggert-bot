@@ -1,21 +1,36 @@
-import os
+from datetime import datetime, timezone
+
 import matplotlib
+import matplotlib.font_manager as fm
+import matplotlib.image as mpimg
 import matplotlib.pyplot as plt
+import numpy as np
 from matplotlib.axes import Axes
 from matplotlib.collections import LineCollection
-from matplotlib.colors import LinearSegmentedColormap
-import numpy as np
+from matplotlib.colors import LinearSegmentedColormap, to_rgb
+from matplotlib.offsetbox import OffsetImage, AnnotationBbox
 
-cmap_keegant = LinearSegmentedColormap.from_list("keegant", ["#0094FF", "#FF00DC"])
-matplotlib.colormaps.register(cmap_keegant)
+from config import ROOT_DIR
+from utils import dates
+
+ASSETS_DIR = ROOT_DIR / "assets"
+FONT_PATH = ASSETS_DIR / "fonts" / "DMSans-Medium.ttf"
+fm.fontManager.addfont(FONT_PATH)
+plt.rcParams["font.family"] = fm.FontProperties(fname=FONT_PATH).get_name()
+
+matplotlib.colormaps.register(LinearSegmentedColormap.from_list("keegan", ["#0094FF", "#FF00DC"]))
+
 
 def apply_theme(ax: Axes, theme: dict):
+    """Apply a theme to all graph elements."""
     # Backgrounds
-    ax.figure.set_facecolor(theme["background"])
+    background_color = theme["background"]
+    ax.figure.set_facecolor(background_color)
     ax.set_facecolor(theme["graph_background"])
 
     # Text
-    ax.title.set_color(theme["text"])
+    ax.title.set_color(theme["title"])
+    ax.title.set_fontsize(14)
     ax.xaxis.label.set_color(theme["text"])
     ax.yaxis.label.set_color(theme["text"])
 
@@ -25,168 +40,128 @@ def apply_theme(ax: Axes, theme: dict):
         axis.set_color(theme["axis"])
 
     # Grid
-    if theme["grid"] is None:
-        ax.grid(False)
-    else:
-        ax.grid(color=theme["grid"])
+    ax.grid(color=theme["grid"], alpha=theme["grid_opacity"])
 
-    if 'line' in theme and theme['line'] in plt.colormaps():
+    # Lines
+    if theme["line"] in plt.colormaps:
         for i, line in enumerate(ax.get_lines()):
-            # Skip lines with special labels or no data
-            if not line.get_visible() or str(line.get_label()).startswith('_'):
-                continue
-            apply_colormap_to_line(ax, i, theme['line'])
+            get_line_colormap(ax, i, theme["line"])
     elif len(ax.get_lines()) > 0:
         for line in ax.get_lines():
-            if not str(line.get_label()).startswith('_'):
+            if not str(line.get_label()).startswith("_"):
                 line.set_color(theme["line"])
 
-def apply_colormap_to_line(ax, line_index, colormap_name):
-    """Apply a colormap to a specific line in the plot"""
-    if line_index >= len(ax.get_lines()):
-        return None
+    # Logo
+    if "\n" in ax.get_title():
+        fig = ax.figure
+        fig.subplots_adjust(top=0.844)
+        width, height = fig.get_size_inches()
+        fig.set_size_inches(width, height + 0.22)
 
+    logo = "logo.png" if get_luminance(*to_rgb(background_color)) <= 0.5 else "logo_dark.png"
+    logo_path = ASSETS_DIR / "images" / logo
+    img = mpimg.imread(logo_path)
+    imagebox = OffsetImage(img, zoom=0.1)
+    frameon = False
+    boxprops = None
+    if color_distance(background_color, "#00B5E2") <= 1:
+        frameon = True
+        boxprops = dict(
+            facecolor="#00031B",
+            edgecolor="none",
+            alpha=0.25,
+            boxstyle="round,pad=0.4"
+        )
+    ab = AnnotationBbox(
+        imagebox,
+        (0, 1),
+        xycoords="figure fraction",
+        boxcoords="offset points",
+        xybox=(6, -6),
+        box_alignment=(0, 1),
+        frameon=frameon,
+        bboxprops=boxprops
+    )
+    ax.figure.add_artist(ab)
+    ax.add_artist(ab)
+
+
+def get_line_colormap(ax: Axes, line_index: int, colormap_name: str):
+    """Returns a line collection object with a colormap applied."""
     cmap = plt.get_cmap(colormap_name)
-    line_width = 2 if colormap_name == "keegant" else 1.5
-
     line = ax.get_lines()[line_index]
     x, y = line.get_data()
 
-    if len(x) < 2 or len(y) < 2:
-        return None
-
     ax.lines[line_index].remove()
-
     points = np.array([x, y]).T.reshape(-1, 1, 2)
     segments = np.concatenate([points[:-1], points[1:]], axis=1)
-    lc = LineCollection(segments, cmap=cmap, zorder=50, linewidth=line_width) # type: ignore
+    lc = LineCollection(segments, cmap=cmap, zorder=50, linewidth=1.5)
     lc.set_array(np.linspace(0, 1, len(x)))
-
-    ax.add_collection(lc)
-    return lc
-
-
-def color_graph(ax, user, recolored_line=0, force_legend=False, match=False):
-    colors = user["colors"]
-
-    ax.set_facecolor(colors["graphbackground"])
-    ax.figure.set_facecolor(colors["background"])
-
-    for axis in ax.spines.values():
-        axis.set_color(colors["axis"])
-
-    ax.set_title(label=ax.get_title(), color=colors["text"])
-    ax.xaxis.label.set_color(color=colors["text"])
-    ax.yaxis.label.set_color(color=colors["text"])
-    ax.tick_params(axis="both", which="both", colors=colors["axis"], labelcolor=colors["text"])
-
-    if colors["grid"] == "off":
-        ax.grid(False)
-    else:
-        ax.grid(color=colors["grid"])
-
-    legend_lines = []
-    legend_labels = []
-    handler_map = {}
-    line_color = colors["line"]
-
-    if len(ax.get_lines()) > 0:
-        for i, line in enumerate(ax.get_lines()):
-            label = line.get_label()
-
-            if label.startswith("_"):
-                continue
-
-            if i == recolored_line and line_color in plt.colormaps():
-                line = get_line_cmap(ax, recolored_line, user)
-            elif i == recolored_line:
-                line.set_color(line_color)
-
-            if not label.startswith("_child"):
-                legend_lines.append(line)
-                legend_labels.append(label)
-
-    if (len(legend_lines) > 1 or force_legend) and legend_lines:
-        if match:
-            legend = ax.legend(
-                legend_lines, legend_labels, handler_map=handler_map, loc="upper left",
-                bbox_to_anchor=(1.03, 1), borderaxespad=0, handletextpad=0.5
-            )
-            ax.set_position([0.1, 0.1, 0.6, 0.8])
-        else:
-            legend = ax.legend(
-                legend_lines, legend_labels, handler_map=handler_map, loc="upper left", framealpha=0.5
-            )
-
-        legend.get_frame().set_facecolor(colors["graphbackground"])
-        legend.get_frame().set_edgecolor(colors["axis"])
-        for text in legend.get_texts():
-            text.set_color(colors["text"])
-
-def get_line_cmap(ax, line_index, user):
-    line_width = 2 if user["colors"]["line"] == "keegant" else 1
-    cmap = plt.get_cmap(user["colors"]["line"])
-
-    if line_index >= len(ax.get_lines()):
-        return None
-
-    line = ax.get_lines()[line_index]
-    x, y = line.get_data()
-
-    ax.lines[line_index].remove()
-
-    points = np.array([x, y]).T.reshape(-1, 1, 2)
-    segments = np.concatenate([points[:-1], points[1:]], axis=1)
-    lc = LineCollection(segments, cmap=cmap, zorder=50, linewidth=line_width) # type: ignore
-    lc.set_array(x)
-
     ax.add_collection(lc)
 
     return lc
 
-def apply_cmap(ax, user, counts, groups, extent):
-    """
-    Apply colormap to histogram bars by creating a masked gradient background
 
-    Args:
-        ax: Matplotlib axes to style
-        user: User dict containing color preferences
-        counts: Bar heights/widths
-        groups: Bar positions
-        extent: The extent of the gradient background [left, right, bottom, top]
-    """
-    if not counts or not groups.size:
-        return
+def interpolate_segments(x, y):
+    """Returns a list of interpolated X and Y segments."""
+    x_segments = []
+    y_segments = []
 
-    cmap = plt.get_cmap(user["colors"]["line"])
+    for i in range(len(y) - 1):
+        x_range = x[-1] - x[0]
+        x_difference = x[i + 1] - x[i]
+        if x_difference == 0:
+            continue
+        x_size = x_range / x_difference
+        segment_count = max(int(50 / x_size), 2)
+        if segment_count == 2 and i < len(y) - 2:
+            x_segments.append(x[i])
+            y_segments.append(y[i])
+            continue
 
-    mask = np.zeros((len(groups) + 1, 2))
-    mask[:, 0] = np.concatenate([groups, [groups[-1] if len(groups) > 0 else 0]])
-    mask[:-1, 1] = counts if len(counts) > 0 else []
+        segments = np.linspace(y[i], y[i + 1], segment_count)
+        for v in segments[:-1]:
+            y_segments.append(v)
 
-    for patch in ax.patches:
-        patch.set_alpha(0)
+        segments = np.linspace(x[i], x[i + 1], segment_count)
+        for v in segments[:-1]:
+            x_segments.append(v)
 
-    original_xlim = ax.get_xlim()
+    y_segments.append(y[-1])
+    x_segments.append(x[-1])
 
-    x = np.linspace(0, 10, 100)
-    y = np.linspace(0, 10, 100)
-    X, Y = np.meshgrid(x, y)
+    return x_segments, y_segments
 
-    ax.imshow(X, cmap=cmap, extent=extent, origin="lower", aspect="auto")
-    ax.set_xlim(original_xlim)
 
-    graph_background = user["colors"]["graphbackground"]
+def apply_date_ticks(ax: Axes, timestamps: list[float]):
+    """Applies date ticks evenly spaced on the X-axis."""
+    min_timestamp = min(timestamps)
+    max_timestamp = max(timestamps)
+    date_range = max_timestamp - min_timestamp
+    step = date_range / 5
 
-    ax.fill_betweenx(mask[:, 0], mask[:, 1], extent[1], color=graph_background, step='post')
+    ticks = [min_timestamp + step * i for i in range(6)]
+    labels = [datetime.fromtimestamp(ts, timezone.utc).strftime("%b %#d '%y") for ts in ticks]
 
-    if len(groups) > 0:
-        ax.fill_betweenx([extent[2], groups[0]], [0, 0], [extent[1], extent[1]], color=graph_background)
-        ax.fill_betweenx([groups[-1], extent[3]], [0, 0], [extent[1], extent[1]], color=graph_background)
+    ax.set_xticks(ticks)
+    ax.set_xticklabels(labels)
 
-def remove_file(file_name: str):
-    """Remove a file if it exists"""
-    try:
-        os.remove(file_name)
-    except FileNotFoundError:
-        print("File not found.")
+    padding = date_range * 0.05
+    ax.set_xlim(min_timestamp - padding, max_timestamp + padding)
+
+
+def get_luminance(r, g, b):
+    """Returns the luminance of RGB values."""
+    return 0.2126 * r + 0.7152 * g + 0.0722 * b
+
+
+def color_distance(color1, color2):
+    """Returns the distance between two colors."""
+    rgb1 = to_rgb(color1)
+    rgb2 = to_rgb(color2)
+    return np.linalg.norm(np.array(rgb1) - np.array(rgb2))
+
+
+def generate_file_name(prefix: str):
+    """Returns a unique file name with a prefix."""
+    return f"{prefix}_{round(dates.now().timestamp() * 1000)}.png"
