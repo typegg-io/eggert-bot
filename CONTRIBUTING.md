@@ -1,6 +1,6 @@
-# Contributing to TypeGG Stats
+# Contributing to Eggert <img src="assets/images/eggert_construction.png" alt="Eggert" width="50" style="vertical-align: bottom;"/>
 
-Thank you for your interest in contributing to TypeGG Stats! Follow the instructions here to get started:
+Thank you for your interest in contributing to Eggert! Follow the instructions here to get started:
 
 ---
 
@@ -10,7 +10,7 @@ Thank you for your interest in contributing to TypeGG Stats! Follow the instruct
 2. Clone the repository using the following command:
 
    ```
-   git clone https://github.com/TypeGGio/TypeGG-Stats
+   git clone https://github.com/typegg-io/eggert-bot
    ```
 
 3. Install dependencies:
@@ -23,7 +23,7 @@ Thank you for your interest in contributing to TypeGG Stats! Follow the instruct
 
 ## Creating a Bot
 
-To test TypeGG Stats, you'll need to create your own Discord bot and retrieve it's token:
+To test Eggert, you'll need to create your own Discord bot and retrieve it's token:
 
 ### Step 1: Create a Discord Application
 
