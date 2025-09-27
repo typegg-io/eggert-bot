@@ -15,7 +15,7 @@ def is_bot_admin():
 
 def is_bot_owner():
     async def predicate(ctx: commands.Context):
-        if ctx.user["userId"] in [EIKO, KEEGAN]:
+        if ctx.author.id in [EIKO, KEEGAN]:
             return True
         raise UserNotOwner("Non owner attempted to use an owner command")
 
