@@ -14,6 +14,7 @@ ADMIN_ALIASES = {
     808803618005188651: "Fragment",
 }
 
+
 def time_start():
     global start
     start = time.time()
@@ -47,7 +48,10 @@ def get_log_message(message):
 
 
 def send_log(webhook, message, file=None):
-    payload = {"content": message}
+    payload = {
+        "content": message,
+        "allowed_mentions": {"parse": ["users"]}
+    }
 
     if file:
         return requests.post(webhook, data=payload, files={"file": file})
