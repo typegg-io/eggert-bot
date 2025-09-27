@@ -3,8 +3,9 @@ from typing import Optional
 from discord.ext import commands
 
 from commands.base import Command
-from utils import urls, strings, stats
+from utils import urls
 from utils.messages import Page, Message, Field
+from utils.strings import discord_date, format_duration
 
 info = {
     "name": "stats",
@@ -42,17 +43,17 @@ async def run(ctx: commands.Context, profile: dict):
                 f"**Wins:** {profile["stats"]["wins"]:,} "
                 f"({0 if profile["stats"]["multiplayerRaces"] == 0
                 else profile["stats"]["wins"] / profile["stats"]["multiplayerRaces"]:.2%} win rate)\n"
-                f"**Level:** {stats.get_typegg_level(profile["stats"]["experience"]):,.2f} "
+                f"**Level:** {profile["stats"]["level"]:,.2f} "
                 f"({profile["stats"]["experience"]:,.0f} XP)\n"
-                f"**Play Time:** {strings.format_duration(profile["stats"]["playTime"] / 1000)}\n"
+                f"**Play Time:** {format_duration(profile["stats"]["playTime"] / 1000)}\n"
                 f""
             )
         ),
         Field(
             title="About",
             content=(
-                f"**Last Seen:** {strings.discord_date(profile["lastSeen"])}\n"
-                f"**Join Date:** {strings.discord_date(profile["joinDate"])}\n"
+                f"**Last Seen:** {discord_date(profile["lastSeen"])}\n"
+                f"**Join Date:** {discord_date(profile["joinDate"])}\n"
                 + (f"**Layout:** {profile["hardware"]["layout"]}\n" if profile["hardware"]["layout"] else "")
                 + (f"**Keyboard:** {profile["hardware"]["keyboard"]}\n" if profile["hardware"]["keyboard"] else "")
                 + (f"**Switches:** {profile["hardware"]["switches"]}\n" if profile["hardware"]["switches"] else "")
