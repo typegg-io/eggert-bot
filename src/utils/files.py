@@ -8,3 +8,10 @@ def get_command_groups():
             groups.append(dir)
 
     return groups
+
+def remove_file(file_name: str):
+    """Remove a file if it exists."""
+    try:
+        os.remove(file_name)
+    except FileNotFoundError:
+        print("File not found.")
