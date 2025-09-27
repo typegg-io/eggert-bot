@@ -1,0 +1,184 @@
+import json
+
+from config import DEFAULT_THEME
+from database.bot import db
+from utils import dates
+
+
+def add_user(discord_id: str):
+    user = {
+        "discordId": discord_id,
+        "userId": None,
+        "theme": json.dumps(DEFAULT_THEME),
+        "commands": json.dumps({
+            "counts": {},
+            "server": 0,
+            "dm": 0,
+        }),
+        "joined": dates.now().timestamp(),
+        "startDate": None,
+        "endDate": None,
+        "isBanned": 0,
+        "isAdmin": 0,
+    }
+    user_values = user.values()
+
+    db.run(f"INSERT INTO users VALUES ({",".join(["?"] * len(user_values))})", list(user_values))
+
+    return user
+
+
+def get_user(discord_id: str):
+    """
+    Returns a user object given a Discord ID.
+    Creates a new user if no record is found.
+    """
+    results = db.fetch("""
+        SELECT * FROM users
+        WHERE discordId = ?
+        LIMIT 1
+    """, [discord_id])
+
+    if results:
+        user = results[0]
+    else:
+        user = add_user(discord_id)
+
+    user = dict(user)
+    user["theme"] = json.loads(user["theme"])
+    return user
+
+
+def get_user_ids():
+    users = db.fetch("SELECT discordId FROM users")
+
+    return [int(user[0]) for user in users]
+
+
+def get_total_commands():
+    """Returns a dictionary of total command counts for all users."""
+    all_commands = db.fetch("""
+        SELECT commands FROM users
+    """)
+
+    total_commands = {}
+    for user in all_commands:
+        user_commands = json.loads(user["commands"])["counts"]
+        for command in user_commands:
+            if command in total_commands:
+                total_commands[command] += user_commands[command]
+            else:
+                total_commands[command] = user_commands[command]
+
+    return total_commands
+
+
+def update_commands(discord_id: str, command_name: str, origin: str):
+    """
+    Increments a user's command count.
+    Args:
+        discord_id: Discord ID of the user
+        command_name: Name of the command used
+        origin: Origin of the command ('server', 'dm')
+    """
+    user_commands = db.fetch("""
+        SELECT commands FROM users
+        WHERE discordId = ?
+    """, [discord_id])[0][0]
+
+    user_commands = json.loads(user_commands)
+
+    if command_name in user_commands["counts"]:
+        user_commands["counts"][command_name] += 1
+    else:
+        user_commands["counts"][command_name] = 1
+    user_commands[origin] += 1
+
+    db.run("""
+        UPDATE users
+        SET commands = ?
+        WHERE discordId = ?
+    """, [json.dumps(user_commands), discord_id])
+
+
+def update_theme(discord_id: str, theme: dict):
+    db.run("""
+        UPDATE users
+        SET theme = ?
+        WHERE discordId = ?
+    """, [json.dumps(theme), discord_id])
+
+
+def link_user(discord_id: str, user_id: str):
+    """Creates a link between a Discord ID and a User ID."""
+    db.run("""
+        UPDATE users
+        SET userId = ?
+        WHERE discordId = ?
+    """, [user_id, discord_id])
+
+
+def unlink_user(discord_id: str):
+    """Removes the link between a Discord ID and a User ID."""
+    db.run("""
+        UPDATE users
+        SET userId = NULL
+        WHERE discordId = ?
+    """, [discord_id])
+
+
+def get_all_linked_users():
+    """
+    Return all Discord ID and user ID pairs for linked users.
+    Returns a list of tuples (discord_id, user_id).
+    """
+    results = db.fetch("""
+        SELECT discordId, userId
+        FROM users
+        WHERE userId IS NOT NULL
+    """)
+
+    return [(str(row["discordId"]), str(row["userId"])) for row in results]
+
+
+def is_user_linked(discord_id: str) -> bool:
+    """Check if a Discord user is linked to a user ID."""
+    results = db.fetch("""
+        SELECT userId
+        FROM users
+        WHERE discordId = ? AND userId IS NOT NULL
+    """, [discord_id])
+
+    return len(results) > 0
+
+
+def ban_user(discord_id: str):
+    db.run("""
+        UPDATE users
+        SET isBanned = 1
+        WHERE discordId = ?
+    """, [discord_id])
+
+
+def unban_user(discord_id: str):
+    db.run("""
+        UPDATE users
+        SET isBanned = 0
+        WHERE discordId = ?
+    """, [discord_id])
+
+
+def admin_user(discord_id: str):
+    db.run("""
+        UPDATE users
+        SET isAdmin = 1
+        WHERE discordId = ?
+    """, [discord_id])
+
+
+def unadmin_user(discord_id: str):
+    db.run("""
+        UPDATE users
+        SET isAdmin = 0
+        WHERE discordId = ?
+    """, [discord_id])
