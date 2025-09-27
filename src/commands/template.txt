@@ -1,7 +1,8 @@
 from discord.ext import commands
-from discord import Embed
+from typing import Optional
 
-from database.users import get_user
+from commands.base import Command
+from utils.messages import Page, Message, Field
 
 info = {
     "name": "",
@@ -10,27 +11,24 @@ info = {
     "parameters": "",
 }
 
-
-async def setup(bot: commands.bot):
-    await bot.add_cog(CommandName(bot))
-
-
-class CommandName(commands.Cog):
-    def __init__(self, bot):
-        self.bot = bot
-
+class CommandName(Command):
     @commands.command(aliases=info["aliases"])
-    async def command_name(self, ctx):
-        bot_user = get_user(ctx.author.id)
+    async def commandname(self, ctx, username: Optional[str] = "me"):
+        profile = await self.get_profile(ctx, username)
 
-        await run(ctx, bot_user)
+        await run(ctx, profile)
 
 
-async def run(ctx: commands.Context, bot_user: dict):
-    embed = Embed(
+async def run(ctx: commands.Context, profile: dict):
+    page = Page(
         title="Title",
-        description="description",
-        color=bot_user["theme"]["embed"],
+        description="Description",
     )
 
-    await ctx.send(embed=embed)
+    message = Message(
+        ctx,
+        page=page,
+        profile=profile,
+    )
+
+    await message.send()

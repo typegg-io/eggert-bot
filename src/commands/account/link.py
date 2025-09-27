@@ -2,9 +2,9 @@ from discord import Embed, Forbidden
 from discord.ext import commands
 
 from api.verification import generate_link
-from config import bot_prefix as prefix
-from database.users import get_user
-from utils.errors import RED
+from commands.base import Command
+from config import BOT_PREFIX
+from utils.errors import ERROR
 
 info = {
     "name": "link",
@@ -13,28 +13,19 @@ info = {
     "parameters": "",
 }
 
-async def setup(bot: commands.Bot):
-    await bot.add_cog(Link(bot))
 
-class Link(commands.Cog):
-    def __init__(self, bot):
-        self.bot = bot
-
+class Link(Command):
     @commands.command(aliases=info["aliases"])
-    async def link(self, ctx):
-        author = str(ctx.author.id)
-        bot_user = get_user(author)
-
-        if bot_user["user_id"]:
+    async def link(self, ctx: commands.Context):
+        if ctx.user["userId"]:
             return await ctx.send(embed=already_verified())
 
-        link = generate_link(author)
-
+        link = generate_link(str(ctx.author.id))
         embed = Embed(
             title="Link Your TypeGG Account",
             description=f"To verify your account, click [**here**]({link}) and\n"
                         f"follow the instructions on the website.",
-            color=bot_user["theme"]["embed"]
+            color=ctx.user["theme"]["embed"]
         )
 
         try:
@@ -47,8 +38,8 @@ def already_verified():
     return Embed(
         title="Already Verified",
         description="Your account is already linked.\n"
-                    f"Run `{prefix}unlink` to unlink your account.",
-        color=RED,
+                    f"Run `{BOT_PREFIX}unlink` to unlink your account.",
+        color=ERROR,
     )
 
 
@@ -57,5 +48,5 @@ def dms_disabled():
         title="Message Failed",
         description="Failed to send a direct message. Please enable\n"
                     "direct messages to receive the verification link.",
-        color=RED,
+        color=ERROR,
     )

@@ -1,5 +1,7 @@
-from discord import Embed
 from discord.ext import commands
+
+from commands.base import Command
+from utils.messages import Page, Message
 
 info = {
     "name": "ping",
@@ -9,18 +11,9 @@ info = {
 }
 
 
-async def setup(bot: commands.Bot):
-    await bot.add_cog(Ping(bot))
-
-
-class Ping(commands.Cog):
-    def __init__(self, bot):
-        self.bot = bot
-
+class Ping(Command):
     @commands.command(aliases=info["aliases"])
-    async def ping(self, ctx):
+    async def ping(self, ctx: commands.Context):
         latency = round(self.bot.latency * 1000)
-        embed = Embed(
-            description=f"Pong! :ping_pong: {latency}ms",
-        )
-        await ctx.send(embed=embed)
+        message = Message(ctx, Page(description=f"Pong! :ping_pong: {latency}ms"))
+        await message.send()

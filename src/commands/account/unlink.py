@@ -4,9 +4,10 @@ import discord
 from discord import Embed
 from discord.ext import commands
 
-from config import bot_prefix as prefix, TYPEGG_GUILD_ID, VERIFIED_ROLE_NAME
-from database.users import get_user, unlink_user
-from utils.errors import RED
+from commands.base import Command
+from config import BOT_PREFIX, TYPEGG_GUILD_ID, VERIFIED_ROLE_NAME
+from database.bot.users import unlink_user
+from utils.errors import ERROR
 
 info = {
     "name": "unlink",
@@ -16,19 +17,10 @@ info = {
 }
 
 
-async def setup(bot: commands.Bot):
-    await bot.add_cog(Unlink(bot))
-
-
-class Unlink(commands.Cog):
-    def __init__(self, bot):
-        self.bot = bot
-
+class Unlink(Command):
     @commands.command(aliases=info["aliases"])
-    async def unlink(self, ctx):
-        bot_user = get_user(ctx.author.id)
-
-        if not bot_user["user_id"]:
+    async def unlink(self, ctx: commands.Context):
+        if not ctx.user["userId"]:
             return await ctx.send(embed=not_verified())
 
         await ctx.author.send(embed=Embed(
@@ -52,8 +44,8 @@ class Unlink(commands.Cog):
 
             embed = Embed(
                 title="Verification Removed",
-                description=f"To re-verify your account, run `{prefix}link`.\n",
-                color=bot_user["theme"]["embed"]
+                description=f"To re-verify your account, run `{BOT_PREFIX}link`.\n",
+                color=ctx.user["theme"]["embed"]
             )
 
             await ctx.author.send(embed=embed)
@@ -88,5 +80,5 @@ def not_verified():
     return Embed(
         title="Not Verified",
         description="Your account has not yet been verified.",
-        color=RED
+        color=ERROR
     )
