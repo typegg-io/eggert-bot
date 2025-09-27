@@ -9,7 +9,7 @@ from discord.ext import commands
 from watchdog.observers import Observer
 
 from commands.base import Command
-from config import BOT_PREFIX, BOT_TOKEN, SECRET, STAGING, TYPEGG_CHANNEL_ID
+from config import BOT_PREFIX, BOT_TOKEN, SECRET, STAGING, TYPEGG_CHANNEL_ID, ROOT_DIR
 from database.bot.users import get_user_ids, get_total_commands, update_commands
 from utils import files
 from utils.logging import get_log_message, log
@@ -26,6 +26,7 @@ bot.remove_command("help")
 
 total_commands = sum(get_total_commands().values())
 users = get_user_ids()
+SOURCE_DIR = ROOT_DIR / "src"
 
 
 @bot.event
@@ -71,7 +72,7 @@ async def on_ready():
 async def load_commands():
     groups = files.get_command_groups()
     for group in groups:
-        for file in os.listdir(f"./commands/{group}"):
+        for file in os.listdir(SOURCE_DIR / "commands" / group):
             if file.endswith(".py") and not file.startswith("_"):
                 module_path = f"commands.{group}.{file[:-3]}"
                 module = importlib.import_module(module_path)
@@ -83,7 +84,7 @@ async def load_commands():
 
 def start_watcher(bot, loop):
     observer = Observer()
-    observer.schedule(ReloadHandler(bot, loop), path="./commands", recursive=True)
+    observer.schedule(ReloadHandler(bot, loop), path=SOURCE_DIR / "commands", recursive=True)
     thread = threading.Thread(target=observer.start, daemon=True)
     thread.start()
 
