@@ -1,8 +1,14 @@
 import json
+from typing import Counter
 
 from config import DEFAULT_THEME
 from database.bot import db
 from utils import dates
+
+
+def _parse_counts(commands_json: str):
+    """Parse the commands JSON string and return the counts dict."""
+    return json.loads(commands_json).get("counts", {})
 
 
 def add_user(discord_id: str):
@@ -55,22 +61,42 @@ def get_user_ids():
     return [int(user[0]) for user in users]
 
 
-def get_total_commands():
-    """Returns a dictionary of total command counts for all users."""
-    all_commands = db.fetch("""
-        SELECT commands FROM users
-    """)
+def get_command_usage(user_id: int):
+    """Return command counts for a single user."""
+    results = db.fetch("SELECT commands FROM users WHERE discordId = ?", [user_id])
+    return _parse_counts(results[0]["commands"]) if results else {}
 
-    total_commands = {}
+
+def get_all_command_usage():
+    """Return total command counts across all users."""
+    all_commands = db.fetch("SELECT commands FROM users")
+    counter = Counter()
+
     for user in all_commands:
-        user_commands = json.loads(user["commands"])["counts"]
-        for command in user_commands:
-            if command in total_commands:
-                total_commands[command] += user_commands[command]
-            else:
-                total_commands[command] = user_commands[command]
+        counter.update(_parse_counts(user["commands"]))
 
-    return total_commands
+    return dict(counter)
+
+
+def get_command_usage_by_user():
+    """Return a list of per-user command counts."""
+    all_commands = db.fetch("SELECT discordId, commands FROM users")
+    return [
+        {"discord_id": user["discordId"], "commands": _parse_counts(user["commands"])}
+        for user in all_commands
+    ]
+
+
+def get_top_users_by_command_usage():
+    """Return users sorted by total command usage."""
+    users = db.fetch("SELECT discordId, commands FROM users")
+
+    top_users = [{
+        "discord_id": user["discordId"],
+        "total_commands": sum(_parse_counts(user["commands"]).values()),
+    } for user in users]
+
+    return sorted(top_users, key=lambda u: u["total_commands"], reverse=True)
 
 
 def update_commands(discord_id: str, command_name: str, origin: str):
