@@ -13,13 +13,15 @@ def render(
     pp = []
     length = []
 
-    for race in races:
-        for quote in quotes:
-            quote = quote["quote"]
+    quote_dict = {(quote := quote_data["quote"])["quoteId"]: quote for quote_data in quotes}
 
-            if quote["quoteId"] == race["quoteId"] and (new_pp := race["pp"]) > 0:
-                pp.append(new_pp)
-                length.append(len(quote["text"]))
+    print("forgive me papi")
+    for race in races:
+        quote = quote_dict[race["quoteId"]]
+
+        if (new_pp := race["pp"]) > 0:
+            pp.append(new_pp)
+            length.append(len(quote["text"]))
 
     ax.scatter(length, pp, cmap=color, s=6)
 
