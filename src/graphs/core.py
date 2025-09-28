@@ -48,8 +48,7 @@ def apply_theme(ax: Axes, theme: dict):
             get_line_colormap(ax, i, theme["line"])
     elif len(ax.get_lines()) > 0:
         for line in ax.get_lines():
-            if not str(line.get_label()).startswith("_"):
-                line.set_color(theme["line"])
+            line.set_color(theme["line"])
 
     # Logo
     if "\n" in ax.get_title():
