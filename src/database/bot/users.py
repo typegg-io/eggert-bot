@@ -99,6 +99,13 @@ def get_top_users_by_command_usage():
     return sorted(top_users, key=lambda u: u["total_commands"], reverse=True)
 
 
+def get_theme(discord_id: int):
+    """Returns a user's theme if they exist."""
+    results = db.fetch("SELECT theme FROM users WHERE discordId = ?", [discord_id])
+
+    return json.loads(results[0]["theme"]) if results else None
+
+
 def update_commands(discord_id: str, command_name: str, origin: str):
     """
     Increments a user's command count.

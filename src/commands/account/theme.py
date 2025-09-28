@@ -2,17 +2,18 @@ import re
 from typing import Optional
 
 import matplotlib.colors as mcolors
-from discord import Embed
+from discord import Embed, Member, File
 from discord.ext import commands
 
 from commands.base import Command
 from config import DEFAULT_THEME, DARK_THEME, LIGHT_THEME, KEEGAN
-from database.bot.users import update_theme
+from database.bot.users import update_theme, get_theme
 from graphs import sample
 from graphs.core import plt
 from utils import strings
-from utils.errors import ERROR, missing_arguments
-from utils.messages import Page, Message
+from utils.errors import ERROR, missing_arguments, user_not_found
+from utils.files import remove_file
+from utils.messages import Page, Message, Button
 
 # Name + aliases
 elements = {
@@ -48,14 +49,24 @@ info = {
 
 class Theme(Command):
     @commands.command(aliases=info["aliases"])
-    async def theme(self, ctx, element: str, color: Optional[str]):
+    async def theme(self, ctx, element: Optional[str], color: Optional[str]):
+        if not element:
+            return await display_user_theme(ctx, ctx.author)
+
         theme = themes.get(element, None)
         if theme:
             ctx.user["theme"] = theme
             return await run(ctx)
 
+        try:
+            member = await commands.MemberConverter().convert(ctx, element)
+        except commands.BadArgument:
+            member = None
+
         element = strings.get_key_by_alias(elements, element)
         if element not in elements:
+            if member:
+                return await display_user_theme(ctx, member)
             return await ctx.send(embed=invalid_element())
 
         if not color:
@@ -93,7 +104,7 @@ class Theme(Command):
 
 
 async def run(ctx: commands.Context):
-    update_theme(str(ctx.author.id), ctx.user["theme"])
+    update_theme(ctx.author.id, ctx.user["theme"])
 
     page = Page(
         title="Theme Updated",
@@ -107,6 +118,42 @@ async def run(ctx: commands.Context):
     )
 
     await message.send()
+
+
+async def display_user_theme(ctx: commands.Context, member: Member):
+    user_theme = get_theme(member.id)
+    if not user_theme:
+        return await ctx.send(embed=user_not_found(member.id))
+
+    description = f"{member.mention}\n\n"
+    description += "\n".join(
+        f"**{element.replace("_", "").title()}:** " +
+        (("#%06x" % value).upper() if element == "embed" else f"{value}")
+        for element, value in user_theme.items()
+    )
+
+    file_name = sample.render(user_theme)
+    embed = Embed(
+        title="Theme",
+        description=description,
+        color=user_theme["embed"],
+    )
+    embed.set_image(url=f"attachment://{file_name}")
+    file = File(file_name, filename=file_name)
+
+    async def copy_theme(discord_id: str, theme: dict):
+        if theme["line"] == "keegan" and ctx.author.id != KEEGAN:
+            theme["line"] = "#0094FF"
+        update_theme(discord_id, theme)
+
+    button = Button(
+        label="Copy Theme",
+        callback=lambda: copy_theme(ctx.author.id, user_theme),
+        message="Theme copied!",
+    )
+    await ctx.send(embed=embed, file=file, view=button)
+
+    remove_file(file_name)
 
 
 def parse_color(string):

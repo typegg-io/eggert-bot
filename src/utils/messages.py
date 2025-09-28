@@ -5,7 +5,7 @@ from typing import Callable
 
 from discord import Embed, ButtonStyle, File
 from discord.ext import commands
-from discord.ui import View, Button
+from discord.ui import View, Button as DiscordButton
 
 from config import BOT_PREFIX
 from utils import files, urls
@@ -189,10 +189,10 @@ class Message(View):
 
     def add_navigation_buttons(self):
         """Adds pagination buttons to the embed."""
-        self.first_button = Button(label="\u25c0\u25c0", style=ButtonStyle.secondary)
-        self.previous_button = Button(label="\u25c0", style=ButtonStyle.primary)
-        self.next_button = Button(label="\u25b6", style=ButtonStyle.primary)
-        self.last_button = Button(label="\u25b6\u25b6", style=ButtonStyle.secondary)
+        self.first_button = DiscordButton(label="\u25c0\u25c0", style=ButtonStyle.secondary)
+        self.previous_button = DiscordButton(label="\u25c0", style=ButtonStyle.primary)
+        self.next_button = DiscordButton(label="\u25b6", style=ButtonStyle.primary)
+        self.last_button = DiscordButton(label="\u25b6\u25b6", style=ButtonStyle.secondary)
 
         self.first_button.callback = self.first
         self.previous_button.callback = self.previous
@@ -232,7 +232,7 @@ class Message(View):
         """Adds buttons with custom names (non-paginated layout)."""
         for i, page in enumerate(self.pages):
             style = ButtonStyle.primary if i == self.page_index else ButtonStyle.secondary
-            button = Button(label=page.button_name, style=style)
+            button = DiscordButton(label=page.button_name, style=style)
             button.callback = self.make_callback(i)
             self.add_item(button)
 
@@ -329,6 +329,32 @@ class Message(View):
             await self.message.edit(view=None)
         for file in self.cache.values():
             files.remove_file(file)
+
+class Button(View):
+    def __init__(self, label: str, callback: Callable, message: str):
+        """
+        A view with a single button.
+
+        Args:
+            label (str): Button text.
+            callback (Callable): Function or coroutine to call when pressed.
+            message (str): Message to display when the button is pressed.
+        """
+        super().__init__(timeout=60)
+        self.add_item(self.make_button(label, callback, message))
+
+    def make_button(self, label, callback_func, message):
+        button = DiscordButton(label=label, style=ButtonStyle.primary)
+
+        async def callback(interaction):
+            result = callback_func()
+            if asyncio.iscoroutine(result):
+                await result
+
+            await interaction.response.send_message(message, ephemeral=True)
+
+        button.callback = callback
+        return button
 
 
 def paginate_data(data: list, formatter: Callable[..., str], page_count: int = 10, per_page: int = 10):
