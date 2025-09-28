@@ -44,6 +44,9 @@ class ErrorHandler(commands.Cog):
         if isinstance(error, errors.ProfileNotFound):
             return await ctx.send(embed=errors.invalid_user(error.username))
 
+        if isinstance(error, errors.NoRaces):
+            return await ctx.send(embed=errors.no_races(error.username))
+
         await ctx.send(embed=errors.unexpected_error())
 
         log_message = get_log_message(ctx.message)

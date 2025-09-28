@@ -4,7 +4,6 @@ from discord.ext import commands
 
 from api.users import get_quotes
 from commands.base import Command
-from utils.errors import no_races
 from utils.messages import Page, Message, Field
 from utils.strings import LOADING, ordinal_number
 
@@ -19,7 +18,7 @@ info = {
 class TopTens(Command):
     @commands.command(aliases=info["aliases"])
     async def toptens(self, ctx, username: Optional[str] = "me"):
-        profile = await self.get_profile(ctx, username)
+        profile = await self.get_profile(ctx, username, races_required=True)
         await run(ctx, profile)
 
 
@@ -52,9 +51,6 @@ async def run(ctx: commands.Context, profile: dict):
     for i in range(2, total_pages + 1):
         results = await get_quotes(profile["username"], per_page=1000, page=i)
         quotes += results["quotes"]
-
-    if not quotes:
-        return await ctx.send(embed=no_races())
 
     appearances = {i + 1: 0 for i in range(11)}
     for quote in quotes:

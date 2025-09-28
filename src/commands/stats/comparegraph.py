@@ -34,8 +34,8 @@ class CompareGraph(Command):
         if username1 == username2:
             return await ctx.send(embed=same_username())
 
-        profile1 = await self.get_profile(ctx, username1)
-        profile2 = await self.get_profile(ctx, username2)
+        profile1 = await self.get_profile(ctx, username1, races_required=True)
+        profile2 = await self.get_profile(ctx, username2, races_required=True)
         await self.import_user(ctx, profile1)
         await self.import_user(ctx, profile2)
 

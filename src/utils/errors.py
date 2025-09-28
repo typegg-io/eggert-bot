@@ -7,6 +7,12 @@ from config import BOT_PREFIX as prefix
 from utils.colors import ERROR
 
 
+@dataclass
+class ErrorWithUsername(commands.CommandError):
+    """General exception for errors with a username."""
+    username: str
+
+
 class UserBanned(commands.CheckFailure):
     """Raised when a banned user attempts to run a command."""
 
@@ -23,10 +29,12 @@ class MissingUsername(commands.CommandError):
     """Raised when a username is missing from required arguments."""
 
 
-@dataclass
-class ProfileNotFound(commands.CommandError):
+class ProfileNotFound(ErrorWithUsername):
     """Raised when a TypeGG profile is not found."""
-    username: str
+
+
+class NoRaces(ErrorWithUsername):
+    """Raised when a TypeGG profile has no races."""
 
 
 def missing_arguments(info, show_tip=False):
@@ -114,10 +122,10 @@ def api_error(message):
     )
 
 
-def no_races():
+def no_races(username):
     return Embed(
         title="No Races",
-        description=f"No races were found",
+        description=f"User `{username}` has no races",
         color=ERROR,
     )
 

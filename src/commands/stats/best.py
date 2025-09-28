@@ -5,7 +5,7 @@ from discord.ext import commands
 from api.users import get_quotes
 from commands.base import Command
 from utils import strings, urls
-from utils.errors import no_races, invalid_argument
+from utils.errors import invalid_argument
 from utils.messages import Message, paginate_data
 
 metrics = ["pp", "wpm"]
@@ -24,7 +24,7 @@ class Best(Command):
         if metric not in metrics:
             return await ctx.send(embed=invalid_argument(metrics))
 
-        profile = await self.get_profile(ctx, username)
+        profile = await self.get_profile(ctx, username, races_required=True)
         await run(ctx, profile, metric)
 
 
@@ -50,8 +50,6 @@ async def run(ctx: commands.Context, profile: dict, metric: str, reverse: bool =
         per_page=100,
     )
     top_quotes = results["quotes"]
-    if not top_quotes:
-        return await ctx.send(embed=no_races())
 
     pages = paginate_data(top_quotes, entry_formatter, 20, 5)
 

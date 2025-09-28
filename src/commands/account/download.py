@@ -21,7 +21,7 @@ info = {
 class Download(Command):
     @commands.command(aliases=info["aliases"])
     async def download(self, ctx, username: Optional[str] = "me"):
-        profile = await self.get_profile(ctx, username)
+        profile = await self.get_profile(ctx, username, races_required=True)
         await run(ctx, profile)
 
 

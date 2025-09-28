@@ -27,7 +27,7 @@ class Improvement(Command):
         if not metric:
             return await ctx.send(embed=invalid_argument(metrics))
 
-        profile = await self.get_profile(ctx, username)
+        profile = await self.get_profile(ctx, username, races_required=True)
         await self.import_user(ctx, profile)
         await run(ctx, profile, metric)
 

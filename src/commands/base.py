@@ -1,8 +1,10 @@
+from typing import Optional
+
 from discord.ext import commands
 
 from api.users import get_profile
 from database.bot.users import get_user
-from utils.errors import UserBanned, MissingUsername, ProfileNotFound
+from utils.errors import UserBanned, MissingUsername, ProfileNotFound, NoRaces
 
 
 class Command(commands.Cog):
@@ -33,7 +35,7 @@ class Command(commands.Cog):
 
         return self.get_username(ctx, username1), self.get_username(ctx, username2)
 
-    async def get_profile(self, ctx: commands.Context, username: str):
+    async def get_profile(self, ctx: commands.Context, username: str, races_required: Optional[bool] = False):
         """Fetch a user's profile, raising exceptions if missing."""
         username = self.get_username(ctx, username)
         if username is None:
@@ -42,6 +44,9 @@ class Command(commands.Cog):
         profile = await get_profile(username)
         if not profile:
             raise ProfileNotFound(username)
+
+        if races_required and profile["stats"]["races"] == 0:
+            raise NoRaces(username)
 
         return profile
 

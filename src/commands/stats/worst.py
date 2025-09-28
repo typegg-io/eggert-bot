@@ -17,5 +17,5 @@ info = {
 class Worst(Command):
     @commands.command(aliases=info["aliases"])
     async def worst(self, ctx, username: Optional[str] = "me", metric: Optional[str] = "pp"):
-        profile = await self.get_profile(ctx, username)
+        profile = await self.get_profile(ctx, username, races_required=True)
         await run(ctx, profile, metric, reverse=False)
