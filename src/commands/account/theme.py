@@ -104,7 +104,7 @@ class Theme(Command):
 
 
 async def run(ctx: commands.Context):
-    update_theme(ctx.author.id, ctx.user["theme"])
+    update_theme(str(ctx.author.id), ctx.user["theme"])
 
     page = Page(
         title="Theme Updated",
@@ -144,7 +144,7 @@ async def display_user_theme(ctx: commands.Context, member: Member):
     async def copy_theme(discord_id: str, theme: dict):
         if theme["line"] == "keegan" and ctx.author.id != KEEGAN:
             theme["line"] = "#0094FF"
-        update_theme(discord_id, theme)
+        update_theme(str(discord_id), theme)
 
     button = Button(
         label="Copy Theme",
