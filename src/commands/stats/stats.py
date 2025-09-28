@@ -62,13 +62,18 @@ async def run(ctx: commands.Context, profile: dict):
         )
     ]
 
-    country = profile["country"]
-    country_rank = f" / #{profile["countryRank"]} :flag_{country.lower()}:" if country else ""
+    rank_string = "**Rank:** "
+    global_rank = profile["globalRank"]
+    if global_rank == -1:
+        rank_string += "Unranked"
+    else:
+        rank_string += f"#{profile["globalRank"]:,} :earth_americas:"
+        country = profile["country"]
+        country_rank = f" / #{profile["countryRank"]} :flag_{country.lower()}:" if country else ""
+        rank_string += country_rank
 
     page = Page(
-        description=(
-            f"**Rank**: #{profile["globalRank"]:,} :earth_americas:{country_rank}"
-        ),
+        description=rank_string,
         fields=fields,
     )
 
