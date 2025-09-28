@@ -7,6 +7,7 @@ from commands.base import Command
 from config import BOT_PREFIX
 from database.bot.users import get_command_usage_by_user, get_top_users_by_command_usage, get_all_command_usage, get_command_usage
 from utils.colors import ERROR
+from utils.errors import unknown_command
 from utils.files import get_command_modules
 from utils.messages import Page, Message
 
@@ -15,7 +16,7 @@ info = {
     "aliases": ["clb", "blb"],
     "description": "Displays command usage stats for a specific command or user\n"
                    f"`{BOT_PREFIX}commandleaderboard all` will show most use commands overall",
-    "parameters": "<command_name|discord_id>",
+    "parameters": "[command_name|discord_id]",
 }
 
 
@@ -43,7 +44,7 @@ class CommandLeaderboard(Command):
                 member = await commands.MemberConverter().convert(ctx, arg)
                 await user_command_leaderboard(ctx, member.id)
             except commands.BadArgument:
-                print("womp womp")
+                return await ctx.send(embed=unknown_command())
 
 
 async def command_leaderboard(ctx: commands.Context, command_name: str):
