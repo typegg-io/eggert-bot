@@ -142,3 +142,19 @@ def format_big_number(number, _):
         return f"{round(number / 1_000, 1)}K".replace(".0", "")
 
     return int(number)
+
+
+def quote_display(quote):
+    text = quote["text"]
+    ranked = quote["ranked"]
+    submitted_by = quote["submittedByUsername"]
+
+    return (
+        f"**{quote["source"]["title"]}** by **{quote["source"]["author"]}**\n"
+        f"{quote["difficulty"]:.2f}★ | {len(text):,}c | "
+        f"{quote["races"]:,} races | {quote["uniqueUsers"]:,} users | "
+        f"{"Ranked" if ranked else "Unranked"}\n"
+        f"**Submitted by:** [{submitted_by}]({urls.profile(submitted_by)}) - "
+        f"{discord_date(quote["created"], "D")}\n\n"
+        f"\"{truncate_clean(text, 1000)}\""
+    )

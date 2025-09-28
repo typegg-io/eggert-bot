@@ -75,6 +75,7 @@ class Message(View):
         color (int): Default color for all pages.
         profile (dict): Optional user profile for author section, pulled from API.
         show_avatar (bool): Whether to show the avatar in the embed.
+        thumbnail (str): Optional thumbnail to display in the embed (URL).
 
     Methods:
         send(): Sends the constructed message with buttons and embeds.
@@ -94,6 +95,7 @@ class Message(View):
         color: int = None,
         profile: dict = None,
         show_avatar: bool = True,
+        thumbnail: str = None,
     ):
         self.ctx = ctx
         self.pages = pages or []
@@ -114,6 +116,7 @@ class Message(View):
         self.color = self.ctx.user["theme"]["embed"] if color is None else color
         self.profile = profile
         self.show_avatar = show_avatar
+        self.thumbnail = thumbnail
 
         self.embeds = []
         self.cache = {}
@@ -146,6 +149,8 @@ class Message(View):
                 self.add_profile(embed)
             if self.paginated and self.page_count > 1:
                 self.update_footer(embed, f"Page {i + 1} of {self.page_count}")
+            if self.thumbnail:
+                embed.set_thumbnail(url=self.thumbnail)
             self.embeds.append(embed)
 
         if self.pages[self.page_index].render:

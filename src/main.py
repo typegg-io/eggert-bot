@@ -4,12 +4,14 @@ import os
 import threading
 
 import discord
-from discord.ext import commands
+from discord.ext import commands, tasks
 from watchdog.observers import Observer
 
 from commands.base import Command
-from config import BOT_PREFIX, BOT_TOKEN, STAGING, TYPEGG_CHANNEL_ID, SOURCE_DIR
+from config import BOT_PREFIX, BOT_TOKEN, STAGING, STATS_CHANNEL_ID, SOURCE_DIR
 from database.bot.users import get_user_ids, get_all_command_usage, update_commands
+from tasks import daily_quote_ping
+from utils import dates
 from utils.files import get_command_modules
 from utils.logging import get_log_message, log
 from utils.messages import welcome_message, command_milestone
@@ -51,7 +53,7 @@ async def on_command_completion(ctx):
 
 
 async def celebrate_milestone(ctx, milestone):
-    channel = bot.get_channel(TYPEGG_CHANNEL_ID)
+    channel = bot.get_channel(STATS_CHANNEL_ID)
     await channel.send(embed=command_milestone(ctx.author.id, milestone))
 
 
@@ -60,11 +62,19 @@ async def on_ready():
     await load_commands()
     await bot.load_extension("error_handler")
     if not STAGING:
+        tasks.start()
         await start_web_server(bot)
     else:
         loop = asyncio.get_running_loop()
         start_watcher(bot, loop)
     log("Bot ready.")
+
+
+@tasks.loop(minutes=1)
+async def tasks():
+    now = dates.now()
+    if now.hour == 0 and now.minute == 0:
+        await daily_quote_ping(bot)
 
 
 async def load_commands():

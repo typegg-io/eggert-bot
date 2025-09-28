@@ -15,6 +15,7 @@ async def get_quotes(
     source_id: str = None,
     status: str = "ranked",
     sort: str = "created",
+    distinct: bool = True,
     reverse: bool = True,
     page: int = 1,
     per_page: int = 10,
@@ -36,6 +37,7 @@ async def get_quotes(
         "sourceId": source_id,
         "status": status,
         "sort": sort,
+        "distinct": distinct,
         "reverse": str(reverse).lower(),
         "page": page,
         "perPage": per_page,
@@ -51,16 +53,19 @@ async def get_quotes(
                 text = await response.text()
                 raise Exception(f"API returned status {response.status}: {text}")
 
-async def get_quote(quote_id: str) -> Dict[str, Any]:
+async def get_quote(quote_id: str, distinct: bool = True) -> Dict[str, Any]:
     """
     Calls GET /quotes/{quoteId}.
     Returns the JSON response as a dict.
     """
     url = f"{API_URL}/quotes/{quote_id}"
+    params = {"distinct": str(distinct).lower()}
     async with aiohttp.ClientSession() as session:
-        async with session.get(url) as response:
+        async with session.get(url, params=params) as response:
             if response.status == 200:
                 return await response.json()
+            elif response.status == 404:
+                return {}
             else:
                 text = await response.text()
                 raise Exception(f"API returned status {response.status}: {text}")

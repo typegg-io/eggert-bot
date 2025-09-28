@@ -7,26 +7,32 @@ from utils.colors import DEFAULT
 
 load_dotenv()
 
-# Environment variables
+# === Environment variables ===
 BOT_TOKEN = os.getenv("BOT_TOKEN")
-SECRET = os.getenv("SECRET", "")
 SITE_URL = os.getenv("SITE_URL")
 API_URL = os.getenv("API_URL")
+SECRET = os.getenv("SECRET", "")
 
-# Webhooks
-MESSAGE_WEBHOOK = os.getenv("MESSAGE_WEBHOOK", None)
-ERROR_WEBHOOK = os.getenv("ERROR_WEBHOOK", None)
+# === Webhooks ===
+MESSAGE_WEBHOOK = os.getenv("MESSAGE_WEBHOOK")
+ERROR_WEBHOOK = os.getenv("ERROR_WEBHOOK")
 
-# Bot configuration
+# === Bot configuration ===
 BOT_PREFIX = "-"
-TYPEGG_GUILD_ID = 703605179433484289
-VERIFIED_ROLE_NAME = "Verified Egg 🥚"
-TYPEGG_CHANNEL_ID = 1337196592905846864
-ROOT_DIR = Path(__file__).resolve().parents[1]
-SOURCE_DIR = ROOT_DIR / "src"
 STAGING = MESSAGE_WEBHOOK is None
+TYPEGG_GUILD_ID = 703605179433484289
+STATS_CHANNEL_ID = 1337196592905846864
+VERIFIED_ROLE_NAME = "Verified Egg 🥚"
+DAILY_QUOTE_CHANNEL_ID = 1419332457060372633
+DAILY_QUOTE_ROLE_ID = 1421957288385712230
+
+# === User IDs ===
 EIKO = 87926662364160000
 KEEGAN = 155481579005804544
+
+# === Paths ===
+ROOT_DIR = Path(__file__).resolve().parents[1]
+SOURCE_DIR = ROOT_DIR / "src"
 
 # Bot themes
 DEFAULT_THEME = {
