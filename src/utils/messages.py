@@ -330,6 +330,7 @@ class Message(View):
         for file in self.cache.values():
             files.remove_file(file)
 
+
 class Button(View):
     def __init__(self, label: str, callback: Callable, message: str):
         """
@@ -341,20 +342,30 @@ class Button(View):
             message (str): Message to display when the button is pressed.
         """
         super().__init__(timeout=60)
-        self.add_item(self.make_button(label, callback, message))
+        self.label = label
+        self.callback_func = callback
+        self.message_text = message
+        self.message = None
+        self.add_item(self.make_button())
 
-    def make_button(self, label, callback_func, message):
-        button = DiscordButton(label=label, style=ButtonStyle.primary)
+    def make_button(self):
+        button = DiscordButton(label=self.label, style=ButtonStyle.primary)
 
         async def callback(interaction):
-            result = callback_func()
+            result = self.callback_func()
             if asyncio.iscoroutine(result):
                 await result
-
-            await interaction.response.send_message(message, ephemeral=True)
+            await interaction.response.send_message(self.message_text, ephemeral=True)
 
         button.callback = callback
         return button
+
+    async def on_timeout(self):
+        if self.message:
+            try:
+                await self.message.edit(view=None)
+            except Exception:
+                pass
 
 
 def paginate_data(data: list, formatter: Callable[..., str], page_count: int = 10, per_page: int = 10):

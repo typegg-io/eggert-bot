@@ -151,7 +151,8 @@ async def display_user_theme(ctx: commands.Context, member: Member):
         callback=lambda: copy_theme(ctx.author.id, user_theme),
         message="Theme copied!",
     )
-    await ctx.send(embed=embed, file=file, view=button)
+    message = await ctx.send(embed=embed, file=file, view=button)
+    button.message = message
 
     remove_file(file_name)
 
