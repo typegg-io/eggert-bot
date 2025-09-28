@@ -1,13 +1,11 @@
 from typing import Optional
 
-from discord import Embed
 from discord.ext import commands
 
 from commands.base import Command
 from config import BOT_PREFIX
 from database.bot.users import get_command_usage_by_user, get_top_users_by_command_usage, get_all_command_usage, get_command_usage
-from utils.colors import ERROR
-from utils.errors import unknown_command
+from utils.errors import unknown_command, user_not_found
 from utils.files import get_command_modules
 from utils.messages import Page, Message
 
@@ -108,7 +106,7 @@ async def user_command_leaderboard(ctx: commands.Context, discord_id: int | str)
         else:
             command_usage = get_command_usage(discord_id)
             if not command_usage:
-                return await ctx.send(embed=no_commands(discord_id))
+                return await ctx.send(embed=user_not_found(discord_id))
 
         description, total_usages = format_command_leaderboard(command_usage, discord_id)
         footer_text = f"Total Usages: {total_usages:,}"
@@ -117,11 +115,3 @@ async def user_command_leaderboard(ctx: commands.Context, discord_id: int | str)
     message = Message(ctx, page=page)
 
     await message.send()
-
-
-def no_commands(discord_id):
-    return Embed(
-        title="No Commands Used",
-        description=f"<@{discord_id}> has never used the bot",
-        color=ERROR,
-    )

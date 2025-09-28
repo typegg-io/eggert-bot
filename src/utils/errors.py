@@ -159,3 +159,11 @@ def no_common_texts():
         description="Users do not have any texts in common",
         color=ERROR,
     )
+
+
+def user_not_found(discord_id):
+    return Embed(
+        title="User Not Found",
+        description=f"<@{discord_id}> has never used the bot",
+        color=ERROR,
+    )
