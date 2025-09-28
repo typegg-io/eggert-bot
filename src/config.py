@@ -9,7 +9,7 @@ load_dotenv()
 
 # Environment variables
 BOT_TOKEN = os.getenv("BOT_TOKEN")
-SECRET = os.getenv("SECRET", None)
+SECRET = os.getenv("SECRET", "")
 SITE_URL = os.getenv("SITE_URL")
 API_URL = os.getenv("API_URL")
 
