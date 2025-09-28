@@ -127,7 +127,7 @@ async def display_user_theme(ctx: commands.Context, member: Member):
 
     description = f"{member.mention}\n\n"
     description += "\n".join(
-        f"**{element.replace("_", "").title()}:** " +
+        f"**{element.replace("_", " ").title()}:** " +
         (("#%06x" % value).upper() if element == "embed" else f"{value}")
         for element, value in user_theme.items()
     )
