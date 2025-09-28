@@ -7,7 +7,6 @@ from commands.checks import is_bot_admin
 from database.typegg.races import delete_races
 from database.typegg.users import delete_user
 from utils.messages import Page, Message
-from utils.strings import escape_formatting
 
 info = {
     "name": "deleteuser",
@@ -26,7 +25,7 @@ class DeleteUser(Command):
         message = Message(
             ctx, Page(
                 title="Are You Sure?",
-                description=f"You are about to permanently delete `{escape_formatting(profile["username"])}`"
+                description=f"You are about to permanently delete `{profile["username"]}`"
             )
         )
         await message.send()
