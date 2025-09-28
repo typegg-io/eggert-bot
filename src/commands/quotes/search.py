@@ -2,9 +2,10 @@ from discord.ext import commands
 
 from api.quotes import get_quotes
 from commands.base import Command
-from utils import strings, urls
+from utils import urls
 from utils.errors import missing_arguments
 from utils.messages import Page, Message, paginate_data
+from utils.strings import escape_formatting, truncate_clean
 
 info = {
     "name": "search",
@@ -29,7 +30,7 @@ def entry_formatter(quote):
         f"[**{quote["source"]["title"]}**]({urls.race(quote["quoteId"])}) "
         f"| {quote["difficulty"]:.2f}★ | {len(text)}c | "
         f"{"Ranked" if quote["ranked"] else "Unranked"}\n"
-        f"\"{strings.truncate_clean(text, 150)}\"\n\n"
+        f"\"{truncate_clean(text, 150)}\"\n\n"
     )
 
 
@@ -42,7 +43,7 @@ async def run(ctx: commands.Context, query: str):
     quotes = results["quotes"]
     total_results = results["totalCount"]
 
-    query_string = f"**Query:** \"{strings.escape_formatting(query)}\""
+    query_string = f"**Query:** \"{escape_formatting(query, remove_backticks=False)}\""
     if not quotes:
         page = Page(description="No results found.\n" + query_string)
         message = Message(ctx, page)

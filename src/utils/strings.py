@@ -78,26 +78,28 @@ def format_duration(seconds, round_seconds=True):
     return f"{days}{hours}{minutes}{seconds}"[:-1]
 
 
-def escape_formatting(string):
+def escape_formatting(string, remove_backticks=True):
+    backtick_sub = "" if remove_backticks else "\\`"
     return (
         string
         .replace("*", "\\*")
         .replace("_", "\\_")
         .replace("~", "\\~")
-        .replace("`", "")
+        .replace("||", "\\|\\|")
+        .replace("`", backtick_sub)
     )
 
 
 def truncate_clean(text, max_chars):
     """Truncates a string to a maximum character length, avoiding cutting words in the middle."""
     if len(text) <= max_chars:
-        return escape_formatting(text)
+        return escape_formatting(text, remove_backticks=False)
     if len(text.split(" ")) == 1:
-        return escape_formatting(text[:max_chars] + "...")
+        return escape_formatting(text[:max_chars] + "...", remove_backticks=False)
 
     substring = text[:max_chars]
     if " " not in substring:
-        return escape_formatting(substring[:max_chars] + "...")
+        return escape_formatting(substring[:max_chars] + "...", remove_backticks=False)
     while True:
         if substring[-2].isalnum() and not substring[-1].isalnum():
             break
@@ -105,7 +107,7 @@ def truncate_clean(text, max_chars):
     substring = substring[:-1]
     substring += "..."
 
-    return escape_formatting(substring)
+    return escape_formatting(substring, remove_backticks=False)
 
 
 def ordinal_number(number):
