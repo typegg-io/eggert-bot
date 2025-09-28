@@ -1,6 +1,5 @@
 import asyncio
 import glob
-import importlib
 import os
 import threading
 
@@ -10,8 +9,8 @@ from watchdog.observers import Observer
 
 from commands.base import Command
 from config import BOT_PREFIX, BOT_TOKEN, STAGING, TYPEGG_CHANNEL_ID, SOURCE_DIR
-from database.bot.users import get_user_ids, get_total_commands, update_commands
-from utils import files
+from database.bot.users import get_user_ids, get_all_command_usage, update_commands
+from utils.files import get_command_modules
 from utils.logging import get_log_message, log
 from utils.messages import welcome_message, command_milestone
 from watcher import ReloadHandler
@@ -24,7 +23,7 @@ intents.guilds = True
 bot = commands.Bot(command_prefix=BOT_PREFIX, case_insensitive=True, intents=intents)
 bot.remove_command("help")
 
-total_commands = sum(get_total_commands().values())
+total_commands = sum(get_all_command_usage().values())
 users = get_user_ids()
 
 
@@ -69,16 +68,11 @@ async def on_ready():
 
 
 async def load_commands():
-    groups = files.get_command_groups()
-    for group in groups:
-        for file in os.listdir(SOURCE_DIR / "commands" / group):
-            if file.endswith(".py") and not file.startswith("_"):
-                module_path = f"commands.{group}.{file[:-3]}"
-                module = importlib.import_module(module_path)
-                for obj in module.__dict__.values():
-                    if isinstance(obj, type) and issubclass(obj, Command) and obj is not Command:
-                        await bot.add_cog(obj(bot))
-                        break
+    for group, file, module in get_command_modules():
+        for obj in module.__dict__.values():
+            if isinstance(obj, type) and issubclass(obj, Command) and obj is not Command:
+                await bot.add_cog(obj(bot))
+                break
 
 
 def start_watcher(bot, loop):
