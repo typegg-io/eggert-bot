@@ -78,7 +78,7 @@ async def run(ctx: commands.Context, profile1: dict, profile2: dict, metric: str
             f"**Quotes:** {display_gain(quotes_greater, 0)}\n"
             f"**Gain:** {display_gain(gain)} {metric}\n"
             f"**Average Gain:** {display_gain(average_gain)} {metric}\n"
-            f"**Biggest Gap:** {display_gain(max_gap)} {metric}\n"
+            f"**{"Biggest Gain" if max_gap > 0 else "Closest"}:** {display_gain(max_gap)} {metric}\n"
             f"{metric1:,.2f} {metric} vs. {metric2:,.2f} {metric}\n"
         )
 
@@ -97,8 +97,8 @@ async def run(ctx: commands.Context, profile1: dict, profile2: dict, metric: str
     country = profile1["country"]
     quotes_greater = len(gains1)
     gain = sum(gains1)
-    average_gain = gain / quotes_greater
-    max_gap = max(gains1)
+    average_gain = 0 if gain == 0 else gain / quotes_greater
+    max_gap = -min(gains2) if gain == 0 else max(gains1)
     quote_id = common_quotes[differences.index(max_gap)]
     metric1 = quote_bests1[quote_id][metric]
     metric2 = quote_bests2[quote_id][metric]
@@ -113,8 +113,8 @@ async def run(ctx: commands.Context, profile1: dict, profile2: dict, metric: str
     country = profile2["country"]
     quotes_greater = len(gains2)
     gain = sum(gains2)
-    average_gain = gain / quotes_greater
-    max_gap = max(gains2)
+    average_gain = 0 if gain == 0 else gain / quotes_greater
+    max_gap = -min(gains1) if gain == 0 else max(gains2)
     quote_id = common_quotes[differences.index(-max_gap)]
     metric1 = quote_bests2[quote_id][metric]
     metric2 = quote_bests1[quote_id][metric]
