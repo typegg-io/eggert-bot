@@ -15,7 +15,6 @@ def render(
 
     quote_dict = {(quote := quote_data["quote"])["quoteId"]: quote for quote_data in quotes}
 
-    print("forgive me papi")
     for race in races:
         quote = quote_dict[race["quoteId"]]
 
@@ -25,9 +24,9 @@ def render(
 
     ax.scatter(length, pp, cmap=color, s=6)
 
-    ax.set_title(f"PP per quote length - {username}")
-    ax.set_xlabel("quote length")
-    ax.set_ylabel("PP")
+    ax.set_title(f"pp Per Quote Length - {username}")
+    ax.set_xlabel("Quote Length")
+    ax.set_ylabel("pp")
     ax.set_xticks([50, 500, 1000, 1500, 2000, 2500, 3000, 4000, 5000])
 
     apply_theme(ax, theme=theme)

@@ -46,7 +46,7 @@ async def run(ctx: commands.Context, profile: dict):
     username = profile["username"]
 
     page = Page(
-        title="Quote Best Comparison",
+        title="pp vs. Length Comparison",
         render=lambda: pplength.render(
             username,
             quotes,
