@@ -175,3 +175,11 @@ def user_not_found(discord_id):
         description=f"<@{discord_id}> has never used the bot",
         color=ERROR,
     )
+
+
+def unknown_quote(quote_id: str):
+    return Embed(
+        title="Unknown Quote",
+        description=f"Quote `{quote_id.replace("`", "")}` not found",
+        color=ERROR,
+    )
