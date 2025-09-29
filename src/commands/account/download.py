@@ -1,10 +1,17 @@
+import asyncio
 from typing import Optional
 
 from discord.ext import commands
 
+from api.core import API_RATE_LIMIT
+from api.quotes import get_quote
+from api.sources import get_source
 from api.users import get_races, get_profile
 from commands.base import Command
 from database.typegg import users, races
+from database.typegg.quotes import get_quotes, add_quote
+from database.typegg.races import add_races
+from database.typegg.sources import get_sources, add_source
 from database.typegg.users import get_user
 from utils.logging import log
 from utils.messages import Page, Message
@@ -23,26 +30,6 @@ class Download(Command):
     async def download(self, ctx, username: Optional[str] = "me"):
         profile = await self.get_profile(ctx, username, races_required=True)
         await run(ctx, profile)
-
-
-def race_insert(race):
-    return (
-        race.get("raceId"),
-        race.get("quoteId"),
-        race.get("userId"),
-        race.get("raceNumber"),
-        race.get("pp"),
-        race.get("rawPp"),
-        race.get("wpm"),
-        race.get("rawWpm"),
-        race.get("duration"),
-        race.get("accuracy"),
-        race.get("errorReactionTime"),
-        race.get("errorRecoveryTime"),
-        race.get("timestamp"),
-        race.get("stickyStart"),
-        race.get("gamemode"),
-    )
 
 
 async def run(
@@ -99,6 +86,9 @@ async def run(
     if races_left < 1:
         return
 
+    quote_ids = set(get_quotes().keys())
+    new_quote_ids = []
+
     start_number = latest_race_number + 1
     while start_number <= total_races:
         end_number = min(start_number + 999, total_races)
@@ -114,8 +104,11 @@ async def run(
         )
         race_list = results["races"]
 
-        insert_list = [race_insert(race) for race in race_list]
-        races.add_races(insert_list)
+        for race in race_list:
+            if race["quoteId"] not in quote_ids:
+                new_quote_ids.append(race["quoteId"])
+
+        add_races(race_list)
 
         start_number = race_list[-1]["raceNumber"] + 1
 
@@ -125,3 +118,22 @@ async def run(
 
         await initial_send
         await message.edit()
+
+    if new_quote_ids:
+        source_ids = set(get_sources().keys())
+        log("New quotes found: " + ", ".join(new_quote_ids))
+
+        for quote_id in new_quote_ids:
+            quote = await get_quote(quote_id)
+            source_id = quote["source"]["sourceId"]
+
+            if source_id not in source_ids:
+                source = await get_source(source_id)
+                log(f"Adding source: {source_id}")
+                source_ids.add(source_id)
+                add_source(source)
+                await asyncio.sleep(API_RATE_LIMIT)
+
+            log(f"Adding quote: {quote_id}")
+            add_quote(quote)
+            await asyncio.sleep(API_RATE_LIMIT)

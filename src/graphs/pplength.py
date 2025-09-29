@@ -13,10 +13,8 @@ def render(
     pp = []
     length = []
 
-    quote_dict = {(quote := quote_data["quote"])["quoteId"]: quote for quote_data in quotes}
-
     for race in quote_bests:
-        quote = quote_dict[race["quoteId"]]
+        quote = quotes[race["quoteId"]]
         pp.append(race["pp"])
         length.append(len(quote["text"]))
 
@@ -41,4 +39,3 @@ def render(
     plt.close(fig)
 
     return file_name
-

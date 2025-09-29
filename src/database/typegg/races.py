@@ -3,12 +3,33 @@ from typing import Optional
 from database.typegg import db
 
 
+def race_insert(race):
+    """Return a race tuple for parameterized inserting."""
+    return (
+        race["raceId"],
+        race["quoteId"],
+        race["userId"],
+        race["raceNumber"],
+        race["pp"],
+        race["rawPp"],
+        race["wpm"],
+        race["rawWpm"],
+        race["duration"],
+        race["accuracy"],
+        race["errorReactionTime"],
+        race["errorRecoveryTime"],
+        race["timestamp"],
+        race["stickyStart"],
+        race["gamemode"],
+    )
+
+
 def add_races(races):
     """Batch insert user races."""
     db.run_many(f"""
         INSERT OR IGNORE INTO races
         VALUES ({",".join(["?"] * 15)})
-    """, races)
+    """, [race_insert(race) for race in races])
 
 
 async def get_races(

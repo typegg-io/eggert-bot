@@ -27,4 +27,29 @@ db.run("""
     );
 """)
 
+db.run("""
+    CREATE TABLE IF NOT EXISTS sources (
+        sourceId TEXT PRIMARY KEY,
+        title TEXT NOT NULL,
+        author TEXT NOT NULL,
+        type TEXT NOT NULL,
+        thumbnailUrl TEXT NOT NULL,
+        publicationYear INTEGER NOT NULL
+    );
+""")
+
+db.run("""
+    CREATE TABLE IF NOT EXISTS quotes (
+        quoteId TEXT PRIMARY KEY,
+        sourceId TEXT NOT NULL,
+        text TEXT NOT NULL,
+        explicit INTEGER NOT NULL, -- boolean
+        difficulty REAL NOT NULL,
+        submittedByUsername TEXT NOT NULL,
+        ranked INTEGER NOT NULL, -- boolean
+        created TEXT NOT NULL, -- ISO 8601 string
+        FOREIGN KEY (sourceId) REFERENCES sources(sourceId)
+    );
+""")
+
 db.run("CREATE INDEX IF NOT EXISTS idx_races_userId on races(userId)")
