@@ -2,8 +2,7 @@ from typing import Optional, Dict, Any
 
 import aiohttp
 
-from api.core import get_params
-from config import API_URL
+from api.core import API_URL, get_params
 
 
 async def get_leaders(
@@ -17,7 +16,7 @@ async def get_leaders(
     Calls GET /leaders with all available filters.
     Returns the JSON response as a dict.
     """
-    url = f"{API_URL}/leaders"
+    url = f"{API_URL}/v1/leaders"
     params = get_params({
         "sort": sort,
         "gamemode": gamemode,

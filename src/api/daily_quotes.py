@@ -2,8 +2,7 @@ from typing import Dict, Any
 
 import aiohttp
 
-from api.core import get_params
-from config import API_URL
+from api.core import API_URL, get_params
 from utils import dates
 
 
@@ -15,7 +14,7 @@ async def get_daily_quote(
     Calls GET /daily with all available filters.
     Returns the JSON response as a dict.
     """
-    url = f"{API_URL}/daily"
+    url = f"{API_URL}/v1/daily"
     params = get_params({
         "date": date,
         "country": country,

@@ -3,8 +3,7 @@ from urllib.parse import quote
 
 import aiohttp
 
-from api.core import get_params
-from config import API_URL
+from api.core import API_URL, get_params
 
 
 async def get_quotes(
@@ -27,7 +26,7 @@ async def get_quotes(
     Calls GET /quotes with all available filters.
     Returns the JSON response as a dict.
     """
-    url = f"{API_URL}/quotes"
+    url = f"{API_URL}/v1/quotes"
     params = get_params({
         "search": search,
         "minDifficulty": min_difficulty,
@@ -59,7 +58,7 @@ async def get_quote(quote_id: str, distinct: bool = True) -> Dict[str, Any]:
     Calls GET /quotes/{quoteId}.
     Returns the JSON response as a dict.
     """
-    url = f"{API_URL}/quotes/{quote(quote_id, safe="")}"
+    url = f"{API_URL}/v1/quotes/{quote(quote_id, safe="")}"
     params = get_params({"distinct": distinct})
 
     async with aiohttp.ClientSession() as session:

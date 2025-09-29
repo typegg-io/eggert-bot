@@ -3,8 +3,7 @@ from urllib.parse import quote
 
 import aiohttp
 
-from api.core import get_params, AUTH_HEADERS
-from config import API_URL
+from api.core import get_params, API_URL, AUTH_HEADERS
 
 
 async def get_profile(user_id: str):
@@ -12,7 +11,7 @@ async def get_profile(user_id: str):
     Calls GET /users/{userId}.
     Returns the JSON response as a dict.
     """
-    url = f"{API_URL}/users/{quote(user_id, safe="")}"
+    url = f"{API_URL}/v1/users/{quote(user_id, safe="")}"
 
     async with aiohttp.ClientSession() as session:
         async with session.get(url) as response:
@@ -48,7 +47,7 @@ async def get_races(
     Calls GET /users/{userId}/races with all available filters.
     Returns the JSON response as a dict.
     """
-    url = f"{API_URL}/users/{quote(user_id, safe="")}/races"
+    url = f"{API_URL}/v1/users/{quote(user_id, safe="")}/races"
     params = get_params(dict(
         startDate=start_date,
         endDate=end_date,
@@ -82,7 +81,7 @@ async def get_race(user_id: str, race_number: int, get_keystrokes=False) -> Dict
     Calls GET /users/{userId}/races/{raceNumber}.
     Returns the JSON response as a dict.
     """
-    url = f"{API_URL}/users/{quote(user_id, safe="")}/races/{race_number}"
+    url = f"{API_URL}/v1/users/{quote(user_id, safe="")}/races/{race_number}"
 
     async with aiohttp.ClientSession() as session:
         async with session.get(
@@ -133,7 +132,7 @@ async def get_quotes(
     Calls GET /users/{userId}/quotes with all available filters.
     Returns the JSON response as a dict.
     """
-    url = f"{API_URL}/users/{quote(user_id, safe="")}/quotes"
+    url = f"{API_URL}/v1/users/{quote(user_id, safe="")}/quotes"
     params = get_params(dict(
         startDate=start_date,
         endDate=end_date,
@@ -168,7 +167,7 @@ async def get_quote(user_id: str, quote_id: str) -> Dict[str, Any]:
     Calls GET /users/{userId}/quotes/{quoteId} with all available filters.
     Returns the JSON response as a dict.
     """
-    url = f"{API_URL}/users/{quote(user_id, safe="")}/quotes/{quote(quote_id, safe="")}"
+    url = f"{API_URL}/v1/users/{quote(user_id, safe="")}/quotes/{quote(quote_id, safe="")}"
 
     async with aiohttp.ClientSession() as session:
         async with session.get(url) as response:

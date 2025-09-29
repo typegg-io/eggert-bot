@@ -1,5 +1,8 @@
+import os
+
 from config import SECRET
 
+API_URL = os.getenv("API_URL")
 API_RATE_LIMIT = 0.5  # seconds between requests
 
 AUTH_HEADERS = {

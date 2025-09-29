@@ -10,7 +10,6 @@ load_dotenv()
 # === Environment variables ===
 BOT_TOKEN = os.getenv("BOT_TOKEN")
 SITE_URL = os.getenv("SITE_URL")
-API_URL = os.getenv("API_URL")
 SECRET = os.getenv("SECRET", "")
 
 # === Webhooks ===

@@ -98,7 +98,7 @@ Create a `.env` file in the project's root directory and include the following:
 
 ```
 BOT_TOKEN=[Your Bot Token]
-API_URL=https://api.typegg.io/v1
+API_URL=https://api.typegg.io
 SITE_URL=https://typegg.io
 ```
 

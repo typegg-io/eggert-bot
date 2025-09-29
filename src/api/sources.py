@@ -3,8 +3,7 @@ from urllib.parse import quote
 
 import aiohttp
 
-from api.core import get_params
-from config import API_URL
+from api.core import API_URL, get_params
 
 
 async def get_sources(
@@ -20,7 +19,7 @@ async def get_sources(
     Calls GET /sources with all available filters.
     Returns the JSON response as a dict.
     """
-    url = f"{API_URL}/sources"
+    url = f"{API_URL}/v1/sources"
     params = get_params({
         "search": search,
         "minPublicationYear": min_publication_year,
@@ -45,7 +44,7 @@ async def get_source(source_id: str) -> Dict[str, Any]:
     Calls GET /sources/{sourceId}.
     Returns the JSON response as a dict.
     """
-    url = f"{API_URL}/sources/{quote(source_id, safe="")}"
+    url = f"{API_URL}/v1/sources/{quote(source_id, safe="")}"
 
     async with aiohttp.ClientSession() as session:
         async with session.get(url) as response:
