@@ -7,7 +7,8 @@ import jwt
 from aiohttp import web
 from discord import Embed
 
-from config import API_URL, SECRET, TYPEGG_GUILD_ID, VERIFIED_ROLE_NAME
+from api.core import API_URL
+from config import SECRET, TYPEGG_GUILD_ID, VERIFIED_ROLE_NAME
 from database.bot.users import get_all_linked_users, link_user
 from utils.logging import log
 
