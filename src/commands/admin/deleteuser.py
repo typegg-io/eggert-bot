@@ -25,7 +25,10 @@ class DeleteUser(Command):
         message = Message(
             ctx, Page(
                 title="Are You Sure?",
-                description=f"You are about to permanently delete `{profile["username"]}`"
+                description=(
+                    f"You are about to permanently delete `{profile["username"]}`\n"
+                    f"Please type \"confirm\" to proceed with deletion"
+                )
             )
         )
         await message.send()
