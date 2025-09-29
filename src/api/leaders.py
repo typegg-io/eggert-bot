@@ -1,6 +1,8 @@
-import aiohttp
 from typing import Optional, Dict, Any
 
+import aiohttp
+
+from api.core import get_params
 from config import API_URL
 
 
@@ -16,16 +18,13 @@ async def get_leaders(
     Returns the JSON response as a dict.
     """
     url = f"{API_URL}/leaders"
-
-    params: Dict[str, Any] = {
+    params = get_params({
         "sort": sort,
         "gamemode": gamemode,
         "country": country,
         "page": page,
         "perPage": per_page,
-    }
-
-    params = {k: v for k, v in params.items() if v is not None}
+    })
 
     async with aiohttp.ClientSession() as session:
         async with session.get(url, params=params) as response:

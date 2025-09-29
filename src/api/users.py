@@ -3,11 +3,8 @@ from urllib.parse import quote
 
 import aiohttp
 
-from config import API_URL, SECRET
-
-headers = {
-    "Authorization": SECRET,
-}
+from api.core import get_params, AUTH_HEADERS
+from config import API_URL
 
 
 async def get_profile(user_id: str):
@@ -51,9 +48,8 @@ async def get_races(
     Calls GET /users/{userId}/races with all available filters.
     Returns the JSON response as a dict.
     """
-
     url = f"{API_URL}/users/{quote(user_id, safe="")}/races"
-    params = dict(
+    params = get_params(dict(
         startDate=start_date,
         endDate=end_date,
         startNumber=start_number,
@@ -69,12 +65,10 @@ async def get_races(
         showKeystrokeData=str(get_keystrokes).lower(),
         page=page,
         perPage=per_page,
-    )
-
-    params = {k: v for k, v in params.items() if v is not None}
+    ))
 
     async with aiohttp.ClientSession() as session:
-        async with session.get(url, params=params, headers=headers) as response:
+        async with session.get(url, params=params, headers=AUTH_HEADERS) as response:
             match response.status:
                 case 200:
                     return await response.json()
@@ -88,13 +82,12 @@ async def get_race(user_id: str, race_number: int, get_keystrokes=False) -> Dict
     Calls GET /users/{userId}/races/{raceNumber}.
     Returns the JSON response as a dict.
     """
-
     url = f"{API_URL}/users/{quote(user_id, safe="")}/races/{race_number}"
 
     async with aiohttp.ClientSession() as session:
         async with session.get(
             url,
-            headers=headers,
+            headers=AUTH_HEADERS,
             params={"showKeystrokeData": str(get_keystrokes).lower()}
         ) as response:
             match response.status:
@@ -112,7 +105,6 @@ async def get_latest_race(user_id: str) -> Dict[str, Any]:
     Gets a user's latest race.
     Returns the JSON response as a dict.
     """
-
     race_list = await get_races(user_id, per_page=1)
 
     return race_list["races"][0]
@@ -141,9 +133,8 @@ async def get_quotes(
     Calls GET /users/{userId}/quotes with all available filters.
     Returns the JSON response as a dict.
     """
-
     url = f"{API_URL}/users/{quote(user_id, safe="")}/quotes"
-    params = dict(
+    params = get_params(dict(
         startDate=start_date,
         endDate=end_date,
         startNumber=start_number,
@@ -160,8 +151,7 @@ async def get_quotes(
         reverse=str(reverse).lower(),
         page=page,
         perPage=per_page,
-    )
-    params = {k: v for k, v in params.items() if v is not None}
+    ))
 
     async with aiohttp.ClientSession() as session:
         async with session.get(url, params=params) as response:
@@ -178,8 +168,7 @@ async def get_quote(user_id: str, quote_id: str) -> Dict[str, Any]:
     Calls GET /users/{userId}/quotes/{quoteId} with all available filters.
     Returns the JSON response as a dict.
     """
-
-    url = f"{API_URL}/users/{quote(user_id, safe="")}/quotes/{quote_id}"
+    url = f"{API_URL}/users/{quote(user_id, safe="")}/quotes/{quote(quote_id, safe="")}"
 
     async with aiohttp.ClientSession() as session:
         async with session.get(url) as response:

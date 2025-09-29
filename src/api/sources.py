@@ -1,6 +1,9 @@
-import aiohttp
 from typing import Optional, Dict, Any
+from urllib.parse import quote
 
+import aiohttp
+
+from api.core import get_params
 from config import API_URL
 
 
@@ -18,8 +21,7 @@ async def get_sources(
     Returns the JSON response as a dict.
     """
     url = f"{API_URL}/sources"
-
-    params: Dict[str, Any] = {
+    params = get_params({
         "search": search,
         "minPublicationYear": min_publication_year,
         "maxPublicationYear": max_publication_year,
@@ -27,9 +29,7 @@ async def get_sources(
         "reverse": str(reverse).lower(),
         "page": page,
         "perPage": per_page,
-    }
-
-    params = {k: v for k, v in params.items() if v is not None}
+    })
 
     async with aiohttp.ClientSession() as session:
         async with session.get(url, params=params) as response:
@@ -45,7 +45,8 @@ async def get_source(source_id: str) -> Dict[str, Any]:
     Calls GET /sources/{sourceId}.
     Returns the JSON response as a dict.
     """
-    url = f"{API_URL}/sources/{source_id}"
+    url = f"{API_URL}/sources/{quote(source_id, safe="")}"
+
     async with aiohttp.ClientSession() as session:
         async with session.get(url) as response:
             if response.status == 200:

@@ -1,6 +1,9 @@
-import aiohttp
 from typing import Optional, Dict, Any
+from urllib.parse import quote
 
+import aiohttp
+
+from api.core import get_params
 from config import API_URL
 
 
@@ -25,8 +28,7 @@ async def get_quotes(
     Returns the JSON response as a dict.
     """
     url = f"{API_URL}/quotes"
-
-    params: Dict[str, Any] = {
+    params = get_params({
         "search": search,
         "minDifficulty": min_difficulty,
         "maxDifficulty": max_difficulty,
@@ -37,13 +39,11 @@ async def get_quotes(
         "sourceId": source_id,
         "status": status,
         "sort": sort,
-        "distinct": str(distinct).lower(),
-        "reverse": str(reverse).lower(),
+        "distinct": distinct,
+        "reverse": reverse,
         "page": page,
         "perPage": per_page,
-    }
-
-    params = {k: v for k, v in params.items() if v is not None}
+    })
 
     async with aiohttp.ClientSession() as session:
         async with session.get(url, params=params) as response:
@@ -53,13 +53,15 @@ async def get_quotes(
                 text = await response.text()
                 raise Exception(f"API returned status {response.status}: {text}")
 
+
 async def get_quote(quote_id: str, distinct: bool = True) -> Dict[str, Any]:
     """
     Calls GET /quotes/{quoteId}.
     Returns the JSON response as a dict.
     """
-    url = f"{API_URL}/quotes/{quote_id}"
-    params = {"distinct": str(distinct).lower()}
+    url = f"{API_URL}/quotes/{quote(quote_id, safe="")}"
+    params = get_params({"distinct": distinct})
+
     async with aiohttp.ClientSession() as session:
         async with session.get(url, params=params) as response:
             if response.status == 200:

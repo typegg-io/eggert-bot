@@ -1,4 +1,5 @@
 from typing import Dict, Any
+from urllib.parse import quote
 
 import aiohttp
 
@@ -10,8 +11,7 @@ async def get_race(race_id: str) -> Dict[str, Any]:
     Calls GET /races/{raceId}.
     Returns the JSON response as a dict.
     """
-
-    url = f"{API_URL}/races/{race_id}"
+    url = f"{API_URL}/races/{quote(race_id, safe="")}"
 
     async with aiohttp.ClientSession() as session:
         async with session.get(url) as response:

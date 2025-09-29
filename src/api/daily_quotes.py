@@ -2,6 +2,7 @@ from typing import Dict, Any
 
 import aiohttp
 
+from api.core import get_params
 from config import API_URL
 from utils import dates
 
@@ -15,13 +16,10 @@ async def get_daily_quote(
     Returns the JSON response as a dict.
     """
     url = f"{API_URL}/daily"
-
-    params: Dict[str, Any] = {
+    params = get_params({
         "date": date,
         "country": country,
-    }
-
-    params = {k: v for k, v in params.items() if v is not None}
+    })
 
     async with aiohttp.ClientSession() as session:
         async with session.get(url, params=params) as response:
