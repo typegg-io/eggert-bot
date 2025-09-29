@@ -20,7 +20,10 @@ def render(
         pp.append(race["pp"])
         length.append(len(quote["text"]))
 
-    ax.scatter(length, pp, cmap=color, s=6)
+    if color in plt.colormaps():
+        ax.scatter(length, pp, s=6, c=pp, cmap=color)
+    else:
+        ax.scatter(length, pp, s=6, color=color)
 
     ax.set_title(f"pp Per Quote Length - {username}")
     ax.set_xlabel("Quote Length")
