@@ -22,7 +22,7 @@ class DailyLeaderboard(Command):
         quote_id = quote["quoteId"]
 
         description = quote_display(quote) + "\n\n**Top 10**\n"
-        for i, score in enumerate(quote["leaderboard"]):
+        for i, score in enumerate(daily_quote["leaderboard"]):
             country = score.get("country", None)
             flag = f":flag_{country.lower()}: " if country else ""
             pp = f"{score["pp"]:,.0f} pp - " if quote["ranked"] else ""
