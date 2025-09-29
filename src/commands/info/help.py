@@ -110,6 +110,13 @@ async def help_command(ctx: commands.Context, command_name: str):
             content=", ".join([f"`{prefix}{alias}`" for alias in aliases]),
         ))
 
+    command_author = command.get("author", None)
+    if command_author:
+        fields.append(Field(
+            title="\t",
+            content=f"-# Command by <@{command_author}>"
+        ))
+
     page = Page(
         title=f"Help: `{prefix}{name}`",
         description=command["description"],
