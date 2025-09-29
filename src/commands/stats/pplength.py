@@ -2,7 +2,7 @@ from discord.ext import commands
 
 from api.users import get_quotes
 from commands.base import Command
-from database.typegg.races import get_races
+from database.typegg.users import get_quote_bests
 from graphs import pplength
 from utils.messages import Page, Message
 
@@ -27,7 +27,7 @@ class PpLengthGraph(Command):
 
 
 async def run(ctx: commands.Context, profile: dict):
-    quote_bests = await get_races(profile["userId"])
+    quote_bests = get_quote_bests(profile["userId"])
     quotes = []
     pages = 1
     page = 1

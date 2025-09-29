@@ -4,7 +4,7 @@ from graphs.core import plt, apply_theme, generate_file_name
 def render(
     username: str,
     quotes: list[dict],
-    races: list[dict],
+    quote_bests: list[dict],
     theme: dict,
 ):
     fig, ax = plt.subplots()
@@ -15,12 +15,10 @@ def render(
 
     quote_dict = {(quote := quote_data["quote"])["quoteId"]: quote for quote_data in quotes}
 
-    for race in races:
+    for race in quote_bests:
         quote = quote_dict[race["quoteId"]]
-
-        if (new_pp := race["pp"]) > 0:
-            pp.append(new_pp)
-            length.append(len(quote["text"]))
+        pp.append(race["pp"])
+        length.append(len(quote["text"]))
 
     ax.scatter(length, pp, cmap=color, s=6)
 
