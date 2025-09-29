@@ -1,9 +1,9 @@
-from discord import Embed
 from discord.ext import commands
 
 from api.daily_quotes import get_daily_quote
 from config import DAILY_QUOTE_CHANNEL_ID, DAILY_QUOTE_ROLE_ID
 from utils import urls
+from utils.messages import Page, Message
 from utils.strings import quote_display
 
 
@@ -15,13 +15,18 @@ async def daily_quote_ping(bot: commands.Bot):
     quote = daily_quote["quote"]
     quote_id = quote["quoteId"]
 
-    embed = Embed(
+    page = Page(
         title=f"New Daily Quote! #{daily_quote["dayNumber"]:,}\n{quote_id}",
         description=quote_display(quote),
-        url=urls.race(quote_id),
         color=0xF1C40F,
     )
 
-    embed.set_thumbnail(url=quote["source"]["thumbnailUrl"])
+    message = Message(
+        channel,
+        page=page,
+        url=urls.race(quote_id),
+        thumbnail=quote["source"]["thumbnailUrl"],
+        content=f"<@&{DAILY_QUOTE_ROLE_ID}>",
+    )
 
-    await channel.send(embed=embed, content=f"<@&{DAILY_QUOTE_ROLE_ID}>")
+    await message.send()

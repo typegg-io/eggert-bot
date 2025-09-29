@@ -113,7 +113,7 @@ class Message(View):
         self.header = header
         self.footer = footer
         self.footer_icon = footer_icon
-        self.color = self.ctx.user["theme"]["embed"] if color is None else color
+        self.color = self.ctx.user["theme"]["embed"] if hasattr(ctx, "user") and color is None else color
         self.profile = profile
         self.show_avatar = show_avatar
         self.thumbnail = thumbnail
