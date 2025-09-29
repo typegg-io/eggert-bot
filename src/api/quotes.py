@@ -37,7 +37,7 @@ async def get_quotes(
         "sourceId": source_id,
         "status": status,
         "sort": sort,
-        "distinct": distinct,
+        "distinct": str(distinct).lower(),
         "reverse": str(reverse).lower(),
         "page": page,
         "perPage": per_page,
