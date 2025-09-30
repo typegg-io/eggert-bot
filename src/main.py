@@ -73,7 +73,7 @@ async def on_ready():
 @tasks.loop(minutes=1)
 async def tasks():
     now = dates.now()
-    if now.hour == 0 and now.minute == 0:
+    if now.hour == 0 and now.minute == 5:
         await daily_quote_ping(bot)
 
 

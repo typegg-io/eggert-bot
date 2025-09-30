@@ -158,3 +158,8 @@ def quote_display(quote):
         f"{discord_date(quote["created"], "D")}\n\n"
         f"\"{truncate_clean(text, 1000)}\""
     )
+
+
+def get_flag(user):
+    country = user.get("country", None)
+    return f":flag_{country.lower()}: " if country else ""

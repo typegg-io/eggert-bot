@@ -2,9 +2,11 @@ from discord.ext import commands
 
 from api.daily_quotes import get_daily_quote
 from commands.base import Command
-from utils import urls
+from config import DAILY_QUOTE_ROLE_ID
+from utils import urls, dates
+from utils.dates import parse_date
 from utils.messages import Page, Message
-from utils.strings import rank, escape_formatting, discord_date, quote_display
+from utils.strings import rank, escape_formatting, discord_date, quote_display, get_flag
 
 info = {
     "name": "dailyleaderboard",
@@ -16,33 +18,62 @@ info = {
 
 class DailyLeaderboard(Command):
     @commands.command(aliases=info["aliases"])
-    async def dailyleaderboard(self, ctx: commands.Context):
-        daily_quote = await get_daily_quote()
-        quote = daily_quote["quote"]
-        quote_id = quote["quoteId"]
+    async def dailyleaderboard(self, ctx: commands.Context, *args: str):
+        date = parse_date("".join(args))
+        daily_quote = await get_daily_quote(date.strftime("%Y-%m-%d"))
+        await display_daily_quote(ctx, daily_quote, f"Daily Quote #{daily_quote["dayNumber"]:,}")
 
-        description = quote_display(quote) + "\n\n**Top 10**\n"
-        for i, score in enumerate(daily_quote["leaderboard"]):
-            country = score.get("country", None)
-            flag = f":flag_{country.lower()}: " if country else ""
-            pp = f"{score["pp"]:,.0f} pp - " if quote["ranked"] else ""
+
+async def display_daily_quote(
+    ctx: commands.Context,
+    daily_quote: dict,
+    title: str,
+    show_leaderboard: bool = True,
+    show_champion=False,
+    color=None,
+    mention=False,
+):
+    quote = daily_quote["quote"]
+    quote_id = quote["quoteId"]
+    end_date = daily_quote["endDate"]
+    leaderboard = daily_quote["leaderboard"]
+    end = "Ends" if parse_date(end_date) > dates.now() else "Ended"
+
+    description = quote_display(quote)
+    if show_champion:
+        champion = leaderboard[0]
+        description = (
+            f":trophy: **Champion: {get_flag(champion)}{escape_formatting(champion["username"])} - "
+            f"{champion["wpm"]:,.2f} WPM ({champion["accuracy"]:.2%}) - {champion["pp"]:,.0f} pp**\n\n"
+            f"{description}"
+        )
+
+    if show_leaderboard:
+        description += "\n\n**Top 10**\n"
+        for i, score in enumerate(leaderboard):
             description += (
-                f"{rank(i + 1)} {flag}{escape_formatting(score["username"])} - "
-                f"{score["wpm"]:,.2f} WPM ({score["accuracy"]:.2%}) - {pp}"
+                f"{rank(i + 1)} {get_flag(score)}{escape_formatting(score["username"])} - "
+                f"{score["wpm"]:,.2f} WPM ({score["accuracy"]:.2%}) - {score["pp"]:,.0f} pp - "
                 f"{discord_date(score["timestamp"])}\n"
             )
+        description = description[:-1]
 
-        page = Page(
-            title=f"Today's Daily Quote\n{quote_id}",
-            description=description + f"\nEnds {discord_date(daily_quote["endDate"])}",
-            color=0xF1C40F,
-        )
+    page = Page(
+        title=(
+            f"{title} - {parse_date(daily_quote["startDate"]).strftime("%B %dth, %Y")}\n"
+            f"{quote_id}"
+        ),
+        description=description + f"\n\n{end} {discord_date(end_date)}",
+        color=0xF1C40F,
+    )
 
-        message = Message(
-            ctx,
-            page=page,
-            url=urls.race(quote_id),
-            thumbnail=quote["source"]["thumbnailUrl"],
-        )
+    message = Message(
+        ctx,
+        page=page,
+        url=urls.race(quote_id),
+        thumbnail=quote["source"]["thumbnailUrl"],
+        content=f"<@&{DAILY_QUOTE_ROLE_ID}>" if mention else "",
+        color=color,
+    )
 
-        await message.send()
+    await message.send()

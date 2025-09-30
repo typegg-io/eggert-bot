@@ -5,7 +5,7 @@ from commands.base import Command
 from utils import urls
 from utils.errors import unknown_quote
 from utils.messages import Page, Message
-from utils.strings import rank, escape_formatting, discord_date, quote_display
+from utils.strings import rank, escape_formatting, discord_date, quote_display, get_flag
 
 info = {
     "name": "quoteleaderboard",
@@ -30,11 +30,9 @@ async def run(ctx: commands.Context, quote: dict):
 
     leaderboard_string = ""
     for i, score in enumerate(quote["leaderboard"]):
-        country = score.get("country", None)
-        flag = f":flag_{country.lower()}: " if country else ""
         pp = f"{score["pp"]:,.0f} pp - " if quote["ranked"] else ""
         leaderboard_string += (
-            f"{rank(i + 1)} {flag}{escape_formatting(score["username"])} - "
+            f"{rank(i + 1)} {get_flag(score)}{escape_formatting(score["username"])} - "
             f"{score["wpm"]:,.2f} WPM ({score["accuracy"]:.2%}) - {pp}"
             f"{discord_date(score["timestamp"])}\n"
         )
