@@ -1,40 +1,10 @@
 from dataclasses import dataclass
 
 from discord import Embed
-from discord.ext import commands
+from discord.ext.commands import CommandError, CheckFailure
 
 from config import BOT_PREFIX as prefix
 from utils.colors import ERROR
-
-
-@dataclass
-class ErrorWithUsername(commands.CommandError):
-    """General exception for errors with a username."""
-    username: str
-
-
-class UserBanned(commands.CheckFailure):
-    """Raised when a banned user attempts to run a command."""
-
-
-class UserNotAdmin(commands.CheckFailure):
-    """Raised when a non-admin user attempts to run an admin-only command."""
-
-
-class UserNotOwner(commands.CheckFailure):
-    """Raised when a non-owner attempts to run an owner-only command."""
-
-
-class MissingUsername(commands.CommandError):
-    """Raised when a username is missing from required arguments."""
-
-
-class ProfileNotFound(ErrorWithUsername):
-    """Raised when a TypeGG profile is not found."""
-
-
-class NoRaces(ErrorWithUsername):
-    """Raised when a TypeGG profile has no races."""
 
 
 def missing_arguments(info, show_tip=False):
@@ -183,3 +153,57 @@ def unknown_quote(quote_id: str):
         description=f"Quote `{quote_id.replace("`", "")}` not found",
         color=ERROR,
     )
+
+
+def invalid_date():
+    return Embed(
+        title="Invalid Date",
+        description="Unrecognized date format",
+        color=ERROR,
+    )
+
+
+@dataclass
+class ErrorWithUsername(CommandError):
+    """General exception for errors with a username."""
+    username: str
+
+
+class ProfileNotFound(ErrorWithUsername):
+    """Raised when a TypeGG profile is not found."""
+
+    @property
+    def embed(self):
+        return invalid_user(self.username)
+
+
+class NoRaces(ErrorWithUsername):
+    """Raised when a TypeGG profile has no races."""
+
+    @property
+    def embed(self):
+        return no_races(self.username)
+
+
+class MissingUsername(CommandError):
+    """Raised when a username is missing from required arguments."""
+
+
+class UserBanned(CheckFailure):
+    """Raised when a banned user attempts to run a command."""
+    embed = banned_user()
+
+
+class UserNotAdmin(CheckFailure):
+    """Raised when a non-admin user attempts to run an admin-only command."""
+    embed = admin_command()
+
+
+class UserNotOwner(CheckFailure):
+    """Raised when a non-owner attempts to run an owner-only command."""
+    embed = owner_command()
+
+
+class InvalidDate(CommandError):
+    """Raised when a date string is improperly formatted."""
+    embed = invalid_date()
