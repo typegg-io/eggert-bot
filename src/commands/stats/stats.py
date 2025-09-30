@@ -45,9 +45,16 @@ async def run(ctx: commands.Context, profile: dict):
                 else profile["stats"]["wins"] / profile["stats"]["multiplayerRaces"]:.2%} win rate)\n"
                 f"**Level:** {profile["stats"]["level"]:,.2f} "
                 f"({profile["stats"]["experience"]:,.0f} XP)\n"
-                f"**Play Time:** {format_duration(profile["stats"]["playTime"] / 1000)}\n"
-                f""
+                f"**Play Time:** {format_duration(profile["stats"]["playTime"] / 1000)}"
             )
+        ),
+        Field(
+            title="Daily Quote",
+            content=(
+                f"**Current Streak:** {profile["stats"]["dailyQuotes"]["streak"]}\n"
+                f"**Best Streak:** {profile["stats"]["dailyQuotes"]["bestStreak"]}\n"
+                f"**Completed:** {profile["stats"]["dailyQuotes"]["completed"]}"
+            ),
         ),
         Field(
             title="About",

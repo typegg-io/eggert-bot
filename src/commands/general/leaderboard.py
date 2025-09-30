@@ -57,6 +57,21 @@ categories = {
         "title": "Profile Views",
         "formatter": lambda user: f"{user["profileViews"]:,}"
     },
+    "daily": {
+        "sort": "dailyQuotes.streak",
+        "title": "Current Daily Quote Streak",
+        "formatter": lambda user: f"{user["stats"]["dailyQuotes"]["streak"]} :fire:"
+    },
+    "streak": {
+        "sort": "dailyQuotes.bestStreak",
+        "title": "Best Daily Quote Streak",
+        "formatter": lambda user: f"{user["stats"]["dailyQuotes"]["bestStreak"]} :fire:"
+    },
+    "dailyquotes": {
+        "sort": "dailyQuotes.completed",
+        "title": "Total Daily Quotes Completed",
+        "formatter": lambda user: f"{user["stats"]["dailyQuotes"]["completed"]:,}"
+    },
 }
 info = {
     "name": "leaderboard",
