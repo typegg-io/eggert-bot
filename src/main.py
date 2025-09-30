@@ -8,7 +8,7 @@ from discord.ext import commands, tasks
 from watchdog.observers import Observer
 
 from commands.base import Command
-from config import BOT_PREFIX, BOT_TOKEN, STAGING, STATS_CHANNEL_ID, SOURCE_DIR
+from config import BOT_PREFIX, BOT_TOKEN, STAGING, STATS_CHANNEL_ID, SOURCE_DIR, DAILY_QUOTE_CHANNEL_ID
 from database.bot.users import get_user_ids, get_all_command_usage, update_commands
 from tasks import daily_quote_ping
 from utils import dates
@@ -31,6 +31,9 @@ users = get_user_ids()
 
 @bot.event
 async def on_message(message):
+    if message.channel.id == DAILY_QUOTE_CHANNEL_ID:
+        return
+
     if message.content.startswith(BOT_PREFIX) and not message.author.bot and not STAGING:
         log_message = get_log_message(message)
         log(log_message)
