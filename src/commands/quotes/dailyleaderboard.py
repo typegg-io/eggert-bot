@@ -4,7 +4,7 @@ from api.daily_quotes import get_daily_quote
 from commands.base import Command
 from config import DAILY_QUOTE_ROLE_ID
 from utils import urls, dates
-from utils.dates import parse_date
+from utils.dates import parse_date, format_date
 from utils.messages import Page, Message
 from utils.strings import rank, escape_formatting, discord_date, quote_display, get_flag
 
@@ -65,7 +65,7 @@ async def display_daily_quote(
 
     page = Page(
         title=(
-            f"{title} - {parse_date(daily_quote["startDate"]).strftime("%B %dth, %Y")}\n"
+            f"{title} - {format_date(parse_date(daily_quote["startDate"]))}\n"
             f"{quote_id}"
         ),
         description=description + f"\n\n{end} {discord_date(end_date)}",

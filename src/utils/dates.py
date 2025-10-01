@@ -3,6 +3,7 @@ from datetime import datetime, timezone, timedelta
 from dateutil import parser
 
 from utils.errors import InvalidDate
+from utils.strings import ordinal_number
 
 
 def now():
@@ -26,3 +27,12 @@ def parse_date(date_string):
             raise InvalidDate
 
     return date
+
+
+def format_date(date):
+    """Returns a date formatted as 'October 1st, 2025'."""
+    month = date.strftime("%B")
+    year = date.strftime("%Y")
+    day = int(date.strftime("%d"))
+
+    return f"{month} {ordinal_number(day)}, {year}"
