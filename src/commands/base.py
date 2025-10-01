@@ -3,8 +3,9 @@ from typing import Optional
 from discord.ext import commands
 
 from api.users import get_profile
+from config import DAILY_QUOTE_CHANNEL_ID
 from database.bot.users import get_user
-from utils.errors import UserBanned, MissingUsername, ProfileNotFound, NoRaces
+from utils.errors import UserBanned, MissingUsername, ProfileNotFound, NoRaces, DailyQuoteChannel
 
 
 class Command(commands.Cog):
@@ -16,6 +17,8 @@ class Command(commands.Cog):
         @bot.check
         async def set_user(ctx: commands.Context):
             """Attach a user to the context and block banned users."""
+            if ctx.channel.id == DAILY_QUOTE_CHANNEL_ID and str(ctx.command) != "dailyleaderboard":
+                raise DailyQuoteChannel
             if not hasattr(ctx, "user"):
                 ctx.user = get_user(str(ctx.author.id))
             if ctx.user["isBanned"]:

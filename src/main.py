@@ -31,9 +31,6 @@ users = get_user_ids()
 
 @bot.event
 async def on_message(message):
-    if message.channel.id == DAILY_QUOTE_CHANNEL_ID:
-        return
-
     if message.content.startswith(BOT_PREFIX) and not message.author.bot and not STAGING:
         log_message = get_log_message(message)
         log(log_message)

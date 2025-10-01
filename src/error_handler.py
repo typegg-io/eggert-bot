@@ -3,7 +3,7 @@ import importlib
 import discord
 from discord.ext import commands
 
-from utils.errors import UserBanned, unknown_command, MissingUsername, missing_arguments, unexpected_error
+from utils.errors import UserBanned, unknown_command, MissingUsername, missing_arguments, unexpected_error, DailyQuoteChannel
 from utils.logging import get_log_message, log_error
 
 
@@ -24,6 +24,9 @@ class ErrorHandler(commands.Cog):
 
         if hasattr(error, "embed"):
             return await ctx.send(embed=error.embed)
+
+        if isinstance(error, DailyQuoteChannel):
+            return
 
         if isinstance(error, commands.CommandNotFound):
             return await ctx.send(embed=unknown_command())

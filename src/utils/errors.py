@@ -207,3 +207,7 @@ class UserNotOwner(CheckFailure):
 class InvalidDate(CommandError):
     """Raised when a date string is improperly formatted."""
     embed = invalid_date()
+
+
+class DailyQuoteChannel(CommandError):
+    """Raised when a non-daily command is sent in the daily quote channel."""
