@@ -41,10 +41,15 @@ async def display_daily_quote(
 
     description = quote_display(quote)
     if show_champion:
-        champion = leaderboard[0]
+        def entry_formatter(data):
+            return (
+                f"{get_flag(data)}{escape_formatting(data["username"])} - "
+                f"{data["wpm"]:,.2f} WPM ({data["accuracy"]:.2%}) - {data["pp"]:,.0f} pp\n"
+            )
+
         description = (
-            f":trophy: **Champion: {get_flag(champion)}{escape_formatting(champion["username"])} - "
-            f"{champion["wpm"]:,.2f} WPM ({champion["accuracy"]:.2%}) - {champion["pp"]:,.0f} pp**\n\n"
+            f":trophy: **Champion: {entry_formatter(leaderboard[0])}**"
+            f":medal: Runner-up: {entry_formatter(leaderboard[1])}\n"
             f"{description}"
         )
 
