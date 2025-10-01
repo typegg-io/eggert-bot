@@ -32,6 +32,26 @@ class Download(Command):
         await run(ctx, profile)
 
 
+async def import_new_quotes(new_quote_ids):
+    source_ids = set(get_sources().keys())
+    log("New quotes found: " + ", ".join(new_quote_ids))
+
+    for quote_id in new_quote_ids:
+        quote = await get_quote(quote_id)
+        source_id = quote["source"]["sourceId"]
+
+        if source_id not in source_ids:
+            source = await get_source(source_id)
+            log(f"Adding source: {source_id}")
+            source_ids.add(source_id)
+            add_source(source)
+            await asyncio.sleep(API_RATE_LIMIT)
+
+        log(f"Adding quote: {quote_id}")
+        add_quote(quote)
+        await asyncio.sleep(API_RATE_LIMIT)
+
+
 async def run(
     ctx: Optional[commands.Context] = None,
     profile: Optional[dict] = None,
@@ -120,20 +140,4 @@ async def run(
         await message.edit()
 
     if new_quote_ids:
-        source_ids = set(get_sources().keys())
-        log("New quotes found: " + ", ".join(new_quote_ids))
-
-        for quote_id in new_quote_ids:
-            quote = await get_quote(quote_id)
-            source_id = quote["source"]["sourceId"]
-
-            if source_id not in source_ids:
-                source = await get_source(source_id)
-                log(f"Adding source: {source_id}")
-                source_ids.add(source_id)
-                add_source(source)
-                await asyncio.sleep(API_RATE_LIMIT)
-
-            log(f"Adding quote: {quote_id}")
-            add_quote(quote)
-            await asyncio.sleep(API_RATE_LIMIT)
+        asyncio.create_task(import_new_quotes(new_quote_ids))
