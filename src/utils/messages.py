@@ -12,9 +12,9 @@ from utils import files, urls
 from utils.colors import SUCCESS, DEFAULT
 
 welcome_message = (
-    f"### Welcome to TypeGG Stats!\n"
+    f"### Hi there, I'm Eggert!\n"
     f"Run `{BOT_PREFIX}link YOUR_TYPEGG_USERNAME` "
-    f"and follow the steps to start using the bot.\n"
+    f"and follow the steps to start using commands.\n"
 )
 
 
