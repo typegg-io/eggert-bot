@@ -5,9 +5,9 @@ from discord.ext import commands
 from commands.base import Command
 from database.typegg.users import get_quote_bests
 from graphs import compare
-from utils.errors import same_username, invalid_argument, no_common_texts
+from utils.errors import InvalidArgument, NoCommonTexts
 from utils.messages import Page, Message, Field
-from utils.strings import get_option
+from utils.strings import get_argument
 
 metrics = ["pp", "wpm"]
 info = {
@@ -21,19 +21,16 @@ info = {
 class CompareGraph(Command):
     @commands.command(aliases=info["aliases"])
     async def comparegraph(self, ctx, username1: str, username2: Optional[str] = "me", metric: Optional[str] = "pp"):
-        metric = get_option(metrics, metric)
-        metric_override = get_option(metrics, username2)
+        metric = get_argument(metrics, metric, False)
+        metric_override = get_argument(metrics, username2, False)
 
         if metric_override:
             metric = metric_override
             username2 = "me"
         elif not metric:
-            return await ctx.send(embed=invalid_argument(info))
+            raise InvalidArgument(metrics)
 
         username1, username2 = self.get_usernames(ctx, username1, username2)
-        if username1 == username2:
-            return await ctx.send(embed=same_username())
-
         profile1 = await self.get_profile(ctx, username1, races_required=True)
         profile2 = await self.get_profile(ctx, username2, races_required=True)
         await self.import_user(ctx, profile1)
@@ -47,7 +44,7 @@ async def run(ctx: commands.Context, profile1: dict, profile2: dict, metric: str
     quote_bests2 = get_quote_bests(profile2["userId"], as_dictionary=True)
     common_quotes = list(quote_bests1.keys() & quote_bests2.keys())
     if not common_quotes:
-        return await ctx.send(embed=no_common_texts())
+        raise NoCommonTexts
 
     differences = [
         quote_bests1[quote_id][metric] - quote_bests2[quote_id][metric]

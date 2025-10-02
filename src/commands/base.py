@@ -5,7 +5,7 @@ from discord.ext import commands
 from api.users import get_profile
 from config import DAILY_QUOTE_CHANNEL_ID
 from database.bot.users import get_user
-from utils.errors import UserBanned, MissingUsername, ProfileNotFound, NoRaces, DailyQuoteChannel
+from utils.errors import UserBanned, MissingUsername, ProfileNotFound, NoRaces, DailyQuoteChannel, SameUsername
 
 
 class Command(commands.Cog):
@@ -36,7 +36,12 @@ class Command(commands.Cog):
         if username2 == "me":
             username1, username2 = username2, username1
 
-        return self.get_username(ctx, username1), self.get_username(ctx, username2)
+        username1 = self.get_username(ctx, username1)
+        username2 = self.get_username(ctx, username2)
+        if username1 == username2:
+            raise SameUsername
+
+        return username1, username2
 
     async def get_profile(self, ctx: commands.Context, username: str, races_required: Optional[bool] = False):
         """Fetch a user's profile, raising exceptions if missing."""

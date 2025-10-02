@@ -5,7 +5,7 @@ from discord.ext import commands
 from commands.base import Command
 from config import BOT_PREFIX
 from database.bot.users import get_command_usage_by_user, get_top_users_by_command_usage, get_all_command_usage, get_command_usage
-from utils.errors import unknown_command, user_not_found
+from utils.errors import UnknownCommand, BotUserNotFound
 from utils.files import get_command_modules
 from utils.messages import Page, Message
 
@@ -42,7 +42,7 @@ class CommandLeaderboard(Command):
                 member = await commands.MemberConverter().convert(ctx, arg)
                 await user_command_leaderboard(ctx, member.id)
             except commands.BadArgument:
-                return await ctx.send(embed=unknown_command())
+                raise UnknownCommand
 
 
 async def command_leaderboard(ctx: commands.Context, command_name: str):
@@ -106,7 +106,7 @@ async def user_command_leaderboard(ctx: commands.Context, discord_id: int | str)
         else:
             command_usage = get_command_usage(discord_id)
             if not command_usage:
-                return await ctx.send(embed=user_not_found(discord_id))
+                raise BotUserNotFound(discord_id)
 
         description, total_usages = format_command_leaderboard(command_usage, discord_id)
         footer_text = f"Total Usages: {total_usages:,}"

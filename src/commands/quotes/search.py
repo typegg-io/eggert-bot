@@ -3,7 +3,7 @@ from discord.ext import commands
 from api.quotes import get_quotes
 from commands.base import Command
 from utils import urls
-from utils.errors import missing_arguments
+from utils.errors import MissingArguments
 from utils.messages import Page, Message, paginate_data
 from utils.strings import escape_formatting, truncate_clean
 
@@ -17,9 +17,9 @@ info = {
 
 class Search(Command):
     @commands.command(aliases=info["aliases"])
-    async def search(self, ctx, *, query=None):
+    async def search(self, ctx, *, query: str = None):
         if not query:
-            return await ctx.send(embed=missing_arguments(info))
+            raise MissingArguments
 
         await run(ctx, query)
 

@@ -4,6 +4,7 @@ from urllib.parse import quote
 import aiohttp
 
 from api.core import API_URL, get_params
+from utils.errors import UnknownQuote
 
 
 async def get_quotes(
@@ -66,7 +67,7 @@ async def get_quote(quote_id: str, distinct: bool = True) -> Dict[str, Any]:
             if response.status == 200:
                 return await response.json()
             elif response.status == 404:
-                return {}
+                raise UnknownQuote(quote_id)
             else:
                 text = await response.text()
                 raise Exception(f"API returned status {response.status}: {text}")

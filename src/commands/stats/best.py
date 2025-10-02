@@ -7,8 +7,8 @@ from database.typegg.quotes import get_quotes
 from database.typegg.sources import get_sources
 from database.typegg.users import get_quote_bests
 from utils import strings, urls
-from utils.errors import invalid_argument
 from utils.messages import Message, paginate_data, Page
+from utils.strings import get_argument
 
 metrics = ["pp", "wpm"]
 info = {
@@ -23,9 +23,7 @@ info = {
 class Best(Command):
     @commands.command(aliases=info["aliases"])
     async def best(self, ctx, username: Optional[str] = "me", metric: Optional[str] = "pp"):
-        if metric not in metrics:
-            return await ctx.send(embed=invalid_argument(metrics))
-
+        metric = get_argument(metrics, metric)
         profile = await self.get_profile(ctx, username, races_required=True)
         await self.import_user(ctx, profile)
         await run(ctx, profile, metric)

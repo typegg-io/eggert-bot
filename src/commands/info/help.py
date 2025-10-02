@@ -6,7 +6,7 @@ from discord.ext import commands
 from commands.base import Command
 from config import BOT_PREFIX as prefix, SOURCE_DIR
 from utils import files
-from utils.errors import admin_command, unknown_command
+from utils.errors import UnknownCommand, UserNotAdmin
 from utils.files import get_command_modules
 from utils.messages import Page, Message, Field
 
@@ -74,12 +74,12 @@ async def help_command(ctx: commands.Context, command_name: str):
         command_info = module.info
         if command_name in [command_info["name"]] + command_info["aliases"]:
             if group == "admin" and not ctx.user["isAdmin"]:
-                return await ctx.send(embed=admin_command())
+                raise UserNotAdmin
             command = command_info
             break
 
     if not command:
-        return await ctx.send(embed=unknown_command())
+        raise UnknownCommand
 
     name = command["name"]
     aliases = command["aliases"]

@@ -11,7 +11,7 @@ from database.bot.users import update_theme, get_theme
 from graphs import sample
 from graphs.core import plt
 from utils import strings
-from utils.errors import ERROR, missing_arguments, user_not_found
+from utils.errors import ERROR, MissingArguments, BotUserNotFound
 from utils.files import remove_file
 from utils.messages import Page, Message, Button
 
@@ -70,7 +70,7 @@ class Theme(Command):
             return await ctx.send(embed=invalid_element())
 
         if not color:
-            return await ctx.send(embed=missing_arguments(info))
+            raise MissingArguments
 
         if element == "grid" and color == "off":
             ctx.user["theme"]["grid_opacity"] = 0
@@ -123,7 +123,7 @@ async def run(ctx: commands.Context):
 async def display_user_theme(ctx: commands.Context, member: Member):
     user_theme = get_theme(member.id)
     if not user_theme:
-        return await ctx.send(embed=user_not_found(member.id))
+        raise BotUserNotFound(member.id)
 
     description = f"{member.mention}\n\n"
     description += "\n".join(

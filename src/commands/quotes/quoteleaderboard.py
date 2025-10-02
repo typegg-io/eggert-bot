@@ -3,7 +3,6 @@ from discord.ext import commands
 from api.quotes import get_quote
 from commands.base import Command
 from utils import urls
-from utils.errors import unknown_quote
 from utils.messages import Page, Message
 from utils.strings import rank, escape_formatting, discord_date, quote_display, get_flag
 
@@ -19,9 +18,6 @@ class QuoteLeaderboard(Command):
     @commands.command(aliases=info["aliases"])
     async def quoteleaderboard(self, ctx: commands.Context, quote_id: str):
         quote = await get_quote(quote_id)
-        if not quote:
-            return await ctx.send(embed=unknown_quote(quote_id))
-
         await run(ctx, quote)
 
 

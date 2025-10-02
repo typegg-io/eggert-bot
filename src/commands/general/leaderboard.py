@@ -3,8 +3,8 @@ from discord.ext import commands
 from api.leaders import get_leaders
 from commands.base import Command
 from utils import strings, urls
-from utils.errors import invalid_category
 from utils.messages import Message, paginate_data
+from utils.strings import get_argument
 
 categories = {
     "pp": {
@@ -85,9 +85,7 @@ info = {
 class Leaderboard(Command):
     @commands.command(aliases=info["aliases"])
     async def leaderboard(self, ctx, category: str):
-        if category not in categories.keys():
-            return await ctx.send(embed=invalid_category(categories))
-
+        category = get_argument(categories.keys(), category)
         await run(ctx, categories[category])
 
 

@@ -4,7 +4,7 @@ from discord.ext import commands
 
 from commands.base import Command
 from commands.stats.best import run, metrics
-from utils.errors import invalid_argument
+from utils.strings import get_argument
 
 info = {
     "name": "worst",
@@ -18,9 +18,7 @@ info = {
 class Worst(Command):
     @commands.command(aliases=info["aliases"])
     async def worst(self, ctx, username: Optional[str] = "me", metric: Optional[str] = "pp"):
-        if metric not in metrics:
-            return await ctx.send(embed=invalid_argument(metrics))
-
+        metric = get_argument(metrics, metric)
         profile = await self.get_profile(ctx, username, races_required=True)
         await self.import_user(ctx, profile)
         await run(ctx, profile, metric)

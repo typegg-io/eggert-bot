@@ -8,9 +8,8 @@ from config import BOT_PREFIX
 from database.typegg.races import get_races
 from graphs import improvement
 from utils.dates import parse_date
-from utils.errors import invalid_argument
 from utils.messages import Page, Message
-from utils.strings import get_option
+from utils.strings import get_argument
 
 metrics = ["pp", "wpm"]
 info = {
@@ -26,10 +25,7 @@ info = {
 class Improvement(Command):
     @commands.command(aliases=info["aliases"])
     async def improvement(self, ctx, username: Optional[str] = "me", metric: Optional[str] = "wpm"):
-        metric = get_option(metrics, metric)
-        if not metric:
-            return await ctx.send(embed=invalid_argument(metrics))
-
+        metric = get_argument(metrics, metric)
         profile = await self.get_profile(ctx, username, races_required=True)
         await self.import_user(ctx, profile)
 

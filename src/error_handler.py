@@ -3,7 +3,7 @@ import importlib
 import discord
 from discord.ext import commands
 
-from utils.errors import UserBanned, unknown_command, MissingUsername, missing_arguments, unexpected_error, DailyQuoteChannel
+from utils.errors import UserBanned, MissingUsername, DailyQuoteChannel, MissingArguments, UnknownCommand, UnexpectedError
 from utils.logging import get_log_message, log_error
 
 
@@ -22,6 +22,16 @@ class ErrorHandler(commands.Cog):
                 pass
             return
 
+        if isinstance(error, (commands.MissingRequiredArgument, MissingArguments, MissingUsername)):
+            module_path = ctx.command.callback.__module__
+            command_info = importlib.import_module(module_path).info
+            print(MissingArguments().embed(command_info))
+            missing_arguments = MissingArguments().embed(
+                command_info,
+                show_tip=isinstance(error, MissingUsername),
+            )
+            return await ctx.send(embed=missing_arguments)
+
         if hasattr(error, "embed"):
             return await ctx.send(embed=error.embed)
 
@@ -29,19 +39,9 @@ class ErrorHandler(commands.Cog):
             return
 
         if isinstance(error, commands.CommandNotFound):
-            return await ctx.send(embed=unknown_command())
+            return await ctx.send(embed=UnknownCommand.embed)
 
-        if isinstance(error, (commands.MissingRequiredArgument, MissingUsername)):
-            module_path = ctx.command.callback.__module__
-            command_info = importlib.import_module(module_path).info
-            return await ctx.send(
-                embed=missing_arguments(
-                    command_info,
-                    show_tip=isinstance(error, MissingUsername)
-                )
-            )
-
-        await ctx.send(embed=unexpected_error())
+        await ctx.send(embed=UnexpectedError().embed)
 
         log_message = get_log_message(ctx.message)
         log_error(log_message, error)

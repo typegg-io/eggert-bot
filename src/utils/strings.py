@@ -3,6 +3,7 @@ from typing import Optional
 from dateutil import parser
 
 from utils import urls
+from utils.errors import InvalidArgument
 
 RANK_EMOJIS = [
     ":first_place:",
@@ -40,13 +41,20 @@ ALIAS_LOOKUP = {
 }
 
 
-def get_option(valid_options: list[str], param: str) -> str | None:
-    """Resolve a parameter to its original option if valid, else None."""
+def get_argument(valid_options: list[str], param: str, _raise: bool = True):
+    """Resolve a parameter to its original option if valid, else raise or None."""
     param = param.lower()
     if param in valid_options:
         return param
+
     original = ALIAS_LOOKUP.get(param)
-    return original if original in valid_options else None
+    if original not in valid_options:
+        if _raise:
+            raise InvalidArgument(valid_options)
+        else:
+            return None
+
+    return original
 
 
 def discord_date(date_string: str, style: Optional[str] = "R"):
