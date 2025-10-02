@@ -4,8 +4,10 @@ import numpy as np
 from discord.ext import commands
 
 from commands.base import Command
+from config import BOT_PREFIX
 from database.typegg.races import get_races
 from graphs import improvement
+from utils.dates import parse_date
 from utils.errors import invalid_argument
 from utils.messages import Page, Message
 from utils.strings import get_option
@@ -13,69 +15,130 @@ from utils.strings import get_option
 metrics = ["pp", "wpm"]
 info = {
     "name": "improvement",
-    "aliases": ["imp"],
-    "description": "Displays a graph of a user's pp/WPM over races\n"
-                   "\\- `metric` defaults to pp",
+    "aliases": ["imp", "simp"],
+    "description": "Displays a graph of a user's multiplayer pp or WPM over races\n"
+                   "\\- `metric` defaults to pp\n"
+                   f"Use `{BOT_PREFIX}simp` to view results for solo PBs",
     "parameters": "[username] [pp|wpm]",
 }
 
 
 class Improvement(Command):
     @commands.command(aliases=info["aliases"])
-    async def improvement(self, ctx, username: Optional[str] = "me", metric: Optional[str] = "pp"):
+    async def improvement(self, ctx, username: Optional[str] = "me", metric: Optional[str] = "wpm"):
         metric = get_option(metrics, metric)
         if not metric:
             return await ctx.send(embed=invalid_argument(metrics))
 
         profile = await self.get_profile(ctx, username, races_required=True)
         await self.import_user(ctx, profile)
-        await run(ctx, profile, metric)
+
+        if ctx.invoked_with == "simp":
+            await solo_improvement(ctx, profile, metric)
+        else:
+            await multiplayer_improvement(ctx, profile, metric)
 
 
-async def run(ctx: commands.Context, profile: dict, metric: str):
+async def multiplayer_improvement(ctx: commands.Context, profile: dict, metric: str):
     race_list = await get_races(
         profile["userId"],
-        columns=[metric, "timestamp"],
+        columns=["quoteId", metric, "timestamp"],
         min_pp=0.01,
+        gamemode="multiplayer",
     )
-    value_list, date_list = zip(*[(race[metric], race["timestamp"]) for race in race_list])
+    values, dates = zip(*[(race[metric], race["timestamp"]) for race in race_list])
+    best_average = max(np.convolve(values, np.ones(25) / 25, mode="valid"))
 
     if metric == "wpm":
-        metric = metric.upper()
-
-    race_count = len(value_list)
-    window_size = min(max(race_count // 15, 1), 500)
-    average = np.mean(value_list)
-    best = max(value_list)
-    worst = min(value_list)
-    recent_average = np.mean(value_list[-window_size:])
+        metric = "WPM"
 
     description = (
-        f"**Races:** {race_count:,}\n"
-        f"**Average:** {average:,.2f} {metric}\n"
-        f"**Best:** {best:,.2f} {metric}\n"
-        f"**Worst:** {worst:,.2f} {metric}\n"
-        f"**Average of Last {window_size}:** {recent_average:,.2f} {metric}\n"
+        f"**Races:** {len(values):,}\n"
+        f"**Average:** {np.mean(values):,.2f} {metric}\n"
+        f"**Best:** {max(values):,.2f} {metric}\n"
+        f"**Worst:** {min(values):,.2f} {metric}\n"
+        f"**Last 25 Average:** {np.mean(values[-25:]):,.2f} {metric}\n"
+        f"**Best 25 Average:** {best_average:,.2f} {metric}\n"
     )
 
     def render(dates=None):
         return lambda: improvement.render(
-            values=value_list,
+            values=values,
+            metric=metric,
+            theme=ctx.user["theme"],
+            dates=dates,
+            window_size=25,
+        )
+
+    message = Message(
+        ctx,
+        title=f"Multiplayer - {metric} Improvement",
+        header=description,
+        pages=[
+            Page(
+                button_name="Over Races",
+                render=render(),
+            ),
+            Page(
+                button_name="Over Time",
+                render=render(dates)
+            )
+        ],
+        profile=profile,
+    )
+
+    await message.send()
+
+
+async def solo_improvement(ctx: commands.Context, profile: dict, metric: str):
+    race_list = await get_races(
+        profile["userId"],
+        columns=["quoteId", metric, "timestamp"],
+        min_pp=0.01,
+        gamemode="solo",
+    )
+
+    pb_dict = {}
+    for race in race_list:
+        quote_id = race["quoteId"]
+        if quote_id not in pb_dict or race[metric] > pb_dict[quote_id][metric]:
+            pb_dict[quote_id] = race
+    pbs = list(pb_dict.values())
+    pbs.sort(key=lambda x: -parse_date(x["timestamp"]).timestamp())
+    values, dates = zip(*[(race[metric], race["timestamp"]) for race in pbs])
+
+    if metric == "wpm":
+        metric = "WPM"
+
+    description = (
+        f"**PB Improvements:** {len(values):,}\n"
+        f"**PB Average:** {np.mean(values):,.2f} {metric}\n"
+        f"**Best:** {max(values):,.2f} {metric}\n"
+        f"**Worst:** {min(values):,.2f} {metric}\n"
+    )
+
+    def render(dates=None):
+        return lambda: improvement.render(
+            values=values,
             metric=metric,
             theme=ctx.user["theme"],
             dates=dates,
         )
 
-    pages = [
-        Page(button_name="Over Races", render=render()),
-        Page(button_name="Over Time", render=render(date_list)),
-    ]
-
     message = Message(
         ctx,
-        title=f"{metric} Improvement",
+        title=f"Solo PBs - {metric} Improvement",
         header=description,
-        pages=pages,
+        pages=[
+            Page(
+                button_name="Over Races",
+                render=render(),
+            ),
+            Page(
+                button_name="Over Time",
+                render=render(dates)
+            )
+        ],
         profile=profile,
     )
 

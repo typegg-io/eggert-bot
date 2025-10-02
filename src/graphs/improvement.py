@@ -12,6 +12,7 @@ def render(
     metric: str,
     theme: dict,
     dates: list[str] = None,
+    window_size: int = None,
 ):
     fig, ax = plt.subplots()
     values = np.array(values)
@@ -21,7 +22,8 @@ def render(
     downsample_factor = max(len(values) // 100000, 1)
     downsampled_indices = np.arange(0, len(values), downsample_factor)
     downsampled_values = values[downsampled_indices]
-    window_size = min(max(len(values) // 15, 1), 500)
+    if not window_size:
+        window_size = min(max(len(values) // 15, 1), 500)
 
     if len(values) > 10000:
         downsample_factor *= 10

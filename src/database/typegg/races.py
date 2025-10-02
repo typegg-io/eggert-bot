@@ -41,6 +41,7 @@ async def get_races(
     end_number: Optional[int] = None,
     min_pp: Optional[float] = None,
     max_pp: Optional[float] = None,
+    gamemode: Optional[str] = None,
     order_by: str = "timestamp",
     reverse: bool = False,
     limit: Optional[int] = None,
@@ -65,6 +66,9 @@ async def get_races(
         conditions.append(f"pp >= {min_pp}")
     if max_pp is not None:
         conditions.append(f"pp < {max_pp}")
+    if gamemode is not None:
+        conditions.append(f"gamemode = ?")
+        params.append(gamemode)
 
     where_clause = "WHERE " + " AND ".join(conditions)
 
