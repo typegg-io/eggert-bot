@@ -21,4 +21,4 @@ class Worst(Command):
         metric = get_argument(metrics, metric)
         profile = await self.get_profile(ctx, username, races_required=True)
         await self.import_user(ctx, profile)
-        await run(ctx, profile, metric)
+        await run(ctx, profile, metric, False)
