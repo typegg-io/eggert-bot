@@ -112,7 +112,7 @@ async def run(
         return
 
     quote_ids = set(get_quotes().keys())
-    new_quote_ids = []
+    new_quote_ids = set()
 
     start_number = latest_race_number + 1
     while start_number <= total_races:
@@ -131,7 +131,7 @@ async def run(
 
         for race in race_list:
             if race["quoteId"] not in quote_ids:
-                new_quote_ids.append(race["quoteId"])
+                new_quote_ids.add(race["quoteId"])
 
         add_races(race_list)
 
@@ -141,11 +141,24 @@ async def run(
         await initial_send
 
     if new_quote_ids:
-        if send_message and len(new_quote_ids) <= 10:
-            page.title = f"Importing New Quotes {LOADING}"
+        if not send_message:
+            page = Page(
+                title=f"New Quote Import {LOADING}",
+                description="Adding new quotes to database",
+            )
+            message = Message(ctx, page)
+            await message.send()
+        elif len(new_quote_ids) > 10:
+            page.title = f"New Quote Import {LOADING}"
             page.description = "Adding new quotes to database"
             await message.edit()
-        await import_new_quotes(new_quote_ids)
+
+        await import_new_quotes(list(new_quote_ids))
+
+        if not send_message:
+            page.title = "New Quotes Import"
+            page.description = "Finished adding new quotes"
+            await message.edit()
 
     if send_message:
         page.title = "Import Request"
