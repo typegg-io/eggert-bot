@@ -116,13 +116,19 @@ class UnknownCommand(CommandError):
     )
 
 
+@dataclass
 class UnexpectedError(CommandError):
     """Global catch-all case for unexpected exceptions."""
-    embed = Embed(
-        title="Unexpected Error",
-        description="An unexpected error occurred",
-        color=ERROR,
-    )
+    error_type: str
+
+    @property
+    def embed(self):
+        return Embed(
+            title="Unexpected Error",
+            description="An unexpected error occurred:\n"
+                        f"`{self.error_type}`",
+            color=ERROR,
+        )
 
 
 class NoCommonTexts(CommandError):
@@ -172,3 +178,17 @@ class InvalidDate(CommandError):
 
 class DailyQuoteChannel(CommandError):
     """Raised when a non-daily command is sent in the daily quote channel."""
+
+
+@dataclass
+class APIError(CommandError):
+    status: int
+    message: str
+
+    @property
+    def embed(self):
+        return Embed(
+            title="API Error",
+            description="API returned status:\n"
+                        f"{self.status}: {self.message}"
+        )

@@ -41,7 +41,7 @@ class ErrorHandler(commands.Cog):
         if isinstance(error, commands.CommandNotFound):
             return await ctx.send(embed=UnknownCommand.embed)
 
-        await ctx.send(embed=UnexpectedError().embed)
+        await ctx.send(embed=UnexpectedError(type(error).__name__).embed)
 
         log_message = get_log_message(ctx.message)
         log_error(log_message, error)
