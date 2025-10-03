@@ -36,7 +36,7 @@ async def import_new_quotes(new_quote_ids):
     source_ids = set(get_sources().keys())
     log("New quotes found: " + ", ".join(new_quote_ids))
 
-    for quote_id in new_quote_ids:
+    async def process_quote(quote_id):
         quote = await get_quote(quote_id)
         source_id = quote["source"]["sourceId"]
 
@@ -45,11 +45,16 @@ async def import_new_quotes(new_quote_ids):
             log(f"Adding source: {source_id}")
             source_ids.add(source_id)
             add_source(source)
-            await asyncio.sleep(API_RATE_LIMIT)
 
         log(f"Adding quote: {quote_id}")
         add_quote(quote)
-        await asyncio.sleep(API_RATE_LIMIT)
+
+    if len(new_quote_ids) <= 10:
+        await asyncio.gather(*(process_quote(quote_id) for quote_id in new_quote_ids))
+    else:
+        for quote_id in new_quote_ids:
+            await process_quote(quote_id)
+            await asyncio.sleep(API_RATE_LIMIT)
 
 
 async def run(
@@ -133,11 +138,16 @@ async def run(
         start_number = race_list[-1]["raceNumber"] + 1
 
     if send_message:
-        page.title = "Import Request"
-        page.description = f"Finished importing races for {formatted_username}"
-
         await initial_send
-        await message.edit()
 
     if new_quote_ids:
-        asyncio.create_task(import_new_quotes(new_quote_ids))
+        if send_message and len(new_quote_ids) <= 10:
+            page.title = f"Importing New Quotes {LOADING}"
+            page.description = "Adding new quotes to database"
+            await message.edit()
+        await import_new_quotes(new_quote_ids)
+
+    if send_message:
+        page.title = "Import Request"
+        page.description = f"Finished importing races for {formatted_username}"
+        await message.edit()
