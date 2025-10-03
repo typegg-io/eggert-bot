@@ -5,7 +5,7 @@ from discord.ext import commands
 from commands.base import Command
 from database.typegg.users import get_quote_bests
 from graphs import compare
-from utils.errors import InvalidArgument, NoCommonTexts
+from utils.errors import InvalidArgument, NoCommonTexts, SameUsername
 from utils.messages import Page, Message, Field
 from utils.strings import get_argument
 
@@ -33,6 +33,10 @@ class CompareGraph(Command):
         username1, username2 = self.get_usernames(ctx, username1, username2)
         profile1 = await self.get_profile(ctx, username1, races_required=True)
         profile2 = await self.get_profile(ctx, username2, races_required=True)
+
+        if profile1["username"] == profile2["username"]:
+            raise SameUsername
+
         await self.import_user(ctx, profile1)
         await self.import_user(ctx, profile2)
 

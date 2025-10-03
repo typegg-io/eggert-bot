@@ -5,7 +5,7 @@ from discord.ext import commands
 from api.users import get_profile
 from config import DAILY_QUOTE_CHANNEL_ID
 from database.bot.users import get_user
-from utils.errors import UserBanned, MissingUsername, ProfileNotFound, NoRaces, DailyQuoteChannel, SameUsername
+from utils.errors import UserBanned, MissingUsername, ProfileNotFound, NoRaces, DailyQuoteChannel
 
 
 class Command(commands.Cog):
@@ -38,8 +38,6 @@ class Command(commands.Cog):
 
         username1 = self.get_username(ctx, username1)
         username2 = self.get_username(ctx, username2)
-        if username1 == username2:
-            raise SameUsername
 
         return username1, username2
 
