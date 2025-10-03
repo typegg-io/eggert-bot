@@ -60,7 +60,10 @@ def render(
     else:
         ax.plot(x_points, moving_values, label="_")
 
-    ax.set_xlabel(f"Races")
+    if dates:
+        ax.set_xlabel(f"Date")
+    else:
+        ax.set_xlabel(f"Races")
     ax.set_ylabel(metric)
     title = f"{metric} Improvement"
     if window_size > 1:
