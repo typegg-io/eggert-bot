@@ -5,7 +5,7 @@ from discord.ext import commands
 from api.users import get_profile
 from config import DAILY_QUOTE_CHANNEL_ID
 from database.bot.users import get_user
-from utils.errors import UserBanned, MissingUsername, ProfileNotFound, NoRaces, DailyQuoteChannel
+from utils.errors import UserBanned, MissingUsername, NoRaces, DailyQuoteChannel
 
 
 class Command(commands.Cog):
@@ -48,9 +48,6 @@ class Command(commands.Cog):
             raise MissingUsername
 
         profile = await get_profile(username)
-        if not profile:
-            raise ProfileNotFound(username)
-
         if races_required and profile["stats"]["races"] == 0:
             raise NoRaces(username)
 

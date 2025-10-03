@@ -25,7 +25,6 @@ class ErrorHandler(commands.Cog):
         if isinstance(error, (commands.MissingRequiredArgument, MissingArguments, MissingUsername)):
             module_path = ctx.command.callback.__module__
             command_info = importlib.import_module(module_path).info
-            print(MissingArguments().embed(command_info))
             missing_arguments = MissingArguments().embed(
                 command_info,
                 show_tip=isinstance(error, MissingUsername),

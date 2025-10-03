@@ -12,9 +12,11 @@ class MissingArguments(CommandError):
 
     def embed(self, info, show_tip=False):
         embed = Embed(
-            title="Missing Parameter",
-            description="One or more parameters is missing\n"
-                        f"Usage: `{prefix}{info["name"]} {info["parameters"]}`",
+            title="Missing Argument",
+            description=(
+                "One or more arguments is missing\n"
+                f"Usage: `{prefix}{info["name"]} {info["parameters"]}`",
+            ),
             color=ERROR,
         )
         if show_tip:
@@ -53,7 +55,7 @@ class ProfileNotFound(ErrorWithUsername):
     @property
     def embed(self):
         return Embed(
-            title="Invalid User",
+            title="User Not Found",
             description=f"User `{self.username.replace("`", "")}` not found",
             color=ERROR,
         )
@@ -189,6 +191,27 @@ class APIError(CommandError):
     def embed(self):
         return Embed(
             title="API Error",
-            description="API returned status:\n"
-                        f"{self.status}: {self.message}"
+            description=(
+                f"API returned status {self.status}:\n"
+                f"{self.message}"
+            ),
+            color=ERROR,
+        )
+
+
+@dataclass
+class RaceNotFound(CommandError):
+    """Raised when a specific race is not found."""
+    username: str
+    race_number: int
+
+    @property
+    def embed(self):
+        return Embed(
+            title="Race Not Found",
+            description=(
+                f"Race `#{self.race_number:,}` for "
+                f"`{self.username.replace("`", "")}` not found"
+            ),
+            color=ERROR,
         )

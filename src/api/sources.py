@@ -3,7 +3,7 @@ from urllib.parse import quote
 
 import aiohttp
 
-from api.core import API_URL, get_params
+from api.core import API_URL, get_params, get_response
 
 
 async def get_sources(
@@ -32,11 +32,7 @@ async def get_sources(
 
     async with aiohttp.ClientSession() as session:
         async with session.get(url, params=params) as response:
-            if response.status == 200:
-                return await response.json()
-            else:
-                text = await response.text()
-                raise Exception(f"API returned status {response.status}: {text}")
+            return await get_response(response)
 
 
 async def get_source(source_id: str) -> Dict[str, Any]:
@@ -48,8 +44,4 @@ async def get_source(source_id: str) -> Dict[str, Any]:
 
     async with aiohttp.ClientSession() as session:
         async with session.get(url) as response:
-            if response.status == 200:
-                return await response.json()
-            else:
-                text = await response.text()
-                raise Exception(f"API returned status {response.status}: {text}")
+            return await get_response(response)

@@ -3,7 +3,8 @@ from urllib.parse import quote
 
 import aiohttp
 
-from api.core import get_params, API_URL, AUTH_HEADERS
+from api.core import get_params, API_URL, AUTH_HEADERS, get_response
+from utils.errors import ProfileNotFound, RaceNotFound
 
 
 async def get_profile(user_id: str):
@@ -15,14 +16,9 @@ async def get_profile(user_id: str):
 
     async with aiohttp.ClientSession() as session:
         async with session.get(url) as response:
-            match response.status:
-                case 200:
-                    return await response.json()
-                case 404:
-                    return None
-                case _:
-                    text = await response.text()
-                    raise Exception(f"API returned status {response.status}: {text}")
+            return await get_response(response, exceptions={
+                404: ProfileNotFound(user_id)
+            })
 
 
 async def get_races(
@@ -68,12 +64,7 @@ async def get_races(
 
     async with aiohttp.ClientSession() as session:
         async with session.get(url, params=params, headers=AUTH_HEADERS) as response:
-            match response.status:
-                case 200:
-                    return await response.json()
-                case _:
-                    text = await response.text()
-                    raise Exception(f"API returned status {response.status}: {text}")
+            return await get_response(response)
 
 
 async def get_race(user_id: str, race_number: int, get_keystrokes=False) -> Dict[str, Any]:
@@ -89,14 +80,9 @@ async def get_race(user_id: str, race_number: int, get_keystrokes=False) -> Dict
             headers=AUTH_HEADERS,
             params={"showKeystrokeData": str(get_keystrokes).lower()}
         ) as response:
-            match response.status:
-                case 200:
-                    return await response.json()
-                case 404:
-                    return None
-                case _:
-                    text = await response.text()
-                    raise Exception(f"API returned status {response.status}: {text}")
+            await get_response(response, exceptions={
+                404: RaceNotFound(user_id, race_number)
+            })
 
 
 async def get_latest_race(user_id: str) -> Dict[str, Any]:
@@ -154,12 +140,7 @@ async def get_quotes(
 
     async with aiohttp.ClientSession() as session:
         async with session.get(url, params=params) as response:
-            match response.status:
-                case 200:
-                    return await response.json()
-                case _:
-                    text = await response.text()
-                    raise Exception(f"API returned status {response.status}: {text}")
+            return await get_response(response)
 
 
 async def get_quote(user_id: str, quote_id: str) -> Dict[str, Any]:
@@ -171,8 +152,4 @@ async def get_quote(user_id: str, quote_id: str) -> Dict[str, Any]:
 
     async with aiohttp.ClientSession() as session:
         async with session.get(url) as response:
-            if response.status == 200:
-                return await response.json()
-            else:
-                text = await response.text()
-                raise Exception(f"API returned status {response.status}: {text}")
+            return await get_response(response)
