@@ -22,8 +22,10 @@ def render(
     downsample_factor = max(len(values) // 100000, 1)
     downsampled_indices = np.arange(0, len(values), downsample_factor)
     downsampled_values = values[downsampled_indices]
-    if not window_size:
-        window_size = min(max(len(values) // 15, 1), 500)
+    max_window_size = 500
+    if window_size:
+        max_window_size = window_size
+    window_size = min(max(len(values) // 15, 1), max_window_size)
 
     if len(values) > 10000:
         downsample_factor *= 10
