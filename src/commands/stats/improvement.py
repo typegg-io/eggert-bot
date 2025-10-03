@@ -100,7 +100,7 @@ async def solo_improvement(ctx: commands.Context, profile: dict, metric: str):
         if quote_id not in pb_dict or race[metric] > pb_dict[quote_id][metric]:
             pb_dict[quote_id] = race
     pbs = list(pb_dict.values())
-    pbs.sort(key=lambda x: -parse_date(x["timestamp"]).timestamp())
+    pbs.sort(key=lambda x: parse_date(x["timestamp"]).timestamp())
     values, dates = zip(*[(race[metric], race["timestamp"]) for race in pbs])
 
     if metric == "wpm":
