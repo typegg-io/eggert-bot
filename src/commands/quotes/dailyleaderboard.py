@@ -53,7 +53,7 @@ async def display_daily_quote(
             f"{description}"
         )
 
-    if show_leaderboard:
+    if show_leaderboard and leaderboard:
         description += "\n\n**Top 10**\n"
         for i, score in enumerate(leaderboard):
             description += (
