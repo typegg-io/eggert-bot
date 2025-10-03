@@ -7,6 +7,7 @@ from commands.base import Command
 from config import BOT_PREFIX
 from database.typegg.races import get_races
 from graphs import improvement
+from utils.colors import ERROR
 from utils.dates import parse_date
 from utils.messages import Page, Message
 from utils.strings import get_argument
@@ -42,6 +43,19 @@ async def multiplayer_improvement(ctx: commands.Context, profile: dict, metric: 
         min_pp=0.01,
         gamemode="multiplayer",
     )
+
+    if not race_list:
+        message = Message(
+            ctx, page=Page(
+                title="No Races",
+                description=f"User `{profile["username"]}` has no multiplayer races",
+                footer="Use -simp to view solo improvement!",
+                color=ERROR,
+            )
+        )
+
+        return await message.send()
+
     values, dates = zip(*[(race[metric], race["timestamp"]) for race in race_list])
     best_average = max(np.convolve(values, np.ones(25) / 25, mode="valid"))
 
@@ -93,6 +107,18 @@ async def solo_improvement(ctx: commands.Context, profile: dict, metric: str):
         min_pp=0.01,
         gamemode="solo",
     )
+
+    if not race_list:
+        message = Message(
+            ctx, page=Page(
+                title="No Races",
+                description=f"User `{profile["username"]}` has no ranked solo races",
+                footer="Use -imp to view multiplayer improvement!",
+                color=ERROR,
+            )
+        )
+
+        return await message.send()
 
     pb_dict = {}
     for race in race_list:
