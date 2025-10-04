@@ -13,8 +13,7 @@ from utils.colors import SUCCESS, DEFAULT
 
 welcome_message = (
     f"### Hi there, I'm Eggert!\n"
-    f"Run `{BOT_PREFIX}link YOUR_TYPEGG_USERNAME` "
-    f"and follow the steps to start using commands.\n"
+    f"Run `{BOT_PREFIX}link` and follow the steps to start using commands.\n"
 )
 
 
