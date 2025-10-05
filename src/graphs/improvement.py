@@ -52,11 +52,12 @@ def render(
     ax.scatter(downsampled_indices, downsampled_values, alpha=0.1, s=25, color=point_color, edgecolors="none")
 
     segment_count = 50 // (len(moving_values) - 1) if len(moving_values) > 1 else 1
-    if segment_count > 1:
-        x_segments, y_segments = interpolate_segments(x_points, moving_values)
-        ax.plot(x_segments, y_segments, label="_")
-    else:
-        ax.plot(x_points, moving_values, label="_")
+    if len(x_points) >= window_size:
+        if segment_count > 1:
+            x_segments, y_segments = interpolate_segments(x_points, moving_values)
+            ax.plot(x_segments, y_segments, label="_")
+        else:
+            ax.plot(x_points, moving_values, label="_")
 
     if dates:
         ax.set_xlabel(f"Date")
