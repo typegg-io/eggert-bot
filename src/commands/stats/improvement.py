@@ -67,9 +67,13 @@ async def multiplayer_improvement(ctx: commands.Context, profile: dict, metric: 
         f"**Average:** {np.mean(values):,.2f} {metric}\n"
         f"**Best:** {max(values):,.2f} {metric}\n"
         f"**Worst:** {min(values):,.2f} {metric}\n"
-        f"**Last 25 Average:** {np.mean(values[-25:]):,.2f} {metric}\n"
-        f"**Best 25 Average:** {best_average:,.2f} {metric}\n"
     )
+
+    if len(values) >= 25:
+        description += (
+            f"**Last 25 Average:** {np.mean(values[-25:]):,.2f} {metric}\n"
+            f"**Best 25 Average:** {best_average:,.2f} {metric}\n"
+        )
 
     def render(dates=None):
         return lambda: improvement.render(
