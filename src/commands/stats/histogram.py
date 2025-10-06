@@ -7,7 +7,7 @@ from utils.strings import get_argument
 from graphs import histogram
 
 
-metrics = ["pp", "wpm", "acc", "react", "recover"]
+metrics = ["pp", "wpm", "acc"]
 info = {
     "name": "histogram",
     "aliases": ["hg", "hist"],
@@ -34,10 +34,6 @@ async def run(ctx: commands.Context, profile: dict, metric: str):
     match metric:
         case "acc":
             metric = "accuracy"
-        case "react":
-            metric = "reactionTime"
-        case "recover":
-            metric = "recoveryTime"
 
     quote_bests = get_quote_bests(profile["userId"])
     quote_bests_stats = list(map(lambda race: race[metric], quote_bests))
