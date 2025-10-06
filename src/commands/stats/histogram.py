@@ -1,11 +1,11 @@
 from typing import Optional
 from discord.ext import commands
-
 from commands.base import Command
 from database.typegg.users import get_quote_bests
-from graphs import histogram
 from utils.messages import Page, Message
 from utils.strings import get_argument
+from graphs import histogram
+
 
 metrics = ["pp", "wpm", "acc"]
 info = {
@@ -17,9 +17,9 @@ info = {
 }
 
 
-class PpLengthGraph(Command):
+class Histogram(Command):
     @commands.command(aliases=info["aliases"])
-    async def ppLength(self, ctx, username: str = "me", metric: Optional[str] = "pp"):
+    async def Histogram(self, ctx, username: str = "me", metric: Optional[str] = "pp"):
         username = self.get_username(ctx, username)
         metric = get_argument(metrics, metric, True)
 
@@ -31,12 +31,13 @@ class PpLengthGraph(Command):
 
 
 async def run(ctx: commands.Context, profile: dict, metric: str):
-    quote_bests = list(map(lambda race: race[metric], get_quote_bests(profile["userId"])))
+    quote_bests = get_quote_bests(profile["userId"])
+    quote_bests_stats = list(map(lambda race: race[metric], quote_bests))
     username = profile["username"]
 
     page = Page(
         title="pp vs. Length Comparison",
-        render=lambda: historam.render(
+        render=lambda: histogram.render(
             username,
             metric,
             quote_bests_stats,
