@@ -70,7 +70,7 @@ def apply_colormap(ax, counts, groups, extent, theme):
     mask[:, 0] = np.concatenate([groups[:-1], [groups[-1]]])
     mask[:-1, 1] = counts
 
-    ax.barh(groups[:-1], counts)
+    ax.barh(groups[:-1], counts, height=np.diff(groups), align="edge", alpha=0)
     original_xlim = ax.get_xlim()
 
     x = np.linspace(0, 10, 100)

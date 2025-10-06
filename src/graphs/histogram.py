@@ -25,12 +25,15 @@ def render(
         case _:
             raise InvalidArgument("invalid metric")
 
-
-
     if color in plt.colormaps():
-        ax.hist(quote_bests_stats, bins=bins, cmap=color)
+        ax.hist(quote_bests_stats, bins=bins, alpha=0)
     else:
         ax.hist(quote_bests_stats, bins=bins, color=color)
+
+    counts, groups = np.histogram(quote_bests_stats, bins=bins)
+
+    if color in plt.colormaps():
+        apply_colormap(ax, counts, groups, theme)
 
     ax.set_title(f"{metric} histogram - {username}")
     ax.set_xlabel(f"{metric}")
@@ -44,25 +47,18 @@ def render(
 
     return file_name
 
-def apply_colormap(ax, counts, groups, extent, theme):
-    """Apply colormap to histogram bars by creating a masked gradient background."""
+def apply_colormap(ax, counts, groups, theme):
+    """Apply colormap to vertical histogram bars with masked gradient background."""
     cmap = plt.get_cmap(theme["line"])
+    
+    ax.bar(groups[:-1], counts, width=np.diff(groups), align="edge", alpha=0)
 
-    mask = np.zeros((len(groups), 2))
-    mask[:, 0] = np.concatenate([groups[:-1], [groups[-1]]])
-    mask[:-1, 1] = counts
-
-    ax.barh(groups[:-1], counts, height=np.diff(groups), align="edge", alpha=0)
-    original_xlim = ax.get_xlim()
-
-    x = np.linspace(0, 10, 100)
-    y = np.linspace(0, 10, 100)
-    X, Y = np.meshgrid(x, y)
-
-    ax.imshow(X, cmap=cmap, extent=extent, origin="lower", aspect="auto")
-    ax.set_xlim(original_xlim)
+    y = np.linspace(0, max(counts), 100)
+    x = np.linspace(groups[0], groups[-1], 100)
+    _, Y = np.meshgrid(x, y)
+    ax.imshow(Y, cmap=cmap, extent=[groups[0], groups[-1], 0, max(counts)], origin='lower', aspect='auto')
 
     graph_background = theme["graph_background"]
-    ax.fill_betweenx(mask[:, 0], mask[:, 1], extent[1], color=graph_background, step='post')
-    ax.fill_betweenx([extent[2], groups[0]], [0, 0], [extent[1], extent[1]], color=graph_background)
-    ax.fill_betweenx([groups[-1], extent[3]], [0, 0], [extent[1], extent[1]], color=graph_background)
+    mask_height = max(counts) - counts
+    ax.bar(groups[:-1], mask_height, width=np.diff(groups), bottom=counts,
+           align="edge", color=graph_background, edgecolor='none')
