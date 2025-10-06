@@ -7,7 +7,7 @@ from utils.strings import get_argument
 from graphs import histogram
 
 
-metrics = ["pp", "wpm", "acc"]
+metrics = ["pp", "wpm", "accuracy"]
 info = {
     "name": "histogram",
     "aliases": ["hg", "hist"],
