@@ -5,9 +5,10 @@ from database.typegg.users import get_quote_bests
 from utils.messages import Page, Message
 from utils.strings import get_argument
 from graphs import histogram
+from pprint import pprint
 
 
-metrics = ["pp", "wpm", "accuracy"]
+metrics = ["pp", "wpm", "acc", "react", "recover"]
 info = {
     "name": "histogram",
     "aliases": ["hg", "hist"],
@@ -31,7 +32,16 @@ class Histogram(Command):
 
 
 async def run(ctx: commands.Context, profile: dict, metric: str):
+    match metric:
+        case "acc":
+            metric = "accuracy"
+        case "react":
+            metric = "reactionTime"
+        case "recover":
+            metric = "recoveryTime"
+
     quote_bests = get_quote_bests(profile["userId"])
+    pprint(list(map(dict, quote_bests)))
     quote_bests_stats = list(map(lambda race: race[metric], quote_bests))
     username = profile["username"]
 
