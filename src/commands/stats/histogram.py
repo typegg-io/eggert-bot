@@ -11,7 +11,7 @@ metrics = ["pp", "wpm", "acc"]
 info = {
     "name": "histogram",
     "aliases": ["hg", "hist"],
-    "description": "Retruns a histogram of the current metric, the default metric is PP.",
+    "description": "Retruns a histogram for solo and for multi in the current metric, the default metric is pp.",
     "parameters": f"<username> [{"|".join(metrics)}]",
     "author": 231721357484752896,
 }
