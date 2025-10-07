@@ -39,17 +39,14 @@ async def run(ctx: commands.Context, profile: dict, metric: str):
 
     solo_stats = []
     multi_stats = []
-    print(list(map(dict, quote_bests)))
 
     for race in quote_bests:
-        race = race[metric]
-        # if race["gamemode"] == "solo"
-        
-        # elif race["gamemode"] == "multi"
-        # else:
-        #   raise ValueError()
-
-
+        if race["gamemode"] == "solo":
+            solo_stats.append(race[metric])
+        elif race["gamemode"] == "multiplayer":
+            multi_stats.append(race[metric])
+        else:
+            raise ValueError(dict(race))
 
     username = profile["username"]
 
