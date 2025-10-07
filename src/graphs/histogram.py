@@ -36,11 +36,12 @@ def render(
         case "errorReactionTime":
             quote_bests_stats = [el for el in quote_bests_stats if el != 0 and el < 600]
             bins = np.arange(min(quote_bests_stats), max(quote_bests_stats), 10)
-            ax.set_xlabel(f"Accuracy (in %)")
+            ax.set_xlabel(f"Error Reaction Time (in ms)")
             ax.set_title("Error Reaction Time Histogram - {username}")
         case "errorRecoveryTime":
             quote_bests_stats = [el for el in quote_bests_stats if el != 0 and el < 600]
             bins = np.arange(min(quote_bests_stats), max(quote_bests_stats), 10)
+            ax.set_xlabel(f"Error Recovery Time (in ms)")
             ax.set_title("Error Recovery Time Histogram - {username}")
         case _:
             raise InvalidArgument(f"invalid metric: {metric}")

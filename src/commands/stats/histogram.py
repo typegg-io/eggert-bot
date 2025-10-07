@@ -2,8 +2,9 @@ from typing import Optional
 from discord.ext import commands
 from commands.base import Command
 from database.typegg.users import get_quote_bests
-from utils.messages import Page, Message
+from utils.messages import Page, Message, Field
 from utils.strings import get_argument
+import numpy as np
 from graphs import histogram
 
 
@@ -57,10 +58,33 @@ async def run(ctx: commands.Context, profile: dict, metric: str):
         else:
             raise ValueError(dict(race))
 
+    display_solo_stats = solo_stats
+    display_multi_stats = multi_stats
+
+    if metric == "accuracy":
+            display_solo_stats = np.array(display_solo_stats) * 100
+            display_multi_stats = np.array(display_multi_stats) * 100
+
     username = profile["username"]
+
+    fields = []
+
+    def make_field(title: str, data: list[float]):
+        content = (
+            f"**Average** {np.average(data):.2f}\n"
+                f"**Mean** {np.mean(data):.2f}\n"
+                f"**Standard Deviation** {np.std(data):.2f}\n"
+                f"**Quartiles** {" -> ".join(map(lambda q: f"{q:.2f}", np.quantile(data, [0.25, 0.75])))}\n"
+        )
+
+        return Field(title=title, content=content, inline=True)
+
+
+    fields = [make_field("Solo", display_solo_stats), make_field("Multi", display_multi_stats)]
 
     page = Page(
         title=f"{title} Histogram",
+        fields=fields,
         render=lambda: histogram.render(
             username,
             metric,
