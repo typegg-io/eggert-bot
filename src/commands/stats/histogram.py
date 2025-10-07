@@ -35,7 +35,7 @@ async def run(ctx: commands.Context, profile: dict, metric: str):
         case "acc":
             metric = "accuracy"
 
-    quote_bests = get_quote_bests(profile["userId"]) # TODO: Use something else
+    quote_bests = get_quote_bests(profile["userId"])
 
     solo_stats = []
     multi_stats = []
@@ -67,3 +67,4 @@ async def run(ctx: commands.Context, profile: dict, metric: str):
     )
 
     await message.send()
+
