@@ -34,7 +34,7 @@ def render(
             multi_stats *= 100
             ax.set_xlabel(f"Accuracy (in %)")
         case _:
-            raise InvalidArgument("invalid metric")
+            raise InvalidArgument(f"invalid metric: {metric}")
 
     if color in plt.colormaps():
         color = "#00B5E2"
