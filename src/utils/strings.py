@@ -171,3 +171,8 @@ def quote_display(quote):
 def get_flag(user):
     country = user.get("country", None)
     return f":flag_{country.lower()}: " if country else ""
+
+
+def username_with_flag(profile):
+    flag = get_flag(profile)
+    return f"{flag}{escape_formatting(profile["username"])}"

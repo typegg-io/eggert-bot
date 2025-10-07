@@ -6,7 +6,7 @@ from config import DAILY_QUOTE_ROLE_ID
 from utils import urls, dates
 from utils.dates import parse_date, format_date
 from utils.messages import Page, Message
-from utils.strings import rank, escape_formatting, discord_date, quote_display, get_flag
+from utils.strings import rank, discord_date, quote_display, username_with_flag
 
 info = {
     "name": "dailyleaderboard",
@@ -43,7 +43,7 @@ async def display_daily_quote(
     if show_champion:
         def entry_formatter(data):
             return (
-                f"{get_flag(data)}{escape_formatting(data["username"])} - "
+                f"{username_with_flag(data)} - "
                 f"{data["wpm"]:,.2f} WPM ({data["accuracy"]:.2%}) - {data["pp"]:,.0f} pp\n"
             )
 
@@ -57,7 +57,7 @@ async def display_daily_quote(
         description += "\n\n**Top 10**\n"
         for i, score in enumerate(leaderboard):
             description += (
-                f"{rank(i + 1)} {get_flag(score)}{escape_formatting(score["username"])} - "
+                f"{rank(i + 1)} {username_with_flag(score)} - "
                 f"{score["wpm"]:,.2f} WPM ({score["accuracy"]:.2%}) - {score["pp"]:,.0f} pp - "
                 f"{discord_date(score["timestamp"])}\n"
             )
