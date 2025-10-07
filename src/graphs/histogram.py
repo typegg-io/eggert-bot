@@ -1,4 +1,5 @@
 from graphs.core import plt, apply_theme, generate_file_name
+from pprint import pprint
 import numpy as np
 from utils.errors import InvalidArgument
 
@@ -6,12 +7,15 @@ from utils.errors import InvalidArgument
 def render(
     username: str,
     metric: str,
-    quote_bests_stats: list[float],
+    multi_stats: list[float],
+    solo_stats: list[float],
     theme: dict,
 ):
     fig, ax = plt.subplots()
     color = theme["line"]
-    quote_bests_stats = np.array(quote_bests_stats)
+    solo_stats = np.array(solo_stats)
+    multi_stats = np.array(multi_stats)
+    quote_bests_stats = np.concatenate([solo_stats, multi_stats])
 
     match metric:
         case "pp":
@@ -26,18 +30,15 @@ def render(
             raise InvalidArgument("invalid metric")
 
     if color in plt.colormaps():
-        ax.hist(quote_bests_stats, bins=bins, alpha=0)
-    else:
-        ax.hist(quote_bests_stats, bins=bins, color=color)
+        color = "#00B5E2"
 
-    counts, groups = np.histogram(quote_bests_stats, bins=bins)
+    ax.hist(solo_stats, bins=bins, color=color, label="solo")
+    ax.hist(multi_stats, bins=bins, color=invertColor(color), label="multi")
 
-    if color in plt.colormaps():
-        apply_colormap(ax, counts, groups, theme)
-
-    ax.set_title(f"{metric} histogram - {username}")
+    ax.set_title(f"{metric.capitalize()} Histogram - {username}")
     ax.set_xlabel(f"{metric}")
     ax.set_ylabel("Occurences")
+    ax.legend()
 
     apply_theme(ax, theme=theme)
 
@@ -47,18 +48,6 @@ def render(
 
     return file_name
 
-def apply_colormap(ax, counts, groups, theme):
-    """Apply colormap to vertical histogram bars with masked gradient background."""
-    cmap = plt.get_cmap(theme["line"])
-    
-    ax.bar(groups[:-1], counts, width=np.diff(groups), align="edge", alpha=0)
+def invertColor(color: str):
+    return f"#{0xFFFFFF ^ int(color.lstrip('#'), 16):06x}"
 
-    y = np.linspace(0, max(counts), 100)
-    x = np.linspace(groups[0], groups[-1], 100)
-    _, Y = np.meshgrid(x, y)
-    ax.imshow(Y, cmap=cmap, extent=[groups[0], groups[-1], 0, max(counts)], origin='lower', aspect='auto')
-
-    graph_background = theme["graph_background"]
-    mask_height = max(counts) - counts
-    ax.bar(groups[:-1], mask_height, width=np.diff(groups), bottom=counts,
-           align="edge", color=graph_background, edgecolor='none')

@@ -35,16 +35,31 @@ async def run(ctx: commands.Context, profile: dict, metric: str):
         case "acc":
             metric = "accuracy"
 
-    quote_bests = get_quote_bests(profile["userId"])
-    quote_bests_stats = list(map(lambda race: race[metric], quote_bests))
+    quote_bests = get_quote_bests(profile["userId"]) # TODO: Use something else
+
+    solo_stats = []
+    multi_stats = []
+    print(list(map(dict, quote_bests)))
+
+    for race in quote_bests:
+        race = race[metric]
+        # if race["gamemode"] == "solo"
+        
+        # elif race["gamemode"] == "multi"
+        # else:
+        #   raise ValueError()
+
+
+
     username = profile["username"]
 
     page = Page(
-        title="pp vs. Length Comparison",
+        title=f"{metric.capitalize()} Histogram",
         render=lambda: histogram.render(
             username,
             metric,
-            quote_bests_stats,
+            solo_stats,
+            multi_stats,
             ctx.user["theme"],
         )
     )
