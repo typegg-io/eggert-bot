@@ -6,8 +6,8 @@ from utils.errors import InvalidArgument
 def render(
     username: str,
     metric: str,
-    multi_stats: list[float],
     solo_stats: list[float],
+    multi_stats: list[float],
     theme: dict,
 ):
     fig, ax = plt.subplots()
@@ -33,6 +33,15 @@ def render(
             solo_stats *= 100
             multi_stats *= 100
             ax.set_xlabel(f"Accuracy (in %)")
+        case "errorReactionTime":
+            quote_bests_stats = [el for el in quote_bests_stats if el != 0 and el < 600]
+            bins = np.arange(min(quote_bests_stats), max(quote_bests_stats), 10)
+            ax.set_xlabel(f"Accuracy (in %)")
+            ax.set_title("Error Reaction Time Histogram - {username}")
+        case "errorRecoveryTime":
+            quote_bests_stats = [el for el in quote_bests_stats if el != 0 and el < 600]
+            bins = np.arange(min(quote_bests_stats), max(quote_bests_stats), 10)
+            ax.set_title("Error Recovery Time Histogram - {username}")
         case _:
             raise InvalidArgument(f"invalid metric: {metric}")
 

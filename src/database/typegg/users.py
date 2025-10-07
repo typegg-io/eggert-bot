@@ -27,7 +27,7 @@ def get_quote_bests(
     results = db.fetch(f"""
         SELECT
             quoteId, raceNumber, {aggregate_column},
-            pp, rawPp, wpm, rawWpm, accuracy, timestamp, gamemode
+            pp, rawPp, wpm, rawWpm, accuracy, timestamp, gamemode, errorReactionTime, errorRecoveryTime
         FROM races
         WHERE userId = ?
         AND pp > 0

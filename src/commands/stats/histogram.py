@@ -7,7 +7,7 @@ from utils.strings import get_argument
 from graphs import histogram
 
 
-metrics = ["pp", "wpm", "acc"]
+metrics = ["pp", "wpm", "acc", "react", "recover"]
 info = {
     "name": "histogram",
     "aliases": ["hg", "hist"],
@@ -31,9 +31,18 @@ class Histogram(Command):
 
 
 async def run(ctx: commands.Context, profile: dict, metric: str):
+    title = metric.capitalize()
+
     match metric:
         case "acc":
             metric = "accuracy"
+            title = metric.capitalize()
+        case "react":
+            metric = "errorReactionTime"
+            title = "Error Reaction Time" 
+        case "recover":
+            metric = "errorRecoveryTime"
+            title = "Error Recovery Time" 
 
     quote_bests = get_quote_bests(profile["userId"])
 
@@ -51,7 +60,7 @@ async def run(ctx: commands.Context, profile: dict, metric: str):
     username = profile["username"]
 
     page = Page(
-        title=f"{metric.capitalize()} Histogram",
+        title=f"{title} Histogram",
         render=lambda: histogram.render(
             username,
             metric,
