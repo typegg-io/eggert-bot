@@ -15,7 +15,7 @@ class MissingArguments(CommandError):
             title="Missing Argument",
             description=(
                 "One or more arguments is missing\n"
-                f"Usage: `{prefix}{info["name"]} {info["parameters"]}`",
+                f"Usage: `{prefix}{info["name"]} {info["parameters"]}`"
             ),
             color=ERROR,
         )
@@ -127,8 +127,10 @@ class UnexpectedError(CommandError):
     def embed(self):
         return Embed(
             title="Unexpected Error",
-            description="An unexpected error occurred:\n"
-                        f"`{self.error_type}`",
+            description=(
+                "An unexpected error occurred:\n"
+                f"`{self.error_type}`"
+            ),
             color=ERROR,
         )
 
