@@ -1,35 +1,57 @@
-from typing import Optional
+import math
+from collections import defaultdict
 
 from discord.ext import commands
 
 from commands.base import Command
+from database.typegg.quotes import get_quotes
 from database.typegg.users import get_quote_bests
-from graphs import compare
-from utils.errors import InvalidArgument, NoCommonTexts, SameUsername
+from graphs import compare_histogram, compare_bar
+from utils.errors import NoCommonTexts, SameUsername, InvalidRange, InvalidArgument
 from utils.messages import Page, Message, Field
-from utils.strings import get_argument
+from utils.strings import username_with_flag
 
 metrics = ["pp", "wpm"]
 info = {
     "name": "comparegraph",
     "aliases": ["cg", "flaneur"],
-    "description": "",
-    "parameters": "<username1> [username2] [pp|wpm]",
+    "description": "Displays a quote best comparison graph based on difficulty, with optional range filtering.",
+    "parameters": "<username1> [username2] [difficulty_range] [pp|wpm]",
 }
 
 
 class CompareGraph(Command):
     @commands.command(aliases=info["aliases"])
-    async def comparegraph(self, ctx, username1: str, username2: Optional[str] = "me", metric: Optional[str] = "pp"):
-        metric = get_argument(metrics, metric, False)
-        metric_override = get_argument(metrics, username2, False)
+    async def comparegraph(self, ctx, username1: str, *args: str):
+        username2 = "me"
+        diff_range = None
+        metric = None
 
-        if metric_override:
-            metric = metric_override
-            username2 = "me"
-        elif not metric:
+        remaining_args = list(args)
+        if remaining_args:
+            second_arg = remaining_args[0]
+            if "-" not in second_arg and second_arg not in metrics:
+                username2 = second_arg
+                remaining_args = remaining_args[1:]
+
+        for arg in remaining_args:
+            if "-" in arg and diff_range is None:
+                try:
+                    low, high = map(float, arg.split("-", 1))
+                    if low == high:
+                        raise ValueError
+                    diff_range = (min(low, high), max(low, high))
+                    continue
+                except ValueError:
+                    raise InvalidRange
+
+            if arg in metrics and metric is None:
+                metric = arg
+                continue
+
             raise InvalidArgument(metrics)
 
+        metric = metric or "pp"
         username1, username2 = self.get_usernames(ctx, username1, username2)
         profile1 = await self.get_profile(ctx, username1, races_required=True)
         profile2 = await self.get_profile(ctx, username2, races_required=True)
@@ -40,13 +62,174 @@ class CompareGraph(Command):
         await self.import_user(ctx, profile1)
         await self.import_user(ctx, profile2)
 
-        await run(ctx, profile1, profile2, metric)
+        if diff_range:
+            await comparegraph_ranged(ctx, profile1, profile2, diff_range[0], diff_range[1], metric)
+        else:
+            await comparegraph_main(ctx, profile1, profile2)
 
 
-async def run(ctx: commands.Context, profile1: dict, profile2: dict, metric: str):
+def difficulty_range(lower, upper):
+    lower = round(lower, 2)
+    upper = round(upper, 2)
+    return f"{lower:.10g} - {upper:.10g}★"
+
+
+def max_positive_subarray_sum(buckets, diffs):
+    max_sum = 0
+    current_sum = 0
+    start = 0
+    best_start = best_end = None
+
+    for i, diff in enumerate(diffs):
+        if diff > 0:
+            if current_sum == 0:
+                start = i
+            current_sum += diff
+            if current_sum > max_sum:
+                max_sum = current_sum
+                best_start, best_end = start, i
+        else:
+            current_sum = 0
+
+    if best_start is None:
+        return 0, None, None
+    return max_sum, buckets[best_start], buckets[best_end]
+
+
+async def comparegraph_main(ctx: commands.Context, profile1: dict, profile2):
+    quotes = get_quotes()
     quote_bests1 = get_quote_bests(profile1["userId"], as_dictionary=True)
     quote_bests2 = get_quote_bests(profile2["userId"], as_dictionary=True)
-    common_quotes = list(quote_bests1.keys() & quote_bests2.keys())
+    quote_ids1 = quote_bests1.keys()
+    quote_ids2 = quote_bests2.keys()
+
+    gains1 = defaultdict(int)
+    gains2 = defaultdict(int)
+    defaults = defaultdict(int)
+
+    # Aggregation
+    min_difficulty1 = float("inf")
+    max_difficulty1 = float("-inf")
+    min_difficulty2 = float("inf")
+    max_difficulty2 = float("-inf")
+
+    for quote_id in set(quote_ids1) | set(quote_ids2):
+        difficulty = quotes[quote_id]["difficulty"]
+        bucket = math.floor(difficulty * 2) / 2
+
+        in1 = quote_id in quote_bests1
+        in2 = quote_id in quote_bests2
+
+        if in1:
+            min_difficulty1 = min(min_difficulty1, difficulty)
+            max_difficulty1 = max(max_difficulty1, difficulty)
+        if in2:
+            min_difficulty2 = min(min_difficulty2, difficulty)
+            max_difficulty2 = max(max_difficulty2, difficulty)
+
+        if in1 and not in2:
+            defaults[bucket] -= 1
+        elif in2 and not in1:
+            defaults[bucket] += 1
+        else:
+            if quote_bests1[quote_id]["pp"] > quote_bests2[quote_id]["pp"]:
+                gains1[bucket] += 1
+            else:
+                gains2[bucket] += 1
+
+    # Post-processing
+    all_buckets = set(gains1) | set(gains2)
+    differences = {b: gains1[b] - gains2[b] for b in all_buckets}
+    most_active_bucket, most_active_quotes = max(
+        ((b, gains1[b] + gains2[b]) for b in differences),
+        key=lambda x: x[1],
+        default=(None, 0)
+    )
+
+    sorted_buckets = sorted(differences.keys())
+    diff_values = [differences[b] for b in sorted_buckets]
+
+    sum1, start1, end1 = max_positive_subarray_sum(sorted_buckets, diff_values)
+    sum2, start2, end2 = max_positive_subarray_sum(sorted_buckets, [-d for d in diff_values])
+
+    strength1 = "—"
+    strength2 = "—"
+    if sum1 > 0:
+        strength1 = f"{difficulty_range(start1, end1 + 0.5)} (+{sum1:,} quotes)"
+    if sum2 > 0:
+        strength2 = f"{difficulty_range(start2, end2 + 0.5)} (+{sum2:,} quotes)"
+
+    quotes1 = sum(gains1.values())
+    quotes2 = sum(gains2.values())
+    unique1 = len(quote_ids1 - quote_ids2)
+    unique2 = len(quote_ids2 - quote_ids1)
+    common = len(quote_ids1 & quote_ids2)
+    total_quotes = quotes1 + quotes2
+    edge1 = (quotes1 - quotes2) / total_quotes
+    edge2 = (quotes2 - quotes1) / total_quotes
+
+    # Output
+    description = (
+        f"**Common Quotes:** {common:,}\n"
+        f"**Most Active Difficulty:** {difficulty_range(most_active_bucket, most_active_bucket + 0.5)} "
+        f"({most_active_quotes} quotes)"
+    )
+
+    field1 = Field(
+        title=f"{username_with_flag(profile1)}",
+        content=(
+            f"**Quotes:** +{quotes1}\n"
+            f"**Unique Quotes:** +{unique1:,}\n"
+            f"**Difficulty Range:** {difficulty_range(min_difficulty1, max_difficulty1)}\n" +
+            f"**Strength:** {strength1}\n"
+            f"**Edge:** {edge1:,.2%}{" :trophy:" * (edge1 == 1)}"
+        ),
+        inline=True,
+    )
+
+    field2 = Field(
+        title=f"{username_with_flag(profile2)}",
+        content=(
+            f"**Quotes:** +{quotes2}\n"
+            f"**Unique Quotes:** +{unique2:,}\n"
+            f"**Difficulty Range:** {difficulty_range(min_difficulty2, max_difficulty2)}\n" +
+            f"**Strength:** {strength2}\n"
+            f"**Edge:** {edge2:,.2%}{" :trophy:" * (edge2 == 1)}"
+        ),
+        inline=True,
+    )
+
+    message = Message(
+        ctx, page=Page(
+            title="Quote Best Comparison",
+            description=description,
+            fields=[field1, field2],
+            render=lambda: compare_bar.render(
+                profile1["username"],
+                gains1,
+                profile2["username"],
+                gains2,
+                defaults,
+                ctx.user["theme"],
+            )
+        )
+    )
+
+    await message.send()
+
+
+async def comparegraph_ranged(
+    ctx: commands.Context,
+    profile1: dict,
+    profile2: dict,
+    min_difficulty: float,
+    max_difficulty: float,
+    metric: str,
+):
+    quotes = get_quotes(min_difficulty=min_difficulty, max_difficulty=max_difficulty)
+    quote_bests1 = get_quote_bests(profile1["userId"], as_dictionary=True)
+    quote_bests2 = get_quote_bests(profile2["userId"], as_dictionary=True)
+    common_quotes = list(quotes.keys() & quote_bests1.keys() & quote_bests2.keys())
     if not common_quotes:
         raise NoCommonTexts
 
@@ -127,9 +310,9 @@ async def run(ctx: commands.Context, profile1: dict, profile2: dict, metric: str
     )
 
     page = Page(
-        title="Quote Best Comparison",
+        title=f"Quote Best Comparison ({difficulty_range(min_difficulty, max_difficulty)})",
         fields=fields,
-        render=lambda: compare.render(
+        render=lambda: compare_histogram.render(
             username1,
             gains1,
             username2,
