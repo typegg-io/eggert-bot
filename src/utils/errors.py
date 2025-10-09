@@ -217,3 +217,15 @@ class RaceNotFound(CommandError):
             ),
             color=ERROR,
         )
+
+
+class InvalidRange(CommandError):
+    """Raised when a range string is improperly formatted."""
+    embed = Embed(
+        title="Invalid Range",
+        description=(
+            "Range string should be formatted as:\n"
+            "`<number1>-<number2>` (numbers must be unique)"
+        ),
+        color=ERROR,
+    )
