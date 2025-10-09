@@ -1,11 +1,11 @@
-from graphs.core import plt, apply_theme, generate_file_name
 import numpy as np
-from utils.errors import InvalidArgument
+
+from graphs.core import plt, apply_theme, generate_file_name
 
 
 def render(
     username: str,
-    metric: str,
+    metric: dict,
     solo_stats: list[float],
     multi_stats: list[float],
     theme: dict,
@@ -16,41 +16,27 @@ def render(
     multi_stats = np.array(multi_stats)
     quote_bests_stats = np.concatenate([solo_stats, multi_stats])
 
-    ax.set_title(f"{metric.capitalize()} Histogram - {username}")
-    ax.set_ylabel("Occurences")
+    ax.set_title(f"{metric["title"]} Histogram - {username}")
+    ax.set_ylabel("Occurrences")
+    ax.set_xlabel(metric["x_label"])
 
-    match metric:
+    match metric["name"]:
         case "pp":
             bins = np.arange(min(quote_bests_stats), max(quote_bests_stats), 10)
-            ax.set_xlabel(f"Typing Performance (in pp)")
         case "wpm":
             bins = np.arange(min(quote_bests_stats), max(quote_bests_stats), 5)
-            ax.set_xlabel(f"Typing Speed (in wpm)")
         case "accuracy":
-            min_display_acc = 0.85
-            bins = np.floor(np.arange(np.floor(max(min(quote_bests_stats), min_display_acc) * 100) / 100, 1.011, 0.01) * 100)
-
-            solo_stats *= 100
-            multi_stats *= 100
-            ax.set_xlabel(f"Accuracy (in %)")
-        case "errorReactionTime":
-            quote_bests_stats = [el for el in quote_bests_stats if el != 0 and el < 600]
+            min_display_acc = 85
+            bins = np.floor(np.arange(np.floor(max(min(quote_bests_stats), min_display_acc)), 101.1, 1))
+        case "errorReactionTime" | "errorRecoveryTime":
+            quote_bests_stats = [v for v in quote_bests_stats if 0 < v < 600]
             bins = np.arange(min(quote_bests_stats), max(quote_bests_stats), 10)
-            ax.set_xlabel(f"Error Reaction Time (in ms)")
-            ax.set_title("Error Reaction Time Histogram - {username}")
-        case "errorRecoveryTime":
-            quote_bests_stats = [el for el in quote_bests_stats if el != 0 and el < 600]
-            bins = np.arange(min(quote_bests_stats), max(quote_bests_stats), 10)
-            ax.set_xlabel(f"Error Recovery Time (in ms)")
-            ax.set_title("Error Recovery Time Histogram - {username}")
-        case _:
-            raise InvalidArgument(f"invalid metric: {metric}")
 
     if color in plt.colormaps():
         color = "#00B5E2"
 
-    ax.hist(solo_stats, bins=bins, color=color, label="solo", alpha=0.5)
-    ax.hist(multi_stats, bins=bins, color=invertColor(color), label="multi", alpha=0.5)
+    ax.hist(solo_stats, bins=bins, color=color, label="Solo", alpha=0.5)
+    ax.hist(multi_stats, bins=bins, color=invert_color(color), label="Multi", alpha=0.5)
 
     ax.legend()
     apply_theme(ax, theme=theme)
@@ -61,6 +47,6 @@ def render(
 
     return file_name
 
-def invertColor(color: str):
-    return f"#{0xFFFFFF ^ int(color.lstrip('#'), 16):06x}"
 
+def invert_color(color: str):
+    return f"#{0xFFFFFF ^ int(color.lstrip("#"), 16):06x}"

@@ -32,6 +32,9 @@ LOADING = "<a:loading:1418688762745065594>"
 
 OPTION_ALIASES = {
     "pp": ["performance", "pf"],
+    "accuracy": ["acc", "ac"],
+    "errorReactionTime": ["reaction", "react"],
+    "errorRecoveryTime": ["recovery", "recover"],
 }
 
 ALIAS_LOOKUP = {
