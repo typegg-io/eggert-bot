@@ -9,7 +9,7 @@ from utils.strings import discord_date, format_duration
 
 info = {
     "name": "stats",
-    "aliases": ["s"],
+    "aliases": ["s", "profile"],
     "description": "Displays stats about a TypeGG account",
     "parameters": "[username]",
 }
