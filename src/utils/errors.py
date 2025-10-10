@@ -4,7 +4,6 @@ from discord import Embed
 from discord.ext.commands import CommandError, CheckFailure
 
 from config import BOT_PREFIX as prefix
-from utils.colors import ERROR
 
 
 class MissingArguments(CommandError):
@@ -17,7 +16,6 @@ class MissingArguments(CommandError):
                 "One or more arguments is missing\n"
                 f"Usage: `{prefix}{info["name"]} {info["parameters"]}`"
             ),
-            color=ERROR,
         )
         if show_tip:
             embed.set_footer(text=f"Run {prefix}link to avoid typing your username!")
@@ -39,7 +37,6 @@ class InvalidArgument(CommandError):
         return Embed(
             title="Invalid Argument",
             description=f"Argument can be: " + ",".join([f"`{option}`" for option in self.options]),
-            color=ERROR,
         )
 
 
@@ -57,7 +54,6 @@ class ProfileNotFound(ErrorWithUsername):
         return Embed(
             title="User Not Found",
             description=f"User `{self.username.replace("`", "")}` not found",
-            color=ERROR,
         )
 
 
@@ -69,7 +65,6 @@ class NoRaces(ErrorWithUsername):
         return Embed(
             title="No Races",
             description=f"User `{self.username.replace("`", "")}` has no races",
-            color=ERROR,
         )
 
 
@@ -78,7 +73,6 @@ class UserBanned(CheckFailure):
     embed = Embed(
         title="You Are Banned",
         description="You are banned from using commands",
-        color=ERROR,
     )
 
 
@@ -87,7 +81,6 @@ class UserNotAdmin(CheckFailure):
     embed = Embed(
         title="Admin Command",
         description="You lack the permissions to use this command",
-        color=ERROR,
     )
 
 
@@ -96,7 +89,6 @@ class UserNotOwner(CheckFailure):
     embed = Embed(
         title="Owner Command",
         description="You lack the permissions to use this command",
-        color=ERROR,
     )
 
 
@@ -105,7 +97,6 @@ class SameUsername(CommandError):
     embed = Embed(
         title="Same Username",
         description="You must provide two unique usernames to compare",
-        color=ERROR,
     )
 
 
@@ -114,7 +105,6 @@ class UnknownCommand(CommandError):
     embed = Embed(
         title="Command Not Found",
         description=f"`{prefix}help` for a list of commands",
-        color=ERROR,
     )
 
 
@@ -131,7 +121,6 @@ class UnexpectedError(CommandError):
                 "An unexpected error occurred:\n"
                 f"`{self.error_type}`"
             ),
-            color=ERROR,
         )
 
 
@@ -139,7 +128,6 @@ class NoCommonTexts(CommandError):
     embed = Embed(
         title="No Common Texts",
         description="Users do not have any texts in common",
-        color=ERROR,
     )
 
 
@@ -153,7 +141,6 @@ class BotUserNotFound(CommandError):
         return Embed(
             title="User Not Found",
             description=f"<@{self.discord_id}> has never used the bot",
-            color=ERROR,
         )
 
 
@@ -167,7 +154,6 @@ class UnknownQuote(CommandError):
         return Embed(
             title="Unknown Quote",
             description=f"Quote `{self.quote_id.replace("`", "")}` not found",
-            color=ERROR,
         )
 
 
@@ -176,7 +162,6 @@ class InvalidDate(CommandError):
     embed = Embed(
         title="Invalid Date",
         description="Unrecognized date format",
-        color=ERROR,
     )
 
 
@@ -197,7 +182,6 @@ class APIError(CommandError):
                 f"API returned status {self.status}:\n"
                 f"{self.message}"
             ),
-            color=ERROR,
         )
 
 
@@ -215,7 +199,6 @@ class RaceNotFound(CommandError):
                 f"Race `#{self.race_number:,}` for "
                 f"`{self.username.replace("`", "")}` not found"
             ),
-            color=ERROR,
         )
 
 
@@ -227,5 +210,4 @@ class InvalidRange(CommandError):
             "Range string should be formatted as:\n"
             "`<number1>-<number2>` (numbers must be unique)"
         ),
-        color=ERROR,
     )

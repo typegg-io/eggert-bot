@@ -3,6 +3,7 @@ import importlib
 import discord
 from discord.ext import commands
 
+from utils.colors import ERROR
 from utils.errors import UserBanned, MissingUsername, DailyQuoteChannel, MissingArguments, UnknownCommand, UnexpectedError
 from utils.logging import get_log_message, log_error
 
@@ -17,7 +18,7 @@ class ErrorHandler(commands.Cog):
 
         if isinstance(error, UserBanned):
             try:
-                await ctx.author.send(embed=error.embed)
+                await ctx.author.send(embed=error.embed, color=ERROR)
             except discord.Forbidden:
                 pass
             return
@@ -29,18 +30,18 @@ class ErrorHandler(commands.Cog):
                 command_info,
                 show_tip=isinstance(error, MissingUsername),
             )
-            return await ctx.send(embed=missing_arguments)
+            return await ctx.send(embed=missing_arguments, color=ERROR)
 
         if hasattr(error, "embed"):
-            return await ctx.send(embed=error.embed)
+            return await ctx.send(embed=error.embed, color=ERROR)
 
         if isinstance(error, DailyQuoteChannel):
             return
 
         if isinstance(error, commands.CommandNotFound):
-            return await ctx.send(embed=UnknownCommand.embed)
+            return await ctx.send(embed=UnknownCommand.embed, color=ERROR)
 
-        await ctx.send(embed=UnexpectedError(type(error).__name__).embed)
+        await ctx.send(embed=UnexpectedError(type(error).__name__).embed, color=ERROR)
 
         log_message = get_log_message(ctx.message)
         log_error(log_message, error)
