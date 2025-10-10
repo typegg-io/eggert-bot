@@ -50,6 +50,14 @@ def apply_theme(ax: Axes, theme: dict):
         for line in ax.get_lines():
             line.set_color(theme["line"])
 
+    # Legend
+    legend = ax.get_legend()
+    if legend:
+        legend.get_frame().set_facecolor(theme["graph_background"])
+        legend.get_frame().set_edgecolor(theme["axis"])
+        for text in legend.get_texts():
+            text.set_color(theme["text"])
+
     # Logo
     if "\n" in ax.get_title():
         fig = ax.figure
@@ -63,6 +71,7 @@ def apply_theme(ax: Axes, theme: dict):
     imagebox = OffsetImage(img, zoom=0.1)
     frameon = False
     boxprops = None
+
     if color_distance(background_color, "#00B5E2") <= 1:
         frameon = True
         boxprops = dict(
@@ -71,6 +80,7 @@ def apply_theme(ax: Axes, theme: dict):
             alpha=0.25,
             boxstyle="round,pad=0.4"
         )
+
     ab = AnnotationBbox(
         imagebox,
         (0, 1),
