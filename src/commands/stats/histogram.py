@@ -57,13 +57,6 @@ async def run(ctx: commands.Context, profile: dict, metric: str):
     solo_quote_bests = get_quote_bests(user_id, columns=metrics.keys(), gamemode="solo")
     multi_quote_bests = get_quote_bests(user_id, columns=metrics.keys(), gamemode="multiplayer")
 
-    solo_values = [race[metric] for race in solo_quote_bests]
-    multi_values = [race[metric] for race in multi_quote_bests]
-
-    if metric == "accuracy":
-        solo_values = np.array(solo_values) * 100
-        multi_values = np.array(multi_values) * 100
-
     def make_field(title: str, data: list[float]):
         quartiles = np.quantile(data, [0.25, 0.75])
         content = (
@@ -75,26 +68,39 @@ async def run(ctx: commands.Context, profile: dict, metric: str):
 
         return Field(title=title, content=content, inline=True)
 
-    fields = [
-        make_field("Solo", solo_values),
-        make_field("Multiplayer", multi_values),
-    ]
+    pages = []
 
-    page = Page(
-        title=f"{metrics[metric]["title"]} Histogram",
-        fields=fields,
-        render=lambda: histogram.render(
-            profile["username"],
-            metrics[metric] | {"name": metric},
-            solo_values,
-            multi_values,
-            ctx.user["theme"],
-        )
-    )
+    for column in metrics.keys():
+        solo_values = [race[column] for race in solo_quote_bests]
+        multi_values = [race[column] for race in multi_quote_bests]
+
+        if column == "accuracy":
+            solo_values = np.array(solo_values) * 100
+            multi_values = np.array(multi_values) * 100
+
+        metric_title = metrics[column]["title"]
+        fields = [
+            make_field("Solo", solo_values),
+            make_field("Multiplayer", multi_values),
+        ]
+
+        pages.append(Page(
+            title=f"{metric_title} Histogram",
+            fields=fields,
+            render=lambda: histogram.render(
+                profile["username"],
+                metrics[column] | {"name": column},
+                solo_values,
+                multi_values,
+                ctx.user["theme"],
+            ),
+            button_name=metric_title,
+            default=column == metric,
+        ))
 
     message = Message(
         ctx,
-        page=page,
+        pages=pages,
         profile=profile,
     )
 
