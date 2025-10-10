@@ -19,8 +19,14 @@ info = {
 class DailyLeaderboard(Command):
     @commands.command(aliases=info["aliases"])
     async def dailyleaderboard(self, ctx: commands.Context, *args: str):
-        date = parse_date("".join(args))
-        daily_quote = await get_daily_quote(date.strftime("%Y-%m-%d"))
+        arg = "".join(args)
+        try:
+            number = int(arg)
+            daily_quote = await get_daily_quote(number=number)
+        except ValueError:
+            date = parse_date("".join(args))
+            daily_quote = await get_daily_quote(date.strftime("%Y-%m-%d"))
+
         await display_daily_quote(ctx, daily_quote, f"Daily Quote #{daily_quote["dayNumber"]:,}")
 
 
