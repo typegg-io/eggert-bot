@@ -1,9 +1,7 @@
-import asyncio
 from typing import Optional
 
 from discord.ext import commands
 
-from api.core import API_RATE_LIMIT
 from api.quotes import get_quote
 from api.sources import get_source
 from api.users import get_races, get_profile
@@ -49,12 +47,8 @@ async def import_new_quotes(new_quote_ids):
         log(f"Adding quote: {quote_id}")
         add_quote(quote)
 
-    if len(new_quote_ids) <= 10:
-        await asyncio.gather(*(process_quote(quote_id) for quote_id in new_quote_ids))
-    else:
-        for quote_id in new_quote_ids:
-            await process_quote(quote_id)
-            await asyncio.sleep(API_RATE_LIMIT)
+    for quote_id in new_quote_ids:
+        await process_quote(quote_id)
 
 
 async def run(
@@ -112,10 +106,10 @@ async def run(
         return
 
     quote_ids = set(get_quotes().keys())
-    new_quote_ids = set()
 
     start_number = latest_race_number + 1
     while start_number <= total_races:
+        new_quote_ids = set()
         end_number = min(start_number + 999, total_races)
         log(f"Fetching races {start_number:,} - {end_number:,}")
 
@@ -130,8 +124,13 @@ async def run(
         race_list = results["races"]
 
         for race in race_list:
-            if race["quoteId"] not in quote_ids:
-                new_quote_ids.add(race["quoteId"])
+            quote_id = race["quoteId"]
+            if quote_id not in quote_ids:
+                new_quote_ids.add(quote_id)
+                quote_ids.add(quote_id)
+
+        if new_quote_ids:
+            await import_new_quotes(list(new_quote_ids))
 
         add_races(race_list)
 
@@ -139,26 +138,6 @@ async def run(
 
     if send_message:
         await initial_send
-
-    if new_quote_ids:
-        if not send_message:
-            page = Page(
-                title=f"New Quote Import {LOADING}",
-                description="Adding new quotes to database",
-            )
-            message = Message(ctx, page)
-            await message.send()
-        elif len(new_quote_ids) > 10:
-            page.title = f"New Quote Import {LOADING}"
-            page.description = "Adding new quotes to database"
-            await message.edit()
-
-        await import_new_quotes(list(new_quote_ids))
-
-        if not send_message:
-            page.title = "New Quotes Import"
-            page.description = "Finished adding new quotes"
-            await message.edit()
 
     if send_message:
         page.title = "Import Request"
