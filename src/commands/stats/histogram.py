@@ -75,6 +75,15 @@ async def run(ctx: commands.Context, profile: dict, metric: str):
 
         return Field(title=title, content=content, inline=True)
 
+    def make_render(solo_values: list[float], multi_values: list[float], column: str):
+        return lambda: histogram.render(
+            profile["username"],
+            metrics[column] | {"name": column},
+            solo_values,
+            multi_values,
+            ctx.user["theme"],
+        )
+
     pages = []
 
     for column in metrics.keys():
@@ -95,13 +104,7 @@ async def run(ctx: commands.Context, profile: dict, metric: str):
         pages.append(Page(
             title=f"{metric_title} Histogram",
             fields=fields,
-            render=lambda: histogram.render(
-                profile["username"],
-                metrics[column] | {"name": column},
-                solo_values,
-                multi_values,
-                ctx.user["theme"],
-            ),
+            render=make_render(solo_values, multi_values, column),
             button_name=metric_title,
             default=column == metric,
         ))
