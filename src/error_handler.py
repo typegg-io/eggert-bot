@@ -18,7 +18,7 @@ class ErrorHandler(commands.Cog):
 
         if isinstance(error, UserBanned):
             try:
-                await ctx.author.send(embed=error.embed, color=ERROR)
+                await send_error(ctx, error.embed)
             except discord.Forbidden:
                 pass
             return
@@ -30,18 +30,18 @@ class ErrorHandler(commands.Cog):
                 command_info,
                 show_tip=isinstance(error, MissingUsername),
             )
-            return await ctx.send(embed=missing_arguments, color=ERROR)
+            return await send_error(ctx, missing_arguments)
 
         if hasattr(error, "embed"):
-            return await ctx.send(embed=error.embed, color=ERROR)
+            return await send_error(ctx, error.embed)
 
         if isinstance(error, DailyQuoteChannel):
             return
 
         if isinstance(error, commands.CommandNotFound):
-            return await ctx.send(embed=UnknownCommand.embed, color=ERROR)
+            return await send_error(ctx, UnknownCommand.embed)
 
-        await ctx.send(embed=UnexpectedError(type(error).__name__).embed, color=ERROR)
+        await send_error(ctx, UnexpectedError(type(error).__name__).embed)
 
         log_message = get_log_message(ctx.message)
         log_error(log_message, error)
@@ -50,3 +50,8 @@ class ErrorHandler(commands.Cog):
 async def setup(bot):
     """Register the cog in the bot."""
     await bot.add_cog(ErrorHandler(bot))
+
+
+async def send_error(ctx, embed):
+    embed.color = ERROR
+    await ctx.send(embed=embed)
