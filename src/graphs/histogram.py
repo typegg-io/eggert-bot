@@ -6,15 +6,15 @@ from graphs.core import plt, apply_theme, generate_file_name
 def render(
     username: str,
     metric: dict,
-    solo_stats: list[float],
-    multi_stats: list[float],
+    solo_values: list[float],
+    multi_values: list[float],
     theme: dict,
 ):
     fig, ax = plt.subplots()
     color = theme["line"]
-    solo_stats = np.array(solo_stats)
-    multi_stats = np.array(multi_stats)
-    quote_bests_stats = np.concatenate([solo_stats, multi_stats])
+    solo_values = np.array(solo_values)
+    multi_values = np.array(multi_values)
+    values = np.concatenate([solo_values, multi_values])
 
     ax.set_title(f"{metric["title"]} Histogram - {username}")
     ax.set_ylabel("Occurrences")
@@ -22,21 +22,21 @@ def render(
 
     match metric["name"]:
         case "pp":
-            bins = np.arange(min(quote_bests_stats), max(quote_bests_stats), 10)
+            bins = np.arange(min(values), max(values), 10)
         case "wpm":
-            bins = np.arange(min(quote_bests_stats), max(quote_bests_stats), 5)
+            bins = np.arange(min(values), max(values), 5)
         case "accuracy":
             min_display_acc = 85
-            bins = np.floor(np.arange(np.floor(max(min(quote_bests_stats), min_display_acc)), 101.1, 1))
+            bins = np.floor(np.arange(np.floor(max(min(values), min_display_acc)), 101.1, 1))
         case "errorReactionTime" | "errorRecoveryTime":
-            quote_bests_stats = [v for v in quote_bests_stats if 0 < v < 600]
-            bins = np.arange(min(quote_bests_stats), max(quote_bests_stats), 10)
+            values = [v for v in values if 0 < v < 600]
+            bins = np.arange(min(values), max(values), 10)
 
     if color in plt.colormaps():
         color = "#00B5E2"
 
-    ax.hist(solo_stats, bins=bins, color=color, label="Solo", alpha=0.5)
-    ax.hist(multi_stats, bins=bins, color=invert_color(color), label="Multi", alpha=0.5)
+    ax.hist(solo_values, bins=bins, color=color, label="Solo", alpha=0.5)
+    ax.hist(multi_values, bins=bins, color=invert_color(color), label="Multi", alpha=0.5)
 
     ax.legend()
     apply_theme(ax, theme=theme)

@@ -53,20 +53,16 @@ class Histogram(Command):
 
 
 async def run(ctx: commands.Context, profile: dict, metric: str):
-    quote_bests = get_quote_bests(profile["userId"])
+    user_id = profile["userId"]
+    solo_quote_bests = get_quote_bests(user_id, columns=metrics.keys(), gamemode="solo")
+    multi_quote_bests = get_quote_bests(user_id, columns=metrics.keys(), gamemode="multiplayer")
 
-    solo_stats = []
-    multi_stats = []
-
-    for race in quote_bests:
-        if race["gamemode"] == "solo":
-            solo_stats.append(race[metric])
-        elif race["gamemode"] == "multiplayer":
-            multi_stats.append(race[metric])
+    solo_values = [race[metric] for race in solo_quote_bests]
+    multi_values = [race[metric] for race in multi_quote_bests]
 
     if metric == "accuracy":
-        solo_stats = np.array(solo_stats) * 100
-        multi_stats = np.array(multi_stats) * 100
+        solo_values = np.array(solo_values) * 100
+        multi_values = np.array(multi_values) * 100
 
     def make_field(title: str, data: list[float]):
         quartiles = np.quantile(data, [0.25, 0.75])
@@ -80,8 +76,8 @@ async def run(ctx: commands.Context, profile: dict, metric: str):
         return Field(title=title, content=content, inline=True)
 
     fields = [
-        make_field("Solo", solo_stats),
-        make_field("Multiplayer", multi_stats)
+        make_field("Solo", solo_values),
+        make_field("Multiplayer", multi_values),
     ]
 
     page = Page(
@@ -90,8 +86,8 @@ async def run(ctx: commands.Context, profile: dict, metric: str):
         render=lambda: histogram.render(
             profile["username"],
             metrics[metric] | {"name": metric},
-            solo_stats,
-            multi_stats,
+            solo_values,
+            multi_values,
             ctx.user["theme"],
         )
     )
