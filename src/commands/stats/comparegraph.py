@@ -103,6 +103,9 @@ async def comparegraph_main(ctx: commands.Context, profile1: dict, profile2):
     quote_ids1 = quote_bests1.keys()
     quote_ids2 = quote_bests2.keys()
 
+    if not list(quote_bests1.keys() & quote_bests2.keys()):
+        raise NoCommonTexts
+
     gains1 = defaultdict(int)
     gains2 = defaultdict(int)
     defaults = defaultdict(int)
