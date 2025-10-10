@@ -7,7 +7,7 @@ from discord.ext import commands
 from commands.base import Command
 from config import BOT_PREFIX, TYPEGG_GUILD_ID, VERIFIED_ROLE_NAME
 from database.bot.users import unlink_user
-from utils.errors import ERROR
+from utils.colors import ERROR
 
 info = {
     "name": "unlink",

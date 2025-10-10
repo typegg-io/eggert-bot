@@ -4,7 +4,7 @@ from discord.ext import commands
 from api.verification import generate_link
 from commands.base import Command
 from config import BOT_PREFIX
-from utils.errors import ERROR
+from utils.colors import ERROR
 
 info = {
     "name": "link",

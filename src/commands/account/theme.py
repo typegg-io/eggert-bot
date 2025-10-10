@@ -11,7 +11,8 @@ from database.bot.users import update_theme, get_theme
 from graphs import sample
 from graphs.core import plt
 from utils import strings
-from utils.errors import ERROR, MissingArguments, BotUserNotFound
+from utils.colors import ERROR
+from utils.errors import MissingArguments, BotUserNotFound
 from utils.files import remove_file
 from utils.messages import Page, Message, Button
 
