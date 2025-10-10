@@ -52,7 +52,7 @@ async def daily_quote_reminder(bot: commands.Bot):
     role = guild.get_role(DAILY_QUOTE_ROLE_ID)
 
     date = parse_date("today")
-    daily_quote = await get_daily_quote(date.strftime("%Y-%m-%d"))
+    daily_quote = await get_daily_quote(date.strftime("%Y-%m-%d"), results=100)
     daily_users = {score["userId"] for score in daily_quote["leaderboard"]}
 
     for member in role.members:
