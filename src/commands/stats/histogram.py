@@ -64,12 +64,13 @@ async def run(ctx: commands.Context, profile: dict, metric: str):
 
     def make_field(title: str, data: list[float], suffix: str):
         quartiles = np.quantile(data, [0.25, 0.75])
+        precision = 0 if suffix == "ms" else 2
         content = (
-            f"**Average:** {np.average(data):,.2f}{suffix}\n"
-            f"**Median:** {np.median(data):,.2f}{suffix}\n"
-            f"**Q1:** {quartiles[0]:,.2f}{suffix}\n"
-            f"**Q3:** {quartiles[1]:,.2f}{suffix}\n"
-            f"**Std. Dev:** ± {np.std(data):,.2f}{suffix}"
+            f"**Average:** {np.average(data):,.{precision}f}{suffix}\n"
+            f"**Median:** {np.median(data):,.{precision}f}{suffix}\n"
+            f"**Q1:** {quartiles[0]:,.{precision}f}{suffix}\n"
+            f"**Q3:** {quartiles[1]:,.{precision}f}{suffix}\n"
+            f"**Std. Dev:** ± {np.std(data):,.{precision}f}{suffix}"
         )
 
         return Field(title=title, content=content, inline=True)
