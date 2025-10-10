@@ -34,11 +34,8 @@ def add_user(discord_id: str):
     return user
 
 
-def get_user(discord_id: str):
-    """
-    Returns a user object given a Discord ID.
-    Creates a new user if no record is found.
-    """
+def get_user(discord_id: str, auto_insert: bool = True):
+    """ Returns a user object given a Discord ID. Optionally create a new user if no record is found."""
     results = db.fetch("""
         SELECT * FROM users
         WHERE discordId = ?
@@ -47,8 +44,10 @@ def get_user(discord_id: str):
 
     if results:
         user = results[0]
-    else:
+    elif auto_insert:
         user = add_user(discord_id)
+    else:
+        return None
 
     user = dict(user)
     user["theme"] = json.loads(user["theme"])
