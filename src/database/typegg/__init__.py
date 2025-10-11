@@ -52,4 +52,41 @@ db.run("""
     );
 """)
 
+db.run("""
+    CREATE TABLE IF NOT EXISTS daily_quotes (
+        dayNumber INTEGER PRIMARY KEY,
+        startDate TEXT NOT NULL, -- ISO 8601 string
+        endDate TEXT NOT NULL, -- ISO 8601 string
+        races INTEGER NOT NULL,
+        uniqueUsers INTEGER NOT NULL,
+        quoteId TEXT NOT NULL,
+        FOREIGN KEY(quoteId) REFERENCES quotes(quoteId)
+    )
+""")
+
+db.run("""
+    CREATE TABLE IF NOT EXISTS daily_quote_results (
+        dayNumber INTEGER NOT NULL,
+        rank INTEGER NOT NULL,
+        raceId TEXT NOT NULL,
+        quoteId TEXT NOT NULL,
+        userId TEXT NOT NULL,
+        username TEXT NOT NULL,
+        country TEXT,
+        raceNumber INTEGER NOT NULL,
+        pp REAL NOT NULL,
+        rawPp REAL NOT NULL,
+        wpm REAL NOT NULL,
+        rawWpm REAL NOT NULL,
+        duration REAL NOT NULL,
+        accuracy REAL NOT NULL,
+        errorReactionTime REAL NOT NULL,
+        errorRecoveryTime REAL NOT NULL,
+        timestamp TEXT NOT NULL, -- ISO 8601 string
+        stickyStart INTEGER NOT NULL, -- boolean
+        gamemode TEXT NOT NULL,
+        FOREIGN KEY(dayNumber) REFERENCES daily_quotes(dayNumber)
+    )
+""")
+
 db.run("CREATE INDEX IF NOT EXISTS idx_races_userId on races(userId)")

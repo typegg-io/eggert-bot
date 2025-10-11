@@ -10,7 +10,7 @@ from watchdog.observers import Observer
 from commands.base import Command
 from config import BOT_PREFIX, BOT_TOKEN, STAGING, STATS_CHANNEL_ID, SOURCE_DIR
 from database.bot.users import get_user_ids, get_all_command_usage, update_commands
-from tasks import daily_quote_ping, daily_quote_results, daily_quote_reminder
+from tasks import daily_quote_ping, daily_quote_results, daily_quote_reminder, import_daily_quotes
 from utils import dates
 from utils.files import get_command_modules
 from utils.logging import get_log_message, log
@@ -78,6 +78,7 @@ async def tasks():
     elif now.hour == 0 and now.minute == 5:
         await daily_quote_results(bot)
         await daily_quote_ping(bot)
+        await import_daily_quotes()
 
 
 async def load_commands():

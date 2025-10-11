@@ -8,7 +8,9 @@ from api.users import get_profile
 from commands.quotes.dailyleaderboard import display_daily_quote
 from config import DAILY_QUOTE_CHANNEL_ID, SITE_URL, TYPEGG_GUILD_ID, DAILY_QUOTE_ROLE_ID
 from database.bot.users import get_user
+from database.typegg.daily_quotes import add_daily_quote, add_daily_results, get_missing_days
 from utils.dates import parse_date
+from utils.logging import log
 from utils.strings import discord_date
 
 
@@ -83,3 +85,13 @@ async def daily_quote_reminder(bot: commands.Bot):
                 await asyncio.sleep(0.5)
             except Forbidden:
                 pass
+
+
+async def import_daily_quotes():
+    """Imports all the recent daily quotes."""
+    missing_days = get_missing_days()
+    for number in missing_days:
+        log(f"Importing daily quote #{number:,}")
+        daily_quote = await get_daily_quote(number=number, results=100)
+        add_daily_quote(daily_quote)
+        add_daily_results(number, daily_quote["leaderboard"])

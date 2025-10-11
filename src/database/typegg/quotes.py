@@ -57,3 +57,8 @@ def get_quotes(
         return {quote["quoteId"]: quote for quote in results}
 
     return results
+
+
+def get_quote(quote_id: str):
+    """Return a single quote entry."""
+    return db.fetch_one("SELECT * FROM quotes WHERE quoteId = ?", [quote_id])
