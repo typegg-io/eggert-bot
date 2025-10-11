@@ -1,5 +1,6 @@
 import numpy as np
 
+from config import DEFAULT_THEME
 from graphs.core import plt, apply_theme, generate_file_name
 
 
@@ -33,7 +34,7 @@ def render(
             bins = np.arange(min(values), max(values), 10)
 
     if color in plt.colormaps():
-        color = "#00B5E2"
+        color = DEFAULT_THEME["line"]
 
     heights = []
     if len(solo_values) > 0:
