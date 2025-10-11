@@ -35,10 +35,20 @@ def render(
     if color in plt.colormaps():
         color = "#00B5E2"
 
+    heights = []
     if len(solo_values) > 0:
-        ax.hist(solo_values, bins=bins, color=color, label="Solo", alpha=0.5)
+        n, _, _ = ax.hist(solo_values, bins=bins, color=color, label="Solo", alpha=0.5)
+        heights.extend(n)
     if len(multi_values) > 0:
-        ax.hist(multi_values, bins=bins, color=invert_color(color), label="Multi", alpha=0.5)
+        n, _, _ = ax.hist(multi_values, bins=bins, color=invert_color(color), label="Multi", alpha=0.5)
+        heights.extend(n)
+
+    # Capping Y limit
+    if metric["name"] == "accuracy":
+        bin_centers = (bins[:-1] + bins[1:]) / 2
+        heights_below_100 = [h for h, c in zip(heights, bin_centers) if c < 100]
+        if heights_below_100:
+            ax.set_ylim(0, max(heights_below_100) * 1.1)
 
     ax.legend()
     apply_theme(ax, theme=theme)
