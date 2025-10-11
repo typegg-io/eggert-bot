@@ -44,12 +44,8 @@ async def run(ctx: commands.Context, profile: dict):
         return await message.send()
 
     results = get_user_results(profile["userId"])
-    ranks = defaultdict(int)
-    for row in results:
-        ranks[row["rank"]] += 1
     total_days = (dates.now() - START_DATE).days + 1
-
-    pp, wpm = zip(*[(race["pp"], race["wpm"]) for race in results])
+    pp, wpm, positions = zip(*[(race["pp"], race["wpm"], race["rank"]) for race in results])
 
     fields = [
         Field(
@@ -67,12 +63,17 @@ async def run(ctx: commands.Context, profile: dict):
                 f"**Average Performance:** {np.average(pp):,.2f} pp\n"
                 f"**Best Performance:** {max(pp):,.2f} pp\n"
                 f"**Average Speed:** {np.average(wpm):,.2f} WPM\n"
-                f"**Best Speed:** {max(wpm):,.2f} WPM\n\n"
+                f"**Best Speed:** {max(wpm):,.2f} WPM\n"
+                f"**Average Rank:** {np.average(positions)}"
             ),
         )
     ]
 
+    ranks = defaultdict(int)
+    for row in results:
+        ranks[row["rank"]] += 1
     top_10s = sum(ranks[rank] for rank in range(1, 11))
+
     if top_10s > 0:
         fields.append(Field(
             title="Finishes",
