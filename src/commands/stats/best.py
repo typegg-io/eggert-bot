@@ -34,7 +34,8 @@ async def run(ctx: commands.Context, profile: dict, metric: str, reverse: bool =
     sources = get_sources()
     quote_bests = get_quote_bests(
         profile["userId"],
-        metric=metric,
+        columns=["quoteId", "pp", "wpm", "accuracy", "timestamp"],
+        order_by=metric,
         reverse=reverse,
         limit=100,
     )
