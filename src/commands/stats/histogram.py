@@ -96,10 +96,12 @@ async def run(ctx: commands.Context, profile: dict, metric: str):
 
         metric_title = metrics[column]["title"]
         metric_suffix = metrics[column]["suffix"]
-        fields = [
-            make_field("Solo", solo_values, suffix=metric_suffix),
-            make_field("Multiplayer", multi_values, suffix=metric_suffix),
-        ]
+        fields = []
+
+        if len(solo_values) > 0:
+            fields.append(make_field("Solo", solo_values, suffix=metric_suffix))
+        if len(multi_values) > 0:
+            fields.append(make_field("Multiplayer", multi_values, suffix=metric_suffix))
 
         pages.append(Page(
             title=f"{metric_title} Histogram",

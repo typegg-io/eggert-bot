@@ -35,8 +35,10 @@ def render(
     if color in plt.colormaps():
         color = "#00B5E2"
 
-    ax.hist(solo_values, bins=bins, color=color, label="Solo", alpha=0.5)
-    ax.hist(multi_values, bins=bins, color=invert_color(color), label="Multi", alpha=0.5)
+    if len(solo_values) > 0:
+        ax.hist(solo_values, bins=bins, color=color, label="Solo", alpha=0.5)
+    if len(multi_values) > 0:
+        ax.hist(multi_values, bins=bins, color=invert_color(color), label="Multi", alpha=0.5)
 
     ax.legend()
     apply_theme(ax, theme=theme)
