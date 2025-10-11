@@ -34,7 +34,7 @@ def render(
 
     apply_theme(ax, theme=theme)
 
-    file_name = generate_file_name("compare")
+    file_name = generate_file_name("pplength")
     plt.savefig(file_name)
     plt.close(fig)
 
