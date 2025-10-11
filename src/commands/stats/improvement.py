@@ -25,12 +25,17 @@ info = {
 
 class Improvement(Command):
     @commands.command(aliases=info["aliases"])
-    async def improvement(self, ctx, username: Optional[str] = "me", metric: Optional[str] = "wpm"):
+    async def improvement(self, ctx, username: Optional[str] = "me", metric: Optional[str] = None):
+        solo = ctx.invoked_with == "simp"
+
+        if metric is None:
+            metric = "pp" if solo else "wpm"
+
         metric = get_argument(metrics, metric)
         profile = await self.get_profile(ctx, username, races_required=True)
         await self.import_user(ctx, profile)
 
-        if ctx.invoked_with == "simp":
+        if solo:
             await solo_improvement(ctx, profile, metric)
         else:
             await multiplayer_improvement(ctx, profile, metric)
