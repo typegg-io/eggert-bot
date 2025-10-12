@@ -80,7 +80,7 @@ class WebServer(commands.Cog):
         """Update nWPM roles for all linked users using batched API calls."""
         guild = self.bot.get_guild(TYPEGG_GUILD_ID)
         linked_users = get_all_linked_users()
-        user_ids = linked_users.keys()
+        user_ids = list(linked_users.keys())
         log(f"Updating nWPM roles for {len(user_ids)} users")
 
         self.nwpm_roles = [role for role in guild.roles if self.role_pattern.match(role.name)]
@@ -121,8 +121,15 @@ class WebServer(commands.Cog):
 
     async def update_nwpm_role(self, guild: Guild, discord_id: int, nwpm: float):
         """Update a given user's nWPM role."""
-        member = guild.get_member(int(discord_id)) or await guild.fetch_member(discord_id)
+        member = guild.get_member(discord_id)
+        if not member:
+            log(f"User {discord_id} not found in guild {guild.name}")
+            return
+
         role_name = self.get_nwpm_role_name(nwpm)
+        if not role_name:
+            return
+
         new_role = discord.utils.get(guild.roles, name=role_name)
         current_roles = [role for role in member.roles if role in self.nwpm_roles]
 
