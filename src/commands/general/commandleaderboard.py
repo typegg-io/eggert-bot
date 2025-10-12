@@ -3,7 +3,6 @@ from typing import Optional
 from discord.ext import commands
 
 from commands.base import Command
-from config import BOT_PREFIX
 from database.bot.users import get_command_usage_by_user, get_top_users_by_command_usage, get_all_command_usage, get_command_usage
 from utils.errors import UnknownCommand, BotUserNotFound, UserNotAdmin
 from utils.files import get_command_modules
@@ -12,9 +11,8 @@ from utils.messages import Page, Message
 info = {
     "name": "commandleaderboard",
     "aliases": ["clb", "blb"],
-    "description": "Displays command usage stats for a specific command or user\n"
-                   f"`{BOT_PREFIX}commandleaderboard all` will show most use commands overall",
-    "parameters": "[command_name|discord_id]",
+    "description": "Displays command usage stats for a specific user",
+    "parameters": "[discord_id]",
 }
 
 
