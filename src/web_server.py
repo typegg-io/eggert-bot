@@ -141,6 +141,7 @@ class WebServer(commands.Cog):
             await asyncio.sleep(0.5)
 
         await member.add_roles(new_role, reason="Assigning nWPM role")
+        log(f"Assigned {role_name} role to {member.name}")
         await asyncio.sleep(1)
 
     ### Route Handlers ###
