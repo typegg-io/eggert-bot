@@ -5,7 +5,7 @@ from discord.ext import commands
 from commands.base import Command
 from config import BOT_PREFIX
 from database.bot.users import get_command_usage_by_user, get_top_users_by_command_usage, get_all_command_usage, get_command_usage
-from utils.errors import UnknownCommand, BotUserNotFound
+from utils.errors import UnknownCommand, BotUserNotFound, UserNotAdmin
 from utils.files import get_command_modules
 from utils.messages import Page, Message
 
@@ -32,9 +32,13 @@ class CommandLeaderboard(Command):
                 command_aliases[alias] = command_name
 
         if arg in command_aliases:
+            if not ctx.user["isAdmin"]:
+                raise UserNotAdmin
             await command_leaderboard(ctx, command_aliases[arg])
 
         elif arg in ["users", "all"]:
+            if not ctx.user["isAdmin"]:
+                raise UserNotAdmin
             await user_command_leaderboard(ctx, arg)
 
         else:
