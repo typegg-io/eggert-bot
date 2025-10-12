@@ -92,7 +92,7 @@ async def daily_quote_reminder(bot: commands.Bot):
             continue
 
         bot_user = get_user(member.id, auto_insert=False)
-        if not bot_user:
+        if not bot_user or not bot_user["userId"]:
             continue
 
         user_id = bot_user["userId"]
