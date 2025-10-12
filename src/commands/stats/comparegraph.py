@@ -256,10 +256,9 @@ async def comparegraph_ranged(
 
         return gain
 
-    def make_field(username, country, quotes_greater, gain, average_gain, max_gap, metric1, metric2, metric):
+    def make_field(profile, quotes_greater, gain, average_gain, max_gap, metric1, metric2, metric):
         if metric == "wpm":
             metric = metric.upper()
-        flag = "" if country == "" else f":flag_{country.lower()}: "
 
         content = (
             f"**Quotes:** {display_gain(quotes_greater, 0)}\n"
@@ -273,15 +272,13 @@ async def comparegraph_ranged(
             content += f"{match[0]} - {match[1]:,.2f} {metric} :handshake:"
 
         return Field(
-            title=flag + username,
+            title=username_with_flag(profile),
             content=content,
             inline=True,
         )
 
     fields = []
 
-    username1 = profile1["username"]
-    country = profile1["country"]
     quotes_greater = len(gains1)
     gain = sum(gains1)
     average_gain = 0 if gain == 0 else gain / quotes_greater
@@ -292,12 +289,10 @@ async def comparegraph_ranged(
 
     fields.append(
         make_field(
-            username1, country, quotes_greater, gain, average_gain, max_gap, metric1, metric2, metric
+            profile1, quotes_greater, gain, average_gain, max_gap, metric1, metric2, metric
         )
     )
 
-    username2 = profile2["username"]
-    country = profile2["country"]
     quotes_greater = len(gains2)
     gain = sum(gains2)
     average_gain = 0 if gain == 0 else gain / quotes_greater
@@ -308,7 +303,7 @@ async def comparegraph_ranged(
 
     fields.append(
         make_field(
-            username2, country, quotes_greater, gain, average_gain, max_gap, metric1, metric2, metric
+            profile2, quotes_greater, gain, average_gain, max_gap, metric1, metric2, metric
         )
     )
 
@@ -316,9 +311,9 @@ async def comparegraph_ranged(
         title=f"Quote Best Comparison ({difficulty_range(min_difficulty, max_difficulty)})",
         fields=fields,
         render=lambda: compare_histogram.render(
-            username1,
+            profile1["username"],
             gains1,
-            username2,
+            profile2["username"],
             gains2,
             metric,
             ctx.user["theme"],
