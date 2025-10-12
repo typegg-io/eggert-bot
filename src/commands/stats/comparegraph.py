@@ -51,7 +51,7 @@ class CompareGraph(Command):
 
             raise InvalidArgument(metrics)
 
-        metric = metric or "pp"
+        metric = metric or "wpm"
         username1, username2 = self.get_usernames(ctx, username1, username2)
         profile1 = await self.get_profile(ctx, username1, races_required=True)
         profile2 = await self.get_profile(ctx, username2, races_required=True)
