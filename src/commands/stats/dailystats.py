@@ -64,7 +64,7 @@ async def run(ctx: commands.Context, profile: dict):
                 f"**Best Performance:** {max(pp):,.2f} pp\n"
                 f"**Average Speed:** {np.average(wpm):,.2f} WPM\n"
                 f"**Best Speed:** {max(wpm):,.2f} WPM\n"
-                f"**Average Rank:** {np.average(positions)}"
+                f"**Average Rank:** {np.average(positions):,.2f}"
             ),
         )
     ]
