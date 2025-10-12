@@ -61,6 +61,7 @@ async def run(
         not background_import
         and ctx.invoked_with not in [info["name"]] + info["aliases"]
     )
+    message = None
 
     if not profile:
         profile = await get_profile(user_id)
@@ -130,6 +131,21 @@ async def run(
                 quote_ids.add(quote_id)
 
         if new_quote_ids:
+            new_quote_count = len(new_quote_ids)
+            title = f"New Quote Import {LOADING}"
+            description = f"Adding {new_quote_count:,} new quotes to database"
+            if message is not None:
+                page.title = title
+                page.description = description
+                await message.edit()
+            elif new_quote_count > 10:
+                page = Page(
+                    title=title,
+                    description=description,
+                )
+                message = Message(ctx, page)
+                await message.send()
+
             await import_new_quotes(list(new_quote_ids))
 
         add_races(race_list)
@@ -142,4 +158,8 @@ async def run(
     if send_message:
         page.title = "Import Request"
         page.description = f"Finished importing races for {formatted_username}"
+        await message.edit()
+    elif message is not None:
+        page.title = "New Quotes Import"
+        page.description = "Finished adding new quotes"
         await message.edit()
