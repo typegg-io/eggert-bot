@@ -160,17 +160,14 @@ def unlink_user(discord_id: str):
 
 
 def get_all_linked_users():
-    """
-    Return all Discord ID and user ID pairs for linked users.
-    Returns a list of tuples (discord_id, user_id).
-    """
+    """Returns a dictionary of user IDs and Discord ID."""
     results = db.fetch("""
         SELECT discordId, userId
         FROM users
         WHERE userId IS NOT NULL
     """)
 
-    return [(str(row["discordId"]), str(row["userId"])) for row in results]
+    return {str(row["userId"]): str(row["discordId"]) for row in results}
 
 
 def is_user_linked(discord_id: str) -> bool:

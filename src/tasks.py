@@ -1,7 +1,7 @@
 import asyncio
 
 from discord import Embed, Forbidden
-from discord.ext import commands
+from discord.ext import commands, tasks
 
 from api.daily_quotes import get_daily_quote
 from api.users import get_profile
@@ -9,9 +9,39 @@ from commands.quotes.dailyleaderboard import display_daily_quote
 from config import DAILY_QUOTE_CHANNEL_ID, SITE_URL, TYPEGG_GUILD_ID, DAILY_QUOTE_ROLE_ID
 from database.bot.users import get_user
 from database.typegg.daily_quotes import add_daily_quote, add_daily_results, get_missing_days
+from utils import dates
 from utils.dates import parse_date
-from utils.logging import log
+from utils.logging import log, log_error
 from utils.strings import discord_date
+
+
+class BackgroundTasks(commands.Cog):
+    def __init__(self, bot):
+        self.bot = bot
+        self.tasks_loop.start()
+
+    def cog_unload(self):
+        self.tasks_loop.cancel()
+
+    @tasks.loop(minutes=1)
+    async def tasks_loop(self):
+        now = dates.now()
+
+        if now.hour == 20 and now.minute == 0:
+            await daily_quote_reminder(self.bot)
+
+        elif now.hour == 0 and now.minute == 5:
+            await daily_quote_results(self.bot)
+            await daily_quote_ping(self.bot)
+            await import_daily_quotes()
+
+    @tasks_loop.error
+    async def tasks_loop_error(self, error):
+        log_error("Tasks Loop", error)
+
+
+async def setup(bot):
+    await bot.add_cog(BackgroundTasks(bot))
 
 
 async def daily_quote_results(bot: commands.Bot):
