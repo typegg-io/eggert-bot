@@ -6,6 +6,7 @@ from commands.base import Command
 from commands.checks import is_bot_admin
 from database.typegg.races import delete_races
 from database.typegg.users import delete_user
+from utils.colors import WARNING
 from utils.messages import Page, Message
 
 info = {
@@ -28,7 +29,8 @@ class DeleteUser(Command):
                 description=(
                     f"You are about to permanently delete `{profile["username"]}`\n"
                     f"Please type \"confirm\" to proceed with deletion"
-                )
+                ),
+                color=WARNING,
             )
         )
         await message.send()

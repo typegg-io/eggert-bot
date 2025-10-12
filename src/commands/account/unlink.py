@@ -7,7 +7,7 @@ from discord.ext import commands
 from commands.base import Command
 from config import BOT_PREFIX, TYPEGG_GUILD_ID, VERIFIED_ROLE_NAME
 from database.bot.users import unlink_user
-from utils.colors import ERROR
+from utils.colors import ERROR, WARNING
 
 info = {
     "name": "unlink",
@@ -25,10 +25,12 @@ class Unlink(Command):
 
         await ctx.author.send(embed=Embed(
             title="Are You Sure?",
-            description="You are about to remove the verificaton link\n"
-                        "between your Discord and TypeGG account.\n"
-                        "Please type \"confirm\" to proceed.",
-            color=0XFFC107,
+            description=(
+                "You are about to remove the verification link\n"
+                "between your Discord and TypeGG account.\n"
+                "Please type \"confirm\" to proceed."
+            ),
+            color=WARNING,
         ))
 
         def check(message):
