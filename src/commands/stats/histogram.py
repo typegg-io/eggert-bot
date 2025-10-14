@@ -41,6 +41,7 @@ info = {
     "name": "histogram",
     "aliases": ["hg", "hist"],
     "description": "Displays a solo and multiplayer histogram for a given metric.\n"
+                   "The react and recover metrics exclude replays without typos.\n"
                    "\\- `metric` defaults to pp\n",
     "parameters": f"<username> [pp|wpm|acc|react|recover]",
     "author": 231721357484752896,
@@ -63,8 +64,14 @@ async def run(ctx: commands.Context, profile: dict, metric: str):
     multi_quote_bests = get_quote_bests(user_id, columns=metrics.keys(), gamemode="multiplayer")
 
     def make_field(title: str, data: list[float], suffix: str):
+        if suffix == "ms":
+            data = [v for v in data if v > 0]
+            precision = 0
+        else: 
+            precision = 2
+
         quartiles = np.quantile(data, [0.25, 0.75])
-        precision = 0 if suffix == "ms" else 2
+
         content = (
             f"**Average:** {np.average(data):,.{precision}f}{suffix}\n"
             f"**Median:** {np.median(data):,.{precision}f}{suffix}\n"
