@@ -40,7 +40,8 @@ metrics = {
 info = {
     "name": "histogram",
     "aliases": ["hg", "hist"],
-    "description": "Displays a solo and multiplayer histogram for a given metric.\nThe react and recover metrics exclude replays without typos."
+    "description": "Displays a solo and multiplayer histogram for a given metric.\n"
+                   "The react and recover metrics exclude replays without typos.\n"
                    "\\- `metric` defaults to pp\n",
     "parameters": f"<username> [pp|wpm|acc|react|recover]",
     "author": 231721357484752896,
