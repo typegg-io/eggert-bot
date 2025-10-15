@@ -45,7 +45,6 @@ async def multiplayer_improvement(ctx: commands.Context, profile: dict, metric: 
     race_list = await get_races(
         profile["userId"],
         columns=["quoteId", metric, "timestamp"],
-        min_pp=0.01,
         gamemode="multiplayer",
     )
 
