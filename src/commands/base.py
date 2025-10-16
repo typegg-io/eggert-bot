@@ -1,3 +1,4 @@
+import asyncio
 from typing import Optional
 
 from discord.ext import commands
@@ -56,3 +57,19 @@ class Command(commands.Cog):
     async def import_user(self, ctx: commands.Context, profile: dict):
         from commands.account.download import run as download
         await download(ctx, profile)
+
+    async def await_confirmation(self, ctx, confirm_message="confirm", timeout=10):
+        """Waits for the user to send a specific confirmation message."""
+
+        def check(message):
+            return (
+                message.author == ctx.author
+                and message.channel == ctx.channel
+                and message.content.lower() == confirm_message.lower()
+            )
+
+        try:
+            await self.bot.wait_for("message", timeout=timeout, check=check)
+            return True
+        except asyncio.TimeoutError:
+            return False

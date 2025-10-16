@@ -211,3 +211,18 @@ class InvalidRange(CommandError):
             "`<number1>-<number2>` (numbers must be unique)"
         ),
     )
+
+
+@dataclass
+class CommandOnCooldown(CommandError):
+    retry_after: float
+
+    @property
+    def embed(self):
+        from utils.dates import now
+        from utils.strings import discord_date
+
+        return Embed(
+            title="Command On Cooldown",
+            description=f"You may use the command again {discord_date(now().timestamp() + self.retry_after)}",
+        )
