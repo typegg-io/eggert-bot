@@ -4,7 +4,9 @@ from typing import Optional
 
 import aiosqlite
 
-folder_path = os.path.join(os.path.dirname(__file__), "..", "..", "data")
+from config import SOURCE_DIR
+
+folder_path = SOURCE_DIR / "data"
 os.makedirs(folder_path, exist_ok=True)
 
 file = os.path.join(folder_path, "typegg.db")
