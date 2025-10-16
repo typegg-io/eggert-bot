@@ -1,10 +1,13 @@
 import asyncio
 import importlib
 import sys
+import threading
 
 from watchdog.events import FileSystemEventHandler
+from watchdog.observers import Observer
 
 from commands.base import Command
+from config import SOURCE_DIR
 
 
 class ReloadHandler(FileSystemEventHandler):
@@ -53,3 +56,10 @@ async def reload_cog(bot, group, name):
         print(f"[Watcher] No cog class found in {group}/{name}")
     except Exception as e:
         print(f"[Watcher] Failed to reload {group}/{name}: {e}")
+
+
+def start_watcher(bot, loop):
+    observer = Observer()
+    observer.schedule(ReloadHandler(bot, loop), path=SOURCE_DIR / "commands", recursive=True)
+    thread = threading.Thread(target=observer.start, daemon=True)
+    thread.start()

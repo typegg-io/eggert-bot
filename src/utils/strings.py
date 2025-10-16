@@ -2,8 +2,8 @@ from typing import Optional
 
 from dateutil import parser
 
-from utils import urls
 from utils.errors import InvalidArgument
+from utils.urls import race_url, profile_url
 
 RANK_EMOJIS = [
     ":first_place:",
@@ -29,6 +29,7 @@ RANK_EMOJIS = [
 ]
 
 LOADING = "<a:loading:1418688762745065594>"
+INCREASE = "<:increase:1372466536693891142>"
 
 OPTION_ALIASES = {
     "pp": ["performance", "pf"],
@@ -61,8 +62,11 @@ def get_argument(valid_options: list[str], param: str, _raise: bool = True):
 
 
 def discord_date(date_string: str, style: Optional[str] = "R"):
-    timestamp = parser.parse(date_string).timestamp()
-    return f"<t:{int(timestamp)}:{style}>"
+    try:
+        timestamp = int(date_string)
+    except ValueError:
+        timestamp = int(parser.parse(date_string).timestamp())
+    return f"<t:{timestamp}:{style}>"
 
 
 def get_key_by_alias(alias_dict, alias):
@@ -129,16 +133,6 @@ def ordinal_number(number):
     return f"{number:,}{suffix}"
 
 
-def quote_description(quote):
-    """Returns a formatted string for quotes to display in embeds."""
-    text = quote["text"]
-    return (
-        f"[**{quote["source"]["title"]}**]({urls.race(quote["quoteId"])}) "
-        f"| {quote["difficulty"]:.2f}★ | {len(text)}c\n"
-        f"\"{truncate_clean(text, 60)}\"\n"
-    )
-
-
 def rank(number):
     if 1 <= number <= 20:
         return RANK_EMOJIS[number - 1]
@@ -155,20 +149,43 @@ def format_big_number(number, _):
     return int(number)
 
 
-def quote_display(quote):
+def quote_display(
+    quote: dict,
+    max_text_chars: int = 60,
+    display_author: bool = False,
+    display_status: bool = False,
+    display_racers_users: bool = False,
+    display_submitted_by: bool = False,
+):
+    """Returns a formatted string for quotes to display in embeds."""
     text = quote["text"]
-    ranked = quote["ranked"]
-    submitted_by = quote["submittedByUsername"]
+    display_string = f"**[{quote["source"]["title"]}]({race_url(quote["quoteId"])})**"
 
-    return (
-        f"**{quote["source"]["title"]}** by **{quote["source"]["author"]}**\n"
-        f"{quote["difficulty"]:.2f}★ | {len(text):,}c | "
-        f"{quote["races"]:,} races | {quote["uniqueUsers"]:,} users | "
-        f"{"Ranked" if ranked else "Unranked"}\n"
-        f"**Submitted by:** [{submitted_by}]({urls.profile(submitted_by)}) - "
-        f"{discord_date(quote["created"], "D")}\n\n"
-        f"\"{truncate_clean(text, 1000)}\""
-    )
+    if display_author:
+        display_string += f" by **{quote["source"]["author"]}**\n"
+    else:
+        display_string += " | "
+
+    display_string += f"{quote["difficulty"]:.2f}★ | {len(text):,}c"
+
+    if display_status:
+        display_string += f" | {"Ranked" if quote["ranked"] else "Unranked"}"
+
+    if display_racers_users:
+        display_string += f" | {quote["races"]:,} races | {quote["uniqueUsers"]:,} users"
+
+    display_string += "\n"
+
+    if display_submitted_by:
+        submitted_by = quote["submittedByUsername"]
+        display_string += (
+            f"**Submitted by:** [{submitted_by}]({profile_url(submitted_by)}) - "
+            f"{discord_date(quote["created"], "D")}\n\n"
+        )
+
+    display_string += f"\"{truncate_clean(text, max_text_chars)}\"\n"
+
+    return display_string
 
 
 def get_flag(user):
@@ -176,6 +193,10 @@ def get_flag(user):
     return f":flag_{country.lower()}: " if country else ""
 
 
-def username_with_flag(profile):
+def username_with_flag(profile: dict, link_user: bool = True):
     flag = get_flag(profile)
-    return f"{flag}{escape_formatting(profile["username"])}"
+    username = profile["username"]
+    if link_user:
+        return f"{flag}[{escape_formatting(username)}]({profile_url(username)})"
+    else:
+        return f"{flag}{escape_formatting(username)}"

@@ -6,11 +6,10 @@ from api.quotes import get_quote
 from api.sources import get_source
 from api.users import get_races, get_profile
 from commands.base import Command
-from database.typegg import users, races
 from database.typegg.quotes import get_quotes, add_quote
-from database.typegg.races import add_races
+from database.typegg.races import add_races, get_latest_race
 from database.typegg.sources import get_sources, add_source
-from database.typegg.users import get_user
+from database.typegg.users import get_user, create_user
 from utils.logging import log
 from utils.messages import Page, Message
 from utils.strings import escape_formatting, LOADING
@@ -71,10 +70,11 @@ async def run(
 
     user_entry = get_user(user_id)
     if not user_entry:
-        users.create_user(user_id)
+        create_user(user_id)
 
     total_races = profile["stats"]["races"]
-    latest_race_number = races.get_latest_race_number(user_id)
+    latest_race = get_latest_race(user_id)
+    latest_race_number = 0 if latest_race is None else latest_race["raceNumber"]
     races_left = total_races - latest_race_number
 
     status_message = (

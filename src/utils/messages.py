@@ -8,8 +8,9 @@ from discord.ext import commands
 from discord.ui import View, Button as DiscordButton
 
 from config import BOT_PREFIX
-from utils import files, urls
+from utils import files
 from utils.colors import SUCCESS, DEFAULT
+from utils.urls import profile_url
 
 welcome_message = (
     f"### Hi there, I'm Eggert!\n"
@@ -176,7 +177,7 @@ class Message(View):
 
         embed.set_author(
             name=display_name,
-            url=urls.profile(username),
+            url=profile_url(username),
             icon_url=author_icon,
         )
 

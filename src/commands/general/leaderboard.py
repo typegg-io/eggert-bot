@@ -2,9 +2,9 @@ from discord.ext import commands
 
 from api.leaders import get_leaders
 from commands.base import Command
-from utils import strings, urls
+from utils import strings
 from utils.messages import Message, paginate_data
-from utils.strings import get_argument
+from utils.strings import get_argument, username_with_flag
 
 categories = {
     "pp": {
@@ -89,14 +89,8 @@ class Leaderboard(Command):
         await run(ctx, categories[category])
 
 
-def row_prefix(user):
-    username = user["username"]
-    flag = f":flag_{user["country"].lower()}: " if user["country"] else ""
-    return f"{strings.rank(user["rank"])} {flag}[{username}]({urls.profile(username)})"
-
-
 def entry_formatter(data):
-    return f"{row_prefix(data)} - {data["category"]["formatter"](data)}\n"
+    return f"{username_with_flag(data)} - {data["category"]["formatter"](data)}\n"
 
 
 async def run(ctx: commands.Context, category: dict):

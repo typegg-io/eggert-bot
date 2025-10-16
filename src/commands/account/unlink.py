@@ -13,7 +13,6 @@ info = {
     "name": "unlink",
     "aliases": ["unverify"],
     "description": "Removes the link between your Discord account and your TypeGG account",
-    "parameters": "",
 }
 
 

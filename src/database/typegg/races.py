@@ -92,17 +92,35 @@ async def get_races(
 
     return race_list
 
+def get_quote_races(
+    user_id: str,
+    quote_id: str,
+    order_by: str = "timestamp",
+    reverse: bool = False,
+):
+    """Returns a list of all a user's races for a specific quote."""
+    order = "DESC" if reverse else "ASC"
 
-def get_latest_race_number(user_id: str):
-    """Returns a user's latest imported race number."""
+    results = db.fetch(f"""
+        SELECT * FROM races
+        WHERE userId = ?
+        AND quoteId = ?
+        ORDER BY {order_by} {order}
+    """, [user_id, quote_id])
+
+    return results
+
+
+def get_latest_race(user_id: str):
+    """Returns a user's latest imported race."""
     result = db.fetch_one("""
-        SELECT raceNumber FROM races
+        SELECT * FROM races
         WHERE userId = ?
         ORDER BY raceNumber DESC
         LIMIT 1
     """, [user_id])
 
-    return result["raceNumber"] if result else 0
+    return result
 
 
 def delete_races(user_id: str):

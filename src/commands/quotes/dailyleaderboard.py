@@ -3,16 +3,17 @@ from discord.ext import commands
 from api.daily_quotes import get_daily_quote
 from commands.base import Command
 from config import DAILY_QUOTE_ROLE_ID
-from utils import urls, dates
+from utils import dates
 from utils.dates import parse_date, format_date
 from utils.messages import Page, Message
 from utils.strings import rank, discord_date, quote_display, username_with_flag
+from utils.urls import race_url
 
 info = {
     "name": "dailyleaderboard",
     "aliases": ["daily", "dlb", "d10"],
     "description": "Displays the top 10 leaderboard for the daily quote",
-    "parameters": "",
+    "parameters": "[date/day_number]",
 }
 
 
@@ -45,7 +46,15 @@ async def display_daily_quote(
     leaderboard = daily_quote["leaderboard"]
     end = "Ends" if parse_date(end_date) > dates.now() else "Ended"
 
-    description = quote_display(quote)
+    description = quote_display(
+        quote,
+        display_author=True,
+        display_status=True,
+        display_racers_users=True,
+        display_submitted_by=True,
+        max_text_chars=1000,
+    )
+
     if show_champion:
         def entry_formatter(data):
             return (
@@ -60,7 +69,7 @@ async def display_daily_quote(
         )
 
     if show_leaderboard and leaderboard:
-        description += "\n\n**Top 10**\n"
+        description += "\n**Top 10**\n"
         for i, score in enumerate(leaderboard):
             description += (
                 f"{rank(i + 1)} {username_with_flag(score)} - "
@@ -81,7 +90,7 @@ async def display_daily_quote(
     message = Message(
         ctx,
         page=page,
-        url=urls.race(quote_id),
+        url=race_url(quote_id),
         thumbnail=quote["source"]["thumbnailUrl"],
         content=f"<@&{DAILY_QUOTE_ROLE_ID}>" if mention else "",
         color=color,

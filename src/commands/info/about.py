@@ -9,7 +9,6 @@ info = {
     "name": "about",
     "aliases": ["info"],
     "description": "Displays information about the bot",
-    "parameters": "",
 }
 
 
