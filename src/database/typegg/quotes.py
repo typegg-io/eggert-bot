@@ -1,5 +1,6 @@
 from database.typegg import db
 from database.typegg.sources import get_source
+from utils.errors import UnknownQuote
 
 
 def quote_insert(quote):
@@ -66,6 +67,9 @@ def get_quote(quote_id: str):
         SELECT * FROM quotes q
         WHERE quoteId = ?
     """, [quote_id])
+
+    if not quote:
+        raise UnknownQuote(quote_id)
 
     quote = dict(quote)
     source = get_source(quote["sourceId"])
