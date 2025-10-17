@@ -35,3 +35,8 @@ def get_sources(as_dictionary=True):
         return {source["sourceId"]: source for source in results}
 
     return results
+
+
+def get_source(source_id: str):
+    """Return a single source entry."""
+    return db.fetch_one("SELECT * FROM sources WHERE sourceId = ?", [source_id])

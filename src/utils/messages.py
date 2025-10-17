@@ -9,7 +9,7 @@ from discord.ui import View, Button as DiscordButton
 
 from config import BOT_PREFIX
 from utils import files
-from utils.colors import SUCCESS, DEFAULT
+from utils.colors import SUCCESS, WARNING
 from utils.urls import profile_url
 
 welcome_message = (
@@ -405,9 +405,10 @@ def command_milestone(author, milestone):
     )
 
 
-def fetching_data():
+def privacy_warning():
     return Embed(
-        title="Fetching Data",
-        description="Please wait while we fetch your data",
-        color=DEFAULT
+        title=":warning: Privacy Warning :warning:",
+        description="Certain commands expose data that is not normally\n"
+                    "available to the public, use at your own discretion!",
+        color=WARNING,
     )

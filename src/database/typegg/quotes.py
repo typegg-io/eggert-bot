@@ -1,4 +1,5 @@
 from database.typegg import db
+from database.typegg.sources import get_source
 
 
 def quote_insert(quote):
@@ -60,5 +61,14 @@ def get_quotes(
 
 
 def get_quote(quote_id: str):
-    """Return a single quote entry."""
-    return db.fetch_one("SELECT * FROM quotes WHERE quoteId = ?", [quote_id])
+    """Return a single quote entry with source information."""
+    quote = db.fetch_one("""
+        SELECT * FROM quotes q
+        WHERE quoteId = ?
+    """, [quote_id])
+
+    quote = dict(quote)
+    source = get_source(quote["sourceId"])
+    quote["source"] = source
+
+    return quote

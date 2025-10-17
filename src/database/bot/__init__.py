@@ -10,6 +10,7 @@ db.run("""
         startDate REAL,
         endDate REAL,
         isBanned INTEGER DEFAULT 0,
-        isAdmin INTEGER DEFAULT 0
+        isAdmin INTEGER DEFAULT 0,
+        isPrivacyWarned INTEGER DEFAULT 0
     )
 """)

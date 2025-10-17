@@ -1,12 +1,14 @@
 import asyncio
 from typing import Optional
 
+from discord import Forbidden
 from discord.ext import commands
 
 from api.users import get_profile
 from config import DAILY_QUOTE_CHANNEL_ID
-from database.bot.users import get_user
+from database.bot.users import get_user, update_warning
 from utils.errors import UserBanned, MissingUsername, NoRaces, DailyQuoteChannel
+from utils.messages import privacy_warning
 
 
 class Command(commands.Cog):
@@ -73,3 +75,11 @@ class Command(commands.Cog):
             return True
         except asyncio.TimeoutError:
             return False
+
+    async def send_privacy_warning(self, ctx: commands.Context):
+        embed = privacy_warning()
+        try:
+            await ctx.author.send(embed=embed)
+        except Forbidden:
+            await ctx.send(embed=embed)
+        update_warning(ctx.author.id)
