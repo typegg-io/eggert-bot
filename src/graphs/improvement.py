@@ -79,6 +79,7 @@ def render(
 
 def render_text(
     values: list[float],
+    metric: str,
     quote_id: str,
     theme: dict,
 ):
@@ -115,18 +116,19 @@ def render_text(
 
     personal_bests = []
     current_best = float("-inf")
-    for i, pp in enumerate(values):
-        if pp > current_best:
-            personal_bests.append((i + 1, pp))
-            current_best = pp
+    for i, value in enumerate(values):
+        if value > current_best:
+            personal_bests.append((i + 1, value))
+            current_best = value
 
     x_best, y_best = zip(*personal_bests)
     ax.scatter(x_best, y_best, color="#53D76A", marker=".", zorder=10, s=35)
     ax.scatter(x_best[-1], y_best[-1], color="#FFB600", marker="*", zorder=15, s=35)
 
+    metric = ["WPM", "pp"][metric == "pp"]
     ax.set_xlabel(f"Races")
-    ax.set_ylabel("pp")
-    title = f"pp Improvement - Quote {quote_id}"
+    ax.set_ylabel(metric)
+    title = f"{metric} Improvement - Quote {quote_id}"
     if window_size > 1:
         title += f"\nMoving Average of {window_size} Races"
     ax.set_title(title)
