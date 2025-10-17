@@ -59,7 +59,7 @@ async def get_quote(quote_id: str, distinct: bool = True) -> Dict[str, Any]:
     Calls GET /quotes/{quoteId}.
     Returns the JSON response as a dict.
     """
-    url = f"{API_URL}/v1/quotes/{quote(quote_id, safe="")}"
+    url = f"{API_URL}/v1/quotes/{quote_id}"
     params = get_params({"distinct": distinct})
 
     async with aiohttp.ClientSession() as session:

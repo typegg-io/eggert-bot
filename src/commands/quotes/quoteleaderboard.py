@@ -16,7 +16,7 @@ info = {
 
 class QuoteLeaderboard(Command):
     @commands.command(aliases=info["aliases"])
-    async def quoteleaderboard(self, ctx: commands.Context, quote_id: str):
+    async def quoteleaderboard(self, ctx: commands.Context, *, quote_id: str):
         quote = await get_quote(quote_id)
         await run(ctx, quote)
 

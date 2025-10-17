@@ -148,7 +148,7 @@ async def get_quote(user_id: str, quote_id: str) -> Dict[str, Any]:
     Calls GET /users/{userId}/quotes/{quoteId} with all available filters.
     Returns the JSON response as a dict.
     """
-    url = f"{API_URL}/v1/users/{quote(user_id, safe="")}/quotes/{quote(quote_id, safe="")}"
+    url = f"{API_URL}/v1/users/{quote(user_id, safe="")}/quotes/{quote_id}"
 
     async with aiohttp.ClientSession() as session:
         async with session.get(url) as response:

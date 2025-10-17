@@ -1,4 +1,5 @@
 from typing import Optional
+from urllib.parse import unquote
 
 import numpy as np
 from discord.ext import commands
@@ -23,7 +24,9 @@ info = {
 
 class Quote(Command):
     @commands.command(aliases=info["aliases"])
-    async def quote(self, ctx, username: Optional[str] = "me", quote_id: Optional[str] = None):
+    async def quote(self, ctx, username: Optional[str] = "me", *, quote_id: Optional[str] = None):
+        if quote_id:
+            quote_id = unquote(quote_id)
         if not ctx.user["isPrivacyWarned"]:
             await self.send_privacy_warning(ctx)
 
