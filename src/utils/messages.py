@@ -165,7 +165,7 @@ class Message(View):
     def add_profile(self, embed):
         """Adds profile avatar and author section to the embed."""
         username = self.profile["username"]
-        display_name = self.profile.get("displayName", username)
+        display_name = self.profile.get("displayName", None) or username
         author_icon = (
             f"https://flagsapi.com/{self.profile["country"].upper()}/flat/64.png"
             if self.profile["country"]
