@@ -17,7 +17,6 @@ def render(
     fig, ax = plt.subplots()
     values = np.array(values)
     best_index, best = max(enumerate(values), key=lambda x: x[1])
-    worst_index, worst = min(enumerate(values), key=lambda x: x[1])
 
     downsample_factor = max(len(values) // 100000, 1)
     downsampled_indices = np.arange(0, len(values), downsample_factor)
@@ -35,14 +34,12 @@ def render(
         timestamps = np.array(get_timestamp_list(dates))
         downsampled_indices = [timestamps[d] for d in downsampled_indices]
         x_points = [timestamps[r] for r in x_points]
-        ax.scatter(timestamps[worst_index], worst, color="#FA3244", marker=".", zorder=10)
         ax.scatter(timestamps[best_index], best, color="#53D76A", marker=".", zorder=10)
         apply_date_ticks(ax, timestamps)
 
     else:
         downsampled_indices = [d + 1 for d in downsampled_indices]
         x_points = [r + 1 for r in x_points]
-        ax.scatter(worst_index + 1, worst, color="#FA3244", marker=".", zorder=10)
         ax.scatter(best_index + 1, best, color="#53D76A", marker=".", zorder=10)
         ax.xaxis.set_major_formatter(FuncFormatter(format_big_number))
 
