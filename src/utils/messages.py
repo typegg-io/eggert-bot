@@ -408,7 +408,10 @@ def command_milestone(author, milestone):
 def privacy_warning():
     return Embed(
         title=":warning: Privacy Warning :warning:",
-        description="Certain commands expose data that is not normally\n"
-                    "available to the public, use at your own discretion!",
+        description=(
+            "Certain commands expose race data that is not normally\n"
+            "available to the public (like non-quote best races).\n"
+            "Use at your own discretion!"
+        ),
         color=WARNING,
     )
