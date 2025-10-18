@@ -4,7 +4,7 @@ from api.leaders import get_leaders
 from commands.base import Command
 from utils import strings
 from utils.messages import Message, paginate_data
-from utils.strings import get_argument, username_with_flag
+from utils.strings import get_argument, username_with_flag, rank
 
 categories = {
     "pp": {
@@ -90,7 +90,7 @@ class Leaderboard(Command):
 
 
 def entry_formatter(data):
-    return f"{username_with_flag(data)} - {data["category"]["formatter"](data)}\n"
+    return f"{rank(data["rank"])} {username_with_flag(data)} - {data["category"]["formatter"](data)}\n"
 
 
 async def run(ctx: commands.Context, category: dict):
