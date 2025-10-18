@@ -36,7 +36,7 @@ class InvalidArgument(CommandError):
     def embed(self):
         return Embed(
             title="Invalid Argument",
-            description=f"Argument can be: " + ",".join([f"`{option}`" for option in self.options]),
+            description=f"Argument can be: " + ", ".join([f"`{option}`" for option in self.options]),
         )
 
 
