@@ -3,6 +3,7 @@ from discord.ext import commands
 from api.daily_quotes import get_daily_quote
 from commands.base import Command
 from config import DAILY_QUOTE_ROLE_ID
+from database.bot.recent_quotes import set_recent_quote
 from utils import dates
 from utils.dates import parse_date, format_date
 from utils.messages import Page, Message
@@ -42,6 +43,7 @@ async def display_daily_quote(
 ):
     quote = daily_quote["quote"]
     quote_id = quote["quoteId"]
+    set_recent_quote(ctx.channel.id, quote_id)
     end_date = daily_quote["endDate"]
     leaderboard = daily_quote["leaderboard"]
     end = "Ends" if parse_date(end_date) > dates.now() else "Ended"

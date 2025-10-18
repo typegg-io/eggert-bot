@@ -14,3 +14,10 @@ db.run("""
         isPrivacyWarned INTEGER DEFAULT 0
     )
 """)
+
+db.run("""
+    CREATE TABLE IF NOT EXISTS recent_quotes (
+        channelId TEXT PRIMARY KEY,
+        quoteId TEXT
+    )
+""")

@@ -2,6 +2,7 @@ from discord.ext import commands
 
 from api.quotes import get_quotes
 from commands.base import Command
+from database.bot.recent_quotes import set_recent_quote
 from utils.errors import MissingArguments
 from utils.messages import Page, Message, paginate_data
 from utils.strings import escape_formatting, quote_display
@@ -38,6 +39,7 @@ async def run(ctx: commands.Context, query: str):
         message = Message(ctx, page)
         return await message.send()
 
+    set_recent_quote(ctx.channel.id, quotes[0]["quoteId"])
     per_page = 5
     entry_formatter = lambda quote: quote_display(quote, max_text_chars=150, display_status=True) + "\n"
     pages = paginate_data(quotes, entry_formatter, 20, per_page)

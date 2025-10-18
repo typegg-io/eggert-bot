@@ -1,12 +1,17 @@
 import asyncio
 from typing import Optional
+from urllib.parse import unquote
 
 from discord import Forbidden
 from discord.ext import commands
 
+from api.quotes import get_quote as get_quote_api
 from api.users import get_profile
-from config import DAILY_QUOTE_CHANNEL_ID
+from config import DAILY_QUOTE_CHANNEL_ID, SITE_URL
+from database.bot.recent_quotes import set_recent_quote, get_recent_quote
 from database.bot.users import get_user, update_warning
+from database.typegg.quotes import get_quote
+from database.typegg.races import get_latest_race
 from utils.errors import UserBanned, MissingUsername, NoRaces, DailyQuoteChannel
 from utils.messages import privacy_warning
 
@@ -77,9 +82,36 @@ class Command(commands.Cog):
             return False
 
     async def send_privacy_warning(self, ctx: commands.Context):
+        """Sends out a one-time privacy warning DM."""
         embed = privacy_warning()
         try:
             await ctx.author.send(embed=embed)
         except Forbidden:
             await ctx.send(embed=embed)
         update_warning(ctx.author.id)
+
+    async def get_quote(
+        self,
+        ctx: commands.Context,
+        quote_id: Optional[str] = None,
+        user_id: Optional[str] = None,
+        from_api: Optional[bool] = False,
+    ):
+        """Fetches a quote from database or API, optionally pass a user ID to take their latest quote ID."""
+        if quote_id is None:
+            latest_race = get_latest_race(user_id)
+            quote_id = latest_race["quoteId"]
+        elif quote_id.startswith(f"{SITE_URL}/solo/"):
+            quote_id = quote_id.split("/")[-1]
+        elif quote_id == "^":
+            quote_id = get_recent_quote(ctx.channel.id)
+
+        quote_id = unquote(quote_id)
+
+        if from_api:
+            quote = await get_quote_api(quote_id)
+        else:
+            quote = get_quote(quote_id)
+
+        set_recent_quote(ctx.channel.id, quote_id)
+        return quote

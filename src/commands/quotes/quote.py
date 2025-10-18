@@ -1,12 +1,10 @@
 from typing import Optional
-from urllib.parse import unquote
 
 import numpy as np
 from discord.ext import commands
 
 from commands.base import Command
-from database.typegg.quotes import get_quote
-from database.typegg.races import get_latest_race, get_quote_races
+from database.typegg.races import get_quote_races
 from database.typegg.users import get_quote_bests
 from graphs import improvement
 from utils.colors import SUCCESS
@@ -25,14 +23,14 @@ info = {
 class Quote(Command):
     @commands.command(aliases=info["aliases"])
     async def quote(self, ctx, username: Optional[str] = "me", *, quote_id: Optional[str] = None):
-        if quote_id:
-            quote_id = unquote(quote_id)
         if not ctx.user["isPrivacyWarned"]:
             await self.send_privacy_warning(ctx)
 
         profile = await self.get_profile(ctx, username, races_required=True)
         await self.import_user(ctx, profile)
-        await run(ctx, profile, quote_id)
+        quote = await self.get_quote(ctx, quote_id, profile["userId"])
+
+        await run(ctx, profile, quote)
 
 
 def total_pp(quote_bests: list[dict]):
@@ -57,7 +55,7 @@ def score_display(score, show_pp=True):
     return f"{score["wpm"]:,.2f} WPM - {discord_date(score["timestamp"])}"
 
 
-def build_personal_best_page(user_id: str, quote: dict, quote_races: list[dict]):
+def build_personal_best_page(quote: dict, quote_races: list[dict], user_id: str):
     description = quote_display(quote, max_text_chars=1000, display_status=True) + "\n"
     page = Page(description=description, button_name="Personal Best")
 
@@ -194,7 +192,7 @@ def build_history_page(quote_races: list[dict], ranked: bool):
     return page
 
 
-def build_graph_page(quote_id: str, quote_races: list, theme: dict, ranked: bool):
+def build_graph_page(quote_races: list, ranked: bool, theme: dict):
     metric = "pp" if ranked else "wpm"
     pp, wpm = zip(*[(race["pp"], race["wpm"]) for race in quote_races])
 
@@ -217,7 +215,7 @@ def build_graph_page(quote_id: str, quote_races: list, theme: dict, ranked: bool
         render=lambda: improvement.render_text(
             values=np.array([race[metric] for race in quote_races]),
             metric=metric,
-            quote_id=quote_id,
+            quote_id=quote_races[0]["quoteId"],
             theme=theme,
         ),
         button_name="Improvement",
@@ -226,20 +224,16 @@ def build_graph_page(quote_id: str, quote_races: list, theme: dict, ranked: bool
     return page
 
 
-async def run(ctx: commands.Context, profile: dict, quote_id: str):
+async def run(ctx: commands.Context, profile: dict, quote: dict):
     user_id = profile["userId"]
-    if quote_id is None:
-        latest_race = get_latest_race(user_id)
-        quote_id = latest_race["quoteId"]
-
-    quote = get_quote(quote_id)
+    quote_id = quote["quoteId"]
     is_ranked = quote["ranked"]
-    quote_races = get_quote_races(user_id, quote_id)
 
+    quote_races = get_quote_races(user_id, quote_id)
     show_buttons = ctx.user["userId"] == profile["userId"] and quote_races
 
     if is_ranked:
-        pb_page = build_personal_best_page(user_id, quote, quote_races)
+        pb_page = build_personal_best_page(quote, quote_races, user_id)
     else:
         pb_page = build_unranked_personal_best_page(quote, quote_races)
 
@@ -248,7 +242,7 @@ async def run(ctx: commands.Context, profile: dict, quote_id: str):
     if show_buttons:
         pages += [
             build_history_page(quote_races, is_ranked),
-            build_graph_page(quote_id, quote_races, ctx.user["theme"], is_ranked)
+            build_graph_page(quote_races, is_ranked, ctx.user["theme"])
         ]
 
     message = Message(
