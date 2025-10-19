@@ -65,13 +65,16 @@ def build_personal_best_page(quote: dict, quote_races: list[dict], user_id: str)
 
     recent_race = quote_races[-1]
     quote_bests = get_quote_bests(user_id)
-    old_quote_bests = get_quote_bests(user_id, end_date=recent_race["timestamp"])
-    pp_gain = total_pp(quote_bests) - total_pp(old_quote_bests)
+    quote_bests_without = [
+        score for score in quote_bests
+        if score["raceId"] != recent_race["raceId"]
+    ]
 
     best_race = max(quote_races, key=lambda x: x["pp"])
     best_rank = get_quote_best_rank(quote_bests, best_race["raceId"])
 
     if len(quote_races) == 1:
+        pp_gain = total_pp(quote_bests) - total_pp(quote_bests_without)
         quote_best_rank = get_quote_best_rank(quote_bests, recent_race["raceId"])
         page.description += (
             f"**New Quote!**\n"
@@ -83,10 +86,12 @@ def build_personal_best_page(quote: dict, quote_races: list[dict], user_id: str)
 
     elif recent_race == best_race:
         previous_best = max(quote_races[:-1], key=lambda x: x["pp"])
+        quote_bests_without.append(previous_best)
+        pp_gain = total_pp(quote_bests) - total_pp(quote_bests_without)
 
         pp_difference = best_race["pp"] - previous_best["pp"]
         wpm_difference = best_race["wpm"] - previous_best["wpm"]
-        rank_difference = get_quote_best_rank(old_quote_bests, previous_best["raceId"]) - best_rank
+        rank_difference = get_quote_best_rank(quote_bests_without, previous_best["raceId"]) - best_rank
 
         page.description += (
             f"**New Quote Best!** +{pp_difference:,.2f} pp (+{wpm_difference:,.2f} WPM)\n"
