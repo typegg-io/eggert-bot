@@ -1,3 +1,4 @@
+from discord.abc import GuildChannel
 from discord.ext import commands
 
 from api.daily_quotes import get_daily_quote
@@ -33,7 +34,7 @@ class DailyLeaderboard(Command):
 
 
 async def display_daily_quote(
-    ctx: commands.Context,
+    ctx: commands.Context | GuildChannel,
     daily_quote: dict,
     title: str,
     show_leaderboard: bool = True,
@@ -43,10 +44,11 @@ async def display_daily_quote(
 ):
     quote = daily_quote["quote"]
     quote_id = quote["quoteId"]
-    set_recent_quote(ctx.channel.id, quote_id)
     end_date = daily_quote["endDate"]
     leaderboard = daily_quote["leaderboard"]
     end = "Ends" if parse_date(end_date) > dates.now() else "Ended"
+    channel_id = ctx.channel.id if hasattr(ctx, 'channel') else ctx.id
+    set_recent_quote(channel_id, quote_id)
 
     description = quote_display(
         quote,
