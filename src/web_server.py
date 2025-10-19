@@ -123,7 +123,6 @@ class WebServer(commands.Cog):
         """Update a given user's nWPM role."""
         member = guild.get_member(discord_id)
         if not member:
-            log(f"User {discord_id} not found in guild {guild.name}")
             return
 
         role_name = self.get_nwpm_role_name(nwpm)
