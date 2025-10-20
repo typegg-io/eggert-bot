@@ -27,8 +27,9 @@ class Search(Command):
 async def run(ctx: commands.Context, query: str):
     results = await get_quotes(
         search=query,
-        per_page=100,
         min_length=len(query),
+        status="any",
+        per_page=100,
     )
     quotes = results["quotes"]
     total_results = results["totalCount"]
