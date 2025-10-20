@@ -105,22 +105,24 @@ def escape_formatting(string, remove_backticks=True):
     )
 
 
-def truncate_clean(text, max_chars):
-    """Truncates a string to a maximum character length, avoiding cutting words in the middle."""
+def truncate_clean(text: str, max_chars: int, max_lines: int):
+    """Truncates a string to a maximum number of characters or lines, avoiding mid-word cuts."""
+    lines = text.splitlines()
+    if len(lines) > max_lines:
+        text = "\n".join(lines[:max_lines])
+        text = text.rstrip() + "..."
+
     if len(text) <= max_chars:
         return escape_formatting(text, remove_backticks=False)
-    if len(text.split(" ")) == 1:
+
+    if " " not in text:
         return escape_formatting(text[:max_chars] + "...", remove_backticks=False)
 
     substring = text[:max_chars]
-    if " " not in substring:
-        return escape_formatting(substring[:max_chars] + "...", remove_backticks=False)
-    while True:
-        if substring[-2].isalnum() and not substring[-1].isalnum():
-            break
+
+    while len(substring) > 1 and substring[-1].isalnum():
         substring = substring[:-1]
-    substring = substring[:-1]
-    substring += "..."
+    substring = substring.rstrip() + "..."
 
     return escape_formatting(substring, remove_backticks=False)
 
@@ -152,6 +154,7 @@ def format_big_number(number, _):
 def quote_display(
     quote: dict,
     max_text_chars: int = 60,
+    max_text_lines: int = 15,
     display_author: bool = False,
     display_status: bool = False,
     display_racers_users: bool = False,
@@ -183,7 +186,7 @@ def quote_display(
             f"{discord_date(quote["created"], "D")}\n\n"
         )
 
-    display_string += f"\"{truncate_clean(text, max_text_chars)}\"\n"
+    display_string += f"\"{truncate_clean(text, max_text_chars, max_text_lines)}\"\n"
 
     return display_string
 
