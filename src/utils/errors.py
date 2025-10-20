@@ -226,3 +226,11 @@ class CommandOnCooldown(CommandError):
             title="Command On Cooldown",
             description=f"You may use the command again {discord_date(now().timestamp() + self.retry_after)}",
         )
+
+
+class InvalidNumber(CommandError):
+    """Raised when a number string is improperly formatted."""
+    embed = Embed(
+        title="Invalid Number",
+        description="Unrecognized number format",
+    )

@@ -80,7 +80,7 @@ async def get_race(user_id: str, race_number: int, get_keystrokes=False) -> Dict
             headers=AUTH_HEADERS,
             params={"showKeystrokeData": str(get_keystrokes).lower()}
         ) as response:
-            await get_response(response, exceptions={
+            return await get_response(response, exceptions={
                 404: RaceNotFound(user_id, race_number)
             })
 

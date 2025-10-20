@@ -2,7 +2,7 @@ from typing import Optional
 
 from dateutil import parser
 
-from utils.errors import InvalidArgument
+from utils.errors import InvalidArgument, InvalidNumber
 from utils.urls import race_url, profile_url
 
 RANK_EMOJIS = [
@@ -203,3 +203,21 @@ def username_with_flag(profile: dict, link_user: bool = True):
         return f"{flag}[{escape_formatting(username)}]({profile_url(username)})"
     else:
         return f"{flag}{escape_formatting(username)}"
+
+
+def parse_number(value):
+    """Parses a string into an int or float, supporting commas and K/M suffixes."""
+    s = str(value).strip().replace(",", "").lower()
+
+    if s.endswith("k"):
+        return round(float(s[:-1]) * 1_000)
+    if s.endswith("m"):
+        return round(float(s[:-1]) * 1_000_000)
+
+    for caster in (int, float):
+        try:
+            return caster(s)
+        except ValueError:
+            continue
+
+    raise InvalidNumber
