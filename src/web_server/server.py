@@ -1,3 +1,5 @@
+from functools import partial
+
 from aiohttp import web
 from aiohttp.web_exceptions import HTTPNotFound
 from discord.ext import commands
@@ -50,7 +52,7 @@ class WebServer(commands.Cog):
         self.used_tokens = {}
 
         # Routes
-        self.app.router.add_post("/verify", verify_user)
+        self.app.router.add_post("/verify", partial(verify_user, self))
         self.app.router.add_get("/stats/{username}", stats_page)
 
         # Styles

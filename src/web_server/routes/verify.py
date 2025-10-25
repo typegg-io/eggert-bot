@@ -11,16 +11,17 @@ from config import SECRET, TYPEGG_GUILD_ID, VERIFIED_ROLE_NAME
 from database.bot.users import link_user
 from utils.colors import SUCCESS
 from utils.logging import log
+from web_server.utils import update_nwpm_role
 
 
-async def verify_user(self, request: web.Request):
+async def verify_user(cog, request: web.Request):
     data = await request.json()
     token = data.get("token")
 
     if not token:
         return web.json_response({"error": "Token is required."}, status=400)
 
-    if token in self.used_tokens:
+    if token in cog.used_tokens:
         return web.json_response({"error": "Token already invalidated."}, status=401)
 
     try:
@@ -38,9 +39,9 @@ async def verify_user(self, request: web.Request):
         return web.json_response({"error": "Invalid token payload."}, status=400)
 
     expiry_date = datetime.fromtimestamp(expiry_timestamp, timezone.utc)
-    self.used_tokens[token] = expiry_date
+    cog.used_tokens[token] = expiry_date
 
-    guild = self.bot.get_guild(TYPEGG_GUILD_ID)
+    guild = cog.bot.get_guild(TYPEGG_GUILD_ID)
     if not guild:
         return web.json_response({"error": "Guild not found."}, status=500)
 
@@ -59,7 +60,7 @@ async def verify_user(self, request: web.Request):
     link_user(discord_id, user_id)
     log(f"Linked user {discord_id} to user ID {user_id}")
 
-    user = await self.bot.fetch_user(discord_id)
+    user = await cog.bot.fetch_user(discord_id)
     await user.send(embed=Embed(
         title="Verification Successful",
         description="Successfully verified your account.",
@@ -73,6 +74,6 @@ async def verify_user(self, request: web.Request):
 
             data = await response.json()
             nwpm = data.get("nwpm")
-            await self.update_nwpm_role(guild, discord_id, nwpm)
+            await update_nwpm_role(cog, guild, discord_id, nwpm)
 
     return web.json_response({"success": True, "message": "User verified successfully."})
