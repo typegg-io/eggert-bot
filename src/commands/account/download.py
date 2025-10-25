@@ -137,6 +137,7 @@ async def run(
             if message is not None:
                 page.title = title
                 page.description = description
+                await initial_send
                 await message.edit()
             elif new_quote_count > 10:
                 page = Page(
