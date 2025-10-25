@@ -8,7 +8,7 @@ from database.typegg.quotes import get_quote
 from graphs import race as race_graph
 from utils.keylogs import get_keystroke_data
 from utils.messages import Page, Message, Field
-from utils.strings import quote_display, discord_date, format_duration, parse_number
+from utils.strings import quote_display, discord_date, format_duration
 
 info = {
     "name": "racegraph",
@@ -22,13 +22,8 @@ class RaceGraph(Command):
     @commands.command(aliases=info["aliases"])
     async def racegraph(self, ctx, username: Optional[str] = "me", race_number: Optional[str] = None):
         profile = await self.get_profile(ctx, username, races_required=True)
-        if race_number is None:
-            race_number = profile["stats"]["races"]
-        else:
-            race_number = parse_number(race_number)
-
-        if race_number < 1:
-            race_number = profile["stats"]["races"] + race_number
+        await self.import_user(ctx, profile)
+        race_number = self.get_race_number(profile, race_number)
 
         await run(ctx, profile, race_number)
 

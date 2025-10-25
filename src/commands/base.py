@@ -14,6 +14,7 @@ from database.typegg.quotes import get_quote
 from database.typegg.races import get_latest_race
 from utils.errors import UserBanned, MissingUsername, NoRaces, DailyQuoteChannel
 from utils.messages import privacy_warning
+from utils.strings import parse_number
 
 
 class Command(commands.Cog):
@@ -115,3 +116,14 @@ class Command(commands.Cog):
 
         set_recent_quote(ctx.channel.id, quote_id)
         return quote
+
+    def get_race_number(self, profile, race_number):
+        if race_number is None:
+            race_number = profile["stats"]["races"]
+        else:
+            race_number = parse_number(race_number)
+
+        if race_number < 1:
+            race_number = profile["stats"]["races"] + race_number
+
+        return race_number
