@@ -1,42 +1,16 @@
 from functools import partial
 
+import aiohttp_jinja2
+import jinja2
 from aiohttp import web
-from aiohttp.web_exceptions import HTTPNotFound
 from discord.ext import commands
 
-from config import SOURCE_DIR, STAGING
+from config import SOURCE_DIR, STAGING, ROOT_DIR
 from utils.logging import log
-from web_server.routes.stats import stats_page
+from web_server.middleware import error_middleware, security_headers_middleware
+from web_server.routes.compare import compare_page
 from web_server.routes.verify import verify_user
 from web_server.tasks import teardown_tasks, setup_tasks
-
-
-@web.middleware
-async def error_middleware(request, handler):
-    from utils.logging import log_error
-    try:
-        return await handler(request)
-    except Exception as e:
-        if type(e) == HTTPNotFound:
-            return web.Response(
-                text=f"<h1>404 - Page Not Found</h1>",
-                content_type="text/html",
-                status=404,
-            )
-
-        # log_error("WebServer Error", e)
-
-        if request.path.startswith("/api/"):
-            return web.json_response(
-                {"error": str(e), "type": type(e).__name__},
-                status=500
-            )
-
-        return web.Response(
-            text=f"<h1>500 - Internal Server Error</h1><p>{type(e).__name__}: {e}</p>",
-            content_type="text/html",
-            status=500,
-        )
 
 
 class WebServer(commands.Cog):
@@ -44,7 +18,7 @@ class WebServer(commands.Cog):
 
     def __init__(self, bot):
         self.bot = bot
-        self.app = web.Application(middlewares=[error_middleware])
+        self.app = web.Application(middlewares=[error_middleware, security_headers_middleware])
         self.runner = None
         self.site = None
 
@@ -53,14 +27,18 @@ class WebServer(commands.Cog):
 
         # Routes
         self.app.router.add_post("/verify", partial(verify_user, self))
-        # self.app.router.add_get("/stats/{username}", stats_page)
+        self.app.router.add_get("/compare/{username1}/vs/{username2}", compare_page)
 
-        # Styles
+        # Static files
         self.app.router.add_static("/static", path=str(SOURCE_DIR / "web_server" / "static"), name="static")
+        self.app.router.add_static("/assets", path=str(ROOT_DIR / "assets"), name="assets")
 
         # Background tasks
         if not STAGING:
             setup_tasks(self)
+
+        # Templates
+        aiohttp_jinja2.setup(self.app, loader=jinja2.FileSystemLoader("web_server/templates"))
 
         self.bot.loop.create_task(self.start_web_server())
 

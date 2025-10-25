@@ -100,6 +100,7 @@ Create a `.env` file in the project's root directory and include the following:
 BOT_TOKEN=[Your Bot Token]
 API_URL=https://api.typegg.io
 SITE_URL=https://typegg.io
+BOT_SUBDOMAIN=http://localhost:8888
 ```
 
 - **`BOT_TOKEN`**: This is your bot's authentication token obtained in the **Creating a Bot** section.

@@ -10,6 +10,7 @@ from graphs import compare_histogram, compare_bar
 from utils.errors import NoCommonTexts, SameUsername, InvalidRange, InvalidArgument
 from utils.messages import Page, Message, Field
 from utils.strings import username_with_flag
+from utils.urls import compare_url
 
 metrics = ["pp", "wpm"]
 info = {
@@ -215,7 +216,8 @@ async def comparegraph_main(ctx: commands.Context, profile1: dict, profile2):
                 defaults,
                 ctx.user["theme"],
             )
-        )
+        ),
+        url=compare_url(profile1["username"], profile2["username"]),
     )
 
     await message.send()
@@ -323,6 +325,7 @@ async def comparegraph_ranged(
     message = Message(
         ctx,
         page=page,
+        url=compare_url(profile1["username"], profile2["username"]),
     )
 
     await message.send()
