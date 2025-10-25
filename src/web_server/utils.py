@@ -16,18 +16,18 @@ def get_nwpm_role_name(nwpm):
     return f"{lower_bound}-{upper_bound}"
 
 
-async def update_nwpm_role(self, guild: discord.Guild, discord_id: int, nwpm: float):
+async def update_nwpm_role(cog, guild: discord.Guild, discord_id: int, nwpm: float):
     """Update a given user's nWPM role."""
     member = guild.get_member(discord_id)
     if not member:
         return
 
-    role_name = self.get_nwpm_role_name(nwpm)
+    role_name = get_nwpm_role_name(nwpm)
     if not role_name:
         return
 
     new_role = discord.utils.get(guild.roles, name=role_name)
-    current_roles = [role for role in member.roles if role in self.nwpm_roles]
+    current_roles = [role for role in member.roles if role in cog.nwpm_roles]
 
     if len(current_roles) == 1 and current_roles[0] == new_role:
         return

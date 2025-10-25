@@ -8,6 +8,7 @@ from config import TYPEGG_GUILD_ID
 from database.bot.users import get_all_linked_users
 from utils import dates
 from utils.logging import log, log_error
+from web_server.utils import update_nwpm_role
 
 
 def setup_tasks(cog):
@@ -65,7 +66,7 @@ def nwpm_update_loop(cog):
             user_id = user_data.get("user_id")
             nwpm = user_data.get("nwpm")
             discord_id = int(linked_users.get(str(user_id)))
-            await cog.update_nwpm_role(guild, discord_id, nwpm)
+            await update_nwpm_role(cog, guild, discord_id, nwpm)
 
         log("nWPM role update completed")
 
