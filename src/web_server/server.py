@@ -24,7 +24,7 @@ async def error_middleware(request, handler):
                 status=404,
             )
 
-        log_error("WebServer Error", e)
+        # log_error("WebServer Error", e)
 
         if request.path.startswith("/api/"):
             return web.json_response(
@@ -53,7 +53,7 @@ class WebServer(commands.Cog):
 
         # Routes
         self.app.router.add_post("/verify", partial(verify_user, self))
-        self.app.router.add_get("/stats/{username}", stats_page)
+        # self.app.router.add_get("/stats/{username}", stats_page)
 
         # Styles
         self.app.router.add_static("/static", path=str(SOURCE_DIR / "web_server" / "static"), name="static")
