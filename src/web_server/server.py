@@ -38,7 +38,7 @@ class WebServer(commands.Cog):
             setup_tasks(self)
 
         # Templates
-        aiohttp_jinja2.setup(self.app, loader=jinja2.FileSystemLoader("web_server/templates"))
+        aiohttp_jinja2.setup(self.app, loader=jinja2.FileSystemLoader(str(SOURCE_DIR / "web_server" / "templates")))
 
         self.bot.loop.create_task(self.start_web_server())
 
