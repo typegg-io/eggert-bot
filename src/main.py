@@ -70,10 +70,10 @@ async def celebrate_milestone(ctx: commands.Context, milestone: int):
 async def on_ready():
     await load_commands()
     await bot.load_extension("error_handler")
+    await bot.load_extension("web_server.server")
 
     if not STAGING:
         await bot.load_extension("tasks")
-        await bot.load_extension("web_server")
     else:
         loop = asyncio.get_running_loop()
         start_watcher(bot, loop)
