@@ -25,6 +25,7 @@ def render(
     ax.set_xlabel("Quote Ranking")
     ax.set_ylabel("pp")
 
+    ax.legend()
     apply_theme(ax, theme=theme, legend_loc=1)
 
     file_name = generate_file_name("top250")
