@@ -1,6 +1,7 @@
 import sys
 import textwrap
 from datetime import datetime, timezone
+from typing import Optional
 
 import matplotlib
 import matplotlib.font_manager as fm
@@ -41,7 +42,7 @@ class CollectionHandler(HandlerLineCollection):
         return [lc]
 
 
-def apply_theme(ax: Axes, theme: dict):
+def apply_theme(ax: Axes, theme: dict, legend_loc: Optional[int | str] = "upper left"):
     """Apply a theme to all graph elements."""
     # Backgrounds
     background_color = theme["background"]
@@ -94,7 +95,7 @@ def apply_theme(ax: Axes, theme: dict):
             "handles": legend_lines,
             "labels": legend_labels,
             "handler_map": handler_map,
-            "loc": "upper left"
+            "loc": legend_loc
         }
         caller_file = sys._getframe(1).f_code.co_filename
 
