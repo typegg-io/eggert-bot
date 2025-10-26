@@ -42,7 +42,7 @@ info = {
     "aliases": ["hg", "hist"],
     "description": "Displays a solo and multiplayer histogram for a given metric.\n"
                    "\\- `metric` defaults to pp\n",
-    "parameters": f"<username> [pp|wpm|acc|react|recover]",
+    "parameters": f"[username] [pp|wpm|acc|react|recover]",
     "author": 231721357484752896,
 }
 
