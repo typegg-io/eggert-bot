@@ -10,6 +10,14 @@ db.run("""
         startDate REAL,
         endDate REAL,
         isBanned INTEGER DEFAULT 0,
-        isAdmin INTEGER DEFAULT 0
+        isAdmin INTEGER DEFAULT 0,
+        isPrivacyWarned INTEGER DEFAULT 0
+    )
+""")
+
+db.run("""
+    CREATE TABLE IF NOT EXISTS recent_quotes (
+        channelId TEXT PRIMARY KEY,
+        quoteId TEXT
     )
 """)

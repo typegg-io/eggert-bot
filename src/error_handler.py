@@ -4,7 +4,7 @@ import discord
 from discord.ext import commands
 
 from utils.colors import ERROR
-from utils.errors import UserBanned, MissingUsername, DailyQuoteChannel, MissingArguments, UnknownCommand, UnexpectedError
+from utils.errors import UserBanned, MissingUsername, DailyQuoteChannel, MissingArguments, UnknownCommand, UnexpectedError, CommandOnCooldown
 from utils.logging import get_log_message, log_error
 
 
@@ -31,6 +31,9 @@ class ErrorHandler(commands.Cog):
                 show_tip=isinstance(error, MissingUsername),
             )
             return await send_error(ctx, missing_arguments)
+
+        if isinstance(error, commands.CommandOnCooldown):
+            return await send_error(ctx, CommandOnCooldown(error.retry_after).embed)
 
         if hasattr(error, "embed"):
             return await send_error(ctx, error.embed)

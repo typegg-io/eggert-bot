@@ -1,3 +1,5 @@
+import sys
+import textwrap
 from datetime import datetime, timezone
 
 import matplotlib
@@ -8,6 +10,7 @@ import numpy as np
 from matplotlib.axes import Axes
 from matplotlib.collections import LineCollection
 from matplotlib.colors import LinearSegmentedColormap, to_rgb
+from matplotlib.legend_handler import HandlerLine2D, HandlerLineCollection
 from matplotlib.offsetbox import OffsetImage, AnnotationBbox
 
 from config import ROOT_DIR
@@ -19,6 +22,23 @@ fm.fontManager.addfont(FONT_PATH)
 plt.rcParams["font.family"] = fm.FontProperties(fname=FONT_PATH).get_name()
 
 matplotlib.colormaps.register(LinearSegmentedColormap.from_list("keegan", ["#0094FF", "#FF00DC"]))
+
+
+class LineHandler(HandlerLine2D):
+    def create_artists(self, legend, orig_handle, xdescent, ydescent, width, height, fontsize, trans):
+        line = plt.Line2D([0, 21], [3.5, 3.5], color=orig_handle.get_color())
+        return [line]
+
+
+class CollectionHandler(HandlerLineCollection):
+    def create_artists(self, legend, artist, xdescent, ydescent, width, height, fontsize, trans):
+        x = np.linspace(0, width, self.get_numpoints(legend) + 1)
+        y = np.zeros(self.get_numpoints(legend) + 1) + height / 2. - ydescent
+        points = np.array([x, y]).T.reshape(-1, 1, 2)
+        segments = np.concatenate([points[:-1], points[1:]], axis=1)
+        lc = LineCollection(segments, cmap=artist.cmap, transform=trans)
+        lc.set_array(x)
+        return [lc]
 
 
 def apply_theme(ax: Axes, theme: dict):
@@ -42,19 +62,59 @@ def apply_theme(ax: Axes, theme: dict):
     # Grid
     ax.grid(color=theme["grid"], alpha=theme["grid_opacity"])
 
-    # Lines
-    if theme["line"] in plt.colormaps:
-        for i, line in enumerate(ax.get_lines()):
-            get_line_colormap(ax, i, theme["line"])
-    elif len(ax.get_lines()) > 0:
-        for line in ax.get_lines():
-            line.set_color(theme["line"])
+    # Lines & Legend
+    legend_lines, legend_labels, handler_map = [], [], {}
+    line_color = theme["line"]
+    recolored_line = 0
 
-    # Legend
+    for i, line in enumerate(ax.get_lines()):
+        label = line.get_label()
+        if label.startswith("_child"):
+            continue
+
+        label = "-\n".join(textwrap.wrap(label, width=18))
+        if label.startswith("_"):
+            label = "\u200B" + label
+
+        line_handler = LineHandler()
+
+        if i == recolored_line:
+            if line_color in plt.colormaps():
+                line = get_line_colormap(ax, i, line_color)
+                line_handler = CollectionHandler(numpoints=50)
+            else:
+                line.set_color(line_color)
+
+        legend_lines.append(line)
+        legend_labels.append(label)
+        handler_map[line] = line_handler
+
+    if len(legend_lines) > 1:
+        legend_kwargs = {
+            "handles": legend_lines,
+            "labels": legend_labels,
+            "handler_map": handler_map,
+            "loc": "upper left"
+        }
+        caller_file = sys._getframe(1).f_code.co_filename
+
+        if any(graph in caller_file for graph in ["race"]):
+            legend_kwargs.update({
+                "bbox_to_anchor": (1.03, 1),
+                "borderaxespad": 0,
+                "handletextpad": 0.5
+            })
+            ax.set_position([0.1, 0.1, 0.6, 0.8])
+        else:
+            legend_kwargs["framealpha"] = 0.5
+
+        ax.legend(**legend_kwargs)
+
     legend = ax.get_legend()
     if legend:
-        legend.get_frame().set_facecolor(theme["graph_background"])
-        legend.get_frame().set_edgecolor(theme["axis"])
+        frame = legend.get_frame()
+        frame.set_facecolor(theme["graph_background"])
+        frame.set_edgecolor(theme["axis"])
         for text in legend.get_texts():
             text.set_color(theme["text"])
 

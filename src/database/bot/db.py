@@ -2,7 +2,9 @@ import os
 import sqlite3
 from typing import Optional
 
-folder_path = os.path.join(os.path.dirname(__file__), "..", "..", "data")
+from config import SOURCE_DIR
+
+folder_path = SOURCE_DIR / "data"
 os.makedirs(folder_path, exist_ok=True)
 
 file = os.path.join(folder_path, "users.db")

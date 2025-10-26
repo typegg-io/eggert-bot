@@ -45,3 +45,22 @@ async def get_source(source_id: str) -> Dict[str, Any]:
     async with aiohttp.ClientSession() as session:
         async with session.get(url) as response:
             return await get_response(response)
+
+
+async def get_all_sources():
+    all_sources = []
+    page = 1
+    first_page = await get_sources(per_page=1000)
+    total_pages = first_page["totalPages"]
+
+    while True:
+        data = first_page if page == 1 else await get_sources(page=page, per_page=1000)
+        for source in data["sources"]:
+            all_sources.append(source)
+
+        if page >= total_pages:
+            break
+
+        page += 1
+
+    return all_sources

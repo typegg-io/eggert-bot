@@ -7,7 +7,6 @@ info = {
     "name": "ping",
     "aliases": ["p"],
     "description": "Displays the bot's latency",
-    "parameters": "",
 }
 
 

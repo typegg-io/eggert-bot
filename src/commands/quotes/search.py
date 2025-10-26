@@ -2,10 +2,10 @@ from discord.ext import commands
 
 from api.quotes import get_quotes
 from commands.base import Command
-from utils import urls
+from database.bot.recent_quotes import set_recent_quote
 from utils.errors import MissingArguments
 from utils.messages import Page, Message, paginate_data
-from utils.strings import escape_formatting, truncate_clean
+from utils.strings import escape_formatting, quote_display
 
 info = {
     "name": "search",
@@ -24,21 +24,12 @@ class Search(Command):
         await run(ctx, query)
 
 
-def entry_formatter(quote):
-    text = quote["text"]
-    return (
-        f"[**{quote["source"]["title"]}**]({urls.race(quote["quoteId"])}) "
-        f"| {quote["difficulty"]:.2f}★ | {len(text)}c | "
-        f"{"Ranked" if quote["ranked"] else "Unranked"}\n"
-        f"\"{truncate_clean(text, 150)}\"\n\n"
-    )
-
-
 async def run(ctx: commands.Context, query: str):
     results = await get_quotes(
         search=query,
-        per_page=100,
         min_length=len(query),
+        status="any",
+        per_page=100,
     )
     quotes = results["quotes"]
     total_results = results["totalCount"]
@@ -49,7 +40,9 @@ async def run(ctx: commands.Context, query: str):
         message = Message(ctx, page)
         return await message.send()
 
+    set_recent_quote(ctx.channel.id, quotes[0]["quoteId"])
     per_page = 5
+    entry_formatter = lambda quote: quote_display(quote, max_text_chars=150, display_status=True) + "\n"
     pages = paginate_data(quotes, entry_formatter, 20, per_page)
     for i, page in enumerate(pages):
         page_start = i * per_page + 1

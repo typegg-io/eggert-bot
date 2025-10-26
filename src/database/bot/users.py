@@ -26,6 +26,7 @@ def add_user(discord_id: str):
         "endDate": None,
         "isBanned": 0,
         "isAdmin": 0,
+        "isPrivacyWarned": 0,
     }
     user_values = user.values()
 
@@ -35,7 +36,7 @@ def add_user(discord_id: str):
 
 
 def get_user(discord_id: str, auto_insert: bool = True):
-    """ Returns a user object given a Discord ID. Optionally create a new user if no record is found."""
+    """Returns a user object given a Discord ID. Optionally create a new user if no record is found."""
     results = db.fetch("""
         SELECT * FROM users
         WHERE discordId = ?
@@ -139,6 +140,14 @@ def update_theme(discord_id: str, theme: dict):
         SET theme = ?
         WHERE discordId = ?
     """, [json.dumps(theme), discord_id])
+
+
+def update_warning(discord_id: str):
+    db.run("""
+        UPDATE users
+        SET isPrivacyWarned = 1
+        WHERE discordId = ?
+    """, [discord_id])
 
 
 def link_user(discord_id: str, user_id: str):

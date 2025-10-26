@@ -45,7 +45,6 @@ async def multiplayer_improvement(ctx: commands.Context, profile: dict, metric: 
     race_list = await get_races(
         profile["userId"],
         columns=["quoteId", metric, "timestamp"],
-        min_pp=0.01,
         gamemode="multiplayer",
     )
 
@@ -71,7 +70,6 @@ async def multiplayer_improvement(ctx: commands.Context, profile: dict, metric: 
         f"**Races:** {len(values):,}\n"
         f"**Average:** {np.mean(values):,.2f} {metric}\n"
         f"**Best:** {max(values):,.2f} {metric}\n"
-        f"**Worst:** {min(values):,.2f} {metric}\n"
     )
 
     if len(values) >= 25:
@@ -101,7 +99,7 @@ async def multiplayer_improvement(ctx: commands.Context, profile: dict, metric: 
             Page(
                 button_name="Over Time",
                 render=render(dates)
-            )
+            ),
         ],
         profile=profile,
     )
@@ -146,7 +144,6 @@ async def solo_improvement(ctx: commands.Context, profile: dict, metric: str):
         f"**PB Improvements:** {len(values):,}\n"
         f"**PB Average:** {np.mean(values):,.2f} {metric}\n"
         f"**Best:** {max(values):,.2f} {metric}\n"
-        f"**Worst:** {min(values):,.2f} {metric}\n"
     )
 
     def render(dates=None):

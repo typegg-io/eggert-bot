@@ -8,8 +8,9 @@ from discord.ext import commands
 from discord.ui import View, Button as DiscordButton
 
 from config import BOT_PREFIX
-from utils import files, urls
-from utils.colors import SUCCESS, DEFAULT
+from utils import files
+from utils.colors import SUCCESS, WARNING
+from utils.urls import profile_url
 
 welcome_message = (
     f"### Hi there, I'm Eggert!\n"
@@ -164,7 +165,7 @@ class Message(View):
     def add_profile(self, embed):
         """Adds profile avatar and author section to the embed."""
         username = self.profile["username"]
-        display_name = self.profile.get("displayName", username)
+        display_name = self.profile.get("displayName", None) or username
         author_icon = (
             f"https://flagsapi.com/{self.profile["country"].upper()}/flat/64.png"
             if self.profile["country"]
@@ -176,7 +177,7 @@ class Message(View):
 
         embed.set_author(
             name=display_name,
-            url=urls.profile(username),
+            url=profile_url(username),
             icon_url=author_icon,
         )
 
@@ -404,9 +405,13 @@ def command_milestone(author, milestone):
     )
 
 
-def fetching_data():
+def privacy_warning():
     return Embed(
-        title="Fetching Data",
-        description="Please wait while we fetch your data",
-        color=DEFAULT
+        title=":warning: Privacy Warning :warning:",
+        description=(
+            "Certain commands expose race data that is not normally\n"
+            "available to the public (like non-quote best races).\n"
+            "Use at your own discretion!"
+        ),
+        color=WARNING,
     )

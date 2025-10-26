@@ -1,10 +1,9 @@
 from discord.ext import commands
 
-from api.quotes import get_quote
 from commands.base import Command
-from utils import urls
 from utils.messages import Page, Message
 from utils.strings import rank, discord_date, quote_display, username_with_flag
+from utils.urls import race_url
 
 info = {
     "name": "quoteleaderboard",
@@ -16,13 +15,20 @@ info = {
 
 class QuoteLeaderboard(Command):
     @commands.command(aliases=info["aliases"])
-    async def quoteleaderboard(self, ctx: commands.Context, quote_id: str):
-        quote = await get_quote(quote_id)
+    async def quoteleaderboard(self, ctx: commands.Context, *, quote_id: str):
+        quote = await self.get_quote(ctx, quote_id, from_api=True)
         await run(ctx, quote)
 
 
 async def run(ctx: commands.Context, quote: dict):
-    description = quote_display(quote) + "\n\n**Top 10**\n"
+    description = quote_display(
+        quote,
+        display_author=True,
+        display_status=True,
+        display_racers_users=True,
+        display_submitted_by=True,
+        max_text_chars=1000,
+    ) + "\n**Top 10**\n"
 
     leaderboard_string = ""
     for i, score in enumerate(quote["leaderboard"]):
@@ -41,7 +47,7 @@ async def run(ctx: commands.Context, quote: dict):
     message = Message(
         ctx,
         page=page,
-        url=urls.race(quote["quoteId"]),
+        url=race_url(quote["quoteId"]),
         thumbnail=quote["source"]["thumbnailUrl"],
     )
 

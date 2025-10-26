@@ -10,7 +10,6 @@ info = {
     "name": "link",
     "aliases": ["verify"],
     "description": "Allows you to link your Discord and TypeGG accounts",
-    "parameters": "",
 }
 
 

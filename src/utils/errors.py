@@ -36,7 +36,7 @@ class InvalidArgument(CommandError):
     def embed(self):
         return Embed(
             title="Invalid Argument",
-            description=f"Argument can be: " + ",".join([f"`{option}`" for option in self.options]),
+            description=f"Argument can be: " + ", ".join([f"`{option}`" for option in self.options]),
         )
 
 
@@ -210,4 +210,27 @@ class InvalidRange(CommandError):
             "Range string should be formatted as:\n"
             "`<number1>-<number2>` (numbers must be unique)"
         ),
+    )
+
+
+@dataclass
+class CommandOnCooldown(CommandError):
+    retry_after: float
+
+    @property
+    def embed(self):
+        from utils.dates import now
+        from utils.strings import discord_date
+
+        return Embed(
+            title="Command On Cooldown",
+            description=f"You may use the command again {discord_date(now().timestamp() + self.retry_after)}",
+        )
+
+
+class InvalidNumber(CommandError):
+    """Raised when a number string is improperly formatted."""
+    embed = Embed(
+        title="Invalid Number",
+        description="Unrecognized number format",
     )

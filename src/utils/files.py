@@ -1,3 +1,4 @@
+import glob
 import importlib
 import os
 
@@ -30,3 +31,12 @@ def remove_file(file_name: str):
         os.remove(file_name)
     except FileNotFoundError:
         log(f"File {file_name} not found.")
+
+
+def clear_image_cache():
+    """Removes any lingering PNG files from the source directory."""
+    for file in glob.glob("*.png"):
+        try:
+            os.remove(file)
+        except Exception:
+            pass

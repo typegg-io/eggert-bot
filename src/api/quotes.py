@@ -59,7 +59,7 @@ async def get_quote(quote_id: str, distinct: bool = True) -> Dict[str, Any]:
     Calls GET /quotes/{quoteId}.
     Returns the JSON response as a dict.
     """
-    url = f"{API_URL}/v1/quotes/{quote(quote_id, safe="")}"
+    url = f"{API_URL}/v1/quotes/{quote_id}"
     params = get_params({"distinct": distinct})
 
     async with aiohttp.ClientSession() as session:
@@ -67,3 +67,22 @@ async def get_quote(quote_id: str, distinct: bool = True) -> Dict[str, Any]:
             return await get_response(response, exceptions={
                 404: UnknownQuote(quote_id),
             })
+
+
+async def get_all_quotes():
+    all_quotes = []
+    page = 1
+    first_page = await get_quotes(status="any", per_page=1000)
+    total_pages = first_page["totalPages"]
+
+    while True:
+        data = first_page if page == 1 else await get_quotes(page=page, status="any", per_page=1000)
+        for quote in data["quotes"]:
+            all_quotes.append(quote)
+
+        if page >= total_pages:
+            break
+
+        page += 1
+
+    return all_quotes

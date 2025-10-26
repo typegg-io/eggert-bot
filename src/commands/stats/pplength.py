@@ -17,7 +17,7 @@ info = {
 
 class PpLengthGraph(Command):
     @commands.command(aliases=info["aliases"])
-    async def ppLength(self, ctx, username: str = "me"):
+    async def pplength(self, ctx, username: str = "me"):
         username = self.get_username(ctx, username)
 
         profile = await self.get_profile(ctx, username, races_required=True)
@@ -44,6 +44,7 @@ async def run(ctx: commands.Context, profile: dict):
     message = Message(
         ctx,
         page=page,
+        profile=profile,
     )
 
     await message.send()

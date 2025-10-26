@@ -6,9 +6,9 @@ from commands.base import Command
 from database.typegg.quotes import get_quotes
 from database.typegg.sources import get_sources
 from database.typegg.users import get_quote_bests
-from utils import strings, urls
+from utils import strings
 from utils.messages import Message, paginate_data, Page
-from utils.strings import get_argument
+from utils.strings import get_argument, quote_display
 
 metrics = ["pp", "wpm"]
 info = {
@@ -41,16 +41,11 @@ async def run(ctx: commands.Context, profile: dict, metric: str, reverse: bool =
     )
 
     def entry_formatter(data):
-        quote = quotes[data["quoteId"]]
-        text = quote["text"]
-        source = sources[quote["sourceId"]]
-        race = data
-        return (
-            f"[**{source["title"]}**]({urls.race(quote["quoteId"])}) "
-            f"| {quote["difficulty"]:.2f}★ | {len(text)}c\n"
-            f"\"{strings.truncate_clean(text, 60)}\"\n"
-            f"{race["pp"]:,.2f} pp - {race["wpm"]:,.2f} WPM ({race["accuracy"]:.2%} Accuracy) - "
-            f"{strings.discord_date(race["timestamp"])}\n\n"
+        quote = dict(quotes[data["quoteId"]])
+        quote["source"] = sources[quote["sourceId"]]
+        return quote_display(quote) + (
+            f"{data["pp"]:,.2f} pp - {data["wpm"]:,.2f} WPM ({data["accuracy"]:.2%} Accuracy) - "
+            f"{strings.discord_date(data["timestamp"])}\n\n"
         )
 
     per_page = 5

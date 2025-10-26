@@ -10,6 +10,7 @@ from graphs import compare_histogram, compare_bar
 from utils.errors import NoCommonTexts, SameUsername, InvalidRange, InvalidArgument
 from utils.messages import Page, Message, Field
 from utils.strings import username_with_flag
+from utils.urls import compare_url
 
 metrics = ["pp", "wpm"]
 info = {
@@ -179,7 +180,7 @@ async def comparegraph_main(ctx: commands.Context, profile1: dict, profile2):
     )
 
     field1 = Field(
-        title=f"{username_with_flag(profile1)}",
+        title=f"{username_with_flag(profile1, link_user=False)}",
         content=(
             f"**Quotes:** +{quotes1}\n"
             f"**Unique Quotes:** +{unique1:,}\n"
@@ -191,7 +192,7 @@ async def comparegraph_main(ctx: commands.Context, profile1: dict, profile2):
     )
 
     field2 = Field(
-        title=f"{username_with_flag(profile2)}",
+        title=f"{username_with_flag(profile2, link_user=False)}",
         content=(
             f"**Quotes:** +{quotes2}\n"
             f"**Unique Quotes:** +{unique2:,}\n"
@@ -215,7 +216,8 @@ async def comparegraph_main(ctx: commands.Context, profile1: dict, profile2):
                 defaults,
                 ctx.user["theme"],
             )
-        )
+        ),
+        url=compare_url(profile1["username"], profile2["username"]),
     )
 
     await message.send()
@@ -272,7 +274,7 @@ async def comparegraph_ranged(
             content += f"{match[0]} - {match[1]:,.2f} {metric} :handshake:"
 
         return Field(
-            title=username_with_flag(profile),
+            title=username_with_flag(profile, link_user=False),
             content=content,
             inline=True,
         )
@@ -323,6 +325,7 @@ async def comparegraph_ranged(
     message = Message(
         ctx,
         page=page,
+        url=compare_url(profile1["username"], profile2["username"]),
     )
 
     await message.send()

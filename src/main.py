@@ -1,19 +1,15 @@
 import asyncio
-import glob
-import os
-import threading
 
 import discord
 from discord.ext import commands
-from watchdog.observers import Observer
 
 from commands.base import Command
-from config import BOT_PREFIX, BOT_TOKEN, STAGING, STATS_CHANNEL_ID, SOURCE_DIR
+from config import BOT_PREFIX, BOT_TOKEN, STAGING, STATS_CHANNEL_ID
 from database.bot.users import get_user_ids, get_all_command_usage, update_commands
-from utils.files import get_command_modules
+from utils.files import get_command_modules, clear_image_cache
 from utils.logging import get_log_message, log
 from utils.messages import welcome_message, command_milestone
-from watcher import ReloadHandler
+from watcher import start_watcher
 
 # Bot setup
 intents = discord.Intents.default()
@@ -74,10 +70,10 @@ async def celebrate_milestone(ctx: commands.Context, milestone: int):
 async def on_ready():
     await load_commands()
     await bot.load_extension("error_handler")
+    await bot.load_extension("web_server.server")
 
     if not STAGING:
         await bot.load_extension("tasks")
-        await bot.load_extension("web_server")
     else:
         loop = asyncio.get_running_loop()
         start_watcher(bot, loop)
@@ -92,21 +88,6 @@ async def load_commands():
             if isinstance(obj, type) and issubclass(obj, Command) and obj is not Command:
                 await bot.add_cog(obj(bot))
                 break
-
-
-def start_watcher(bot, loop):
-    observer = Observer()
-    observer.schedule(ReloadHandler(bot, loop), path=SOURCE_DIR / "commands", recursive=True)
-    thread = threading.Thread(target=observer.start, daemon=True)
-    thread.start()
-
-
-def clear_image_cache():
-    for file in glob.glob("*.png"):
-        try:
-            os.remove(file)
-        except Exception:
-            pass
 
 
 # Entry point

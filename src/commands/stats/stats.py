@@ -3,9 +3,9 @@ from typing import Optional
 from discord.ext import commands
 
 from commands.base import Command
-from utils import urls
 from utils.messages import Page, Message, Field
 from utils.strings import discord_date, format_duration
+from utils.urls import profile_url
 
 info = {
     "name": "stats",
@@ -87,7 +87,7 @@ async def run(ctx: commands.Context, profile: dict):
     message = Message(
         ctx,
         page=page,
-        url=urls.profile(profile["username"]),
+        url=profile_url(profile["username"]),
         profile=profile,
     )
 
