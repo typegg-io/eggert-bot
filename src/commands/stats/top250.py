@@ -79,8 +79,7 @@ async def run(ctx: commands.Context, profiles: List[dict], username: str):
             ]
 
             pad = max(map(len, strings)) + 1
-            print(pad)
-            strings = [f"{string:>{pad}}" for string in strings]
+            strings = [string.ljust(pad, "-") for string in strings]
 
             for i, value in enumerate(strings):
                 content[i] += value
@@ -94,7 +93,7 @@ async def run(ctx: commands.Context, profiles: List[dict], username: str):
     fields = [
         Field(title="",
               content=(
-                  "\n"
+                  ".\n"
                   "**Best pp:   **\n"
                   "**Average pp:**\n"
                   "**Worst:     **\n"
