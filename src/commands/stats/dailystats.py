@@ -29,21 +29,20 @@ class DailyStats(Command):
 async def run(ctx: commands.Context, profile: dict):
     daily_stats = profile["stats"]["dailyQuotes"]
     streak = daily_stats["streak"]
-    best_streak = daily_stats["bestStreak"]
     fire = " :fire:" if streak > 0 else ""
+    results = get_user_results(profile["userId"])
 
-    if best_streak < 1:
+    if not results:
         message = Message(
             ctx,
             title="Daily Quote Stats",
             page=Page(
-                description="User has not participated in any daily quotes."
+                description="User has not participated in any finished daily quotes."
             ),
             profile=profile,
         )
         return await message.send()
 
-    results = get_user_results(profile["userId"])
     total_days = (dates.now() - START_DATE).days + 1
     pp, wpm, positions = zip(*[(race["pp"], race["wpm"], race["rank"]) for race in results])
 
