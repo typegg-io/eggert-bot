@@ -64,41 +64,21 @@ async def run(ctx: commands.Context, profiles: List[dict], username: str):
         "username": profile["username"]
     } for profile in profiles]
 
-    def make_field(profiles: List[Dict]):
-        content = [""] * 5
+    def make_field(profile: Dict, inline=False):
+        data = profile["data"]
 
-        for profile in profiles:
-            data = profile["data"]
+        content = "\n".join([
+            f"**Best**: {int(max(data))} pp",
+            f"**Average**: {int(average(data))} pp",
+            f"**Worst**: {int(min(data))} pp",
+            f"**Total** {int(calculateTotalPp(array(data)))} pp"
+        ])
 
-            strings = [
-                f"**{profile["username"]}**",
-                f"{int(max(data))}",
-                f"{int(average(data))}",
-                f"{int(min(data))}",
-                f"{int(calculateTotalPp(array(data)))}"
-            ]
 
-            pad = max(map(len, strings)) + 1
-            strings = [string.ljust(pad, "-") for string in strings]
 
-            for i, value in enumerate(strings):
-                content[i] += value
+        return Field(title=profile["username"], content=content, inline=inline)
 
-        content = "\n".join(content)
-
-        return Field(title="", content=content, inline=True)
-
-    fields = [make_field(top250s)]
-
-    fields = [
-        Field(title="",
-              content=(
-                  ".\n"
-                  "**Best pp:   **\n"
-                  "**Average pp:**\n"
-                  "**Worst:     **\n"
-                  "**Total pp:  **\n"), inline=True),
-        *fields]
+    fields = [make_field(top250, (i % 4) != 3) for i, top250 in enumerate(top250s)]
 
     page = Page(
         title="Top 250 quotes",
