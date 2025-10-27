@@ -74,8 +74,6 @@ async def run(ctx: commands.Context, profiles: List[dict], username: str):
             f"**Total** {int(calculateTotalPp(array(data)))} pp"
         ])
 
-
-
         return Field(title=profile["username"], content=content, inline=inline)
 
     fields = [make_field(top250, (i % 4) != 3) for i, top250 in enumerate(top250s)]
