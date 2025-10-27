@@ -14,8 +14,8 @@ max_users_shown = 5
 info = {
     "name": "top250",
     "aliases": ["250"],
-    "description": "Displays the top 250 quotes according to pp in order from high to low.\n"
-    f"This graph can be made for multiple users up to {max_users_shown} users",
+    "description": "Displays the top 250 quotes according to pp in order from high to low. "
+    f"This graph can be generated for multiple users up to {max_users_shown} users.",
     "parameters": f"[username1] [username2] ... [username{max_users_shown}]",
     "author": 231721357484752896,
 }
