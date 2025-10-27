@@ -1,4 +1,4 @@
-from typing import Dict, List, Optional, List
+from typing import Dict, List, Optional
 from numpy.typing import NDArray
 from database.typegg.users import get_quote_bests
 from discord.ext import commands
