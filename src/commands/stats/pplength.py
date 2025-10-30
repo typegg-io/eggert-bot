@@ -10,7 +10,7 @@ info = {
     "name": "pplength",
     "aliases": ["pl"],
     "description": "Returns a scatterplot of all your PP pb scores and their corresponding text length.",
-    "parameters": "<username>",
+    "parameters": "[username]",
     "author": 231721357484752896,
 }
 

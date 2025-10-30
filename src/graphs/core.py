@@ -1,6 +1,7 @@
 import sys
 import textwrap
 from datetime import datetime, timezone
+from typing import Optional
 
 import matplotlib
 import matplotlib.font_manager as fm
@@ -41,7 +42,12 @@ class CollectionHandler(HandlerLineCollection):
         return [lc]
 
 
-def apply_theme(ax: Axes, theme: dict):
+def apply_theme(
+    ax: Axes, theme: dict,
+    legend_loc: Optional[int | str] = "upper left",
+    force_legend: bool = False,
+    themed_line: int = 0,
+):
     """Apply a theme to all graph elements."""
     # Backgrounds
     background_color = theme["background"]
@@ -65,7 +71,6 @@ def apply_theme(ax: Axes, theme: dict):
     # Lines & Legend
     legend_lines, legend_labels, handler_map = [], [], {}
     line_color = theme["line"]
-    recolored_line = 0
 
     for i, line in enumerate(ax.get_lines()):
         label = line.get_label()
@@ -78,7 +83,7 @@ def apply_theme(ax: Axes, theme: dict):
 
         line_handler = LineHandler()
 
-        if i == recolored_line:
+        if i == themed_line:
             if line_color in plt.colormaps():
                 line = get_line_colormap(ax, i, line_color)
                 line_handler = CollectionHandler(numpoints=50)
@@ -89,12 +94,12 @@ def apply_theme(ax: Axes, theme: dict):
         legend_labels.append(label)
         handler_map[line] = line_handler
 
-    if len(legend_lines) > 1:
+    if len(legend_lines) > 1 or force_legend:
         legend_kwargs = {
             "handles": legend_lines,
             "labels": legend_labels,
             "handler_map": handler_map,
-            "loc": "upper left"
+            "loc": legend_loc
         }
         caller_file = sys._getframe(1).f_code.co_filename
 
