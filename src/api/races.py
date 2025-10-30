@@ -3,7 +3,7 @@ from urllib.parse import quote
 
 import aiohttp
 
-from core import API_URL, get_response
+from api.core import API_URL, get_response
 
 
 async def get_race(race_id: str) -> Dict[str, Any]:
