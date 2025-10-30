@@ -10,6 +10,7 @@ from graphs import improvement
 from utils.colors import SUCCESS
 from utils.dates import parse_date
 from utils.messages import Page, Message, Field
+from utils.stats import calculate_total_pp
 from utils.strings import discord_date, INCREASE, quote_display
 
 info = {
@@ -31,11 +32,6 @@ class Quote(Command):
         quote = await self.get_quote(ctx, quote_id, profile["userId"])
 
         await run(ctx, profile, quote)
-
-
-def total_pp(quote_bests: list[dict]):
-    """Returns the total performance given a list of quote bests."""
-    return sum(q["pp"] * (0.97 ** i) for i, q in enumerate(quote_bests))
 
 
 def get_quote_best_rank(quote_bests: list[dict], race_id: str):
@@ -74,7 +70,7 @@ def build_personal_best_page(quote: dict, quote_races: list[dict], user_id: str)
     best_rank = get_quote_best_rank(quote_bests, best_race["raceId"])
 
     if len(quote_races) == 1:
-        pp_gain = total_pp(quote_bests) - total_pp(quote_bests_without)
+        pp_gain = calculate_total_pp(quote_bests) - calculate_total_pp(quote_bests_without)
         quote_best_rank = get_quote_best_rank(quote_bests, recent_race["raceId"])
         page.description += (
             f"**New Quote!**\n"
@@ -87,7 +83,7 @@ def build_personal_best_page(quote: dict, quote_races: list[dict], user_id: str)
     elif recent_race == best_race:
         previous_best = max(quote_races[:-1], key=lambda x: x["pp"])
         quote_bests_without.append(previous_best)
-        pp_gain = total_pp(quote_bests) - total_pp(quote_bests_without)
+        pp_gain = calculate_total_pp(quote_bests) - calculate_total_pp(quote_bests_without)
 
         pp_difference = best_race["pp"] - previous_best["pp"]
         wpm_difference = best_race["wpm"] - previous_best["wpm"]
