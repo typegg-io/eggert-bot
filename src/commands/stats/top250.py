@@ -14,8 +14,8 @@ max_users_shown = 5
 info = {
     "name": "top250",
     "aliases": ["250"],
-    "description": "Displays the top 250 quotes according to pp in order from high to low. "
-                   f"This graph can be generated for multiple users up to {max_users_shown} users.",
+    "description": "Displays the top 250 quotes ordered by pp from high to low.\n"
+                   f"This graph can be generated for up to {max_users_shown} users.",
     "parameters": f"[username1] [username2] ... [username{max_users_shown}]",
     "author": 231721357484752896,
 }
@@ -27,7 +27,7 @@ class Top250(Command):
         other_users = other_users[:max_users_shown - 1]
         usernames = set(other_users)
         usernames.add(username)
-        profiles = [await self.get_profile(ctx, username) for username in usernames]
+        profiles = [await self.get_profile(ctx, username, races_required=True) for username in usernames]
 
         await run(ctx, profiles)
 
@@ -57,9 +57,9 @@ async def run(ctx: commands.Context, profiles: List[dict]):
         description += (
             f"**{profile["username"]}:** "
             f"Total {calculate_total_pp(quote_bests):,.0f} pp | "
-            f"Best: {max(pp_values):,.0f} | "
+            f"Max: {max(pp_values):,.0f} | "
             f"Average: {average(pp_values):,.0f} | "
-            f"Worst: {min(pp_values):,.0f}\n"
+            f"Min: {min(pp_values):,.0f}\n"
         )
 
     page = Page(
