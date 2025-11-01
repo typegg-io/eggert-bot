@@ -3,7 +3,7 @@ import os
 import time
 from collections import deque
 
-from aiohttp import ClientResponse
+from aiohttp import ClientResponse, ContentTypeError
 
 from config import SECRET
 from utils.errors import APIError
@@ -83,8 +83,11 @@ async def get_response(
     await limiter.wait()
 
     status = response.status
-    json = await response.json()
-    message = json.get("message", "No message provided.")
+    try:
+        json = await response.json()
+        message = json.get("message", "No message provided.")
+    except ContentTypeError:
+        raise APIError(response.status, "TypeGG is likely down, try again later.")
 
     if status == 200:
         return json
