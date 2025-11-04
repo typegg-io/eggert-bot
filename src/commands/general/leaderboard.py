@@ -72,6 +72,11 @@ categories = {
         "title": "Total Daily Quotes Completed",
         "formatter": lambda user: f"{user["stats"]["dailyQuotes"]["completed"]:,}"
     },
+    "characters": {
+        "sort": "charactersTyped",
+        "title": "Characters Typed",
+        "formatter": lambda user: f"{user["stats"]["charactersTyped"]:,}"
+    },
 }
 info = {
     "name": "leaderboard",

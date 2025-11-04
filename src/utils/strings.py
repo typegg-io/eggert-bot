@@ -36,6 +36,7 @@ OPTION_ALIASES = {
     "accuracy": ["acc", "ac"],
     "errorReactionTime": ["reaction", "react"],
     "errorRecoveryTime": ["recovery", "recover"],
+    "characters": ["chars"],
 }
 
 ALIAS_LOOKUP = {
