@@ -201,7 +201,7 @@ def username_with_flag(profile: dict, link_user: bool = True):
     flag = get_flag(profile)
     username = profile["username"]
     if link_user:
-        return f"{flag}[{escape_formatting(username)}]({profile_url(username)})"
+        return f"{flag}[{username}]({profile_url(username)})"
     else:
         return f"{flag}{escape_formatting(username)}"
 
