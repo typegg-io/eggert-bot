@@ -13,34 +13,41 @@ metrics = {
     "pp": {
         "columns": "pp quoteId",
         "title": "Total pp",
+        "alias": "ppl",
     },
     "best": {
         "columns": "pp",
         "title": "Best pp",
+        "alias": "bl",
     },
     "wpm": {
         "columns": "wpm",
         "title": "Best WPM",
+        "alias": "wl",
     },
     "races": {
         "columns": "raceNumber",
         "title": "Races",
+        "alias": "rl",
     },
     "quotes": {
         "columns": "quoteId",
         "title": "Quotes Typed",
+        "alias": "ql",
     },
     "characters": {
         "columns": "wpm duration",
         "title": "Characters Typed",
+        "alias": "cl",
     }
 }
 
 max_users = 5
+metric_aliases = [metric["alias"] for metric in metrics.values()]
 
 info = {
     "name": "linegraph",
-    "aliases": ["lg", "l"],
+    "aliases": ["lg", "l"] + metric_aliases,
     "description": f"Displays a line graph of up to {max_users} users for a given metric",
     "parameters": f"<metric> [username1] [username2] ... [username{max_users}]",
 }
@@ -49,15 +56,24 @@ info = {
 class LineGraph(Command):
     @commands.command(aliases=info["aliases"])
     async def linegraph(self, ctx, metric: str, username1: Optional[str] = "me", *other_users: Optional[str]):
-        metric = get_argument(metrics.keys(), metric)
+        invoke = ctx.invoked_with.lower()
+
+        if invoke in metric_aliases:
+            other_users = list(other_users) + [metric]
+            metric = [*metrics.keys()][metric_aliases.index(invoke)]
+        else:
+            metric = get_argument(metrics.keys(), metric)
+
         other_users = other_users[:max_users - 1]
         usernames = set(other_users)
         usernames.add(username1)
         profiles = []
+
         for username in usernames:
             profile = await self.get_profile(ctx, username, races_required=True)
             profiles.append(profile)
             await self.import_user(ctx, profile)
+
         await run(ctx, metric, profiles)
 
 
