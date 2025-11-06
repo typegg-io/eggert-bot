@@ -9,7 +9,7 @@ def render(
     author_username: str,
     lines: list[dict],
     title: str,
-    x_label: str,
+    y_label: str,
     theme: dict,
 ):
     fig, ax = plt.subplots()
@@ -47,8 +47,8 @@ def render(
 
     plt.grid()
     ax.set_title(title)
-    ax.set_xlabel(x_label)
-    ax.set_ylabel("Dates")
+    ax.set_xlabel("Dates")
+    ax.set_ylabel(y_label)
 
     apply_date_ticks(ax, timestamps)
     ax.yaxis.set_major_formatter(FuncFormatter(format_big_number))
