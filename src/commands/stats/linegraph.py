@@ -55,7 +55,7 @@ info = {
 
 class LineGraph(Command):
     @commands.command(aliases=info["aliases"])
-    async def linegraph(self, ctx, metric: str, username1: Optional[str] = "me", *other_users: Optional[str]):
+    async def linegraph(self, ctx, metric: str = "pp", username1: Optional[str] = "me", *other_users: Optional[str]):
         invoke = ctx.invoked_with.lower()
 
         if invoke in metric_aliases:
