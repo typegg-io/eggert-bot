@@ -17,7 +17,7 @@ def render(
     fig, ax = plt.subplots()
 
     keystrokes = np.arange(1, len(keystroke_wpm) + 1)
-    ax.plot(keystrokes, keystroke_wpm_raw, label="Raw Speed", color="#FFB600")
+    ax.plot(keystrokes, keystroke_wpm_raw, label="Raw Speed")
     ax.plot(keystrokes, keystroke_wpm, label=username)
 
     word_counts = defaultdict(int)

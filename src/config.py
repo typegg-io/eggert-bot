@@ -43,6 +43,7 @@ DEFAULT_THEME = {
     "grid": "#8E8E8E",
     "grid_opacity": 0.25,
     "line": "#00B5E2",
+    "raw_speed": "#FFB600",
     "title": "#FFFFFF",
     "text": "#FFFFFF"
 }
@@ -55,6 +56,7 @@ LIGHT_THEME = {
     "grid": "#B0B0B0",
     "grid_opacity": 1,
     "line": "#157EFD",
+    "raw_speed": "#FFB600",
     "title": "#000000",
     "text": "#000000",
 }
@@ -67,6 +69,7 @@ DARK_THEME = {
     "grid": "#333333",
     "grid_opacity": 1,
     "line": "#157EFD",
+    "raw_speed": "#FFB600",
     "title": "#FFFFFF",
     "text": "#FFFFFF"
 }

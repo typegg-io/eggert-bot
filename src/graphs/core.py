@@ -82,7 +82,8 @@ def apply_theme(
             label = "\u200B" + label
 
         if label in ["Raw Speed"]:
-            line.set_color("#FFB600")
+            line.set_color(theme["raw_speed"])
+            line.set_linewidth(1)
 
         line_handler = LineHandler()
 

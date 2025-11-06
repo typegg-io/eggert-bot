@@ -25,6 +25,7 @@ elements = {
     "grid": ["#"],
     "grid_opacity": ["go"],
     "line": ["-"],
+    "raw_speed": ["raw"],
     "title": [],
     "text": [],
 }
