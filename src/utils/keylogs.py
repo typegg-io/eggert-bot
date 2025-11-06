@@ -1,5 +1,7 @@
 import re
 
+from utils.keystrokes import get_keystroke_wpm_raw
+
 
 def get_keystroke_data(keystroke_data: dict):
     """Parses keystroke data to calculate per-character delays and identify typos."""
@@ -69,6 +71,7 @@ def get_keystroke_data(keystroke_data: dict):
 
     return {
         "keystroke_wpm": keystroke_wpm,
+        "keystroke_wpm_raw": get_keystroke_wpm_raw(keystroke_data),
         "typos": typos,
     }
 

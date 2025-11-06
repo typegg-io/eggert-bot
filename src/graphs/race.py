@@ -8,6 +8,7 @@ from graphs.core import plt, apply_theme, generate_file_name
 
 def render(
     keystroke_wpm: list[float],
+    keystroke_wpm_raw: list[float],
     typos: list[dict],
     username: str,
     title: str,
@@ -16,6 +17,7 @@ def render(
     fig, ax = plt.subplots()
 
     keystrokes = np.arange(1, len(keystroke_wpm) + 1)
+    ax.plot(keystrokes, keystroke_wpm_raw, label="Raw Speed", color="#FFB600")
     ax.plot(keystrokes, keystroke_wpm, label=username)
 
     word_counts = defaultdict(int)
@@ -53,7 +55,7 @@ def render(
     ax.set_ylabel("WPM")
     ax.set_title(title)
 
-    apply_theme(ax, theme)
+    apply_theme(ax, theme, themed_line=1)
 
     file_name = generate_file_name("race")
     plt.savefig(file_name)

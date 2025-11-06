@@ -66,6 +66,7 @@ async def run(ctx: commands.Context, profile: dict, race_number: int):
         ],
         render=lambda: race_graph.render(
             keystroke_data["keystroke_wpm"],
+            keystroke_data["keystroke_wpm_raw"],
             keystroke_data["typos"],
             profile["username"],
             title,
