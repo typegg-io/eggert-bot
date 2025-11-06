@@ -40,7 +40,7 @@ max_users = 5
 
 info = {
     "name": "linegraph",
-    "aliases": ["lg", "l"],  # -rl, etc. (ignore metric as param)
+    "aliases": ["lg", "l"],
     "description": f"Displays a line graph of up to {max_users} users for a given metric",
     "parameters": f"<metric> [username1] [username2] ... [username{max_users}]",
 }
