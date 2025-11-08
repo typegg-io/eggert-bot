@@ -6,6 +6,7 @@ from numpy import average
 from commands.base import Command
 from database.typegg.users import get_quote_bests
 from graphs import top250 as top250_graph
+from utils.errors import NoRankedRaces
 from utils.messages import Page, Message
 from utils.stats import calculate_total_pp
 
@@ -46,6 +47,10 @@ async def run(ctx: commands.Context, profiles: List[dict]):
             limit=250,
         )
         pp_values = [race["pp"] for race in quote_bests]
+
+        if not pp_values:
+            raise NoRankedRaces(username)
+
         top_250s.append({
             "username": profile["username"],
             "pp_values": pp_values,
