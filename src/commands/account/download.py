@@ -124,6 +124,9 @@ async def run(
         )
         race_list = results["races"]
 
+        if not race_list:
+            break
+
         for race in race_list:
             quote_id = race["quoteId"]
             if quote_id not in quote_ids:
