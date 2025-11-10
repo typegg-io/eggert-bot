@@ -1,4 +1,5 @@
 """Temporary file until raw speed is solidified."""
+import re
 from dataclasses import dataclass
 from typing import List, Dict, Set, Optional, Union
 
@@ -63,10 +64,14 @@ class ProcessResult:
     wpmCharacterTimes: List[float]
 
 
-def split_words(text: str) -> List[str]:
+def split_words(text: str):
     """Split text into words, handling newlines and spaces appropriately."""
-    text_processed = text.replace("⏎ ", "⏎").replace("\r\n", "⏎").replace("\n", "⏎")
-    words = text_processed.split(" ")
+    words = (
+        re.sub(r"⏎(?! )", "⏎ ", text)
+        .replace("\r\n", "⏎ ")
+        .replace("\n", "⏎ ")
+        .split(" ")
+    )
 
     for i in range(len(words) - 1):
         w = words[i]
