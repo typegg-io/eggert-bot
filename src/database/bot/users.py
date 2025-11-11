@@ -229,3 +229,11 @@ def get_admin_users():
     """)
 
     return results
+
+
+def get_discord_id(user_id: str):
+    result = db.fetch_one("SELECT discordId FROM users WHERE userId = ?", [user_id])
+    if not result:
+        return None
+
+    return result["discordId"]

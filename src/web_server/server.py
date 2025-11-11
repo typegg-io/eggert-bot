@@ -5,12 +5,12 @@ import jinja2
 from aiohttp import web
 from discord.ext import commands
 
-from config import SOURCE_DIR, STAGING, ROOT_DIR
+from config import SOURCE_DIR, ROOT_DIR
 from utils.logging import log
 from web_server.middleware import error_middleware, security_headers_middleware
 from web_server.routes.compare import compare_page
+from web_server.routes.update_nwpm_role import update_nwpm_role
 from web_server.routes.verify import verify_user
-from web_server.tasks import teardown_tasks, setup_tasks
 
 
 class WebServer(commands.Cog):
@@ -27,15 +27,12 @@ class WebServer(commands.Cog):
 
         # Routes
         self.app.router.add_post("/verify", partial(verify_user, self))
+        self.app.router.add_post("/update-nwpm-role", partial(update_nwpm_role, self))
         self.app.router.add_get("/compare/{username1}/vs/{username2}", compare_page)
 
         # Static files
         self.app.router.add_static("/static", path=str(SOURCE_DIR / "web_server" / "static"), name="static")
         self.app.router.add_static("/assets", path=str(ROOT_DIR / "assets"), name="assets")
-
-        # Background tasks
-        if not STAGING:
-            setup_tasks(self)
 
         # Templates
         aiohttp_jinja2.setup(self.app, loader=jinja2.FileSystemLoader(str(SOURCE_DIR / "web_server" / "templates")))
@@ -43,7 +40,6 @@ class WebServer(commands.Cog):
         self.bot.loop.create_task(self.start_web_server())
 
     async def cog_unload(self):
-        teardown_tasks(self)
         await self.stop_web_server()
 
     async def start_web_server(self):
