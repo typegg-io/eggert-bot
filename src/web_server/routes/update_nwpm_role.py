@@ -49,7 +49,7 @@ async def update_nwpm_role(cog, request: web.Request):
 
     role_name = get_nwpm_role_name(nwpm)
     if not role_name:
-        return web.json_response({"error": "nWPM role not found."})
+        return web.json_response({"error": "nWPM role not found."}, status=404)
 
     new_role = discord.utils.get(guild.roles, name=role_name)
     current_roles = [role for role in member.roles if role in cog.nwpm_roles]
@@ -57,3 +57,5 @@ async def update_nwpm_role(cog, request: web.Request):
 
     await member.add_roles(new_role, reason="Assigning nWPM role")
     log(f"Assigned {role_name} role to {member.name}")
+
+    return web.json_response({"success": True, "message": "Updated user's nWPM role successfully."})
