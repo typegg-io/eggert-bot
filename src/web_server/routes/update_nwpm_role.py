@@ -21,22 +21,16 @@ def get_nwpm_role_name(nwpm):
 async def update_nwpm_role(cog, request: web.Request):
     """Update a given user's nWPM role."""
     data = await request.json()
-    token = data.get("token")
+    auth_header = request.headers.get("Authorization")
+    if not auth_header or not auth_header.startswith("Bearer "):
+        return web.json_response({"error": "Missing or invalid Authorization header"}, status=401)
 
-    if not token:
-        return web.json_response({"error": "Token is required."}, status=400)
+    token = auth_header.split("Bearer ")[1]
+    if token != SECRET:
+        return web.json_response({"error": "Token is invalid."}, status=400)
 
-    if token in cog.used_tokens:
-        return web.json_response({"error": "Token already invalidated."}, status=401)
-
-    try:
-        decoded_token = jwt.decode(token, SECRET, algorithms=["HS256"])
-    except jwt.ExpiredSignatureError:
-        return web.json_response({"error": "Token has expired."}, status=401)
-    except jwt.InvalidTokenError:
-        return web.json_response({"error": "Token is invalid."}, status=401)
-    user_id = decoded_token.get("userId")
-    nwpm = decoded_token.get("nWpm")
+    user_id = data.get("userId")
+    nwpm = data.get("nWpm")
     discord_id = get_discord_id(user_id)
 
     guild = cog.bot.get_guild(TYPEGG_GUILD_ID)
