@@ -22,11 +22,12 @@ class WebServer(commands.Cog):
         self.runner = None
         self.site = None
 
-        self.guild = self.bot.get_guild(TYPEGG_GUILD_ID)
-        self.nwpm_roles = [
-            role for role in self.guild.roles
-            if (("-" in role.name and any(c.isdigit() for c in role.name)) or role.name == "250+")
-        ]
+        self.guild = self.bot.get_guild(TYPEGG_GUILD_ID) or None
+        if self.guild:
+            self.nwpm_roles = [
+                role for role in self.guild.roles
+                if (("-" in role.name and any(c.isdigit() for c in role.name)) or role.name == "250+")
+            ]
         self.used_tokens = {}
 
         # Routes
