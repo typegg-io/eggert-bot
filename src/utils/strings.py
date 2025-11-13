@@ -140,7 +140,7 @@ def rank(number):
     if 1 <= number <= 20:
         return RANK_EMOJIS[number - 1]
 
-    return str(number)
+    return f"**{number}**"
 
 
 def format_big_number(number, _):

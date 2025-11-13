@@ -7,7 +7,7 @@ from config import DAILY_QUOTE_ROLE_ID
 from database.bot.recent_quotes import set_recent_quote
 from utils import dates
 from utils.dates import parse_date, format_date
-from utils.messages import Page, Message
+from utils.messages import Page, Message, paginate_data
 from utils.strings import rank, discord_date, quote_display, username_with_flag
 from utils.urls import race_url
 
@@ -30,7 +30,8 @@ class DailyLeaderboard(Command):
             date = parse_date("".join(args))
             daily_quote = await get_daily_quote(date.strftime("%Y-%m-%d"), results=100)
 
-        await display_daily_quote(ctx, daily_quote, f"Daily Quote #{daily_quote["dayNumber"]:,}")
+        title = f"Daily Quote #{daily_quote["dayNumber"]:,}"
+        await display_daily_quote(ctx, daily_quote, title, paginate=True)
 
 
 async def display_daily_quote(
@@ -41,6 +42,7 @@ async def display_daily_quote(
     show_champion=False,
     color=None,
     mention=False,
+    paginate=False,
 ):
     quote = daily_quote["quote"]
     quote_id = quote["quoteId"]
@@ -50,14 +52,14 @@ async def display_daily_quote(
     channel_id = ctx.channel.id if hasattr(ctx, "channel") else ctx.id
     set_recent_quote(channel_id, quote_id)
 
-    description = quote_display(
+    quote_description = quote_display(
         quote,
         display_author=True,
         display_status=True,
         display_racers_users=True,
         display_submitted_by=True,
         max_text_chars=1000,
-    )
+    ) + f"\n{end} {discord_date(end_date)}\n"
 
     if show_champion:
         def entry_formatter(data):
@@ -66,56 +68,59 @@ async def display_daily_quote(
                 f"{data["wpm"]:,.2f} WPM ({data["accuracy"]:.2%}) - {data["pp"]:,.0f} pp\n"
             )
 
-        description = (
+        quote_description = (
             f":trophy: **Champion: {entry_formatter(leaderboard[0])}**"
             f":medal: Runner-up: {entry_formatter(leaderboard[1])}\n"
-            f"{description}"
+            f"{quote_description}"
+        )
+
+    def format_row(data):
+        index, score = data["index"], data["score"]
+        bold = "**" if (
+            hasattr(ctx, "user") and
+            score["userId"] == ctx.user["userId"]
+        ) else ""
+        return (
+            f"{bold}{rank(index + 1)} {username_with_flag(score)} - "
+            f"{score["wpm"]:,.2f} WPM ({score["accuracy"]:.2%}) - {score["pp"]:,.0f} pp - "
+            f"{discord_date(score["timestamp"])}{bold}\n"
         )
 
     if show_leaderboard and leaderboard:
-        description += "\n**Leaderboard**\n"
+        for i in range(len(leaderboard)):
+            leaderboard[i] = {"index": i, "score": leaderboard[i]}
+
+        quote_description += "\n**Leaderboard**"
+        description = ""
         for i, score in enumerate(leaderboard[:10]):
-            bold = "**" if (
-                hasattr(ctx, "user") and
-                score["userId"] == ctx.user["userId"]
-            ) else ""
-            description += (
-                f"{bold}{rank(i + 1)} {username_with_flag(score)} - "
-                f"{score["wpm"]:,.2f} WPM ({score["accuracy"]:.2%}) - {score["pp"]:,.0f} pp - "
-                f"{discord_date(score["timestamp"])}{bold}\n"
-            )
-        description = description[:-1]
+            description += format_row(score)
 
-    user_score = next((
-        {"rank": i, "score": score}
-        for i, score in enumerate(leaderboard)
-        if score["userId"] == ctx.user["userId"]), {}
-    )
-
-    if user_score and user_score["rank"] > 9:
-        score = user_score["score"]
-        description += (
-            f"\n\n**{user_score["rank"]} {username_with_flag(score)} - "
-            f"{score["wpm"]:,.2f} WPM ({score["accuracy"]:.2%}) - {score["pp"]:,.0f} pp - "
-            f"{discord_date(score["timestamp"])}**"
+        user_score = next((
+            row for row in leaderboard
+            if row["score"]["userId"] == ctx.user["userId"]), {}
         )
 
-    page = Page(
+        if user_score and user_score["index"] > 9:
+            description += f"\n{format_row(user_score)}"
+
+    pages = [Page()]
+    if show_leaderboard:
+        if paginate:
+            pages = paginate_data(leaderboard, format_row, page_count=10, per_page=10)
+        pages[0].description = description
+
+    message = Message(
+        ctx,
         title=(
             f"{title} - {format_date(parse_date(daily_quote["startDate"]))}\n"
             f"{quote_id}"
         ),
-        description=description + f"\n\n{end} {discord_date(end_date)}",
-        color=0xF1C40F,
-    )
-
-    message = Message(
-        ctx,
-        page=page,
+        header=quote_description,
+        pages=pages,
         url=race_url(quote_id),
         thumbnail=quote["source"]["thumbnailUrl"],
         content=f"<@&{DAILY_QUOTE_ROLE_ID}>" if mention else "",
-        color=color,
+        color=color or ctx.user["theme"]["embed"],
     )
 
     await message.send()
