@@ -5,7 +5,7 @@ import jinja2
 from aiohttp import web
 from discord.ext import commands
 
-from config import SOURCE_DIR, ROOT_DIR
+from config import SOURCE_DIR, ROOT_DIR, TYPEGG_GUILD_ID
 from utils.logging import log
 from web_server.middleware import error_middleware, security_headers_middleware
 from web_server.routes.compare import compare_page
@@ -22,7 +22,11 @@ class WebServer(commands.Cog):
         self.runner = None
         self.site = None
 
-        self.nwpm_roles = []
+        self.guild = self.bot.get_guild(TYPEGG_GUILD_ID)
+        self.nwpm_roles = [
+            role for role in self.guild.roles
+            if (("-" in role.name and any(c.isdigit() for c in role.name)) or role.name == "250+")
+        ]
         self.used_tokens = {}
 
         # Routes
