@@ -1,3 +1,5 @@
+from json import JSONDecodeError
+
 import discord
 from aiohttp import web
 
@@ -27,11 +29,15 @@ async def update_nwpm_role(cog, request: web.Request):
     if not auth_header:
         return error("Missing Authorization header.", 401)
 
-    token = auth_header.split("Bearer ")[-1]
+    token = auth_header.removeprefix("Bearer ").strip()
     if token != SECRET:
         return error("Token is invalid.", 401)
 
-    data = await request.json()
+    try:
+        data = await request.json()
+    except JSONDecodeError:
+        return error("Invalid JSON data.", 400)
+
     user_id = data.get("userId")
     nwpm = data.get("nWpm")
 
