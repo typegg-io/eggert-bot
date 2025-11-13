@@ -42,7 +42,7 @@ async def update_nwpm_role(cog, request: web.Request):
     nwpm = data.get("nWpm")
 
     discord_id = get_discord_id(user_id)
-    guild = cog.bot.guild
+    guild = cog.guild
     member = guild.get_member(int(discord_id))
     if not member:
         return error("User not found in guild.", 404)
