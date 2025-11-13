@@ -28,7 +28,7 @@ class DailyLeaderboard(Command):
             daily_quote = await get_daily_quote(number=number)
         except ValueError:
             date = parse_date("".join(args))
-            daily_quote = await get_daily_quote(date.strftime("%Y-%m-%d"))
+            daily_quote = await get_daily_quote(date.strftime("%Y-%m-%d"), results=100)
 
         await display_daily_quote(ctx, daily_quote, f"Daily Quote #{daily_quote["dayNumber"]:,}")
 
@@ -47,7 +47,7 @@ async def display_daily_quote(
     end_date = daily_quote["endDate"]
     leaderboard = daily_quote["leaderboard"]
     end = "Ends" if parse_date(end_date) > dates.now() else "Ended"
-    channel_id = ctx.channel.id if hasattr(ctx, 'channel') else ctx.id
+    channel_id = ctx.channel.id if hasattr(ctx, "channel") else ctx.id
     set_recent_quote(channel_id, quote_id)
 
     description = quote_display(
@@ -73,14 +73,32 @@ async def display_daily_quote(
         )
 
     if show_leaderboard and leaderboard:
-        description += "\n**Top 10**\n"
-        for i, score in enumerate(leaderboard):
+        description += "\n**Leaderboard**\n"
+        for i, score in enumerate(leaderboard[:10]):
+            bold = "**" if (
+                hasattr(ctx, "user") and
+                score["userId"] == ctx.user["userId"]
+            ) else ""
             description += (
-                f"{rank(i + 1)} {username_with_flag(score)} - "
+                f"{bold}{rank(i + 1)} {username_with_flag(score)} - "
                 f"{score["wpm"]:,.2f} WPM ({score["accuracy"]:.2%}) - {score["pp"]:,.0f} pp - "
-                f"{discord_date(score["timestamp"])}\n"
+                f"{discord_date(score["timestamp"])}{bold}\n"
             )
         description = description[:-1]
+
+    user_score = next((
+        {"rank": i, "score": score}
+        for i, score in enumerate(leaderboard)
+        if score["userId"] == ctx.user["userId"]), {}
+    )
+
+    if user_score and user_score["rank"] > 9:
+        score = user_score["score"]
+        description += (
+            f"\n\n**{user_score["rank"]} {username_with_flag(score)} - "
+            f"{score["wpm"]:,.2f} WPM ({score["accuracy"]:.2%}) - {score["pp"]:,.0f} pp - "
+            f"{discord_date(score["timestamp"])}**"
+        )
 
     page = Page(
         title=(
