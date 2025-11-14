@@ -97,7 +97,7 @@ async def display_daily_quote(
 
         user_score = next((
             row for row in leaderboard
-            if row["score"]["userId"] == ctx.user["userId"]), {}
+            if row["score"]["userId"] == ctx.user.get("userId", None)), {}
         )
 
         if user_score and user_score["index"] > 9:
