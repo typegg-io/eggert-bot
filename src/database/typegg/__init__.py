@@ -59,8 +59,7 @@ db.run("""
         endDate TEXT NOT NULL, -- ISO 8601 string
         races INTEGER NOT NULL,
         uniqueUsers INTEGER NOT NULL,
-        quoteId TEXT NOT NULL,
-        FOREIGN KEY(quoteId) REFERENCES quotes(quoteId)
+        quoteId TEXT NOT NULL
     )
 """)
 
