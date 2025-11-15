@@ -1,9 +1,7 @@
 from typing import Optional, Dict, Any
 from urllib.parse import quote
 
-import aiohttp
-
-from api.core import API_URL, get_params, get_response
+from api.core import API_URL, request
 
 
 async def get_sources(
@@ -19,20 +17,18 @@ async def get_sources(
     Calls GET /sources with all available filters.
     Returns the JSON response as a dict.
     """
-    url = f"{API_URL}/v1/sources"
-    params = get_params({
-        "search": search,
-        "minPublicationYear": min_publication_year,
-        "maxPublicationYear": max_publication_year,
-        "sort": sort,
-        "reverse": str(reverse).lower(),
-        "page": page,
-        "perPage": per_page,
-    })
-
-    async with aiohttp.ClientSession() as session:
-        async with session.get(url, params=params) as response:
-            return await get_response(response)
+    return await request(
+        url=f"{API_URL}/v1/sources",
+        params={
+            "search": search,
+            "minPublicationYear": min_publication_year,
+            "maxPublicationYear": max_publication_year,
+            "sort": sort,
+            "reverse": str(reverse).lower(),
+            "page": page,
+            "perPage": per_page,
+        },
+    )
 
 
 async def get_source(source_id: str) -> Dict[str, Any]:
@@ -40,14 +36,11 @@ async def get_source(source_id: str) -> Dict[str, Any]:
     Calls GET /sources/{sourceId}.
     Returns the JSON response as a dict.
     """
-    url = f"{API_URL}/v1/sources/{quote(source_id, safe="")}"
-
-    async with aiohttp.ClientSession() as session:
-        async with session.get(url) as response:
-            return await get_response(response)
+    return await request(f"{API_URL}/v1/sources/{quote(source_id, safe="")}")
 
 
 async def get_all_sources():
+    """Paginates through and returns every source under /sources"""
     all_sources = []
     page = 1
     first_page = await get_sources(per_page=1000)

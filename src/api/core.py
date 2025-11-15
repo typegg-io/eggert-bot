@@ -3,7 +3,8 @@ import os
 import time
 from collections import deque
 
-from aiohttp import ClientResponse, ContentTypeError
+import aiohttp
+from aiohttp import ContentTypeError
 
 from config import SECRET
 from utils.errors import APIError
@@ -41,18 +42,19 @@ class RateLimiter:
 
             if len(self._timestamps) >= self.max_rate:
                 sleep_time = self._timestamps[0] + self.time_window - now
-                if sleep_time > 0:
-                    log(f"⏳ Rate limit reached - sleeping {self.time_window:.2f}s")
-                    await asyncio.sleep(self.time_window)
 
-                now = time.monotonic()
+                if sleep_time > 0:
+                    log(f"Rate limit reached - sleeping {sleep_time:.2f}s")
+                    await asyncio.sleep(sleep_time)
+                    now = time.monotonic()
+
                 while self._timestamps and self._timestamps[0] <= now - self.time_window:
                     self._timestamps.popleft()
 
-            self._timestamps.append(now)
+            self._timestamps.append(time.monotonic())
 
 
-limiter = RateLimiter(max_rate=15, time_window=5)
+limiter = RateLimiter(max_rate=10, time_window=5)
 
 
 def get_params(raw_params):
@@ -67,34 +69,50 @@ def get_params(raw_params):
     return params
 
 
-async def get_response(
-    response: ClientResponse,
-    exceptions: dict = None
+async def request(
+    url: str,
+    params: dict = {},
+    exceptions: dict = None,
 ):
     """
-    Process an aiohttp response, returning its JSON body or raising an error.
-    Applies global rate limiting.
+    Send an asynchronous aiohttp request given a URL, parameters, and headers.
 
     Args:
-        response (ClientResponse): The aiohttp response object to process.
+        url (str): The endpoint to request
+        params (dict, optional): A dictionary of parameters for the request
         exceptions (dict[int, Exception], optional): A mapping of HTTP status
             codes to custom exceptions to raise if matched.
     """
-    await limiter.wait()
+    params = get_params(params)
 
-    status = response.status
-    try:
-        json = await response.json()
-        message = json.get("message", "No message provided.")
-    except ContentTypeError:
-        raise APIError(response.status, "TypeGG is likely down, try again later.")
+    async def do_request():
+        await limiter.wait()
+        async with aiohttp.ClientSession() as session:
+            async with session.get(url, params=params, headers=AUTH_HEADERS) as response:
+                status = response.status
+                try:
+                    json = await response.json()
+                    message = json.get("message", "No message provided.")
+                except ContentTypeError:
+                    raise APIError(response.status, "TypeGG is likely down, try again later.")
+
+                return status, json, message
+
+    status, json, message = await do_request()
 
     if status == 200:
         return json
 
-    if exceptions:
-        for error in exceptions.keys():
-            if status == error:
-                raise exceptions[error]
+    if status == 429:
+        log(f"Rate limit exceeded, retrying in 5s...")
+        await asyncio.sleep(5)
+
+        status, json, message = await do_request()
+
+        if status == 200:
+            return json
+
+    if exceptions and status in exceptions:
+        raise exceptions[status]
 
     raise APIError(status, message)

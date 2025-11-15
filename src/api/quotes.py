@@ -1,9 +1,6 @@
 from typing import Optional, Dict, Any
-from urllib.parse import quote
 
-import aiohttp
-
-from api.core import API_URL, get_params, get_response
+from api.core import API_URL, request
 from utils.errors import UnknownQuote
 
 
@@ -27,31 +24,25 @@ async def get_quotes(
     Calls GET /quotes with all available filters.
     Returns the JSON response as a dict.
     """
-    url = f"{API_URL}/v1/quotes"
-    params = get_params({
-        "search": search,
-        "minDifficulty": min_difficulty,
-        "maxDifficulty": max_difficulty,
-        "minLength": min_length,
-        "maxLength": max_length,
-        "minPublicationYear": min_publication_year,
-        "maxPublicationYear": max_publication_year,
-        "sourceId": source_id,
-        "status": status,
-        "sort": sort,
-        "distinct": distinct,
-        "reverse": reverse,
-        "page": page,
-        "perPage": per_page,
-    })
-
-    async with aiohttp.ClientSession() as session:
-        async with session.get(url, params=params) as response:
-            if response.status == 200:
-                return await response.json()
-            else:
-                text = await response.text()
-                raise Exception(f"API returned status {response.status}: {text}")
+    return await request(
+        url=f"{API_URL}/v1/quotes",
+        params={
+            "search": search,
+            "minDifficulty": min_difficulty,
+            "maxDifficulty": max_difficulty,
+            "minLength": min_length,
+            "maxLength": max_length,
+            "minPublicationYear": min_publication_year,
+            "maxPublicationYear": max_publication_year,
+            "sourceId": source_id,
+            "status": status,
+            "sort": sort,
+            "distinct": distinct,
+            "reverse": reverse,
+            "page": page,
+            "perPage": per_page,
+        },
+    )
 
 
 async def get_quote(quote_id: str, distinct: bool = True) -> Dict[str, Any]:
@@ -59,17 +50,15 @@ async def get_quote(quote_id: str, distinct: bool = True) -> Dict[str, Any]:
     Calls GET /quotes/{quoteId}.
     Returns the JSON response as a dict.
     """
-    url = f"{API_URL}/v1/quotes/{quote_id}"
-    params = get_params({"distinct": distinct})
-
-    async with aiohttp.ClientSession() as session:
-        async with session.get(url, params=params) as response:
-            return await get_response(response, exceptions={
-                404: UnknownQuote(quote_id),
-            })
+    return await request(
+        url=f"{API_URL}/v1/quotes/{quote_id}",
+        params={"distinct": distinct},
+        exceptions={404: UnknownQuote(quote_id)},
+    )
 
 
 async def get_all_quotes():
+    """Paginates through and returns every quote under /quotes"""
     all_quotes = []
     page = 1
     first_page = await get_quotes(status="any", per_page=1000)

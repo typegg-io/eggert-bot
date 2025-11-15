@@ -1,9 +1,7 @@
 from datetime import timedelta
 from typing import Dict, Any
 
-import aiohttp
-
-from api.core import API_URL, get_params, get_response
+from api.core import API_URL, request
 from utils import dates
 from utils.dates import parse_date
 
@@ -25,14 +23,12 @@ async def get_daily_quote(
         number = max(0, number)
         date = (START_DATE + timedelta(days=number - 1)).strftime("%Y-%m-%d")
 
-    url = f"{API_URL}/v1/daily"
-    params = get_params({
-        "date": date,
-        "distinct": distinct,
-        "results": results,
-        "country": country,
-    })
-
-    async with aiohttp.ClientSession() as session:
-        async with session.get(url, params=params) as response:
-            return await get_response(response)
+    return await request(
+        url=f"{API_URL}/v1/daily",
+        params={
+            "date": date,
+            "distinct": distinct,
+            "results": results,
+            "country": country,
+        }
+    )
