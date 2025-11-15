@@ -51,7 +51,6 @@ async def display_daily_quote(
     end = "Ends" if parse_date(end_date) > dates.now() else "Ended"
     channel_id = ctx.channel.id if hasattr(ctx, "channel") else ctx.id
     set_recent_quote(channel_id, quote_id)
-    ctx.user["userId"] = "xfhbr3kad9xuh9g"
 
     quote_description = quote_display(
         quote,
