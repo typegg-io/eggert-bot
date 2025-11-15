@@ -104,7 +104,7 @@ async def display_daily_quote(
             description += f"\n{format_row(user_score)}"
 
     pages = [Page()]
-    if show_leaderboard:
+    if show_leaderboard and leaderboard:
         if paginate:
             pages = paginate_data(leaderboard, format_row, page_count=10, per_page=10)
         pages[0].description = description
