@@ -42,6 +42,9 @@ async def update_nwpm_role(cog, request: web.Request):
     nwpm = data.get("nWpm")
 
     discord_id = get_discord_id(user_id)
+    if not discord_id:
+        return error("User not verified.", 401)
+
     guild = cog.guild
     member = guild.get_member(int(discord_id))
     if not member:
