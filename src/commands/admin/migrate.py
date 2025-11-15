@@ -49,7 +49,7 @@ class Migrate(Command):
             ctx, Page(
                 title="Migration Complete",
                 description=(
-                    "Completed migration for the categories:\n"
+                    "Completed migration for the categories:\n" +
                     ", ".join([f"`{category}`" for category in category_list])
                 ),
             ),
