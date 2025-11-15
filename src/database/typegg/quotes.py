@@ -1,6 +1,9 @@
+from api.quotes import get_all_quotes
+from api.sources import get_all_sources
 from database.typegg import db
 from database.typegg.sources import get_source
 from utils.errors import UnknownQuote
+from utils.logging import log
 
 
 def quote_insert(quote):
@@ -76,3 +79,18 @@ def get_quote(quote_id: str):
     quote["source"] = source
 
     return quote
+
+
+async def reimport_quotes():
+    from database.typegg.sources import add_sources
+
+    log("Fetching sources")
+    all_sources = await get_all_sources()
+    log("Fetching quotes")
+    all_quotes = await get_all_quotes()
+
+    db.run("DELETE FROM quotes")
+    db.run("DELETE FROM sources")
+
+    add_sources(all_sources)
+    add_quotes(all_quotes)

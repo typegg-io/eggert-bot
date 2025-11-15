@@ -2,6 +2,7 @@ from typing import Optional, Dict, Any
 from urllib.parse import quote
 
 from api.core import API_URL, request
+from utils.logging import log
 
 
 async def get_sources(
@@ -48,6 +49,8 @@ async def get_all_sources():
 
     while True:
         data = first_page if page == 1 else await get_sources(page=page, per_page=1000)
+        log(f"Fetched page {page}/{total_pages}")
+
         for source in data["sources"]:
             all_sources.append(source)
 

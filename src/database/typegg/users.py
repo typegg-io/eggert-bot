@@ -61,3 +61,16 @@ def get_quote_bests(
 
 def delete_user(user_id: str):
     db.run("DELETE FROM users WHERE userId = ?", [user_id])
+
+
+async def reimport_users():
+    from database.typegg.races import delete_races
+    from commands.account.download import run as download
+
+    user_list = db.fetch("SELECT userId FROM users")
+    for user in user_list:
+        user_id = user["userId"]
+        delete_races(user_id)
+        delete_user(user_id)
+
+        await download(user_id=user_id)

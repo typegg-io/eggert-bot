@@ -4,6 +4,7 @@ from discord import Embed
 from discord.ext.commands import CommandError, CheckFailure
 
 from config import BOT_PREFIX as prefix
+from utils.colors import WARNING
 
 
 class MissingArguments(CommandError):
@@ -244,4 +245,16 @@ class InvalidNumber(CommandError):
     embed = Embed(
         title="Invalid Number",
         description="Unrecognized number format",
+    )
+
+
+class MigrationActive(CommandError):
+    """Raised when a migration is currently in progress."""
+    embed = Embed(
+        title="Migration in Progress",
+        description=(
+            "The bot is currently undergoing a data migration\n"
+            "Commands are temporarily disabled during this time"
+        ),
+        color=WARNING,
     )

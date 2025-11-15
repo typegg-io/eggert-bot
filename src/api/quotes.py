@@ -2,6 +2,7 @@ from typing import Optional, Dict, Any
 
 from api.core import API_URL, request
 from utils.errors import UnknownQuote
+from utils.logging import log
 
 
 async def get_quotes(
@@ -66,6 +67,8 @@ async def get_all_quotes():
 
     while True:
         data = first_page if page == 1 else await get_quotes(page=page, status="any", per_page=1000)
+        log(f"Fetched page {page}/{total_pages}")
+
         for quote in data["quotes"]:
             all_quotes.append(quote)
 
