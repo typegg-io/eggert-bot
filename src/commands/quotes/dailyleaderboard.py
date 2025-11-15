@@ -51,6 +51,7 @@ async def display_daily_quote(
     end = "Ends" if parse_date(end_date) > dates.now() else "Ended"
     channel_id = ctx.channel.id if hasattr(ctx, "channel") else ctx.id
     set_recent_quote(channel_id, quote_id)
+    ctx.user["userId"] = "xfhbr3kad9xuh9g"
 
     quote_description = quote_display(
         quote,
@@ -80,8 +81,13 @@ async def display_daily_quote(
             hasattr(ctx, "user") and
             score["userId"] == ctx.user["userId"]
         ) else ""
+
+        rank_display = rank(index + 1)
+        if bold:
+            rank_display = rank_display.replace("*", "")
+
         return (
-            f"{bold}{rank(index + 1)} {username_with_flag(score)} - "
+            f"{bold}{rank_display} {username_with_flag(score)} - "
             f"{score["wpm"]:,.2f} WPM ({score["accuracy"]:.2%}) - {score["pp"]:,.0f} pp - "
             f"{discord_date(score["timestamp"])}{bold}\n"
         )
