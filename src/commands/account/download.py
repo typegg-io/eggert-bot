@@ -142,7 +142,7 @@ async def run(
                 page.description = description
                 await initial_send
                 await message.edit()
-            elif new_quote_count > 10:
+            elif new_quote_count > 10 and not background_import:
                 page = Page(
                     title=title,
                     description=description,
