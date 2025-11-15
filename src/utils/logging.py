@@ -9,9 +9,9 @@ from database.bot.users import get_user
 
 start = 0
 ADMIN_ALIASES = {
-    155481579005804544: "Keegan",
-    87926662364160000: "Eiko",
-    808803618005188651: "Fragment",
+    155481579005804544: "K\u200beegan",
+    87926662364160000: "E\u200biko",
+    808803618005188651: "A\u200bevistar",
 }
 
 
