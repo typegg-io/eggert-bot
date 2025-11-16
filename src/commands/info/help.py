@@ -33,7 +33,11 @@ async def help_main(ctx: commands.Context):
         f"**Parameter Notation:**\n"
         f"• Parameters in `<>` are required\n"
         f"• Parameters in `[]` are optional\n"
-        f"• Parameters with `|` indicate a choice between options"
+        f"• Parameters with `|` indicate a choice between options\n"
+        f"**Parameter Flags**\n"
+        f"• Metric: `-raw`\n"
+        f"• Gamemode: `-solo`, `-multi`\n"
+        f"• Status: `-unranked`, `-any`\n"
     )
 
     fields = []
