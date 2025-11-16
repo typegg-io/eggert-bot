@@ -41,8 +41,8 @@ def get_quote_bests(
         metric = flags.get("metric")
 
         if metric == "raw":
-            columns.replace("wpm", "rawWpm as wpm")
-            columns.replace("pp", "rawPp as pp")
+            columns = columns.replace("wpm", "rawWpm as wpm")
+            columns = columns.replace("pp", "rawPp as pp")
             if order_by in ["pp", "wpm"]:
                 order_by = "raw" + order_by.capitalize()
 
