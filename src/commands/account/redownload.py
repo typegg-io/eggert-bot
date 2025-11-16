@@ -68,7 +68,7 @@ class ReDownload(Command):
             await download(ctx, profile)
 
             if is_admin:
-                await ctx.command.reset_cooldown(ctx)
+                ctx.command.reset_cooldown(ctx)
         except Exception as e:
             ctx.command.reset_cooldown(ctx)
             raise e
