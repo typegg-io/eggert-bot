@@ -95,7 +95,7 @@ class Command(commands.Cog):
             update_commands(ctx.author.id, ctx.command.name, command_origin)
 
             total_commands += 1
-            if total_commands % 50_000 == 0 or True:
+            if total_commands % 50_000 == 0:
                 await self.celebrate_milestone(ctx, total_commands)
 
     async def celebrate_milestone(self, ctx: commands.Context, milestone: int):
