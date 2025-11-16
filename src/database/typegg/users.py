@@ -30,6 +30,14 @@ def get_quote_bests(
     max_pp = 99999
 
     if flags:
+        status = flags.get("status", "ranked")
+
+        if status != "ranked":
+            min_pp = -1
+            if status == "unranked":
+                max_pp = 0
+                order_by = "wpm"
+
         metric = flags.get("metric")
 
         if metric == "raw":
@@ -39,12 +47,6 @@ def get_quote_bests(
                 order_by = "raw" + order_by.capitalize()
 
         gamemode = flags.get("gamemode")
-        status = flags.get("status", "ranked")
-
-        if status != "ranked":
-            min_pp = -1
-            if status == "unranked":
-                max_pp = 0
 
     aggregate_column = f"MAX({order_by}) AS {order_by}"
     order = "DESC" if reverse else "ASC"
