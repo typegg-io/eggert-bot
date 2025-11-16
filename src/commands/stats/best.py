@@ -7,6 +7,7 @@ from database.typegg.quotes import get_quotes
 from database.typegg.sources import get_sources
 from database.typegg.users import get_quote_bests
 from utils import strings
+from utils.errors import NoRacesFiltered
 from utils.messages import Message, paginate_data, Page
 from utils.strings import get_argument, quote_display
 
@@ -38,7 +39,10 @@ async def run(ctx: commands.Context, profile: dict, metric: str, reverse: bool =
         order_by=metric,
         reverse=reverse,
         limit=100,
+        flags=ctx.flags,
     )
+    if not quote_bests:
+        raise NoRacesFiltered(profile["username"])
 
     def entry_formatter(data):
         quote = dict(quotes[data["quoteId"]])

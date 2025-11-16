@@ -21,9 +21,31 @@ def get_quote_bests(
     reverse: Optional[bool] = True,
     limit: Optional[int] = None,
     as_dictionary: Optional[bool] = False,
+    flags: dict = {},
 ):
     """Returns quote bests for a user, with available filters."""
+
     columns = ",".join(columns)
+    min_pp = 0
+    max_pp = 99999
+
+    if flags:
+        metric = flags.get("metric")
+
+        if metric == "raw":
+            columns.replace("wpm", "rawWpm as wpm")
+            columns.replace("pp", "rawPp as pp")
+            if order_by in ["pp", "wpm"]:
+                order_by = "raw" + order_by.capitalize()
+
+        gamemode = flags.get("gamemode")
+        status = flags.get("status", "ranked")
+
+        if status != "ranked":
+            min_pp = -1
+            if status == "unranked":
+                max_pp = 0
+
     aggregate_column = f"MAX({order_by}) AS {order_by}"
     order = "DESC" if reverse else "ASC"
     limit = f"LIMIT {limit}" if limit else ""
@@ -47,7 +69,8 @@ def get_quote_bests(
         SELECT {aggregate_column}, {columns}
         FROM races
         {where_clause}
-        AND pp > 0
+        AND pp > {min_pp}
+        AND pp <= {max_pp}
         GROUP BY quoteId
         ORDER BY {order_by} {order}
         {limit}

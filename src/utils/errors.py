@@ -80,6 +80,17 @@ class NoRankedRaces(ErrorWithUsername):
         )
 
 
+class NoRacesFiltered(ErrorWithUsername):
+    """Raised when a TypeGG profile has no races with the current filters."""
+
+    @property
+    def embed(self):
+        return Embed(
+            title="No Filtered Races",
+            description=f"User `{self.username.replace("`", "")}` has no races with these filters",
+        )
+
+
 class UserBanned(CheckFailure):
     """Raised when a banned user attempts to run a command."""
     embed = Embed(
