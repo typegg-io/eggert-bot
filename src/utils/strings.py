@@ -224,3 +224,17 @@ def parse_number(value):
             continue
 
     raise InvalidNumber
+
+def get_flag_title(flags):
+    flag_titles = []
+    if flags.get("metric"):
+        flag_titles.append("Raw")
+    if flags.get("gamemode"):
+        flag_titles.append(flags["gamemode"].title())
+    if flags.get("status"):
+        flag_titles.append(flags["status"].title())
+
+    if not flag_titles:
+        return ""
+
+    return " (" +  ", ".join(flag_titles) + ")"

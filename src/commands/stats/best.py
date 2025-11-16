@@ -9,7 +9,7 @@ from database.typegg.users import get_quote_bests
 from utils import strings
 from utils.errors import NoRacesFiltered
 from utils.messages import Message, paginate_data, Page
-from utils.strings import get_argument, quote_display
+from utils.strings import get_argument, quote_display, get_flag_title
 
 metrics = ["pp", "wpm"]
 info = {
@@ -31,6 +31,7 @@ class Best(Command):
 
 
 async def run(ctx: commands.Context, profile: dict, metric: str, reverse: bool = True):
+    flags = ctx.flags
     quotes = get_quotes()
     sources = get_sources()
     quote_bests = get_quote_bests(
@@ -39,7 +40,7 @@ async def run(ctx: commands.Context, profile: dict, metric: str, reverse: bool =
         order_by=metric,
         reverse=reverse,
         limit=100,
-        flags=ctx.flags,
+        flags=flags,
     )
     if not quote_bests:
         raise NoRacesFiltered(profile["username"])
@@ -63,10 +64,12 @@ async def run(ctx: commands.Context, profile: dict, metric: str, reverse: bool =
         pages.append(Page(description=description))
 
     pages = paginate_data(quote_bests, entry_formatter, 20, 5)
+    title = f"{["Worst", "Best"][reverse]} {["WPM", "pp"][metric == "pp"]} Quotes"
+    title += get_flag_title(flags)
 
     message = Message(
         ctx,
-        title=f"{["Worst", "Best"][reverse]} {["WPM", "pp"][metric == "pp"]} Quotes",
+        title=title,
         pages=pages,
         profile=profile,
     )
