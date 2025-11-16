@@ -9,6 +9,7 @@ from graphs import top250 as top250_graph
 from utils.errors import NoRankedRaces
 from utils.messages import Page, Message
 from utils.stats import calculate_total_pp
+from utils.strings import get_flag_title
 
 max_users_shown = 5
 
@@ -34,6 +35,7 @@ class Top250(Command):
 
 
 async def run(ctx: commands.Context, profiles: List[dict]):
+    flags = ctx.flags
     top_250s = []
     description = ""
     profiles.sort(key=lambda x: -x["stats"]["totalPp"])
@@ -45,6 +47,7 @@ async def run(ctx: commands.Context, profiles: List[dict]):
             columns=["pp"],
             order_by="pp",
             limit=250,
+            flags=flags,
         )
         pp_values = [race["pp"] for race in quote_bests]
 
@@ -68,7 +71,7 @@ async def run(ctx: commands.Context, profiles: List[dict]):
         )
 
     page = Page(
-        title="Top 250 Quotes",
+        title="Top 250 Quotes" + get_flag_title(flags),
         description=description,
         render=lambda: top250_graph.render(
             username,
