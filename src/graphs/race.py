@@ -51,7 +51,7 @@ def render(
             markersize=7, markeredgewidth=1.5, label=label
         )
 
-    apply_padding(ax, keystroke_wpm)
+    apply_padding(ax, keystroke_wpm + keystroke_wpm_raw)
     ax.set_xlabel("Keystrokes")
     ax.set_ylabel("WPM")
     ax.set_title(title)
