@@ -1,6 +1,7 @@
 from datetime import datetime, timezone, timedelta
 
 from dateutil import parser
+from dateutil.relativedelta import relativedelta
 
 from utils.errors import InvalidDate
 from utils.strings import ordinal_number
@@ -36,3 +37,17 @@ def format_date(date):
     day = int(date.strftime("%d"))
 
     return f"{month} {ordinal_number(day)}, {year}"
+
+
+def count_unique_dates(start, end):
+    """Returns the number of unique days within a start and end date range."""
+    start_date = parse_date(start)
+    end_date = parse_date(end)
+
+    unique_dates = set()
+
+    while start_date <= end_date:
+        unique_dates.add(start_date.strftime("%m-%d-%Y"))
+        start_date += relativedelta(days=1)
+
+    return len(unique_dates)

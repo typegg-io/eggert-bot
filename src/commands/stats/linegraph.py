@@ -7,6 +7,7 @@ from discord.ext import commands
 from commands.base import Command
 from database.typegg.races import get_races
 from graphs import line
+from utils.stats import calculate_quote_length
 from utils.strings import get_argument
 
 metrics = {
@@ -141,7 +142,7 @@ def get_characters_over_time(race_list: list[dict]):
     total = 0
 
     for race in race_list:
-        quote_length = int(round(race["wpm"] * race["duration"] / 12000) + 1)
+        quote_length = calculate_quote_length(race["wpm"], race["duration"])
         total += quote_length
         characters_typed.append(total)
 

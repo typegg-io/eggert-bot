@@ -23,7 +23,9 @@ db.run("""
         errorRecoveryTime REAL NOT NULL,
         timestamp TEXT NOT NULL, -- ISO 8601 string
         stickyStart INTEGER NOT NULL, -- boolean
-        gamemode TEXT NOT NULL
+        gamemode TEXT NOT NULL,
+        placement INTEGER NOT NULL,
+        players INTEGER NOT NULL
     );
 """)
 

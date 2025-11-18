@@ -21,6 +21,8 @@ def race_insert(race):
         race["timestamp"],
         race["stickyStart"],
         race["gamemode"],
+        race["placement"],
+        race["players"],
     )
 
 
@@ -28,7 +30,7 @@ def add_races(races):
     """Batch insert user races."""
     db.run_many(f"""
         INSERT OR IGNORE INTO races
-        VALUES ({",".join(["?"] * 15)})
+        VALUES ({",".join(["?"] * 17)})
     """, [race_insert(race) for race in races])
 
 
@@ -39,15 +41,36 @@ async def get_races(
     end_date: Optional[str] = None,
     start_number: Optional[int] = None,
     end_number: Optional[int] = None,
-    min_pp: Optional[float] = None,
-    max_pp: Optional[float] = None,
+    min_pp: Optional[float] = 0,
+    max_pp: Optional[float] = 99999,
     gamemode: Optional[str] = None,
     order_by: str = "timestamp",
     reverse: bool = False,
     limit: Optional[int] = None,
+    flags: dict = {},
 ):
     """Fetch races for a user with optional filters."""
-    cols = ",".join(columns)
+    columns = ",".join(columns)
+    min_pp = 0
+    max_pp = 99999
+
+    if flags:
+        status = flags.get("status", "ranked")
+
+        if status != "ranked":
+            min_pp = -1
+            if status == "unranked":
+                max_pp = 0
+
+        metric = flags.get("metric")
+
+        if metric == "raw":
+            columns = "rawWpm as wpm, rawPp as pp, " + columns
+            if order_by in ["pp", "wpm"]:
+                order_by = "raw" + order_by.capitalize()
+
+        gamemode = flags.get("gamemode")
+
     order = "DESC" if reverse else "ASC"
 
     conditions = ["userId = ?"]
@@ -63,9 +86,9 @@ async def get_races(
         conditions.append("timestamp < ?")
         params.append(end_date)
     if min_pp is not None:
-        conditions.append(f"pp >= {min_pp}")
+        conditions.append(f"pp > {min_pp}")
     if max_pp is not None:
-        conditions.append(f"pp < {max_pp}")
+        conditions.append(f"pp <= {max_pp}")
     if gamemode is not None:
         conditions.append(f"gamemode = ?")
         params.append(gamemode)
@@ -78,7 +101,7 @@ async def get_races(
     while True:
         lim = f"LIMIT {limit}" if limit else f"LIMIT {batch_size} OFFSET {offset}"
         batch = await db.fetch_async(f"""
-            SELECT {cols}
+            SELECT {columns}
             FROM races
             {where_clause}
             ORDER BY {order_by} {order}
@@ -91,6 +114,7 @@ async def get_races(
         offset += batch_size
 
     return race_list
+
 
 def get_quote_races(
     user_id: str,

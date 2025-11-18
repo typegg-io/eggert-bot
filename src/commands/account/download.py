@@ -129,9 +129,24 @@ async def run(
 
         for race in race_list:
             quote_id = race["quoteId"]
+
             if quote_id not in quote_ids:
                 new_quote_ids.add(quote_id)
                 quote_ids.add(quote_id)
+
+            match = race.get("match")
+
+            if match:
+                players = match["players"]
+                race["players"] = len(players)
+                race["placement"] = next((
+                    player["placement"]
+                    for player in players
+                    if player.get("username") == profile.get("username")
+                ), 1)
+            else:
+                race["players"] = 1
+                race["placement"] = 1
 
         if new_quote_ids:
             new_quote_count = len(new_quote_ids)
