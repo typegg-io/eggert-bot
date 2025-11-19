@@ -43,6 +43,7 @@ async def run(ctx: commands.Context, profile: dict):
                 f"**Wins:** {profile["stats"]["wins"]:,} "
                 f"({0 if profile["stats"]["multiplayerRaces"] == 0
                 else profile["stats"]["wins"] / profile["stats"]["multiplayerRaces"]:.2%} win rate)\n"
+                f"**Characters Typed:** {profile["stats"]["charactersTyped"]:,.0f}\n"
                 f"**Level:** {profile["stats"]["level"]:,.2f} "
                 f"({profile["stats"]["experience"]:,.0f} XP)\n"
                 f"**Play Time:** {format_duration(profile["stats"]["playTime"] / 1000)}"
