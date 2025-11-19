@@ -53,6 +53,11 @@ def build_stat_fields(profile, race_list, flags={}):
             cumulative_values[key] += race[key]
 
         quote_length = calculate_quote_length(race["wpm"], race["duration"])
+
+        if race["rawWpm"] == 0:  # temporary catch for invalid raw speeds
+            race = dict(race)
+            race["rawWpm"] = race["wpm"]
+
         raw_duration = calculate_duration(race["rawWpm"], quote_length - 1)
         correction_duration += race["duration"] - raw_duration
 
