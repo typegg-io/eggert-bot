@@ -1,7 +1,5 @@
 import asyncio
 import os
-import time
-from collections import deque
 
 import aiohttp
 from aiohttp import ContentTypeError
@@ -14,47 +12,6 @@ API_URL = os.getenv("API_URL")
 AUTH_HEADERS = {
     "Authorization": SECRET,
 }
-
-
-class RateLimiter:
-    """
-    Asynchronous sliding-window rate limiter.
-
-    Ensures that no more than `max_rate` requests occur in any rolling `time_window` seconds.
-
-    Args:
-        max_rate (int): Maximum number of calls allowed within the time window.
-        time_window (float): Time window in seconds.
-    """
-
-    def __init__(self, max_rate: int, time_window: float):
-        self.max_rate = max_rate
-        self.time_window = time_window
-        self._timestamps = deque()
-        self._lock = asyncio.Lock()
-
-    async def wait(self):
-        async with self._lock:
-            now = time.monotonic()
-
-            while self._timestamps and self._timestamps[0] <= now - self.time_window:
-                self._timestamps.popleft()
-
-            if len(self._timestamps) >= self.max_rate:
-                sleep_time = self._timestamps[0] + self.time_window - now
-
-                if sleep_time > 0:
-                    log(f"Rate limit reached - sleeping {sleep_time:.2f}s")
-                    await asyncio.sleep(sleep_time)
-                    now = time.monotonic()
-
-                while self._timestamps and self._timestamps[0] <= now - self.time_window:
-                    self._timestamps.popleft()
-
-            self._timestamps.append(time.monotonic())
-
-
-limiter = RateLimiter(max_rate=10, time_window=5)
 
 
 def get_params(raw_params):
@@ -86,7 +43,6 @@ async def request(
     params = get_params(params)
 
     async def do_request():
-        await limiter.wait()
         async with aiohttp.ClientSession() as session:
             async with session.get(url, params=params, headers=AUTH_HEADERS) as response:
                 status = response.status
@@ -104,8 +60,8 @@ async def request(
         return json
 
     if status == 429:
-        log(f"Rate limit exceeded, retrying in 5s...")
-        await asyncio.sleep(5)
+        log(f"Rate limit exceeded, retrying in 1s...")
+        await asyncio.sleep(1)
 
         status, json, message = await do_request()
 
