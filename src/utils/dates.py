@@ -51,3 +51,39 @@ def count_unique_dates(start, end):
         start_date += relativedelta(days=1)
 
     return len(unique_dates)
+
+
+def floor_day(date):
+    return date.replace(hour=0, minute=0, second=0, microsecond=0, tzinfo=timezone.utc)
+
+
+def floor_week(date):
+    return ((date - relativedelta(days=date.weekday()))
+            .replace(hour=0, minute=0, second=0, microsecond=0, tzinfo=timezone.utc))
+
+
+def floor_month(date):
+    return date.replace(day=1, hour=0, minute=0, second=0, microsecond=0, tzinfo=timezone.utc)
+
+
+def floor_year(date):
+    return date.replace(month=1, day=1, hour=0, minute=0, second=0, microsecond=0, tzinfo=timezone.utc)
+
+
+def get_start_end_dates(date: datetime, period: str):
+    """Returns start and end dates (UTC) given a date and period (day, week, month, or year)."""
+    periods = {
+        "day": (floor_day, relativedelta(days=1)),
+        "week": (floor_week, relativedelta(weeks=1)),
+        "month": (floor_month, relativedelta(months=1)),
+        "year": (floor_year, relativedelta(years=1))
+    }
+
+    if period in periods:
+        floor_function, relative_delta = periods[period]
+        start = floor_function(date)
+        end = start + relative_delta
+
+        return start, end
+
+    return None, None

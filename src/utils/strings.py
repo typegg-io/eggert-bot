@@ -1,6 +1,7 @@
 from typing import Optional
 
 from dateutil import parser
+from dateutil.relativedelta import relativedelta
 
 from utils.errors import InvalidArgument, InvalidNumber
 from utils.urls import race_url, profile_url
@@ -225,6 +226,7 @@ def parse_number(value):
 
     raise InvalidNumber
 
+
 def get_flag_title(flags):
     flag_titles = []
     if flags.get("metric"):
@@ -237,4 +239,33 @@ def get_flag_title(flags):
     if not flag_titles:
         return ""
 
-    return " (" +  ", ".join(flag_titles) + ")"
+    return " (" + ", ".join(flag_titles) + ")"
+
+
+def date_range_display(start, end):
+    from utils.dates import format_date
+
+    end -= relativedelta(microseconds=1)
+
+    start_year, end_year = start.year, end.year
+    start_month, end_month = start.strftime("%B"), end.strftime("%B")
+    start_day, end_day = ordinal_number(start.day), ordinal_number(end.day)
+
+    if start_year == end_year and start_month == end_month and start_day == end_day:
+        return format_date(start)
+
+    display_string = (
+        f"{start_month} {start_day}, {start_year} - "
+        f"{end_month} {end_day}, {end_year}"
+    )
+
+    if start_year == end_year:
+        display_string = display_string.replace(f", {start_year}", "", 1)
+
+        if start_month == end_month:
+            temp_month = f"{start_month} "[::-1]
+            temp_string = display_string[::-1]
+            temp_string = temp_string.replace(temp_month, "", 1)
+            display_string = temp_string[::-1]
+
+    return display_string

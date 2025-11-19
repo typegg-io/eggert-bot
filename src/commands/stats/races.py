@@ -1,3 +1,4 @@
+from datetime import datetime
 from typing import Optional
 
 from discord.ext import commands
@@ -6,10 +7,10 @@ from commands.base import Command
 from database.typegg.quotes import get_quotes
 from database.typegg.races import get_races
 from database.typegg.users import get_quote_bests
-from utils.dates import count_unique_dates, parse_date
+from utils.dates import count_unique_dates, parse_date, get_start_end_dates
 from utils.messages import Page, Message, Field
 from utils.stats import calculate_quote_length, calculate_duration, calculate_quote_bests, calculate_total_pp
-from utils.strings import format_duration, discord_date, get_flag_title
+from utils.strings import format_duration, discord_date, get_flag_title, date_range_display
 
 info = {
     "name": "races",
@@ -22,11 +23,13 @@ info = {
 class Races(Command):
     @commands.command(aliases=info["aliases"])
     async def races(self, ctx, username: Optional[str] = "me"):
-        profile = await self.get_profile(ctx, username)
+        profile = await self.get_profile(ctx, username, races_required=True)
         await run(ctx, profile)
 
 
-def build_stat_fields(profile, race_list, quote_list, flags={}):
+def build_stat_fields(profile, race_list, flags={}):
+    quote_list = get_quotes()
+
     cumulative_keys = {
         "wpm", "rawWpm", "accuracy", "duration",
         "errorReactionTime", "errorRecoveryTime",
@@ -39,7 +42,6 @@ def build_stat_fields(profile, race_list, quote_list, flags={}):
     wins = 0
     best = {"pp": race_list[0], "wpm": race_list[0]}
     total_duration = 0
-    unique_quotes = set()
     words_typed = 0
     chars_typed = 0
     longest_break = {"start_race": None, "duration": 0}
@@ -67,7 +69,6 @@ def build_stat_fields(profile, race_list, quote_list, flags={}):
             best["wpm"] = race
 
         total_duration += race["duration"]
-        unique_quotes.add(race["quoteId"])
 
         quote = quote_list[race["quoteId"]]
         words = quote["text"].split()
@@ -94,7 +95,10 @@ def build_stat_fields(profile, race_list, quote_list, flags={}):
 
     total_duration /= 1000
 
-    quote_bests = calculate_quote_bests(race_list)
+    period_quote_bests = calculate_quote_bests(race_list)
+    period_total_pp = calculate_total_pp(period_quote_bests)
+
+    quote_bests = get_quote_bests(profile["userId"], end_date=parse_date(race_list[-1]["timestamp"]))
     total_pp = calculate_total_pp(quote_bests)
 
     min_timestamp = race_list[0]["timestamp"]
@@ -109,7 +113,7 @@ def build_stat_fields(profile, race_list, quote_list, flags={}):
         Field(
             title="Performance",
             content=(
-                f"**Total:** {total_pp:,.0f} pp\n"
+                f"**Total:** {period_total_pp:,.0f} pp\n"
                 f"**Effective Gain:** +{total_pp - old_total_pp:,.2f} pp\n"
                 f"**Best Score:** {best["pp"]["pp"]:,} pp (Race #{best["pp"]["raceNumber"]:,})"
             )
@@ -128,7 +132,8 @@ def build_stat_fields(profile, race_list, quote_list, flags={}):
         )
     ]
 
-    old_unique_quotes = len(old_quote_bests)
+    unique_quotes = len(period_quote_bests)
+    new_quotes = len(quote_bests) - len(old_quote_bests)
 
     start_date = race_list[0]["timestamp"]
     end_date = race_list[-1]["timestamp"]
@@ -140,9 +145,9 @@ def build_stat_fields(profile, race_list, quote_list, flags={}):
         title="Activity",
         content=(
             f"**Races:** {total_races:,}\n"
-            f"**Solo:** {solo_races:,} / **Multiplayer:** {multiplayer_races:,}\n"
-            f"**Wins:** {wins:,} ({wins / multiplayer_races:.2%} win rate)\n"
-            f"**Quotes:** {len(unique_quotes):,} ({len(unique_quotes) - old_unique_quotes:,} new)\n"
+            f"**Solo:** {solo_races:,} / **Multiplayer:** {multiplayer_races:,}\n" +
+            (f"**Wins:** {wins:,} ({wins / multiplayer_races:.2%} win rate)\n" if wins > 0 else "") +
+            f"**Quotes:** {unique_quotes:,} ({new_quotes:,} new)\n"
             f"**Words Typed:** {words_typed:,}\n"
             f"**Characters Typed:** {chars_typed:,}\n"
             f"**Completion Play Time:** {format_duration(total_duration)}\n"
@@ -166,20 +171,37 @@ def build_stat_fields(profile, race_list, quote_list, flags={}):
     return fields
 
 
-async def run(ctx: commands.Context, profile: dict):
+async def run(
+    ctx: commands.Context,
+    profile: dict,
+    date: datetime = None,
+    period: str = None,
+):
     flags = ctx.flags
-    quote_list = get_quotes()
+    start_date, end_date = get_start_end_dates(date, period)
+
     race_list = await get_races(
         profile["userId"],
-        flags=ctx.flags,
+        start_date=start_date,
+        end_date=end_date,
+        flags=flags,
     )
 
-    fields = build_stat_fields(profile, race_list, quote_list, flags)
+    if race_list:
+        fields = build_stat_fields(profile, race_list, flags)
+        description = ""
+    else:
+        fields = []
+        description = "No races completed"
 
     title = "Race Stats"
     status = flags.get("status", "ranked")
+
     if status in ["ranked", "unranked"]:
         title = f"{status.title()} {title}"
+
+    if start_date:
+        title += "\n" + date_range_display(start_date, end_date)
 
     flags.pop("status", None)
     flag_title = get_flag_title(flags)
@@ -187,6 +209,7 @@ async def run(ctx: commands.Context, profile: dict):
     page = Page(
         title=title + flag_title,
         fields=fields,
+        description=description,
     )
 
     message = Message(
