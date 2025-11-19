@@ -9,7 +9,7 @@ from database.typegg.users import get_quote_bests
 from graphs import compare_histogram, compare_bar
 from utils.errors import NoCommonTexts, SameUsername, InvalidRange, InvalidArgument
 from utils.messages import Page, Message, Field
-from utils.strings import username_with_flag
+from utils.strings import username_with_flag, get_flag_title
 from utils.urls import compare_url
 
 metrics = ["pp", "wpm"]
@@ -99,8 +99,8 @@ def max_positive_subarray_sum(buckets, diffs):
 
 async def comparegraph_main(ctx: commands.Context, profile1: dict, profile2):
     quotes = get_quotes()
-    quote_bests1 = get_quote_bests(profile1["userId"], as_dictionary=True)
-    quote_bests2 = get_quote_bests(profile2["userId"], as_dictionary=True)
+    quote_bests1 = get_quote_bests(profile1["userId"], as_dictionary=True, flags=ctx.flags)
+    quote_bests2 = get_quote_bests(profile2["userId"], as_dictionary=True, flags=ctx.flags)
     quote_ids1 = quote_bests1.keys()
     quote_ids2 = quote_bests2.keys()
 
@@ -205,7 +205,7 @@ async def comparegraph_main(ctx: commands.Context, profile1: dict, profile2):
 
     message = Message(
         ctx, page=Page(
-            title="Quote Best Comparison",
+            title="Quote Best Comparison" + get_flag_title(ctx.flags),
             description=description,
             fields=[field1, field2],
             render=lambda: compare_bar.render(
@@ -232,8 +232,8 @@ async def comparegraph_ranged(
     metric: str,
 ):
     quotes = get_quotes(min_difficulty=min_difficulty, max_difficulty=max_difficulty)
-    quote_bests1 = get_quote_bests(profile1["userId"], as_dictionary=True)
-    quote_bests2 = get_quote_bests(profile2["userId"], as_dictionary=True)
+    quote_bests1 = get_quote_bests(profile1["userId"], as_dictionary=True, flags=ctx.flags)
+    quote_bests2 = get_quote_bests(profile2["userId"], as_dictionary=True, flags=ctx.flags)
     common_quotes = list(quotes.keys() & quote_bests1.keys() & quote_bests2.keys())
     if not common_quotes:
         raise NoCommonTexts
@@ -310,7 +310,11 @@ async def comparegraph_ranged(
     )
 
     page = Page(
-        title=f"Quote Best Comparison ({difficulty_range(min_difficulty, max_difficulty)})",
+        title=(
+            f"Quote Best Comparison "
+            f"({difficulty_range(min_difficulty, max_difficulty)})"
+            + get_flag_title(ctx.flags)
+        ),
         fields=fields,
         render=lambda: compare_histogram.render(
             profile1["username"],
