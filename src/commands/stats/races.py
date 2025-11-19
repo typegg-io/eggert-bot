@@ -98,7 +98,11 @@ def build_stat_fields(profile, race_list, flags={}):
     period_quote_bests = calculate_quote_bests(race_list)
     period_total_pp = calculate_total_pp(period_quote_bests)
 
-    quote_bests = get_quote_bests(profile["userId"], end_date=parse_date(race_list[-1]["timestamp"]))
+    quote_bests = get_quote_bests(
+        profile["userId"],
+        end_date=parse_date(race_list[-1]["timestamp"]),
+        flags=flags,
+    )
     total_pp = calculate_total_pp(quote_bests)
 
     min_timestamp = race_list[0]["timestamp"]
@@ -200,14 +204,14 @@ async def run(
     if status in ["ranked", "unranked"]:
         title = f"{status.title()} {title}"
 
+    flags.pop("status", None)
+    title += get_flag_title(flags)
+
     if start_date:
         title += "\n" + date_range_display(start_date, end_date)
 
-    flags.pop("status", None)
-    flag_title = get_flag_title(flags)
-
     page = Page(
-        title=title + flag_title,
+        title=title,
         fields=fields,
         description=description,
     )
