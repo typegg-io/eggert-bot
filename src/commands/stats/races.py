@@ -24,6 +24,7 @@ class Races(Command):
     @commands.command(aliases=info["aliases"])
     async def races(self, ctx, username: Optional[str] = "me"):
         profile = await self.get_profile(ctx, username, races_required=True)
+        await self.import_user(ctx, profile)
         await run(ctx, profile)
 
 

@@ -25,4 +25,5 @@ class Year(Command):
             date -= relativedelta(years=1)
 
         profile = await self.get_profile(ctx, username, races_required=True)
+        await self.import_user(ctx, profile)
         await run(ctx, profile, date, "year")
