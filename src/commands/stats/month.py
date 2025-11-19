@@ -8,7 +8,7 @@ from commands.stats.races import run
 from utils.dates import parse_date
 
 info = {
-    "name": "week",
+    "name": "month",
     "aliases": ["m", "yestermonth", "ym"],
     "description": "Displays race information for a given user and month\n"
                    "Date defaults to today",
