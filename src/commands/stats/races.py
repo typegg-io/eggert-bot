@@ -157,7 +157,8 @@ def build_stat_fields(profile, race_list, flags={}):
             f"**Races:** {total_races:,}\n"
             f"**Solo:** {solo_races:,} / **Multiplayer:** {multiplayer_races:,}\n" +
             (f"**Wins:** {wins:,} ({wins / multiplayer_races:.2%} win rate)\n" if wins > 0 else "") +
-            f"**Quotes:** {unique_quotes:,} ({new_quotes:,} new)\n"
+            f"**Quotes:** {unique_quotes:,}" +
+            (f" ({new_quotes:,} new)\n" if new_quotes < unique_quotes else "\n") +
             f"**Words Typed:** {words_typed:,}\n"
             f"**Characters Typed:** {chars_typed:,}\n"
             f"**Completion Play Time:** {format_duration(total_duration)}\n"
