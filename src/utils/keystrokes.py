@@ -301,7 +301,7 @@ def get_keystroke_wpm_raw(raw_keystroke_data: list[dict], adjusted: bool = False
     
     keystroke_data = KeystrokeData(
         text=raw_keystroke_data["text"],
-        isStickyStart=raw_keystroke_data["isStickyStart"],
+        isStickyStart=raw_keystroke_data.get("isStickyStart", False),
         keystrokes=[],
     )
 
