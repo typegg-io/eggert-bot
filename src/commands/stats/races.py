@@ -1,6 +1,7 @@
 from datetime import datetime
 from typing import Optional
 
+from dateutil.relativedelta import relativedelta
 from discord.ext import commands
 
 from commands.base import Command
@@ -103,10 +104,11 @@ def build_stat_fields(profile, race_list, flags={}):
 
     period_quote_bests = calculate_quote_bests(race_list)
     period_total_pp = calculate_total_pp(period_quote_bests)
+    end_date = parse_date(race_list[-1]["timestamp"]) + relativedelta(microseconds=1000)
 
     quote_bests = get_quote_bests(
         profile["userId"],
-        end_date=parse_date(race_list[-1]["timestamp"]),
+        end_date=end_date,
         flags=flags,
     )
     total_pp = calculate_total_pp(quote_bests)
