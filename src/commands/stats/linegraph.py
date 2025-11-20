@@ -8,7 +8,7 @@ from commands.base import Command
 from database.typegg.races import get_races
 from graphs import line
 from utils.stats import calculate_quote_length
-from utils.strings import get_argument
+from utils.strings import get_argument, get_flag_title
 
 metrics = {
     "pp": {
@@ -65,13 +65,13 @@ class LineGraph(Command):
                 user_args = [ctx.user["userId"]]
             else:
                 user_args = [metric] + list(user_args)
+
             metric = [*metrics.keys()][metric_aliases.index(invoke)]
         else:
             metric = get_argument(metrics.keys(), metric)
 
-        user_args = user_args[:max_users]
+        user_args = user_args[:max_users] or [ctx.user["userId"]]
         usernames = set(user_args)
-
         profiles = []
 
         for username in usernames:
@@ -167,6 +167,7 @@ async def run(ctx: commands.Context, metric: str, profiles: list[dict]):
             columns,
             min_pp=min_pp,
             order_by="timestamp",
+            flags=ctx.flags,
         )
 
         x_values = [race["timestamp"] for race in race_list]
@@ -177,7 +178,7 @@ async def run(ctx: commands.Context, metric: str, profiles: list[dict]):
         elif metric in ["best", "wpm"]:
             y_values = get_best_over_time(race_list, key=columns[0])
         elif metric == "races":
-            y_values = [race["raceNumber"] for race in race_list]
+            y_values = [i + 1 for i in range(len(race_list))]
         elif metric == "quotes":
             y_values = get_quotes_over_time(race_list)
         elif metric == "characters":
@@ -194,13 +195,19 @@ async def run(ctx: commands.Context, metric: str, profiles: list[dict]):
 
     lines.sort(key=lambda x: -x["y_values"][-1])
 
-    title = metrics[metric]["title"]
+    y_label = metrics[metric]["title"]
+    title = y_label + " Over Time"
+
+    if len(profiles) == 1:
+        title += f" - {profiles[0]["username"]}"
+
+    title += get_flag_title(ctx.flags)
+
     file_name = line.render(
         username,
         lines,
-        f"{title} Over Time"
-        + (f" - {profiles[0]["username"]}" if len(profiles) == 1 else ""),
         title,
+        y_label,
         ctx.user["theme"],
     )
     file = File(file_name, filename=file_name)
