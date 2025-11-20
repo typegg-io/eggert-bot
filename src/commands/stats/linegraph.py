@@ -57,15 +57,18 @@ info = {
 
 class LineGraph(Command):
     @commands.command(aliases=info["aliases"])
-    async def linegraph(self, ctx, metric: str = "pp", *user_args: Optional[str]):
+    async def linegraph(self, ctx, metric: Optional[str] = "pp", *user_args: Optional[str]):
         invoke = ctx.invoked_with.lower()
+        user_args = list(user_args)
+
+        if not get_argument(metrics.keys(), metric, _raise=False):
+            user_args = [metric] + user_args
+            metric = "pp"
+
+        if not user_args:
+            user_args = [ctx.user["userId"]]
 
         if invoke in metric_aliases:
-            if not user_args:
-                user_args = [ctx.user["userId"]]
-            else:
-                user_args = [metric] + list(user_args)
-
             metric = [*metrics.keys()][metric_aliases.index(invoke)]
         else:
             metric = get_argument(metrics.keys(), metric)
