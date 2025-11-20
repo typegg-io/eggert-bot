@@ -53,7 +53,7 @@ async def run(ctx: commands.Context, profile: dict):
                 f"**Current Streak:** {streak:,}{fire}\n"
                 f"**Best Streak:** {daily_stats["bestStreak"]:,}\n"
                 f"**Total Completed:** {daily_stats["completed"]:,}\n"
-                f"**Completion Rate:** {daily_stats["completed"] / total_days:,.2%}\n\n"
+                f"**Participation Rate:** {daily_stats["completed"] / total_days:,.2%}\n\n"
             ),
         ),
         Field(
