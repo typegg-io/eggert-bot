@@ -116,6 +116,7 @@ async def comparegraph_main(ctx: commands.Context, profile1: dict, profile2):
     max_difficulty1 = float("-inf")
     min_difficulty2 = float("inf")
     max_difficulty2 = float("-inf")
+    metric = "wpm" if ctx.flags.get("status") == "unranked" else "pp"
 
     for quote_id in set(quote_ids1) | set(quote_ids2):
         difficulty = quotes[quote_id]["difficulty"]
@@ -136,7 +137,7 @@ async def comparegraph_main(ctx: commands.Context, profile1: dict, profile2):
         elif in2 and not in1:
             defaults[bucket] += 1
         else:
-            if quote_bests1[quote_id]["pp"] > quote_bests2[quote_id]["pp"]:
+            if quote_bests1[quote_id][metric] > quote_bests2[quote_id][metric]:
                 gains1[bucket] += 1
             else:
                 gains2[bucket] += 1
