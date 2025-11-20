@@ -57,18 +57,21 @@ info = {
 
 class LineGraph(Command):
     @commands.command(aliases=info["aliases"])
-    async def linegraph(self, ctx, metric: str = "pp", username1: Optional[str] = "me", *other_users: Optional[str]):
+    async def linegraph(self, ctx, metric: str = "pp", *user_args: Optional[str]):
         invoke = ctx.invoked_with.lower()
 
         if invoke in metric_aliases:
-            other_users = list(other_users) + [metric]
+            if not user_args:
+                user_args = [ctx.user["userId"]]
+            else:
+                user_args = [metric] + list(user_args)
             metric = [*metrics.keys()][metric_aliases.index(invoke)]
         else:
             metric = get_argument(metrics.keys(), metric)
 
-        other_users = other_users[:max_users - 1]
-        usernames = set(other_users)
-        usernames.add(username1)
+        user_args = user_args[:max_users]
+        usernames = set(user_args)
+
         profiles = []
 
         for username in usernames:
@@ -195,7 +198,8 @@ async def run(ctx: commands.Context, metric: str, profiles: list[dict]):
     file_name = line.render(
         username,
         lines,
-        f"{title} Over Time",
+        f"{title} Over Time"
+        + (f" - {profiles[0]["username"]}" if len(profiles) == 1 else ""),
         title,
         ctx.user["theme"],
     )
