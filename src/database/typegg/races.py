@@ -18,7 +18,7 @@ def race_insert(race):
         race["accuracy"],
         race["errorReactionTime"],
         race["errorRecoveryTime"],
-        race["timestamp"],
+        race["timestamp"] + ".000Z" if "Z" not in race["timestamp"] else race["timestamp"],
         race["stickyStart"],
         race["gamemode"],
         race["placement"],

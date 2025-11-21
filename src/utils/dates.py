@@ -12,7 +12,7 @@ def now():
 
 
 def get_timestamp_list(date_list):
-    return [datetime.strptime(date[:-1], "%Y-%m-%d %H:%M:%S.%f").timestamp() for date in date_list]
+    return [datetime.strptime(date.rstrip("Z"), "%Y-%m-%d %H:%M:%S.%f").timestamp() for date in date_list]
 
 
 def parse_date(date_string):
