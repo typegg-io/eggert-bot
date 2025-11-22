@@ -46,7 +46,7 @@ def build_stat_fields(profile, race_list, flags={}):
     total_duration = 0
     words_typed = 0
     chars_typed = 0
-    longest_break = {"start_race": None, "duration": 0}
+    longest_break = {"start_race": race_list[0], "duration": 0}
     previous_race = None
 
     for race in race_list:
