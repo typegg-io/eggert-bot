@@ -1,7 +1,7 @@
 import asyncio
 
 import discord
-from discord import Embed
+from discord import Embed, Forbidden
 from discord.ext import commands
 
 from commands.base import Command
@@ -49,7 +49,10 @@ class Unlink(Command):
                 color=ctx.user["theme"]["embed"]
             )
 
-            await ctx.author.send(embed=embed)
+            try:
+                await ctx.author.send(embed=embed)
+            except Forbidden:
+                return await ctx.send(embed=embed)
 
 
 async def unverify_user(bot_instance: commands.Bot, discord_id: str):
