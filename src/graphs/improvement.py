@@ -56,14 +56,19 @@ def render(
         else:
             ax.plot(x_points, moving_values, label="_")
 
+    ax.set_ylim(bottom=min([val for val in values if val > 0]) * 0.95)
+
     if dates:
         ax.set_xlabel(f"Date")
     else:
         ax.set_xlabel(f"Races")
+
     ax.set_ylabel(metric)
     title = f"{metric} Improvement"
+
     if window_size > 1:
         title += f"\nMoving Average of {window_size} Races"
+
     ax.set_title(title)
     ax.grid()
     ax.set_title(title)

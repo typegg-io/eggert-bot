@@ -44,7 +44,7 @@ class Improvement(Command):
 async def multiplayer_improvement(ctx: commands.Context, profile: dict, metric: str):
     race_list = await get_races(
         profile["userId"],
-        columns=["quoteId", metric, "timestamp"],
+        columns=["quoteId", metric, "timestamp", "completionType"],
         gamemode="multiplayer",
     )
 
@@ -61,13 +61,15 @@ async def multiplayer_improvement(ctx: commands.Context, profile: dict, metric: 
         return await message.send()
 
     values, dates = zip(*[(race[metric], race["timestamp"]) for race in race_list])
+    dnf_count = len([race for race in race_list if race["completionType"] != "finished"])
     best_average = max(np.convolve(values, np.ones(25) / 25, mode="valid"))
 
     if metric == "wpm":
         metric = "WPM"
 
     description = (
-        f"**Races:** {len(values):,}\n"
+        f"**Races:** {len(values) - dnf_count:,} / "
+        f"**DNFs:** {dnf_count:,}\n"
         f"**Average:** {np.mean(values):,.2f} {metric}\n"
         f"**Best:** {max(values):,.2f} {metric}\n"
     )

@@ -170,6 +170,7 @@ async def run(ctx: commands.Context, metric: str, profiles: list[dict]):
             columns,
             min_pp=min_pp,
             order_by="timestamp",
+            completion_type="finished",
             flags=ctx.flags,
         )
 

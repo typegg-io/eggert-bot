@@ -34,4 +34,4 @@ def calculate_wpm(duration, chars_typed):
 
 def calculate_duration(wpm, chars_typed):
     """Returns the ms duration given WPM and number of characters typed."""
-    return (chars_typed * 12000) / wpm
+    return (chars_typed * 12000) / wpm if wpm else 0

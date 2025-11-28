@@ -14,6 +14,8 @@ def race_insert(race):
         race["rawPp"],
         race["wpm"],
         race["rawWpm"],
+        race["matchWpm"],
+        race["rawMatchWpm"],
         race["duration"],
         race["accuracy"],
         race["errorReactionTime"],
@@ -31,7 +33,7 @@ def add_races(races):
     """Batch insert user races."""
     db.run_many(f"""
         INSERT OR IGNORE INTO races
-        VALUES ({",".join(["?"] * 18)})
+        VALUES ({",".join(["?"] * 20)})
     """, [race_insert(race) for race in races])
 
 
@@ -48,6 +50,7 @@ async def get_races(
     order_by: str = "timestamp",
     reverse: bool = False,
     limit: Optional[int] = None,
+    completion_type: Optional[str] = None,
     flags: dict = {},
 ):
     """Fetch races for a user with optional filters."""
@@ -74,6 +77,7 @@ async def get_races(
 
     conditions = ["userId = ?"]
     params = [user_id]
+
     if start_number is not None:
         conditions.append(f"raceNumber >= {start_number}")
     if end_number is not None:
@@ -84,13 +88,18 @@ async def get_races(
     if end_date is not None:
         conditions.append("timestamp < ?")
         params.append(end_date)
-    if min_pp is not None:
+    if min_pp is not None and gamemode != "multiplayer":
         conditions.append(f"pp > {min_pp}")
     if max_pp is not None:
         conditions.append(f"pp <= {max_pp}")
     if gamemode is not None:
         conditions.append(f"gamemode = ?")
         params.append(gamemode)
+        if gamemode == "multiplayer":
+            columns = "matchWpm as wpm, rawMatchWpm as wpm, " + columns
+    if completion_type:
+        conditions.append("completionType = ?")
+        params.append(completion_type)
 
     where_clause = "WHERE " + " AND ".join(conditions)
 

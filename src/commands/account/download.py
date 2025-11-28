@@ -133,7 +133,7 @@ async def run(
         if not race_list:
             break
 
-        log(f"Fetched races {race_list[0]["raceNumber"]:,} - {race_list[-1]["raceNumber"]}")
+        log(f"Fetched races {race_list[0]["raceNumber"] or "DNF"} - {race_list[-1]["raceNumber"] or "DNF"}")
 
         for race in race_list:
             quote_id = race["quoteId"]
@@ -146,13 +146,17 @@ async def run(
 
             if match:
                 players = match["players"]
-                race["players"] = len(players)
-                race["placement"] = next((
-                    player["placement"]
-                    for player in players
+                player = next((
+                    player for player in players
                     if player.get("username") == profile.get("username")
-                ), 1)
+                ), None)
+                race["matchWpm"] = player["matchWpm"]
+                race["rawMatchWpm"] = player["rawMatchWpm"]
+                race["players"] = len(players)
+                race["placement"] = player["placement"]
             else:
+                race["matchWpm"] = None
+                race["rawMatchWpm"] = None
                 race["players"] = 1
                 race["placement"] = 1
 

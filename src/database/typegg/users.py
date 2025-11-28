@@ -41,8 +41,7 @@ def get_quote_bests(
         metric = flags.get("metric")
 
         if metric == "raw":
-            columns = columns.replace("wpm", "rawWpm as wpm")
-            columns = columns.replace("pp", "rawPp as pp")
+            columns = "rawWpm as wpm, rawPp as pp, " + columns
             if order_by in ["pp", "wpm"]:
                 order_by = "raw" + order_by.capitalize()
 
@@ -64,6 +63,8 @@ def get_quote_bests(
     if gamemode is not None and gamemode in ["solo", "multiplayer"]:
         conditions.append("gamemode = ?")
         params.append(gamemode)
+        if gamemode == "multiplayer":
+            columns = "matchWpm as wpm, rawMatchWpm as wpm, " + columns
 
     where_clause = "WHERE " + " AND ".join(conditions)
 

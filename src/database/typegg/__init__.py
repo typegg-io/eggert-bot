@@ -17,6 +17,8 @@ db.run("""
         rawPp REAL NOT NULL,
         wpm REAL NOT NULL,
         rawWpm REAL NOT NULL,
+        matchWpm REAL,
+        rawMatchWpm REAl,
         duration REAL NOT NULL,
         accuracy REAL NOT NULL,
         errorReactionTime REAL NOT NULL,

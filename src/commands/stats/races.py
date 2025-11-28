@@ -31,6 +31,7 @@ class Races(Command):
 
 def build_stat_fields(profile, race_list, flags={}):
     quote_list = get_quotes()
+    multiplayer = flags.get("gamemode") == "multiplayer"
 
     cumulative_keys = {
         "wpm", "rawWpm", "accuracy", "duration",
@@ -41,15 +42,27 @@ def build_stat_fields(profile, race_list, flags={}):
     correction_duration = 0
     solo_races = 0
     multiplayer_races = 0
+    dnf_count = 0
     wins = 0
     best = {"pp": race_list[0], "wpm": race_list[0]}
     total_duration = 0
     words_typed = 0
     chars_typed = 0
-    longest_break = {"start_race": race_list[0], "duration": 0}
+    longest_break = {
+        "start_race": next(
+            race for race in race_list if race["raceNumber"] is not None
+        ),
+        "duration": 0
+    }
     previous_race = None
 
     for race in race_list:
+        if race["completionType"] != "finished":
+            if multiplayer:
+                dnf_count += 1
+            else:
+                continue
+
         for key in cumulative_keys:
             cumulative_values[key] += race[key]
 
@@ -81,6 +94,9 @@ def build_stat_fields(profile, race_list, flags={}):
         words = quote["text"].split()
         words_typed += len(words)
         chars_typed += quote_length
+
+        if race["raceNumber"] is None:
+            continue
 
         if previous_race is not None:
             break_time = (
@@ -156,9 +172,10 @@ def build_stat_fields(profile, race_list, flags={}):
     fields.append(Field(
         title="Activity",
         content=(
-            f"**Races:** {total_races:,}\n"
-            f"**Solo:** {solo_races:,} / **Multiplayer:** {multiplayer_races:,}\n" +
-            (f"**Wins:** {wins:,} ({wins / multiplayer_races:.2%} win rate)\n" if wins > 0 else "") +
+            f"**Races:** {total_races - dnf_count:,}" +
+            (f" / **DNFs:** {dnf_count:,}\n" if multiplayer else "\n") +
+            f"**Solo:** {solo_races:,} / **Multiplayer:** {(multiplayer_races - dnf_count):,}\n" +
+            (f"**Wins:** {wins:,} ({wins / multiplayer_races:.2%} win rate)\n" if wins > 0 else "\n") +
             f"**Quotes:** {unique_quotes:,}" +
             (f" ({new_quotes:,} new)\n" if new_quotes < unique_quotes else "\n") +
             f"**Words Typed:** {words_typed:,}\n"
