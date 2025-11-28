@@ -12,7 +12,7 @@ db.run("""
         raceId TEXT PRIMARY KEY,
         quoteId TEXT NOT NULL,
         userId TEXT NOT NULL,
-        raceNumber INTEGER NOT NULL,
+        raceNumber INTEGER,
         pp REAL NOT NULL,
         rawPp REAL NOT NULL,
         wpm REAL NOT NULL,
@@ -22,10 +22,11 @@ db.run("""
         errorReactionTime REAL NOT NULL,
         errorRecoveryTime REAL NOT NULL,
         timestamp TEXT NOT NULL, -- ISO 8601 string
-        stickyStart INTEGER NOT NULL, -- boolean
+        stickyStart INTEGER, -- boolean
         gamemode TEXT NOT NULL,
         placement INTEGER NOT NULL,
-        players INTEGER NOT NULL
+        players INTEGER NOT NULL,
+        completionType TEXT NOT NULL
     );
 """)
 

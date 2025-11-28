@@ -6,9 +6,25 @@ from dateutil.relativedelta import relativedelta
 from utils.errors import InvalidDate
 from utils.strings import ordinal_number
 
+API_DATE_FORMAT = "%Y-%m-%d %H:%M:%S.%fZ"
+
 
 def now():
     return datetime.now(timezone.utc)
+
+
+def epoch():
+    return datetime(1970, 1, 1, tzinfo=timezone.utc)
+
+
+def string_to_date(date_string: str, format: str = API_DATE_FORMAT):
+    """Returns a date object given a string and date format."""
+    return datetime.strptime(date_string, format)
+
+
+def date_to_string(date_object: datetime, format: str = API_DATE_FORMAT):
+    """Returns a string given a date object and date format."""
+    return datetime.strftime(date_object, format)
 
 
 def get_timestamp_list(date_list):
@@ -87,3 +103,7 @@ def get_start_end_dates(date: datetime, period: str):
         return start, end
 
     return None, None
+
+
+def format_timestamp(date: datetime):
+    return date.strftime("%Y-%m-%d %H:%M:%SZ")

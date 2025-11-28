@@ -1,5 +1,6 @@
 from typing import Optional
 
+from dateutil.relativedelta import relativedelta
 from discord.ext import commands
 
 from api.quotes import get_quote
@@ -10,6 +11,7 @@ from database.typegg.quotes import get_quotes, add_quote
 from database.typegg.races import add_races, get_latest_race
 from database.typegg.sources import get_sources, add_source
 from database.typegg.users import get_user, create_user
+from utils.dates import string_to_date, date_to_string, epoch
 from utils.logging import log
 from utils.messages import Page, Message
 from utils.strings import escape_formatting, LOADING
@@ -74,7 +76,14 @@ async def run(
 
     total_races = profile["stats"]["races"]
     latest_race = get_latest_race(user_id)
-    latest_race_number = 0 if latest_race is None else latest_race["raceNumber"]
+
+    if latest_race is None:
+        latest_date = epoch()
+        latest_race_number = 0
+    else:
+        latest_date = string_to_date(latest_race["timestamp"])
+        latest_race_number = latest_race["raceNumber"]
+
     races_left = total_races - latest_race_number
 
     status_message = (
@@ -107,25 +116,24 @@ async def run(
         return
 
     quote_ids = set(get_quotes().keys())
+    start_date = latest_date + relativedelta(microseconds=1000)
 
-    start_number = latest_race_number + 1
-    while start_number <= total_races:
+    while True:
         new_quote_ids = set()
-        end_number = min(start_number + 999, total_races)
-        log(f"Fetching races {start_number:,} - {end_number:,}")
 
         results = await get_races(
             user_id,
-            start_number=start_number,
-            end_number=end_number,
+            start_date=date_to_string(start_date),
             per_page=1000,
-            sort="number",
+            sort="timestamp",
             reverse=False,
         )
         race_list = results["races"]
 
         if not race_list:
             break
+
+        log(f"Fetched races {race_list[0]["raceNumber"]:,} - {race_list[-1]["raceNumber"]}")
 
         for race in race_list:
             quote_id = race["quoteId"]
@@ -169,7 +177,7 @@ async def run(
 
         add_races(race_list)
 
-        start_number = race_list[-1]["raceNumber"] + 1
+        start_date = string_to_date(race_list[-1]["timestamp"]) + relativedelta(microseconds=1000)
 
     if send_message:
         await initial_send

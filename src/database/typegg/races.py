@@ -23,6 +23,7 @@ def race_insert(race):
         race["gamemode"],
         race["placement"],
         race["players"],
+        race["completionType"],
     )
 
 
@@ -30,7 +31,7 @@ def add_races(races):
     """Batch insert user races."""
     db.run_many(f"""
         INSERT OR IGNORE INTO races
-        VALUES ({",".join(["?"] * 17)})
+        VALUES ({",".join(["?"] * 18)})
     """, [race_insert(race) for race in races])
 
 
@@ -51,8 +52,6 @@ async def get_races(
 ):
     """Fetch races for a user with optional filters."""
     columns = ",".join(columns)
-    min_pp = 0
-    max_pp = 99999
 
     if flags:
         status = flags.get("status", "ranked")
@@ -140,7 +139,7 @@ def get_latest_race(user_id: str):
     result = db.fetch_one("""
         SELECT * FROM races
         WHERE userId = ?
-        ORDER BY raceNumber DESC
+        ORDER BY timestamp DESC
         LIMIT 1
     """, [user_id])
 
