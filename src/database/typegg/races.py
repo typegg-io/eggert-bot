@@ -149,6 +149,7 @@ def get_latest_race(user_id: str):
         SELECT * FROM races
         WHERE userId = ?
         ORDER BY timestamp DESC
+        WHERE raceNumber IS NOT NULL
         LIMIT 1
     """, [user_id])
 
