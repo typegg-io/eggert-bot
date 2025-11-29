@@ -64,7 +64,7 @@ def get_quote_bests(
         conditions.append("gamemode = ?")
         params.append(gamemode)
         if gamemode == "multiplayer":
-            columns = "matchWpm as wpm, rawMatchWpm as wpm, " + columns
+            columns = "matchWpm as wpm, rawMatchWpm as rawWpm, " + columns
 
     where_clause = "WHERE " + " AND ".join(conditions)
 

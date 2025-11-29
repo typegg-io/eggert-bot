@@ -96,7 +96,7 @@ async def get_races(
         conditions.append(f"gamemode = ?")
         params.append(gamemode)
         if gamemode == "multiplayer":
-            columns = "matchWpm as wpm, rawMatchWpm as wpm, " + columns
+            columns = "matchWpm as wpm, rawMatchWpm as rawWpm, " + columns
     if completion_type:
         conditions.append("completionType = ?")
         params.append(completion_type)
