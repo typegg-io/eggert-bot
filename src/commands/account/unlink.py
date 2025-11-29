@@ -1,7 +1,8 @@
 import asyncio
 
 import discord
-from discord import Embed, Forbidden
+from discord import Embed
+from discord.errors import Forbidden
 from discord.ext import commands
 
 from commands.base import Command
