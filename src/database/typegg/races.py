@@ -148,8 +148,8 @@ def get_latest_race(user_id: str):
     result = db.fetch_one("""
         SELECT * FROM races
         WHERE userId = ?
+        AND raceNumber IS NOT NULL
         ORDER BY timestamp DESC
-        WHERE raceNumber IS NOT NULL
         LIMIT 1
     """, [user_id])
 
