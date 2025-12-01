@@ -12,6 +12,8 @@ def race_insert(race):
         race["raceNumber"],
         race["pp"],
         race["rawPp"],
+        race["matchPp"],
+        race["rawMatchPp"],
         race["wpm"],
         race["rawWpm"],
         race["matchWpm"],
@@ -33,7 +35,7 @@ def add_races(races):
     """Batch insert user races."""
     db.run_many(f"""
         INSERT OR IGNORE INTO races
-        VALUES ({",".join(["?"] * 20)})
+        VALUES ({",".join(["?"] * 22)})
     """, [race_insert(race) for race in races])
 
 
@@ -96,7 +98,10 @@ async def get_races(
         conditions.append(f"gamemode = ?")
         params.append(gamemode)
         if gamemode == "multiplayer":
-            columns = "matchWpm as wpm, rawMatchWpm as rawWpm, " + columns
+            columns = (
+                "matchWpm as wpm, rawMatchWpm as rawWpm, "
+                "matchPp as pp, rawMatchPp as rawPp, "
+            ) + columns
     if completion_type:
         conditions.append("completionType = ?")
         params.append(completion_type)

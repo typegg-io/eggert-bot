@@ -58,9 +58,8 @@ def build_stat_fields(profile, race_list, flags={}):
 
     for race in race_list:
         if race["completionType"] != "finished":
-            if multiplayer:
-                dnf_count += 1
-            else:
+            dnf_count += 1
+            if not multiplayer:
                 continue
 
         for key in cumulative_keys:

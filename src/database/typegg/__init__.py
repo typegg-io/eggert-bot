@@ -15,6 +15,8 @@ db.run("""
         raceNumber INTEGER,
         pp REAL NOT NULL,
         rawPp REAL NOT NULL,
+        matchPp REAL,
+        rawMatchPp REAL,
         wpm REAL NOT NULL,
         rawWpm REAL NOT NULL,
         matchWpm REAL,
