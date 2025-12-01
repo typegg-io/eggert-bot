@@ -4,6 +4,7 @@ from discord.ext import commands
 
 from api.users import get_race
 from commands.base import Command
+from database.bot.recent_quotes import set_recent_quote
 from database.typegg.quotes import get_quote
 from graphs import race as race_graph
 from utils.keylogs import get_keystroke_data
@@ -32,6 +33,7 @@ async def run(ctx: commands.Context, profile: dict, race_number: int):
     race = await get_race(profile["userId"], race_number, get_keystrokes=True)
     quote = get_quote(race["quoteId"])
     keystroke_data = get_keystroke_data(race["keystrokeData"])
+    set_recent_quote(ctx.channel.id, race["quoteId"])
 
     description = (
         f"Completed {discord_date(race["timestamp"])}\n\n"
