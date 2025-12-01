@@ -23,7 +23,7 @@ class LastOnline(Command):
         page = Page(
             title="Last Online",
             description=(
-                f"{format_duration(duration)}\n"
+                f"{format_duration(duration)} ago\n"
                 f"{discord_date(last_online, "f")}"
             ),
         )
