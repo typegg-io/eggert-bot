@@ -71,3 +71,8 @@ def run_many(query, data):
         writer.commit()
     finally:
         cursor.close()
+
+
+def get_row_count(table):
+    """Return the total number of rows from a given table."""
+    return fetch_one(f"SELECT COUNT(*) FROM {table}")[0]
