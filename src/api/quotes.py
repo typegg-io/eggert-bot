@@ -78,3 +78,16 @@ async def get_all_quotes():
         page += 1
 
     return all_quotes
+
+
+async def calculate_metric(quote_id: str, value: float, metric: str = "pp"):
+    """
+    Calls GET /quotes/{quoteId}/calculate
+    Returns the JSON response as a dict.
+    """
+    return await request(
+        url=f"{API_URL}/v1/quotes/{quote_id}/calculate",
+        json_data={metric: value},
+        exceptions={404: UnknownQuote(quote_id)},
+        method="POST",
+    )
