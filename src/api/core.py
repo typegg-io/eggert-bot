@@ -29,7 +29,9 @@ def get_params(raw_params):
 async def request(
     url: str,
     params: dict = {},
+    json_data: dict = {},
     exceptions: dict = None,
+    method: str = "GET",
 ):
     """
     Send an asynchronous aiohttp request given a URL, parameters, and headers.
@@ -37,14 +39,24 @@ async def request(
     Args:
         url (str): The endpoint to request
         params (dict, optional): A dictionary of parameters for the request
+        json_data (dict, optional): JSON data for the body of the request
         exceptions (dict[int, Exception], optional): A mapping of HTTP status
             codes to custom exceptions to raise if matched.
+        method (str): The HTTP method to send the request with
     """
     params = get_params(params)
+    json_data = get_params(json_data)
+    method = method.lower()
 
     async def do_request():
         async with aiohttp.ClientSession() as session:
-            async with session.get(url, params=params, headers=AUTH_HEADERS) as response:
+            async with session.request(
+                method,
+                url,
+                json=json_data,
+                params=params,
+                headers=AUTH_HEADERS
+            ) as response:
                 status = response.status
                 try:
                     json = await response.json()
