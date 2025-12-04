@@ -32,7 +32,10 @@ class Command(commands.Cog):
         async def set_user(ctx: commands.Context):
             """Attach a user to the context and block banned users."""
             ctx.flags = ctx.message.flags
-            if ctx.channel.id == DAILY_QUOTE_CHANNEL_ID and str(ctx.command) != "dailyleaderboard":
+            if (
+                ctx.channel.id == DAILY_QUOTE_CHANNEL_ID
+                and str(ctx.command) not in ["dailyleaderboard", "dailystats"]
+            ):
                 raise DailyQuoteChannel
             if not hasattr(ctx, "user"):
                 ctx.user = get_user(str(ctx.author.id))
