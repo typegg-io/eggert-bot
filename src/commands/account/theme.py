@@ -143,14 +143,17 @@ async def display_user_theme(ctx: commands.Context, member: Member):
     embed.set_image(url=f"attachment://{file_name}")
     file = File(file_name, filename=file_name)
 
-    async def copy_theme(discord_id: str, theme: dict):
-        if theme["line"] == "keegan" and ctx.author.id != KEEGAN:
+    async def copy_theme(interaction, theme: dict):
+        user_id = interaction.user.id
+
+        if theme["line"] == "keegan" and user_id != KEEGAN:
             theme["line"] = "#0094FF"
-        update_theme(str(discord_id), theme)
+
+        update_theme(str(user_id), theme)
 
     button = Button(
         label="Copy Theme",
-        callback=lambda: copy_theme(ctx.author.id, user_theme),
+        callback=lambda interaction: copy_theme(interaction, user_theme),
         message="Theme copied!",
     )
     message = await ctx.send(embed=embed, file=file, view=button)

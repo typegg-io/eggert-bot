@@ -357,7 +357,7 @@ class Button(View):
         button = DiscordButton(label=self.label, style=ButtonStyle.primary)
 
         async def callback(interaction):
-            result = self.callback_func()
+            result = self.callback_func(interaction)
             if asyncio.iscoroutine(result):
                 await result
             await interaction.response.send_message(self.message_text, ephemeral=True)
