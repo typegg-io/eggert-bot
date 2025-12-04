@@ -6,32 +6,37 @@ from dateutil.relativedelta import relativedelta
 from utils.errors import InvalidDate
 from utils.strings import ordinal_number
 
+# Constants
+
 API_DATE_FORMAT = "%Y-%m-%d %H:%M:%S.%fZ"
 
 
+# Basic Date Utilities
+
 def now():
+    """Return the current UTC datetime."""
     return datetime.now(timezone.utc)
 
 
 def epoch():
+    """Return the Unix epoch (January 1, 1970) as a UTC datetime."""
     return datetime(1970, 1, 1, tzinfo=timezone.utc)
 
 
+# String & Date Conversion
+
 def string_to_date(date_string: str, format: str = API_DATE_FORMAT):
-    """Returns a date object given a string and date format."""
+    """Convert a date string to a datetime object using the specified format."""
     return datetime.strptime(date_string, format)
 
 
 def date_to_string(date_object: datetime, format: str = API_DATE_FORMAT):
-    """Returns a string given a date object and date format."""
+    """Convert a datetime object to a string using the specified format."""
     return datetime.strftime(date_object, format)
 
 
-def get_timestamp_list(date_list):
-    return [datetime.strptime(date.rstrip("Z"), "%Y-%m-%d %H:%M:%S.%f").timestamp() for date in date_list]
-
-
 def parse_date(date_string):
+    """Parse a flexible date string (e.g., 'now', 'yesterday', ISO format) into a UTC datetime."""
     _now = now()
     if not date_string or date_string in ["now", "present", "today"]:
         date = _now
@@ -47,7 +52,7 @@ def parse_date(date_string):
 
 
 def format_date(date):
-    """Returns a date formatted as 'October 1st, 2025'."""
+    """Format a datetime as a readable string (e.g., 'October 1st, 2025')."""
     month = date.strftime("%B")
     year = date.strftime("%Y")
     day = int(date.strftime("%d"))
@@ -55,39 +60,43 @@ def format_date(date):
     return f"{month} {ordinal_number(day)}, {year}"
 
 
-def count_unique_dates(start, end):
-    """Returns the number of unique days within a start and end date range."""
-    start_date = parse_date(start)
-    end_date = parse_date(end)
+def format_timestamp(date: datetime):
+    """Format a datetime as an ISO-like timestamp string (YYYY-MM-DD HH:MM:SSZ)."""
+    return date.strftime("%Y-%m-%d %H:%M:%SZ")
 
-    unique_dates = set()
 
-    while start_date <= end_date:
-        unique_dates.add(start_date.strftime("%m-%d-%Y"))
-        start_date += relativedelta(days=1)
+def get_timestamp_list(date_list):
+    """Convert a list of date strings to Unix timestamps."""
+    return [datetime.strptime(date.rstrip("Z"), "%Y-%m-%d %H:%M:%S.%f").timestamp() for date in date_list]
 
-    return len(unique_dates)
 
+# Date Flooring Functions
 
 def floor_day(date):
+    """Round a datetime down to the start of the day (00:00:00 UTC)."""
     return date.replace(hour=0, minute=0, second=0, microsecond=0, tzinfo=timezone.utc)
 
 
 def floor_week(date):
+    """Round a datetime down to the start of the week (Monday 00:00:00 UTC)."""
     return ((date - relativedelta(days=date.weekday()))
             .replace(hour=0, minute=0, second=0, microsecond=0, tzinfo=timezone.utc))
 
 
 def floor_month(date):
+    """Round a datetime down to the start of the month (1st day 00:00:00 UTC)."""
     return date.replace(day=1, hour=0, minute=0, second=0, microsecond=0, tzinfo=timezone.utc)
 
 
 def floor_year(date):
+    """Round a datetime down to the start of the year (January 1st 00:00:00 UTC)."""
     return date.replace(month=1, day=1, hour=0, minute=0, second=0, microsecond=0, tzinfo=timezone.utc)
 
 
+# Date Range Utilities
+
 def get_start_end_dates(date: datetime, period: str):
-    """Returns start and end dates (UTC) given a date and period (day, week, month, or year)."""
+    """Calculate start and end dates for a given period (day, week, month, or year)."""
     periods = {
         "day": (floor_day, relativedelta(days=1)),
         "week": (floor_week, relativedelta(weeks=1)),
@@ -105,5 +114,15 @@ def get_start_end_dates(date: datetime, period: str):
     return None, None
 
 
-def format_timestamp(date: datetime):
-    return date.strftime("%Y-%m-%d %H:%M:%SZ")
+def count_unique_dates(start, end):
+    """Count the number of unique days between two date strings (inclusive)."""
+    start_date = parse_date(start)
+    end_date = parse_date(end)
+
+    unique_dates = set()
+
+    while start_date <= end_date:
+        unique_dates.add(start_date.strftime("%m-%d-%Y"))
+        start_date += relativedelta(days=1)
+
+    return len(unique_dates)

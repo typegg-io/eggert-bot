@@ -23,6 +23,7 @@ def calculate_quote_length(wpm, duration):
 
 
 def calculate_ms(quote, wpm):
+    """Returns the ms duration given a quote and WPM."""
     if wpm == 0: return 0
     return round((len(quote) * 12000) / wpm)
 

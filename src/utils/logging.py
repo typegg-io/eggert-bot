@@ -7,7 +7,10 @@ import requests
 from config import STAGING, MESSAGE_WEBHOOK, ERROR_WEBHOOK
 from database.bot.users import get_user
 
+# Constants
+
 start = 0
+
 ADMIN_ALIASES = {
     155481579005804544: "K\u200beegan",
     87926662364160000: "E\u200biko",
@@ -15,22 +18,30 @@ ADMIN_ALIASES = {
 }
 
 
+# Performance Timing
+
 def time_start():
+    """Start the performance timer."""
     global start
     start = time.time()
 
 
 def time_split():
+    """Stop the current timer, print elapsed time, and start a new timer."""
     time_stop()
     time_start()
 
 
 def time_stop():
+    """Stop the performance timer and print the elapsed time in milliseconds."""
     end = time.time() - start
     print(f"Took {end * 1000:,.0f}ms")
 
 
+# Message Formatting
+
 def get_log_message(message):
+    """Format a Discord message into a log string with link, user info, and content."""
     message_link = "[DM]"
     if message.guild:
         message_id = message.id
@@ -47,7 +58,10 @@ def get_log_message(message):
     return f"{message_link} {mention}{linked_account}: `{content}`"
 
 
+# Logging Functions
+
 def send_log(webhook, message, file=None):
+    """Send a log message to a Discord webhook, optionally with a file attachment."""
     payload = {
         "content": message,
         "allowed_mentions": {"parse": ["users"]}
@@ -60,6 +74,7 @@ def send_log(webhook, message, file=None):
 
 
 def log(message, file=None):
+    """Log a message to the console (staging) or Discord webhook (production)."""
     if STAGING:
         return print(message)
 
@@ -67,6 +82,7 @@ def log(message, file=None):
 
 
 def log_error(command_message, error):
+    """Log an error with traceback to console (staging) or Discord webhook (production)."""
     if STAGING:
         return traceback.print_exception(type(error), error, error.__traceback__)
 
