@@ -4,7 +4,7 @@ from discord import Embed
 from discord.ext.commands import CommandError, CheckFailure
 
 from config import BOT_PREFIX as prefix
-from utils.colors import WARNING
+from utils.colors import WARNING, PLUS
 
 
 class MissingArguments(CommandError):
@@ -269,3 +269,16 @@ class MigrationActive(CommandError):
         ),
         color=WARNING,
     )
+
+
+@dataclass
+class NotSubscribed(CommandError):
+    message: str
+
+    @property
+    def embed(self):
+        return Embed(
+            title="Requires GG+",
+            description=self.message,
+            color=PLUS,
+        )

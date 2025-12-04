@@ -3,6 +3,7 @@ from typing import Optional
 from dateutil import parser
 from dateutil.relativedelta import relativedelta
 
+from config import SITE_URL
 from utils.errors import InvalidArgument, InvalidNumber
 from utils.urls import race_url, profile_url
 
@@ -31,9 +32,10 @@ RANK_EMOJIS = [
 
 LOADING = "<a:loading:1418688762745065594>"
 INCREASE = "<:increase:1372466536693891142>"
+GG_PLUS = "<:GG1:1445664315871985807><:GG2:1445664341742452798>"
+GG_PLUS_LINK = f"{SITE_URL}/plus"
 
 OPTION_ALIASES = {
-    "pp": ["performance", "pf"],
     "accuracy": ["acc", "ac"],
     "errorReactionTime": ["reaction", "react"],
     "errorRecoveryTime": ["recovery", "recover"],
@@ -203,10 +205,11 @@ def get_flag(user):
 def username_with_flag(profile: dict, link_user: bool = True):
     flag = get_flag(profile)
     username = profile["username"]
+    gg_plus_display = GG_PLUS if profile.get("isGgPlus") else ""
     if link_user:
-        return f"{flag}[{username}]({profile_url(username)})"
+        return f"{flag}[{username}]({profile_url(username)}) {gg_plus_display}"
     else:
-        return f"{flag}{escape_formatting(username)}"
+        return f"{flag}{escape_formatting(username)} {gg_plus_display}"
 
 
 def parse_number(value):

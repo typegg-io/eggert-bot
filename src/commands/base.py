@@ -12,10 +12,10 @@ from database.bot.recent_quotes import set_recent_quote, get_recent_quote
 from database.bot.users import get_user, update_warning, get_user_ids, get_all_command_usage, update_commands
 from database.typegg.quotes import get_quote
 from database.typegg.races import get_latest_race
-from utils.errors import UserBanned, MissingUsername, NoRaces, DailyQuoteChannel
+from utils.errors import UserBanned, MissingUsername, NoRaces, DailyQuoteChannel, NotSubscribed
 from utils.logging import get_log_message, log
 from utils.messages import privacy_warning, welcome_message, command_milestone
-from utils.strings import parse_number, get_argument
+from utils.strings import parse_number, get_argument, GG_PLUS_LINK
 
 FLAGS = {"raw", "solo", "multiplayer", "unranked", "any"}
 users = get_user_ids()
@@ -66,6 +66,15 @@ class Command(commands.Cog):
 
             flags = {}
             regular_args = []
+
+            # Raw pp for GG+ only
+            bot_user = get_user(str(message.author.id))
+            if bot_user["isGgPlus"] and "pp" in raw_args and "-raw" in raw_args:
+                ctx = await bot.get_context(message)
+                return await ctx.send(embed=NotSubscribed(
+                    f"[Subscribe]({GG_PLUS_LINK}) "
+                    f"to get access to raw pp stats!"
+                ).embed)
 
             for arg in raw_args:
                 if arg.startswith("-"):
