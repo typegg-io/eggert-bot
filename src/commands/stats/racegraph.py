@@ -4,12 +4,13 @@ from discord.ext import commands
 
 from api.users import get_race
 from commands.base import Command
+from config import SITE_URL
 from database.bot.recent_quotes import set_recent_quote
 from database.typegg.quotes import get_quote
 from graphs import race as race_graph
 from utils.keylogs import get_keystroke_data
 from utils.messages import Page, Message, Field
-from utils.strings import quote_display, discord_date, format_duration
+from utils.strings import quote_display, discord_date, format_duration, GG_PLUS
 
 info = {
     "name": "racegraph",
@@ -41,6 +42,11 @@ async def run(ctx: commands.Context, profile: dict, race_number: int):
     )
 
     title = f"Race Graph - Race #{race_number:,}"
+    raw_pp_display = (
+        f"{race["rawPp"]:,.2f} pp" if ctx.user["isGgPlus"]
+        else f"[{GG_PLUS}]({SITE_URL}/plus)"
+    )
+
     page = Page(
         title=title,
         description=description,
@@ -58,7 +64,7 @@ async def run(ctx: commands.Context, profile: dict, race_number: int):
             Field(
                 title="Raw Stats",
                 content=(
-                    f"**Score:** {race["rawPp"]:,.2f} pp\n"
+                    f"**Score:** {raw_pp_display}\n"
                     f"**Speed:** {race["rawWpm"]:,.2f} WPM\n"
                     f"**Error Reaction:** {race["errorReactionTime"]:,.0f}ms\n"
                     f"**Error Recovery:** {race["errorRecoveryTime"]:,.0f}ms"
