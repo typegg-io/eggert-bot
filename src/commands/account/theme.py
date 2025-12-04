@@ -7,14 +7,15 @@ from discord.ext import commands
 
 from commands.base import Command
 from config import DEFAULT_THEME, DARK_THEME, LIGHT_THEME, KEEGAN
-from database.bot.users import update_theme, get_theme
+from database.bot.users import update_theme, get_theme, get_user
 from graphs import sample
 from graphs.core import plt
 from utils import strings
 from utils.colors import ERROR
-from utils.errors import MissingArguments, BotUserNotFound
+from utils.errors import MissingArguments, BotUserNotFound, NotSubscribed
 from utils.files import remove_file
 from utils.messages import Page, Message, Button
+from utils.strings import GG_PLUS, GG_PLUS_LINK
 
 # Name + aliases
 elements = {
@@ -39,9 +40,9 @@ themes = {
 info = {
     "name": "theme",
     "aliases": ["st"],
-    "description": "Allows for customization of embed and graph colors\n"
+    "description": f"Allows for customization of embed and graph colors [{GG_PLUS}]({GG_PLUS_LINK})\n"
                    + "\nElements:\n" + ", ".join([f"`{el}`" for el in elements]) +
-                   "\n\nPre-made themes:\n"
+                   "\n\nPre-made themes (free to use):\n"
                    "`-theme typegg` (default)\n"
                    "`-theme dark`\n"
                    "`-theme light`\n",
@@ -70,6 +71,11 @@ class Theme(Command):
             if member:
                 return await display_user_theme(ctx, member)
             return await ctx.send(embed=invalid_element())
+
+        if not ctx.user["isGgPlus"]:
+            return await ctx.send(embed=NotSubscribed(
+                f"[Get GG+]({GG_PLUS_LINK}) to access custom graphs!"
+            ).embed)
 
         if not color:
             raise MissingArguments
@@ -145,11 +151,20 @@ async def display_user_theme(ctx: commands.Context, member: Member):
 
     async def copy_theme(interaction, theme: dict):
         user_id = interaction.user.id
+        bot_user = get_user(user_id)
+
+        if not bot_user["isGgPlus"]:
+            await interaction.response.send_message(
+                f"[Get GG+]({GG_PLUS_LINK}) to access custom graphs!",
+                ephemeral=True,
+            )
+            return False
 
         if theme["line"] == "keegan" and user_id != KEEGAN:
             theme["line"] = "#0094FF"
 
         update_theme(str(user_id), theme)
+        return True
 
     button = Button(
         label="Copy Theme",

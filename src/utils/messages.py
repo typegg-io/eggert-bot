@@ -359,8 +359,10 @@ class Button(View):
         async def callback(interaction):
             result = self.callback_func(interaction)
             if asyncio.iscoroutine(result):
-                await result
-            await interaction.response.send_message(self.message_text, ephemeral=True)
+                result = await result
+
+            if result:
+                await interaction.response.send_message(self.message_text, ephemeral=True)
 
         button.callback = callback
         return button
