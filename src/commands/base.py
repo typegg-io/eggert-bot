@@ -69,11 +69,10 @@ class Command(commands.Cog):
 
             # Raw pp for GG+ only
             bot_user = get_user(str(message.author.id))
-            if bot_user["isGgPlus"] and "pp" in raw_args and "-raw" in raw_args:
+            if not bot_user["isGgPlus"] and "pp" in raw_args and "-raw" in raw_args:
                 ctx = await bot.get_context(message)
                 return await ctx.send(embed=NotSubscribed(
-                    f"[Subscribe]({GG_PLUS_LINK}) "
-                    f"to get access to raw pp stats!"
+                    f"[Get GG+]({GG_PLUS_LINK}) to access raw pp stats!"
                 ).embed)
 
             for arg in raw_args:
@@ -177,10 +176,10 @@ class Command(commands.Cog):
         ctx: commands.Context,
         quote_id: Optional[str] = None,
         user_id: Optional[str] = None,
-        from_api: Optional[bool] = False,
+        from_api: Optional[bool] = False,  # this won't be needed once the web server receives quote udpates
     ):
         """Fetches a quote from database or API, optionally pass a user ID to take their latest quote ID."""
-        if quote_id is None:
+        if quote_id is None and user_id is not None:
             latest_race = get_latest_race(user_id)
             quote_id = latest_race["quoteId"]
         elif quote_id.startswith(f"{SITE_URL}/solo/"):
