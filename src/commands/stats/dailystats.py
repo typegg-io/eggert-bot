@@ -75,12 +75,12 @@ async def run(ctx: commands.Context, profile: dict):
 
     if top_10s > 0:
         fields.append(Field(
-            title="Finishes",
+            title="Placements",
             content=(
                 (f":trophy: **Champion:** {ranks[1]:,}\n" if ranks[1] else "") +
                 (f":medal: **Runner-up:** {ranks[2]:,}\n" if ranks[2] else "") +
                 (f":third_place: **Third Place:** {ranks[3]:,}\n" if ranks[3] else "") +
-                f":star: **Top 10 Placements:** {top_10s:,}"
+                f":star: **Top 10:** {top_10s:,}"
             )
         ))
 
