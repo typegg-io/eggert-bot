@@ -137,7 +137,7 @@ def apply_theme(
     logo = "logo.png" if get_luminance(*to_rgb(background_color)) <= 0.5 else "logo_dark.png"
     logo_path = ASSETS_DIR / "images" / logo
     img = mpimg.imread(logo_path)
-    imagebox = OffsetImage(img, zoom=0.1)
+    imagebox = OffsetImage(img, zoom=0.55)
     frameon = False
     boxprops = None
 
