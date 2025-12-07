@@ -15,7 +15,7 @@ from database.typegg.races import get_latest_race
 from utils.errors import UserBanned, MissingUsername, NoRaces, DailyQuoteChannel, NotSubscribed
 from utils.logging import get_log_message, log
 from utils.messages import privacy_warning, welcome_message, command_milestone
-from utils.strings import parse_number, get_argument, GG_PLUS_LINK
+from utils.strings import parse_number, get_argument
 
 FLAGS = {"raw", "solo", "multiplayer", "unranked", "any"}
 users = get_user_ids()
@@ -66,14 +66,6 @@ class Command(commands.Cog):
 
             flags = {}
             regular_args = []
-
-            # Raw pp for GG+ only
-            bot_user = get_user(str(message.author.id))
-            if not bot_user["isGgPlus"] and "pp" in raw_args and "-raw" in raw_args:
-                ctx = await bot.get_context(message)
-                return await ctx.send(embed=NotSubscribed(
-                    f"[Get GG+]({GG_PLUS_LINK}) to access raw pp stats!"
-                ).embed)
 
             for arg in raw_args:
                 if arg.startswith("-"):
@@ -208,7 +200,9 @@ class Command(commands.Cog):
 
         return race_number
 
-    def check_gg_plus(self, ctx):
+    def check_gg_plus(self, ctx, feature: str = None):
         if not ctx.user["isGgPlus"]:
+            if feature:
+                raise NotSubscribed(feature)
             raise NotSubscribed
         return

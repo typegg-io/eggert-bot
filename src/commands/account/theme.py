@@ -12,7 +12,7 @@ from graphs import sample
 from graphs.core import plt
 from utils import strings
 from utils.colors import ERROR
-from utils.errors import MissingArguments, BotUserNotFound, NotSubscribed
+from utils.errors import MissingArguments, BotUserNotFound
 from utils.files import remove_file
 from utils.messages import Page, Message, Button
 from utils.strings import GG_PLUS, GG_PLUS_LINK
@@ -72,10 +72,7 @@ class Theme(Command):
                 return await display_user_theme(ctx, member)
             return await ctx.send(embed=invalid_element())
 
-        if not ctx.user["isGgPlus"]:
-            return await ctx.send(embed=NotSubscribed(
-                f"[Get GG+]({GG_PLUS_LINK}) to access custom graphs!"
-            ).embed)
+        self.check_gg_plus(ctx, "custom graphs")
 
         if not color:
             raise MissingArguments

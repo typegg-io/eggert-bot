@@ -273,13 +273,13 @@ class MigrationActive(CommandError):
 
 @dataclass
 class NotSubscribed(CommandError):
-    from utils.strings import GG_PLUS_LINK
-    message: str = f"[Get GG+]({GG_PLUS_LINK}) to access to access this feature!"
+    feature: str = "this feature"
 
     @property
     def embed(self):
+        from utils.strings import GG_PLUS_LINK
         return Embed(
             title="Requires GG+",
-            description=self.message,
+            description=f"[Get GG+]({GG_PLUS_LINK}) to access " + self.feature + "!",
             color=PLUS,
         )
