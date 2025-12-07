@@ -19,6 +19,8 @@ info = {
 class CalculatePp(Command):
     @commands.command(aliases=info["aliases"])
     async def calculatepp(self, ctx, quote_id: str, value: float, metric: Optional[str] = "pp"):
+        self.check_gg_plus(ctx)
+
         metrics = ["pp", "wpm"]
         metric = get_argument(metrics, metric)
         quote = await self.get_quote(ctx, quote_id, from_api=True)

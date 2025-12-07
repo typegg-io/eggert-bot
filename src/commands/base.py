@@ -207,3 +207,8 @@ class Command(commands.Cog):
             race_number = profile["stats"]["races"] + race_number
 
         return race_number
+
+    def check_gg_plus(self, ctx):
+        if not ctx.user["isGgPlus"]:
+            raise NotSubscribed
+        return

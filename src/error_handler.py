@@ -56,5 +56,5 @@ async def setup(bot):
 
 
 async def send_error(ctx, embed):
-    embed.color = ERROR
+    embed.color = embed.color or ERROR
     await ctx.send(embed=embed)
