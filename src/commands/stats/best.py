@@ -53,8 +53,11 @@ async def run(ctx: commands.Context, profile: dict, metric: str, reverse: bool =
     def entry_formatter(data):
         quote = dict(quotes[data["quoteId"]])
         quote["source"] = sources[quote["sourceId"]]
+        pp_display = f"{data["pp"]:,.2f} pp - "
+        if flags.get("metric") == "raw" and not ctx.user["isGgPlus"]:
+            pp_display = ""
         return quote_display(quote) + (
-            f"{data["pp"]:,.2f} pp - {data["wpm"]:,.2f} WPM ({data["accuracy"]:.2%} Accuracy) - "
+            f"{pp_display}{data["wpm"]:,.2f} WPM ({data["accuracy"]:.2%} Accuracy) - "
             f"{strings.discord_date(data["timestamp"])}\n\n"
         )
 
