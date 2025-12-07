@@ -27,7 +27,7 @@ class Best(Command):
         metric = get_argument(metrics, metric)
 
         # GG+ exclusive
-        if metric == "pp" and ctx.flags.get("metric") == "raw":
+        if metric == "pp" and ctx.flags.get("metric") == "raw" and not ctx.user["isGgPlus"]:
             raise NotSubscribed("raw pp stats")
 
         profile = await self.get_profile(ctx, username, races_required=True)
