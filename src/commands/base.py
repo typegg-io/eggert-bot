@@ -34,7 +34,7 @@ class Command(commands.Cog):
             ctx.flags = ctx.message.flags
             if (
                 ctx.channel.id == DAILY_QUOTE_CHANNEL_ID
-                and str(ctx.command) not in ["dailyleaderboard", "dailystats"]
+                and str(ctx.command) not in ["dailyleaderboard", "dailystats", "dailygraph"]
             ):
                 raise DailyQuoteChannel
             if not hasattr(ctx, "user"):
