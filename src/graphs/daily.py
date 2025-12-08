@@ -7,6 +7,7 @@ def render(
     score_list: list[dict],
     title: str,
     theme: dict,
+    themed_line: int = 0,
 ):
     fig, ax = plt.subplots()
     keystroke_wpms = []
@@ -23,7 +24,7 @@ def render(
     ax.set_ylabel("WPM")
     ax.set_title(title, fontsize=10)
 
-    apply_theme(ax, theme)
+    apply_theme(ax, theme, themed_line=themed_line)
 
     file_name = generate_file_name("daily")
     plt.savefig(file_name)

@@ -38,12 +38,16 @@ async def run(ctx: commands.Context, daily_quote: dict):
     quote = get_quote(daily_quote["quote"]["quoteId"])
     set_recent_quote(ctx.channel.id, quote["quoteId"])
     score_list = []
+    themed_line = 0
 
-    for score in daily_quote["leaderboard"][:10]:
+    for i, score in enumerate(daily_quote["leaderboard"][:10]):
         race = await get_race(score["userId"], score["raceNumber"], get_keystrokes=True)
         keystroke_data = get_keystroke_data(race["keystrokeData"])
         score["keystroke_wpm"] = keystroke_data["keystroke_wpm"]
         score_list.append(score)
+
+        if score["userId"] == ctx.user["userId"]:
+            themed_line = i
 
     title = (
         f"Daily Quote #{daily_quote["dayNumber"]:,} - "
@@ -58,6 +62,7 @@ async def run(ctx: commands.Context, daily_quote: dict):
             score_list,
             title.split("\n")[0],
             ctx.user["theme"],
+            themed_line,
         )
     )
 
