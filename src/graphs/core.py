@@ -22,6 +22,12 @@ FONT_PATH = ASSETS_DIR / "fonts" / "DMSans-Medium.ttf"
 fm.fontManager.addfont(FONT_PATH)
 plt.rcParams["font.family"] = fm.FontProperties(fname=FONT_PATH).get_name()
 
+GRAPH_PALETTE = [
+    "#00E1FF", "#E41A1C", "#118011", "#FF7F00", "#7C3AFF",
+    "#FCD500", "#F781BF", "#A65628", "#43B187", "#999999",
+]
+plt.rcParams["axes.prop_cycle"] = plt.cycler(color=GRAPH_PALETTE)
+
 matplotlib.colormaps.register(LinearSegmentedColormap.from_list("keegan", ["#0094FF", "#FF00DC"]))
 
 
@@ -107,13 +113,13 @@ def apply_theme(
         }
         caller_file = sys._getframe(1).f_code.co_filename
 
-        if any(graph in caller_file for graph in ["race"]):
+        if any(graph in caller_file for graph in ["race", "daily"]):
             legend_kwargs.update({
                 "bbox_to_anchor": (1.03, 1),
                 "borderaxespad": 0,
                 "handletextpad": 0.5
             })
-            ax.set_position([0.1, 0.1, 0.6, 0.8])
+            ax.set_position([0.1, 0.1, 0.6, 0.78])
         else:
             legend_kwargs["framealpha"] = 0.5
 

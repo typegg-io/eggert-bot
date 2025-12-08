@@ -46,20 +46,11 @@ async def display_daily_quote(
 ):
     quote = daily_quote["quote"]
     quote_id = quote["quoteId"]
-    end_date = daily_quote["endDate"]
     leaderboard = daily_quote["leaderboard"]
-    end = "Ends" if parse_date(end_date) > dates.now() else "Ended"
+    quote_description = daily_quote_display(daily_quote)
+
     channel_id = ctx.channel.id if hasattr(ctx, "channel") else ctx.id
     set_recent_quote(channel_id, quote_id)
-
-    quote_description = quote_display(
-        quote,
-        display_author=True,
-        display_status=True,
-        display_racers_users=True,
-        display_submitted_by=True,
-        max_text_chars=1000,
-    ) + f"\n{end} {discord_date(end_date)}\n"
 
     if show_champion:
         def entry_formatter(data):
@@ -129,3 +120,19 @@ async def display_daily_quote(
     )
 
     await message.send()
+
+
+def daily_quote_display(daily_quote: dict):
+    end_date = daily_quote["endDate"]
+    end = "Ends" if parse_date(end_date) > dates.now() else "Ended"
+
+    quote_description = quote_display(
+        daily_quote["quote"],
+        display_author=True,
+        display_status=True,
+        display_racers_users=True,
+        display_submitted_by=True,
+        max_text_chars=1000,
+    ) + f"\n{end} {discord_date(end_date)}\n"
+
+    return quote_description

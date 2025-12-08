@@ -1,16 +1,19 @@
 import asyncio
 
-from discord import Embed, Forbidden
+from discord import Embed, Forbidden, File
 from discord.ext import commands, tasks
 
 from api.daily_quotes import get_daily_quote
-from api.users import get_profile
+from api.users import get_profile, get_race
 from commands.quotes.dailyleaderboard import display_daily_quote
-from config import DAILY_QUOTE_CHANNEL_ID, SITE_URL, TYPEGG_GUILD_ID, DAILY_QUOTE_ROLE_ID
+from config import DAILY_QUOTE_CHANNEL_ID, SITE_URL, TYPEGG_GUILD_ID, DAILY_QUOTE_ROLE_ID, DEFAULT_THEME
 from database.bot.users import get_user
 from database.typegg.daily_quotes import add_daily_quote, add_daily_results, get_missing_days
+from graphs import daily as daily_graph
 from utils import dates
-from utils.dates import parse_date
+from utils.dates import parse_date, format_date
+from utils.files import remove_file
+from utils.keylogs import get_keystroke_data
 from utils.logging import log, log_error
 from utils.strings import discord_date
 
@@ -50,6 +53,21 @@ async def daily_quote_results(bot: commands.Bot):
 
     date = parse_date("yesterday")
     daily_quote = await get_daily_quote(date.strftime("%Y-%m-%d"))
+    score_list = []
+
+    for score in daily_quote["leaderboard"][:10]:
+        race = await get_race(score["userId"], score["raceNumber"], get_keystrokes=True)
+        keystroke_data = get_keystroke_data(race["keystrokeData"])
+        score["keystroke_wpm"] = keystroke_data["keystroke_wpm"]
+        score_list.append(score)
+
+    file_name = daily_graph.render(
+        score_list,
+        f"Daily Quote #{daily_quote["dayNumber"]} - "
+        f"{format_date(parse_date(daily_quote["startDate"]))}",
+        DEFAULT_THEME,
+    )
+    file = File(file_name, filename=file_name)
 
     await display_daily_quote(
         channel,
@@ -59,6 +77,9 @@ async def daily_quote_results(bot: commands.Bot):
         show_champion=True,
         color=0xF1C40F,
     )
+
+    await channel.send(file=file)
+    remove_file(file_name)
 
 
 async def daily_quote_ping(bot: commands.Bot):
