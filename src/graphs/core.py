@@ -84,8 +84,8 @@ def apply_theme(
             continue
 
         label = "-\n".join(textwrap.wrap(label, width=18))
-        if label.startswith("_"):
-            label = "\u200B" + label
+        # if label.startswith("_"):
+        #     label = "\u200B" + label
 
         if label in ["Raw Speed"]:
             line.set_color(theme["raw_speed"])
