@@ -15,7 +15,7 @@ info = {
     "description": "Displays a user's top 10 best averages of n consecutive races (non-overlapping)",
     "parameters": "[username] [n]",
     "defaults": {
-        "n": "10",
+        "n": "25",
     },
 }
 
