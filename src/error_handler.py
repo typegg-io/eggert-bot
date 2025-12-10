@@ -38,9 +38,6 @@ class ErrorHandler(commands.Cog):
         if hasattr(error, "embed"):
             return await send_error(ctx, error.embed)
 
-        if isinstance(error, DailyQuoteChannel):
-            return
-
         if isinstance(error, commands.CommandNotFound):
             return await send_error(ctx, UnknownCommand.embed)
 

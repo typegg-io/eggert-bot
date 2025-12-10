@@ -190,6 +190,11 @@ class InvalidDate(CommandError):
 
 class DailyQuoteChannel(CommandError):
     """Raised when a non-daily command is sent in the daily quote channel."""
+    embed = Embed(
+        title="Daily Channel",
+        description="Only daily commands can be used in this channel\n"
+                    f"Use <#{1337196592905846864}> for other commands",
+    )
 
 
 @dataclass
