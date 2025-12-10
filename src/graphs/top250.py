@@ -1,6 +1,6 @@
 from typing import Dict, List
 
-from graphs.core import plt, apply_theme, generate_file_name
+from graphs.core import plt, apply_theme, generate_file_name, filter_palette
 
 
 def render(
@@ -9,6 +9,7 @@ def render(
     theme: dict,
 ):
     fig, ax = plt.subplots()
+    filter_palette(ax, theme["line"])
     themed_line = 0
 
     for i, profile in enumerate(profiles):

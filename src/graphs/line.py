@@ -1,6 +1,6 @@
 from matplotlib.ticker import FuncFormatter
 
-from graphs.core import plt, apply_theme, interpolate_segments, apply_date_ticks, generate_file_name
+from graphs.core import plt, apply_theme, interpolate_segments, apply_date_ticks, generate_file_name, filter_palette
 from utils.dates import get_timestamp_list
 from utils.strings import format_big_number
 
@@ -13,6 +13,7 @@ def render(
     theme: dict,
 ):
     fig, ax = plt.subplots()
+    filter_palette(ax, theme["line"])
 
     themed_line = 0
     timestamps = get_timestamp_list([timestamp for line in lines for timestamp in line["x_values"]])

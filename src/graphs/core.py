@@ -25,6 +25,7 @@ plt.rcParams["font.family"] = fm.FontProperties(fname=FONT_PATH).get_name()
 GRAPH_PALETTE = [
     "#00E1FF", "#E41A1C", "#118011", "#FF7F00", "#7C3AFF",
     "#FCD500", "#F781BF", "#A65628", "#43B187", "#999999",
+    "#BCBD22",
 ]
 plt.rcParams["axes.prop_cycle"] = plt.cycler(color=GRAPH_PALETTE)
 
@@ -249,3 +250,14 @@ def color_distance(color1, color2):
 def generate_file_name(prefix: str):
     """Returns a unique file name with a prefix."""
     return f"{prefix}_{round(dates.now().timestamp() * 1000)}.png"
+
+
+def filter_palette(ax: Axes, line_color: str):
+    """Filters the current graph palette to avoid color clashing with a line color."""
+    if line_color in plt.colormaps():
+        return
+
+    ax.set_prop_cycle(plt.cycler(color=[
+        color for color in GRAPH_PALETTE
+        if color_distance(line_color, color) > 0.2
+    ]))

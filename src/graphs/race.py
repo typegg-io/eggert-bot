@@ -3,7 +3,7 @@ from collections import defaultdict
 import numpy as np
 from matplotlib.axes import Axes
 
-from graphs.core import plt, apply_theme, generate_file_name
+from graphs.core import plt, apply_theme, generate_file_name, filter_palette
 
 
 def render(
@@ -15,6 +15,7 @@ def render(
     theme: dict,
 ):
     fig, ax = plt.subplots()
+    filter_palette(ax, theme["line"])
 
     keystrokes = np.arange(1, len(keystroke_wpm) + 1)
     raw_keystrokes = np.arange(1, len(keystroke_wpm_raw) + 1)

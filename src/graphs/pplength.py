@@ -1,4 +1,4 @@
-from graphs.core import plt, apply_theme, generate_file_name
+from graphs.core import plt, apply_theme, generate_file_name, filter_palette
 
 
 def render(
@@ -9,6 +9,7 @@ def render(
 ):
     fig, ax = plt.subplots()
     color = theme["line"]
+    filter_palette(ax, color)
 
     pp = []
     length = []

@@ -1,6 +1,6 @@
 import numpy as np
 
-from graphs.core import plt, apply_theme, generate_file_name
+from graphs.core import plt, apply_theme, generate_file_name, filter_palette
 
 
 def render(
@@ -10,6 +10,7 @@ def render(
     themed_line: int = 0,
 ):
     fig, ax = plt.subplots()
+    filter_palette(ax, theme["line"])
     keystroke_wpms = []
 
     for score in score_list:
