@@ -29,7 +29,7 @@ class Races(Command):
         await run(ctx, profile)
 
 
-def build_stat_fields(profile, race_list, flags={}):
+def build_stat_fields(profile, race_list, flags={}, all_time=False):
     quote_list = get_quotes()
     multiplayer = flags.get("gamemode") == "multiplayer"
 
@@ -179,7 +179,7 @@ def build_stat_fields(profile, race_list, flags={}):
             f"**Solo:** {solo_races:,} / **Multiplayer:** {(multiplayer_races - dnf_count):,}\n" +
             (f"**Wins:** {wins:,} ({wins / multiplayer_races:.2%} win rate)\n" if wins > 0 else "\n") +
             f"**Quotes:** {unique_quotes:,}" +
-            (f" ({new_quotes:,} new)\n" if new_quotes < unique_quotes else "\n") +
+            (f" ({new_quotes:,} new)\n" if new_quotes > 0 and not all_time else "\n") +
             f"**Quote Repeats:** {total_races / unique_quotes:,.2f}\n"
             f"**Words Typed:** {words_typed:,}\n"
             f"**Characters Typed:** {chars_typed:,}\n"
@@ -221,7 +221,12 @@ async def run(
     )
 
     if race_list:
-        fields = build_stat_fields(profile, race_list, flags)
+        fields = build_stat_fields(
+            profile,
+            race_list,
+            flags,
+            start_date is None and end_date is None,
+        )
         description = ""
     else:
         fields = []
