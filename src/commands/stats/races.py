@@ -39,13 +39,14 @@ def build_stat_fields(profile, race_list, flags={}):
     }
     cumulative_values = {key: 0 for key in cumulative_keys}
 
-    correction_duration = 0
+    total_races = 0
     solo_races = 0
     multiplayer_races = 0
     dnf_count = 0
     wins = 0
     best = {"pp": race_list[0], "wpm": race_list[0]}
     total_duration = 0
+    correction_duration = 0
     words_typed = 0
     chars_typed = 0
     longest_break = {
@@ -61,6 +62,8 @@ def build_stat_fields(profile, race_list, flags={}):
             dnf_count += 1
             if not multiplayer:
                 continue
+
+        total_races += 1
 
         for key in cumulative_keys:
             cumulative_values[key] += race[key]
@@ -111,7 +114,6 @@ def build_stat_fields(profile, race_list, flags={}):
 
         previous_race = race
 
-    total_races = len(race_list)
     for key in cumulative_keys:
         cumulative_values[key] /= total_races
 
@@ -167,16 +169,18 @@ def build_stat_fields(profile, race_list, flags={}):
     start_time = parse_date(start_date).timestamp()
     end_time = parse_date(end_date).timestamp()
     timespan = end_time - start_time
+    total_races -= dnf_count
 
     fields.append(Field(
         title="Activity",
         content=(
-            f"**Races:** {total_races - dnf_count:,}" +
+            f"**Races:** {total_races:,}" +
             (f" / **DNFs:** {dnf_count:,}\n" if multiplayer else "\n") +
             f"**Solo:** {solo_races:,} / **Multiplayer:** {(multiplayer_races - dnf_count):,}\n" +
             (f"**Wins:** {wins:,} ({wins / multiplayer_races:.2%} win rate)\n" if wins > 0 else "\n") +
             f"**Quotes:** {unique_quotes:,}" +
             (f" ({new_quotes:,} new)\n" if new_quotes < unique_quotes else "\n") +
+            f"**Quote Repeats:** {total_races / unique_quotes:,.2f}\n"
             f"**Words Typed:** {words_typed:,}\n"
             f"**Characters Typed:** {chars_typed:,}\n"
             f"**Completion Play Time:** {format_duration(total_duration)}\n"
