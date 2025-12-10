@@ -65,6 +65,7 @@ class ReDownload(Command):
             ))
             await message.send()
 
+            ctx.invoked_with = "download"
             await download(ctx, profile)
 
             if is_admin:
