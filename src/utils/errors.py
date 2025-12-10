@@ -264,6 +264,18 @@ class InvalidNumber(CommandError):
     )
 
 
+@dataclass
+class NumberGreaterThan(CommandError):
+    n: int = 0
+
+    @property
+    def embed(self):
+        return Embed(
+            title="Invalid Number",
+            description=f"Number must be greater than {self.n}",
+        )
+
+
 class MigrationActive(CommandError):
     """Raised when a migration is currently in progress."""
     embed = Embed(
@@ -288,3 +300,10 @@ class NotSubscribed(CommandError):
             description=f"[Get GG+]({GG_PLUS_LINK}) to access " + self.feature + "!",
             color=PLUS,
         )
+
+
+class NotEnoughRaces(CommandError):
+    embed = Embed(
+        title="Not Enough Races",
+        description="User has not completed this many races",
+    )
