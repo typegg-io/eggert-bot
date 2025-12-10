@@ -58,7 +58,8 @@ class Command(commands.Cog):
                 # New users
                 if message.author.id not in users:
                     users.append(message.author.id)
-                    return await message.reply(content=welcome_message)
+                    if not message.content.startswith(("-link", "-verify")):
+                        return await message.reply(content=welcome_message)
 
             # Parsing flags
             content = message.content
