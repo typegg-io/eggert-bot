@@ -15,7 +15,7 @@ from utils.strings import discord_date, INCREASE, quote_display
 
 info = {
     "name": "quote",
-    "aliases": ["q", "pb"],
+    "aliases": ["q", "pb", "qh", "qg"],
     "description": "Displays a user's stats about a specific text",
     "parameters": "[username] [quote_id]",
 }
@@ -245,6 +245,9 @@ async def run(ctx: commands.Context, profile: dict, quote: dict):
             build_history_page(quote_races, is_ranked),
             build_graph_page(quote_races, is_ranked, ctx.user["theme"])
         ]
+
+    default_page = {"qh": 1, "qg": 2}.get(ctx.invoked_with, 0)
+    pages[default_page].default = True
 
     message = Message(
         ctx,
