@@ -192,6 +192,8 @@ class Command(commands.Cog):
 
     async def get_race_number(self, profile, race_number):
         total_races = (await get_races(profile["userId"], per_page=1))["races"][0]["raceNumber"]
+        if total_races is None:
+            total_races = profile["stats"]["races"]
 
         if race_number is None:
             race_number = total_races
