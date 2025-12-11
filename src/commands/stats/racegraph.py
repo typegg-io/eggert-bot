@@ -24,7 +24,7 @@ class RaceGraph(Command):
     async def racegraph(self, ctx, username: Optional[str] = "me", race_number: Optional[str] = None):
         profile = await self.get_profile(ctx, username, races_required=True)
         await self.import_user(ctx, profile)
-        race_number = self.get_race_number(profile, race_number)
+        race_number = await self.get_race_number(profile, race_number)
 
         await run(ctx, profile, race_number)
 

@@ -6,7 +6,7 @@ from discord import Forbidden
 from discord.ext import commands
 
 from api.quotes import get_quote as get_quote_api
-from api.users import get_profile
+from api.users import get_profile, get_races
 from config import DAILY_QUOTE_CHANNEL_ID, SITE_URL, BOT_PREFIX, STAGING, STATS_CHANNEL_ID
 from database.bot.recent_quotes import set_recent_quote, get_recent_quote
 from database.bot.users import get_user, update_warning, get_user_ids, get_all_command_usage, update_commands
@@ -190,14 +190,15 @@ class Command(commands.Cog):
         set_recent_quote(ctx.channel.id, quote_id)
         return quote
 
-    def get_race_number(self, profile, race_number):
+    async def get_race_number(self, profile, race_number):
+        total_races = (await get_races(profile["userId"], per_page=1))["races"][0]["raceNumber"]
+
         if race_number is None:
-            race_number = profile["stats"]["races"]
+            race_number = total_races
         else:
             race_number = parse_number(race_number)
-
-        if race_number < 1:
-            race_number = profile["stats"]["races"] + race_number
+            if race_number < 1:
+                race_number = total_races + race_number
 
         return race_number
 
