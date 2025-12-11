@@ -85,7 +85,8 @@ async def run(ctx: commands.Context, profile: dict, n: int):
 
         description += (
             f"**{date_range_display(parse_date(start_date), parse_date(end_date))}**\n"
-            f"{average:,.2f} WPM (Races #{start_number:,} - #{end_number:,})\n\n"
+            f"{average:,.2f} WPM (Races {f"#{start_number:,}" if start_number else "DNF"} - "
+            f"{f"#{end_number:,}" if end_number else "DNF"})\n\n"
         )
 
     page = Page(
