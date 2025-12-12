@@ -11,10 +11,10 @@ from utils.scaled_counter import ScaledCounter
 info = {
     "name": "keystrokes",
     "aliases": ["ks"],
-    "description": "Displays the aggregation of all your keystrokes on typegg across all your quotes. Note that this uses the quotes data and not the replay data, so corrections will not be taken into account. This is for performance reasons.\n"
-    "The following keyboard layouts are implemented, more can be added: ['qwerty', 'dvorak']\n"
-    "Also note that both shifts will be represented as the total amount of shift presses, since there's no way to distinguish between them. Also Caps Lock has not been implemented yet, but might be reevaluated in the future.\n"
-    "Characters that are not on the default layouts will not be counted towards the total",
+    "description": "Displays the aggregation of all your keystrokes on TypeGG across all your attempts. This uses the quote data, not the race data, so no corrections are being detected. (this is for performance reasons)\n\n"
+    f"The following keyboard layouts are implemented: 'qwerty', 'dvorak'.\n\n"
+    "Both shifts will be represented as the total amount of capitalisations.\n\n"
+    "Characters that are not on the default layouts will not be counted towards the total.",
     "parameters": f"[username1] [keyboard_layout]",
     "author": 231721357484752896,
 }
@@ -99,7 +99,7 @@ async def run(ctx: commands.Context, profile: dict, keyboard_layout: str):
     await message.send()
 
 
-replacement_characters = {"\n": "RET", " ": "SP", "-": "\-"}
+replacement_characters = {"\n": "RET", " ": "SP", "-": "\\-"}
 
 
 def replaceCharacters(char: str):
