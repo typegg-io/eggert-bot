@@ -49,6 +49,7 @@ async def run(ctx: commands.Context, profile: dict, keyboard_layout: str):
     page = 1
     max_iterations = 50
 
+    # TODO: Use get_quote_bests from the database instead of the API, currently the total attempts are not stored in the database and cannot be inferred
     while page <= total_pages or page > max_iterations:
         response = await get_quotes(user_id=profile["userId"], page=page, per_page=1000)
         total_pages = response["totalPages"]
@@ -104,3 +105,4 @@ replacement_characters = {"\n": "RET", " ": "SP", "-": "\\-"}
 
 def replaceCharacters(char: str):
     return char if char not in replacement_characters else replacement_characters[char]
+
