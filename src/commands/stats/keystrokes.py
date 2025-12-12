@@ -1,9 +1,8 @@
-from typing import Optional, List
+from typing import Optional
+from api.users import get_quotes
 from discord.ext import commands
 from commands.base import Command
-from database.typegg.users import get_quote_bests
 from utils.messages import Page, Message, Field
-from utils.strings import get_flag_title
 from graphs.keystrokes import render
 from utils.keyboard_layouts import getKeymap
 from utils.scaled_counter import ScaledCounter
@@ -14,7 +13,8 @@ info = {
     "aliases": ["ks"],
     "description": "Displays the aggregation of all your keystrokes on typegg across all your quotes. Note that this uses the quotes data and not the replay data, so corrections will not be taken into account. This is for performance reasons.\n"
     "The following keyboard layouts are implemented, more can be added: ['qwerty', 'dvorak']\n"
-    "Also note that both shifts will be represented as the total amount of shift presses, since there's no way to distinguish between them. Also Caps Lock has not been implemented yet, but might be reevaluated in the future.",
+    "Also note that both shifts will be represented as the total amount of shift presses, since there's no way to distinguish between them. Also Caps Lock has not been implemented yet, but might be reevaluated in the future.\n"
+    "Characters that are not on the default layouts will not be counted towards the total",
     "parameters": f"[username1] [keyboard_layout]",
     "author": 231721357484752896,
 }
@@ -44,14 +44,21 @@ async def run(ctx: commands.Context, profile: dict, keyboard_layout: str):
     if profile["userId"] == ctx.user["userId"]:
         username = profile["username"]
 
-    # quotes = get_quote_bests(profile["userId"], columns=["quotes"], flags={"status": "ranked"})
-    # quotes = list(map(lambda quote: (quote["quote"]["text"], quote["attepmts"]), quotes))
-    quotes = [("hello how are you d\n\n\n\n\n\n\n\n\n\n\noing..............", 5), ("I like eiko :)", 3)]
-
     keypresses = ScaledCounter()
+    total_pages = 1
+    page = 1
+    max_iterations = 50
 
-    for text, attempts in quotes:
-        keypresses += ScaledCounter(text) * attempts
+    while page <= total_pages or page > max_iterations:
+        response = await get_quotes(user_id=profile["userId"], page=page, per_page=1000)
+        total_pages = response["totalPages"]
+        quotes = response["quotes"]
+        quotes = list(map(lambda quote: (quote["quote"]["text"], quote["attempts"] if quote["attempts"] is not None else 1), quotes))  # Attempts can be None, probably because of old data
+
+        for text, attempts in quotes:
+            keypresses += ScaledCounter(text) * attempts
+
+        page += 1
 
     description = (
         f"**Keyboard layout:** {keyboard_layout}\n"
@@ -92,7 +99,7 @@ async def run(ctx: commands.Context, profile: dict, keyboard_layout: str):
     await message.send()
 
 
-replacement_characters = {"\n": "RET", " ": "SP"}
+replacement_characters = {"\n": "RET", " ": "SP", "-": "\-"}
 
 
 def replaceCharacters(char: str):
