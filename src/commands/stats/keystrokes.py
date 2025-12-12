@@ -54,7 +54,6 @@ async def run(ctx: commands.Context, profile: dict, keyboard_layout: str):
         keypresses += ScaledCounter(text) * attempts
 
     description = (
-        f"**{profile["username"]}:** \n"
         f"**Keyboard layout:** {keyboard_layout}\n"
         f"**Most frequently typed characters:**\n"
         + "\n".join(map(lambda item: f"{item[0]}: {item[1]}", sorted(list(keypresses.items()), key=lambda item: -item[1])[:5]))

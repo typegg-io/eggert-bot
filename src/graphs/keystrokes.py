@@ -22,7 +22,7 @@ def render(
     ]
 
     cmap = LinearSegmentedColormap.from_list("blue_yellow_orange_red", colors)
-    fig, ax = plt.subplots()
+    fig, ax = plt.subplots(constrained_layout=True)
 
     max_presses = 0
     rectangles = []
@@ -75,15 +75,16 @@ def render(
     plt.xlim(-0.1, 15.1)
     plt.ylim(-4.1, 1.1)
     plt.axis('off')
-    # plt.title(f"Keystroke heatmap of {username} in {keyboard_layout}")
-    plt.tight_layout()
+    plt.title(f"Keystroke heatmap of {username} in {keyboard_layout}")
     plt.gca().set_aspect("equal", adjustable="box")
 
     # Cmap legend
     sm = cm.ScalarMappable(cmap=cmap, norm=mcolors.Normalize(vmin=0, vmax=max_presses))
     sm.set_array([])
-    cbar_ax = fig.add_axes([0.91, 0.3715, 0.02, 0.245])
-    cbar = plt.colorbar(sm, cax=cbar_ax)
+    cbar_width = 0.8
+    cbar_height = 0.04
+    cbar_ax = fig.add_axes([0.5 - cbar_width / 2, 0.15, cbar_width, cbar_height])
+    cbar = plt.colorbar(sm, cax=cbar_ax, orientation='horizontal')
     cbar.set_label('Key Presses')
 
     file_name = generate_file_name("keystrokes")
