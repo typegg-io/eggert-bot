@@ -174,3 +174,5 @@ cython_debug/
 /src/data/*
 
 /src/sandbox.py
+
+Makefile
