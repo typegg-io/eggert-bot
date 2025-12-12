@@ -2,7 +2,7 @@ from typing import Optional, List
 from discord.ext import commands
 from commands.base import Command
 from database.typegg.users import get_quote_bests
-from utils.messages import Page, Message
+from utils.messages import Page, Message, Field
 from utils.strings import get_flag_title
 from graphs.keystrokes import render
 from utils.keyboard_layouts import getKeymap
@@ -46,7 +46,7 @@ async def run(ctx: commands.Context, profile: dict, keyboard_layout: str):
 
     # quotes = get_quote_bests(profile["userId"], columns=["quotes"], flags={"status": "ranked"})
     # quotes = list(map(lambda quote: (quote["quote"]["text"], quote["attepmts"]), quotes))
-    quotes = [("hello how are you doing..............", 5), ("I like eiko :)", 3)]
+    quotes = [("hello how are you d\n\n\n\n\n\n\n\n\n\n\noing..............", 5), ("I like eiko :)", 3)]
 
     keypresses = ScaledCounter()
 
@@ -56,12 +56,26 @@ async def run(ctx: commands.Context, profile: dict, keyboard_layout: str):
     description = (
         f"**Keyboard layout:** {keyboard_layout}\n"
         f"**Most frequently typed characters:**\n"
-        + "\n".join(map(lambda item: f"{item[0]}: {item[1]}", sorted(list(keypresses.items()), key=lambda item: -item[1])[:5]))
     )
+
+    fields = []
+
+    batch_size = 10
+    sorted_keypresses = sorted(list(keypresses.items()), key=lambda item: -item[1])[:3 * batch_size]
+
+    for i in range(0, len(sorted_keypresses), batch_size):
+        mapped_frequencies = map(lambda item: f"{replaceCharacters(item[0])} **->** {item[1]}", sorted_keypresses[i:i + batch_size])
+        stringified_frequencies = "\n".join(mapped_frequencies)
+        fields.append(Field(
+            title="",
+            content=stringified_frequencies,
+            inline=True,
+        ))
 
     page = Page(
         title="Keystrokes",
         description=description,
+        fields=fields,
         render=lambda: render(
             username,
             keyboard_layout,
@@ -77,3 +91,9 @@ async def run(ctx: commands.Context, profile: dict, keyboard_layout: str):
 
     await message.send()
 
+
+replacement_characters = {"\n": "RET", " ": "SP"}
+
+
+def replaceCharacters(char: str):
+    return char if char not in replacement_characters else replacement_characters[char]
