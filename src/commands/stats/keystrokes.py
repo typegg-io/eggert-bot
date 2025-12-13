@@ -44,22 +44,7 @@ async def run(ctx: commands.Context, profile: dict, keyboard_layout: str):
     if profile["userId"] == ctx.user["userId"]:
         username = profile["username"]
 
-    keypresses = ScaledCounter()
-    total_pages = 1
-    page = 1
-    max_iterations = 50
-
-    # TODO: Use get_quote_bests from the database instead of the API, currently the total attempts are not stored in the database and cannot be inferred
-    while page <= total_pages or page > max_iterations:
-        response = await get_quotes(user_id=profile["userId"], page=page, per_page=1000)
-        total_pages = response["totalPages"]
-        quotes = response["quotes"]
-        quotes = list(map(lambda quote: (quote["quote"]["text"], quote["attempts"] if quote["attempts"] is not None else 1), quotes))  # Attempts can be None, probably because of old data
-
-        for text, attempts in quotes:
-            keypresses += ScaledCounter(text) * attempts
-
-        page += 1
+    keypresses = await getKeypressesApi(profile["userId"])
 
     description = (
         f"**Keyboard layout:** {keyboard_layout}\n"
@@ -106,3 +91,23 @@ replacement_characters = {"\n": "RET", " ": "SP", "-": "\\-"}
 def replaceCharacters(char: str):
     return char if char not in replacement_characters else replacement_characters[char]
 
+
+async def getKeypressesApi(userId: str):
+    keypresses = ScaledCounter()
+    total_pages = 1
+    page = 1
+    max_iterations = 50
+
+    # TODO: Use get_quote_bests from the database instead of the API, currently the total attempts are not stored in the database and cannot be inferred
+    while page <= total_pages or page > max_iterations:
+        response = await get_quotes(user_id=userId, page=page, per_page=1000)
+        total_pages = response["totalPages"]
+        quotes = response["quotes"]
+        quotes = map(lambda quote: (quote["quote"]["text"], quote["races"]), quotes)
+
+        for text, attempts in quotes:
+            keypresses += ScaledCounter(text) * attempts
+
+        page += 1
+
+    return keypresses
