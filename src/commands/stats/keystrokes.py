@@ -1,5 +1,4 @@
 from typing import Optional
-from api.users import get_quotes
 from discord.ext import commands
 from commands.base import Command
 from database.typegg.races import get_quotes_playcount
@@ -45,8 +44,7 @@ async def run(ctx: commands.Context, profile: dict, keyboard_layout: str):
     if profile["userId"] == ctx.user["userId"]:
         username = profile["username"]
 
-    keypresses = await getKeypressesApi(profile["userId"])
-    # keypresses = getKeypressesDb(profile["userId"])
+    keypresses = getKeypressesDb(profile["userId"])
 
     description = (
         f"**Keyboard layout:** {keyboard_layout}\n"
@@ -104,23 +102,3 @@ def getKeypressesDb(userId: str):
 
     return keypresses
 
-
-async def getKeypressesApi(userId: str):
-    keypresses = ScaledCounter()
-    total_pages = 1
-    page = 1
-    max_iterations = 50
-
-    # TODO: Use get_quote_bests from the database instead of the API, currently the total attempts are not stored in the database and cannot be inferred
-    while page <= total_pages or page > max_iterations:
-        response = await get_quotes(user_id=userId, page=page, per_page=1000)
-        total_pages = response["totalPages"]
-        quotes = response["quotes"]
-        quotes = map(lambda quote: (quote["quote"]["text"], quote["races"]), quotes)
-
-        for text, races in quotes:
-            keypresses += ScaledCounter(text) * races
-
-        page += 1
-
-    return keypresses
