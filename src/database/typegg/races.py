@@ -11,7 +11,7 @@ def race_insert(race):
         race["userId"],
         race["raceNumber"],
         race["pp"],
-        race["rawPp"],
+        race.get("rawPp", 0),
         race["matchPp"],
         race["rawMatchPp"],
         race["wpm"],
