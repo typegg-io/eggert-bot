@@ -153,7 +153,7 @@ async def run(
                 race["matchWpm"] = player["matchWpm"]
                 race["rawMatchWpm"] = player["rawMatchWpm"]
                 race["matchPp"] = player["matchPp"]
-                race["rawMatchPp"] = race["rawPp"] * (race["matchWpm"] / (race["wpm"] or 1))
+                race["rawMatchPp"] = race.get("rawPp", 0) * (race["matchWpm"] / (race["wpm"] or 1))
                 race["players"] = len(players)
                 race["placement"] = player["placement"]
             else:
