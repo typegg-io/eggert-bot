@@ -164,3 +164,15 @@ def get_latest_race(user_id: str):
 def delete_races(user_id: str):
     """Deletes all of a user's races."""
     db.run("DELETE FROM races WHERE userId = ?", [user_id])
+
+
+def get_quotes_playcount(user_id: str):
+    results = db.fetch(f"""
+        SELECT q.text, COUNT(q.text) as races
+        FROM races r
+        JOIN quotes q on q.quoteId = r.quoteId
+        WHERE userId = ?
+        GROUP BY q.text
+    """, [user_id])
+
+    return results

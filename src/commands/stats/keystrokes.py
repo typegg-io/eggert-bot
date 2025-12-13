@@ -2,6 +2,7 @@ from typing import Optional
 from api.users import get_quotes
 from discord.ext import commands
 from commands.base import Command
+from database.typegg.races import get_quotes_playcount
 from utils.messages import Page, Message, Field
 from graphs.keystrokes import render
 from utils.keyboard_layouts import getKeymap
@@ -45,6 +46,7 @@ async def run(ctx: commands.Context, profile: dict, keyboard_layout: str):
         username = profile["username"]
 
     keypresses = await getKeypressesApi(profile["userId"])
+    # keypresses = getKeypressesDb(profile["userId"])
 
     description = (
         f"**Keyboard layout:** {keyboard_layout}\n"
@@ -92,6 +94,17 @@ def replaceCharacters(char: str):
     return char if char not in replacement_characters else replacement_characters[char]
 
 
+def getKeypressesDb(userId: str):
+    keypresses = ScaledCounter()
+
+    race_frequencies = get_quotes_playcount(userId)
+
+    for text, races in race_frequencies:
+        keypresses += ScaledCounter(text) * races
+
+    return keypresses
+
+
 async def getKeypressesApi(userId: str):
     keypresses = ScaledCounter()
     total_pages = 1
@@ -105,8 +118,8 @@ async def getKeypressesApi(userId: str):
         quotes = response["quotes"]
         quotes = map(lambda quote: (quote["quote"]["text"], quote["races"]), quotes)
 
-        for text, attempts in quotes:
-            keypresses += ScaledCounter(text) * attempts
+        for text, races in quotes:
+            keypresses += ScaledCounter(text) * races
 
         page += 1
 
