@@ -18,6 +18,7 @@ info = {
 class Chat(Command):
     @commands.command(aliases=info["aliases"])
     async def chat(self, ctx, *, question: str = None):
+        return
         if not question:
             return await ctx.send(content=f"Hello {EGGERT} If you have any questions, just ask!")
 
