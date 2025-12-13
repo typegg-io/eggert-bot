@@ -19,7 +19,7 @@ class Chat(Command):
     @commands.command(aliases=info["aliases"])
     async def chat(self, ctx, *, question: str = None):
         if not question:
-            return await ctx.send(content=f"Hey {EGGERT} If you have any questions, just ask!")
+            return await ctx.send(content=f"Hello {EGGERT} If you have any questions, just ask!")
 
         if not CHATBOT_WEBHOOK_URL:
             message = Message(ctx, Page(
@@ -49,7 +49,7 @@ class Chat(Command):
 
                         data = await response.json()
                         output = data.get("output")
-                        await ctx.send(output)
+                        await ctx.message.reply(output, mention_author=False)
 
             except aiohttp.ClientError:
                 message = Message(ctx, Page(
