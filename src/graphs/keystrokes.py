@@ -44,8 +44,10 @@ def render(
 
                 if i == 1:
                     shift_presses += presses
-
-                if i == 2:
+                elif i == 2:
+                    alt_presses += presses
+                elif i == 3:
+                    shift_presses += presses
                     alt_presses += presses
 
             if total_presses > max_presses:
@@ -56,8 +58,7 @@ def render(
 
             if key.text == "Shift":
                 total_presses = -1
-
-            if key.text == "Alt":
+            elif key.text == "Alt":
                 total_presses = -2
 
             rectangles.append((square, total_presses))
