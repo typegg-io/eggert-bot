@@ -166,7 +166,8 @@ def delete_races(user_id: str):
     db.run("DELETE FROM races WHERE userId = ?", [user_id])
 
 
-def get_quotes_playcount(user_id: str):
+def get_quote_race_counts(user_id: str):
+    """Returns a user's quotes by race count."""
     results = db.fetch(f"""
         SELECT q.text, COUNT(q.text) as races
         FROM races r

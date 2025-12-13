@@ -10,6 +10,5 @@ class ScaledCounter(Counter):
             return self
 
         return ScaledCounter({key: value * factor for key, value in self.items()})
-    
-    __rmul__ = __mul__
 
+    __rmul__ = __mul__

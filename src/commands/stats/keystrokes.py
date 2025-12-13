@@ -1,21 +1,25 @@
 from typing import Optional
-from discord.ext import commands
-from commands.base import Command
-from database.typegg.races import get_quotes_playcount
-from utils.messages import Page, Message, Field
-from graphs.keystrokes import render
-from utils.keyboard_layouts import getKeymap
-from utils.scaled_counter import ScaledCounter
 
+from discord.ext import commands
+
+from commands.base import Command
+from database.typegg.races import get_quote_race_counts
+from graphs.keystrokes import render
+from utils.data_structures import ScaledCounter
+from utils.keyboard_layouts import get_keymap
+from utils.messages import Page, Message, Field
 
 info = {
     "name": "keystrokes",
     "aliases": ["ks"],
-    "description": "Displays the aggregation of all your keystrokes on TypeGG across all your attempts. This uses the quote data, not the race data, so no corrections are being detected. (this is for performance reasons)\n\n"
-    f"The following keyboard layouts are implemented: 'qwerty', 'dvorak'.\n\n"
-    "Both shifts will be represented as the total amount of capitalisations.\n\n"
-    "Characters that are not on the default layouts will not be counted towards the total.",
-    "parameters": f"[username1] [keyboard_layout]",
+    "description": (
+        "Shows a keystroke heatmap across all of a user's races.\n"
+        "Based on quote data, not race data (corrections not included).\n\n"
+        "Shift keys represent total capitalizations.\n"
+        "Supported layouts: QWERTY, DVORAK\n"
+        "Non-standard characters are excluded."
+    ),
+    "parameters": "[username] [keyboard_layout]",
     "author": 231721357484752896,
 }
 
@@ -23,47 +27,36 @@ info = {
 class Keystrokes(Command):
     @commands.command(aliases=info["aliases"])
     async def keystrokes(self, ctx, username: str = "me", keyboard_layout: Optional[str] = None):
-        username = self.get_username(ctx, username)
-
         profile = await self.get_profile(ctx, username, races_required=True)
         await self.import_user(ctx, profile)
 
         if keyboard_layout is None:
-            keyboard_layout = profile["hardware"]["layout"]  # Can return None
-
-            if keyboard_layout is None:
-                keyboard_layout = "qwerty"
+            keyboard_layout = profile["hardware"]["layout"] or "qwerty"
 
         await run(ctx, profile, keyboard_layout.lower())
 
 
 async def run(ctx: commands.Context, profile: dict, keyboard_layout: str):
     username = profile["username"]
-    keymap, keyboard_layout = getKeymap(keyboard_layout)
-
-    if profile["userId"] == ctx.user["userId"]:
-        username = profile["username"]
-
-    keypresses = getKeypressesDb(profile["userId"])
+    keymap, keyboard_layout = get_keymap(keyboard_layout)
+    keypresses = get_keypresses(profile["userId"])
 
     description = (
-        f"**Keyboard layout:** {keyboard_layout}\n"
-        f"**Most frequently typed characters:**\n"
+        f"**Keyboard Layout:** {keyboard_layout.upper()}\n\n"
+        f"**Most Frequent Characters**\n"
     )
-
     fields = []
 
     batch_size = 10
-    sorted_keypresses = sorted(list(keypresses.items()), key=lambda item: -item[1])[:3 * batch_size]
+    top_keypresses = sorted(keypresses.items(), key=lambda item: -item[1])[:3 * batch_size]
 
-    for i in range(0, len(sorted_keypresses), batch_size):
-        mapped_frequencies = map(lambda item: f"{replaceCharacters(item[0])} **->** {item[1]}", sorted_keypresses[i:i + batch_size])
-        stringified_frequencies = "\n".join(mapped_frequencies)
-        fields.append(Field(
-            title="",
-            content=stringified_frequencies,
-            inline=True,
-        ))
+    for i in range(0, len(top_keypresses), batch_size):
+        batch = top_keypresses[i:i + batch_size]
+        content = "\n".join(
+            f"`{REPLACEMENT_CHARACTERS.get(char, char)}` ➜ {count:,}"
+            for char, count in batch
+        )
+        fields.append(Field(title="", content=content, inline=True))
 
     page = Page(
         title="Keystrokes",
@@ -74,31 +67,26 @@ async def run(ctx: commands.Context, profile: dict, keyboard_layout: str):
             keyboard_layout,
             keypresses,
             keymap,
+            ctx.user["theme"],
         )
     )
 
-    message = Message(
-        ctx,
-        page=page
-    )
+    message = Message(ctx, page=page, profile=profile)
 
     await message.send()
 
 
-replacement_characters = {"\n": "RET", " ": "SP", "-": "\\-"}
+REPLACEMENT_CHARACTERS = {
+    "`": "´",
+    "\n": "⏎",
+}
 
 
-def replaceCharacters(char: str):
-    return char if char not in replacement_characters else replacement_characters[char]
-
-
-def getKeypressesDb(userId: str):
+def get_keypresses(user_id: str) -> ScaledCounter:
     keypresses = ScaledCounter()
+    quote_frequencies = get_quote_race_counts(user_id)
 
-    race_frequencies = get_quotes_playcount(userId)
-
-    for text, races in race_frequencies:
-        keypresses += ScaledCounter(text) * races
+    for text, race_count in quote_frequencies:
+        keypresses += ScaledCounter(text) * race_count
 
     return keypresses
-
