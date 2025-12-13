@@ -1,3 +1,4 @@
+import discord
 from discord.ext import commands
 
 from commands.base import Command
@@ -16,15 +17,15 @@ info = {
 class Unban(Command):
     @commands.command(aliases=info["aliases"])
     @is_bot_admin()
-    async def unban(self, ctx: commands.Context, member: commands.MemberConverter):
-        user_id = member.id
+    async def unban(self, ctx: commands.Context, user: discord.User):
+        user_id = user.id
         unban_user(user_id)
 
         message = Message(
             ctx,
             Page(
                 title="User Banned",
-                description=f"{member.mention} has been unbanned"
+                description=f"{user.mention} has been unbanned"
             )
         )
         await message.send()

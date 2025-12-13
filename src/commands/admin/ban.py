@@ -1,3 +1,4 @@
+import discord
 from discord.ext import commands
 
 from commands.base import Command
@@ -16,8 +17,8 @@ info = {
 class Ban(Command):
     @commands.command(aliases=info["aliases"])
     @is_bot_admin()
-    async def ban(self, ctx: commands.Context, member: commands.MemberConverter):
-        user_id = member.id
+    async def ban(self, ctx: commands.Context, user: discord.User):
+        user_id = user.id
         get_user(user_id)
 
         if user_id == ctx.author.id:
@@ -33,7 +34,7 @@ class Ban(Command):
                 ctx,
                 Page(
                     title="User Banned",
-                    description=f"{member.mention} has been banned from using bot commands"
+                    description=f"{user.mention} has been banned from using bot commands"
                 )
             )
 

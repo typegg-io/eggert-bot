@@ -41,8 +41,8 @@ class CommandLeaderboard(Command):
 
         else:
             try:
-                member = await commands.MemberConverter().convert(ctx, arg)
-                await user_command_leaderboard(ctx, member.id)
+                user = await commands.UserConverter().convert(ctx, arg)
+                await user_command_leaderboard(ctx, user.id)
             except commands.BadArgument:
                 raise UnknownCommand
 

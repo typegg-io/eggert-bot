@@ -1,3 +1,4 @@
+import discord
 from discord.ext import commands
 
 from commands.base import Command
@@ -16,8 +17,8 @@ info = {
 class Unadmin(Command):
     @commands.command(aliases=info["aliases"])
     @is_bot_owner()
-    async def unadmin(self, ctx: commands.Context, member: commands.MemberConverter):
-        user_id = member.id
+    async def unadmin(self, ctx: commands.Context, user: discord.User):
+        user_id = user.id
         get_user(user_id)
         unadmin_user(user_id)
 
@@ -25,7 +26,7 @@ class Unadmin(Command):
             ctx,
             Page(
                 title="Admin Removed",
-                description=f"{member.mention} is no longer a bot admin"
+                description=f"{user.mention} is no longer a bot admin"
             )
         )
 

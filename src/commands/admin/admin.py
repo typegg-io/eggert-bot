@@ -1,3 +1,4 @@
+import discord
 from discord.ext import commands
 
 from commands.base import Command
@@ -16,8 +17,8 @@ info = {
 class Admin(Command):
     @commands.command(aliases=info["aliases"])
     @is_bot_owner()
-    async def admin(self, ctx: commands.Context, member: commands.MemberConverter):
-        user_id = member.id
+    async def admin(self, ctx: commands.Context, user: discord.User):
+        user_id = user.id
         get_user(user_id)
         admin_user(user_id)
 
@@ -25,7 +26,7 @@ class Admin(Command):
             ctx,
             Page(
                 title="Admin Added",
-                description=f"{member.mention} has been added as a bot admin"
+                description=f"{user.mention} has been added as a bot admin"
             )
         )
 

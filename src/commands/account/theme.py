@@ -62,14 +62,14 @@ class Theme(Command):
             return await run(ctx)
 
         try:
-            member = await commands.MemberConverter().convert(ctx, element)
+            user = await commands.UserConverter().convert(ctx, element)
         except commands.BadArgument:
-            member = None
+            user = None
 
         element = strings.get_key_by_alias(elements, element)
         if element not in elements:
-            if member:
-                return await display_user_theme(ctx, member)
+            if user:
+                return await display_user_theme(ctx, user)
             return await ctx.send(embed=invalid_element())
 
         self.check_gg_plus(ctx, "custom graphs")

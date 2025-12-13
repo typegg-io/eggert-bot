@@ -167,6 +167,12 @@ class BotUserNotFound(CommandError):
         )
 
 
+class DiscordUserNotFound(CommandError):
+    embed = Embed(
+        title="User Not Found",
+    )
+
+
 @dataclass
 class UnknownQuote(CommandError):
     """Raised when a quote ID doesn't match any existing quote."""
