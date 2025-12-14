@@ -6,6 +6,8 @@ from utils.keystrokes import get_keystroke_wpm_raw
 def get_keystroke_data(keystroke_data: dict):
     """Parses keystroke data to calculate per-character delays and identify typos."""
     event_data = None
+    newline = {"⏎": "\n"}
+
     if isinstance(keystroke_data, dict):
         keystrokes = keystroke_data["keystrokes"]
         text = keystroke_data["text"].replace("\r\n", "\n")
@@ -33,7 +35,7 @@ def get_keystroke_data(keystroke_data: dict):
 
             # Insert (append)
             if action == "+":
-                input_box.append(params)
+                input_box.append(newline.get(params, params))
 
             # Insert (at pos)
             elif action == ">":
@@ -43,7 +45,7 @@ def get_keystroke_data(keystroke_data: dict):
                 if index >= len(input_box):
                     input_box.extend([""] * (index + 1 - len(input_box)))
 
-                input_box[index] = char
+                input_box[index] = newline.get(char, char)
 
             # Delete (backspace)
             elif action == "<":
@@ -65,7 +67,7 @@ def get_keystroke_data(keystroke_data: dict):
                     start_index, end_index = params, len(input_box)
                 else:  # range
                     start_index, end_index = params.split(",")
-                input_box[int(start_index):int(end_index)] = char
+                input_box[int(start_index):int(end_index)] =  newline.get(char, char)
 
             # Replace (redundant)
             elif action == "~":
@@ -105,7 +107,6 @@ def get_keystroke_data(keystroke_data: dict):
                 previous_word = words[current_word_index - 1]
                 input_box = list(input_string[len(previous_word):])
     else:
-
         for keystroke in keystrokes:
             action = keystroke["action"]
             key = action.get("key")
