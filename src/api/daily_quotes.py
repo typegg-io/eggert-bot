@@ -14,6 +14,7 @@ async def get_daily_quote(
     distinct: bool = True,
     results: int = 10,
     country: str = None,
+    get_keystrokes: bool = False,
 ) -> Dict[str, Any]:
     """
     Calls GET /daily with all available filters.
@@ -30,5 +31,6 @@ async def get_daily_quote(
             "distinct": distinct,
             "results": results,
             "country": country,
+            "showKeystrokeData": get_keystrokes,
         }
     )

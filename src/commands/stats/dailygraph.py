@@ -1,7 +1,6 @@
 from discord.ext import commands
 
 from api.daily_quotes import get_daily_quote
-from api.users import get_race
 from commands.base import Command
 from commands.quotes.dailyleaderboard import daily_quote_display
 from database.bot.recent_quotes import set_recent_quote
@@ -26,10 +25,10 @@ class DailyGraph(Command):
         arg = "".join(args)
         try:
             number = int(arg)
-            daily_quote = await get_daily_quote(number=number)
+            daily_quote = await get_daily_quote(number=number, get_keystrokes=True)
         except ValueError:
             date = parse_date("".join(args))
-            daily_quote = await get_daily_quote(date.strftime("%Y-%m-%d"), results=10)
+            daily_quote = await get_daily_quote(date.strftime("%Y-%m-%d"), results=10, get_keystrokes=True)
 
         await run(ctx, daily_quote, )
 
@@ -41,8 +40,7 @@ async def run(ctx: commands.Context, daily_quote: dict):
     themed_line = 0
 
     for i, score in enumerate(daily_quote["leaderboard"][:10]):
-        race = await get_race(score["userId"], score["raceNumber"], get_keystrokes=True)
-        keystroke_data = get_keystroke_data(race["keystrokeData"])
+        keystroke_data = get_keystroke_data(score["keystrokeData"])
         score["keystroke_wpm"] = keystroke_data["keystroke_wpm"]
         score_list.append(score)
 
