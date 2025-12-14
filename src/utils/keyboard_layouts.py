@@ -14,7 +14,7 @@ class K:
             if len(self.matches) >= 2 and self.matches.isalpha() and self.matches[0].upper() == self.matches[1]:
                 self.text = self.matches[1]
             else:
-                self.text = self.matches[0] + " " + self.matches[1]
+                self.text = " ".join(self.matches)
 
 
 def get_keymap(keymap: str = None) -> (List[List[K]], str):
