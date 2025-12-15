@@ -13,6 +13,7 @@ def get_keystroke_data(keystroke_data: dict):
         text = keystroke_data["text"].replace("\r\n", "\n")
     else:
         codec_version, text, sticky_start, event_data = keystroke_data
+        text = text.replace("\r\n", "\n")
 
     words = re.findall(r".*?(?: |\n|$)", text)[:-1]
 
