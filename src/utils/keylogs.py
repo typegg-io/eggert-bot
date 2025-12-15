@@ -53,21 +53,21 @@ def get_keystroke_data(keystroke_data: dict):
 
             # Delete
             elif action == "-":
-                if len(params) == 1:  # from end
-                    start_index, end_index = params, len(input_box)
-                else:  # range
+                if "," in params:  # range
                     start_index, end_index = params.split(",")
+                else:  # fromt end
+                    start_index, end_index = params, len(input_box)
                 input_box = input_box[:int(start_index)] + input_box[int(end_index):]
 
             # Replace
             elif action == "=":
                 char = params[-1]
                 params = params[:-2]
-                if len(params) == 1:  # from end
-                    start_index, end_index = params, len(input_box)
-                else:  # range
+                if "," in params:  # range
                     start_index, end_index = params.split(",")
-                input_box[int(start_index):int(end_index)] =  newline.get(char, char)
+                else:  # from end
+                    start_index, end_index = params, len(input_box)
+                input_box[int(start_index):int(end_index)] = newline.get(char, char)
 
             # Replace (redundant)
             elif action == "~":
@@ -84,7 +84,7 @@ def get_keystroke_data(keystroke_data: dict):
 
             # Detect typo
             is_typo = input_string[:len(current_word)] != current_word[:len(input_string)]
-            if is_typo and not typo_flag and "dStart" not in action:
+            if is_typo and not typo_flag and action not in ["<", "-"]:
                 typo_flag = True
                 typos.append({
                     "word_index": current_word_index,
