@@ -64,13 +64,15 @@ def get_keystroke_data(keystroke_data: dict):
         return fat_finger_times.get(keystroke_id, time_deltas[keystroke_id])
 
     if event_data:
-        # Compact event_data format (legacy)
+        # CODEC_VERSION 1
         events = re.split(r"\|(?=\d)", event_data)
         event_re = re.compile(r"^(\d+)(.)(.*)$")
 
         time_deltas: list[int] = []
         prev_key: Optional[str] = None
         prev_index: Optional[int] = None
+        prev_input_len = 0
+        prev_was_insert = False
 
         for keystroke_id, event in enumerate(events):
             match = event_re.match(event)
@@ -226,12 +228,16 @@ def get_keystroke_data(keystroke_data: dict):
                 if buffer_offset < len(input_val_delays):
                     input_val_delays[buffer_offset].append(keystroke_id)
 
+            is_insert_action = action in ["+", ">"]
+
             # Raw WPM attribution
             if key is not None and index is not None:
                 absolute_pos = total_chars_before_word + index
 
                 # Fat-finger detection
-                if keystroke_id > 0 and time_delta <= FAT_FINGER_THRESHOLD_MS and prev_key is not None and prev_index is not None:
+                if (keystroke_id > 0 and time_delta <= FAT_FINGER_THRESHOLD_MS and
+                    prev_was_insert and prev_key is not None and prev_index is not None and
+                    prev_index <= prev_input_len):
                     prev_abs_pos = total_chars_before_word + prev_index
                     if (0 <= prev_abs_pos < len(text) and
                         prev_key != text[prev_abs_pos] and
@@ -261,15 +267,17 @@ def get_keystroke_data(keystroke_data: dict):
             elif not is_typo and typo_flag:
                 typo_flag = False
 
+            # Track used keystroke IDs across all words completing in this batch
+            # This prevents double-counting when a single keystroke triggers multiple word completions
+            used_raw_ids = set()
+            used_actual_ids = set()
+
             # Word completion
             while (current_word and
                    len(input_string) >= len(current_word) and
                    input_string[:len(current_word)] == current_word):
 
                 # Calculate times for this word using post-hoc attribution
-                used_raw_ids: set[int] = set()
-                used_actual_ids: set[int] = set()
-
                 for i in range(len(current_word)):
                     adj_i = i + buffer_offset
                     contributor_id = input_val_contributors[adj_i] if adj_i < len(input_val_contributors) else -1
@@ -318,13 +326,16 @@ def get_keystroke_data(keystroke_data: dict):
 
             prev_key = key
             prev_index = index
-            prev_input = input_string
+            prev_input_len = len(input_box)  # After word completion
+            prev_was_insert = is_insert_action
 
     else:
-        # Dictionary format (current standard)
+        # Legacy keystroke data format
         time_deltas = [ks["timeDelta"] for ks in keystrokes]
         prev_key: Optional[str] = None
         prev_index: Optional[int] = None
+        prev_input_len = 0
+        prev_was_insert = False
 
         for keystroke_id, keystroke in enumerate(keystrokes):
             action = keystroke["action"]
@@ -413,17 +424,19 @@ def get_keystroke_data(keystroke_data: dict):
                 else:
                     pending_delays.extend(preserved_ids)
 
+            # Track if this action is an insert (for fat-finger detection on next keystroke)
+            is_insert_action = "i" in action
+
             # Raw WPM attribution
             if key is not None and index is not None:
                 absolute_pos = total_chars_before_word + index
 
-                # Fat-finger detection
-                if keystroke_id > 0 and time_delta <= FAT_FINGER_THRESHOLD_MS and prev_key is not None and prev_index is not None:
+                # Fat-finger detection (only if previous action was insert)
+                # Skip if word boundary crossed (prev_index > prev_input_len means word completion cleared buffer)
+                if (keystroke_id > 0 and time_delta <= FAT_FINGER_THRESHOLD_MS and
+                    prev_was_insert and prev_key is not None and prev_index is not None and
+                    prev_index <= prev_input_len):
                     prev_abs_pos = total_chars_before_word + prev_index
-                    # Account for word completion - prev might have been in previous word
-                    if prev_input and prev_index < len(prev_input):
-                        # prev_index was valid in prev_input context
-                        pass
                     if (0 <= prev_abs_pos < len(text) and
                         prev_key != text[prev_abs_pos] and
                         key == text[prev_abs_pos]):
@@ -452,15 +465,17 @@ def get_keystroke_data(keystroke_data: dict):
             elif not is_typo and typo_flag:
                 typo_flag = False
 
+            # Track used keystroke IDs across all words completing in this batch
+            # This prevents double-counting when a single keystroke triggers multiple word completions
+            used_raw_ids = set()
+            used_actual_ids = set()
+
             # Word completion
             while (current_word and
                    len(input_string) >= len(current_word) and
                    input_string[:len(current_word)] == current_word):
 
                 # Calculate times for this word using post-hoc attribution
-                used_raw_ids: set[int] = set()
-                used_actual_ids: set[int] = set()
-
                 for i in range(len(current_word)):
                     adj_i = i + buffer_offset
                     contributor_id = input_val_contributors[adj_i] if adj_i < len(input_val_contributors) else -1
@@ -509,7 +524,8 @@ def get_keystroke_data(keystroke_data: dict):
 
             prev_key = key
             prev_index = index
-            prev_input = input_string
+            prev_input_len = len(input_box)  # After word completion
+            prev_was_insert = is_insert_action
 
     # Convert character times to cumulative WPM
     keystroke_wpm = get_keystroke_wpm(wpm_character_times)
