@@ -9,7 +9,7 @@ TRANSPOSITION_THRESHOLD_MS = 7
 
 # Attribution window: keystrokes can only be attributed to positions within this many
 # characters of where they were originally typed (prevents inflated raw WPM from spam)
-ATTRIBUTION_WINDOW = 10
+ATTRIBUTION_WINDOW = 7
 
 
 def get_keystroke_data(keystroke_data: dict):
@@ -61,6 +61,14 @@ def get_keystroke_data(keystroke_data: dict):
     # -1 means no active tracking; >= 0 means expecting text[tracking_sequence_pos] next
     tracking_sequence_pos = -1
 
+    # Attribution start tracking: we only start using char_pool attribution once we see a position
+    # typed correctly for the SECOND time (pigeonhole principle - if every position is typed
+    # exactly once and quote completes, user had 100% accuracy, so raw = wpm)
+    # Before that point, raw time = contributor time (1:1 mapping)
+    positions_typed_correctly: set[int] = set()
+    attribution_started = False
+    attribution_started_at_position = -1  # absolute text position where attribution starts
+
     # Character timing results
     wpm_character_times: list[float] = []
     raw_character_times: list[float] = []
@@ -77,6 +85,16 @@ def get_keystroke_data(keystroke_data: dict):
         if char == "\n" or char == "\r":
             return "⏎"
         return char
+
+    def track_correct_position(absolute_pos: int):
+        """Track that a position was typed correctly. Sets attribution_started if seen twice."""
+        nonlocal attribution_started, attribution_started_at_position
+        if absolute_pos in positions_typed_correctly:
+            # This position was already typed correctly before - start attribution!
+            if not attribution_started:
+                attribution_started = True
+                attribution_started_at_position = absolute_pos
+        positions_typed_correctly.add(absolute_pos)
 
     def add_to_char_pool(char: str, keystroke_id: int, typed_at_pos: int):
         """Add a keystroke to the character pool (normalizes enter chars)."""
@@ -145,16 +163,19 @@ def get_keystroke_data(keystroke_data: dict):
                         normalize_enter(prev_insert_key) != normalize_enter(text[prev_abs_pos]) and
                         normalized_key == normalize_enter(text[prev_abs_pos])):
                         # Fat-finger detected: prev was wrong, current is correct for prev position
+                        track_correct_position(prev_abs_pos)
                         add_to_char_pool(text[prev_abs_pos], keystroke_id, prev_abs_pos)
                         prev_time = fat_finger_times.get(prev_insert_keystroke_id, time_deltas[prev_insert_keystroke_id])
                         fat_finger_times[keystroke_id] = prev_time + time_delta
 
                 if 0 <= absolute_pos < len(text) and normalized_key == normalize_enter(text[absolute_pos]):
                     # Rule 1: Correct position - always add
+                    track_correct_position(absolute_pos)
                     add_to_char_pool(key, keystroke_id, absolute_pos)
                     tracking_sequence_pos = absolute_pos + 1
                 elif 0 <= tracking_sequence_pos < len(text) and normalized_key == normalize_enter(text[tracking_sequence_pos]):
                     # Rule 2: Continues active tracking sequence - add and advance
+                    track_correct_position(tracking_sequence_pos)
                     add_to_char_pool(key, keystroke_id, tracking_sequence_pos)
                     tracking_sequence_pos += 1
                 else:
@@ -206,16 +227,19 @@ def get_keystroke_data(keystroke_data: dict):
                         normalize_enter(prev_insert_key) != normalize_enter(text[prev_abs_pos]) and
                         normalized_key == normalize_enter(text[prev_abs_pos])):
                         # Fat-finger detected: prev was wrong, current is correct for prev position
+                        track_correct_position(prev_abs_pos)
                         add_to_char_pool(text[prev_abs_pos], keystroke_id, prev_abs_pos)
                         prev_time = fat_finger_times.get(prev_insert_keystroke_id, time_deltas[prev_insert_keystroke_id])
                         fat_finger_times[keystroke_id] = prev_time + time_delta
 
                 if 0 <= absolute_pos < len(text) and normalized_key == normalize_enter(text[absolute_pos]):
                     # Rule 1: Correct position - always add
+                    track_correct_position(absolute_pos)
                     add_to_char_pool(key, keystroke_id, absolute_pos)
                     tracking_sequence_pos = absolute_pos + 1
                 elif 0 <= tracking_sequence_pos < len(text) and normalized_key == normalize_enter(text[tracking_sequence_pos]):
                     # Rule 2: Continues active tracking sequence - add and advance
+                    track_correct_position(tracking_sequence_pos)
                     add_to_char_pool(key, keystroke_id, tracking_sequence_pos)
                     tracking_sequence_pos += 1
                 else:
@@ -353,16 +377,19 @@ def get_keystroke_data(keystroke_data: dict):
                         normalize_enter(prev_insert_key) != normalize_enter(text[prev_abs_pos]) and
                         normalized_key == normalize_enter(text[prev_abs_pos])):
                         # Fat-finger detected: prev was wrong, current is correct for prev position
+                        track_correct_position(prev_abs_pos)
                         add_to_char_pool(text[prev_abs_pos], keystroke_id, prev_abs_pos)
                         prev_time = fat_finger_times.get(prev_insert_keystroke_id, time_deltas[prev_insert_keystroke_id])
                         fat_finger_times[keystroke_id] = prev_time + time_delta
 
                 if 0 <= absolute_pos < len(text) and normalized_key == normalize_enter(text[absolute_pos]):
                     # Rule 1: Correct position - always add
+                    track_correct_position(absolute_pos)
                     add_to_char_pool(key, keystroke_id, absolute_pos)
                     tracking_sequence_pos = absolute_pos + 1
                 elif 0 <= tracking_sequence_pos < len(text) and normalized_key == normalize_enter(text[tracking_sequence_pos]):
                     # Rule 2: Continues active tracking sequence - add and advance
+                    track_correct_position(tracking_sequence_pos)
                     add_to_char_pool(key, keystroke_id, tracking_sequence_pos)
                     tracking_sequence_pos += 1
                 else:
@@ -417,13 +444,25 @@ def get_keystroke_data(keystroke_data: dict):
                 raw_times = [0] * len(current_word)
 
                 # Step 1: Left-to-right attribution with position window check
+                # EXCEPT: before attribution_started_at_position, use contributor timing (raw = wpm, no corrections yet)
                 for i in range(len(current_word)):
+                    # Calculate absolute position in text for this character
+                    absolute_pos = total_chars_before_word + i
+
+                    # Before attribution starts, use contributor timing (1:1 mapping, raw = wpm)
+                    if attribution_started_at_position < 0 or absolute_pos < attribution_started_at_position:
+                        adj_i = i + buffer_offset
+                        contributor_id = input_val_contributors[adj_i] if adj_i < len(input_val_contributors) else -1
+                        if contributor_id >= 0 and contributor_id not in used_raw_ids:
+                            used_raw_ids.add(contributor_id)
+                            attribution[i] = contributor_id
+                            raw_times[i] = time_deltas[contributor_id]
+                        continue
+
+                    # After attribution starts, use char_pool left-to-right attribution
                     expected_char = current_word[i]
                     normalized_expected = normalize_enter(expected_char)
                     pool = char_pool.get(normalized_expected, [])
-
-                    # Calculate absolute position in text for this character
-                    absolute_pos = total_chars_before_word + i
 
                     # Find earliest unused keystroke from pool (with position window check)
                     for ks_id, typed_at_pos in pool:
@@ -519,16 +558,19 @@ def get_keystroke_data(keystroke_data: dict):
                         normalize_enter(prev_insert_key) != normalize_enter(text[prev_abs_pos]) and
                         normalized_key == normalize_enter(text[prev_abs_pos])):
                         # Fat-finger detected: prev was wrong, current is correct for prev position
+                        track_correct_position(prev_abs_pos)
                         add_to_char_pool(text[prev_abs_pos], keystroke_id, prev_abs_pos)
                         prev_time = fat_finger_times.get(prev_insert_keystroke_id, time_deltas[prev_insert_keystroke_id])
                         fat_finger_times[keystroke_id] = prev_time + time_delta
 
                 if 0 <= absolute_pos < len(text) and normalized_key == normalize_enter(text[absolute_pos]):
                     # Rule 1: Correct position - always add
+                    track_correct_position(absolute_pos)
                     add_to_char_pool(key, keystroke_id, absolute_pos)
                     tracking_sequence_pos = absolute_pos + 1
                 elif 0 <= tracking_sequence_pos < len(text) and normalized_key == normalize_enter(text[tracking_sequence_pos]):
                     # Rule 2: Continues active tracking sequence - add and advance
+                    track_correct_position(tracking_sequence_pos)
                     add_to_char_pool(key, keystroke_id, tracking_sequence_pos)
                     tracking_sequence_pos += 1
                 else:
@@ -590,16 +632,19 @@ def get_keystroke_data(keystroke_data: dict):
                         normalize_enter(prev_insert_key) != normalize_enter(text[prev_abs_pos]) and
                         normalized_key == normalize_enter(text[prev_abs_pos])):
                         # Fat-finger detected: prev was wrong, current is correct for prev position
+                        track_correct_position(prev_abs_pos)
                         add_to_char_pool(text[prev_abs_pos], keystroke_id, prev_abs_pos)
                         prev_time = fat_finger_times.get(prev_insert_keystroke_id, time_deltas[prev_insert_keystroke_id])
                         fat_finger_times[keystroke_id] = prev_time + time_delta
 
                 if 0 <= absolute_pos < len(text) and normalized_key == normalize_enter(text[absolute_pos]):
                     # Rule 1: Correct position - always add
+                    track_correct_position(absolute_pos)
                     add_to_char_pool(key, keystroke_id, absolute_pos)
                     tracking_sequence_pos = absolute_pos + 1
                 elif 0 <= tracking_sequence_pos < len(text) and normalized_key == normalize_enter(text[tracking_sequence_pos]):
                     # Rule 2: Continues active tracking sequence - add and advance
+                    track_correct_position(tracking_sequence_pos)
                     add_to_char_pool(key, keystroke_id, tracking_sequence_pos)
                     tracking_sequence_pos += 1
                 else:
@@ -681,13 +726,25 @@ def get_keystroke_data(keystroke_data: dict):
                 raw_times = [0] * len(current_word)
 
                 # Step 1: Left-to-right attribution with position window check
+                # EXCEPT: before attribution_started_at_position, use contributor timing (raw = wpm, no corrections yet)
                 for i in range(len(current_word)):
+                    # Calculate absolute position in text for this character
+                    absolute_pos = total_chars_before_word + i
+
+                    # Before attribution starts, use contributor timing (1:1 mapping, raw = wpm)
+                    if attribution_started_at_position < 0 or absolute_pos < attribution_started_at_position:
+                        adj_i = i + buffer_offset
+                        contributor_id = input_val_contributors[adj_i] if adj_i < len(input_val_contributors) else -1
+                        if contributor_id >= 0 and contributor_id not in used_raw_ids:
+                            used_raw_ids.add(contributor_id)
+                            attribution[i] = contributor_id
+                            raw_times[i] = time_deltas[contributor_id]
+                        continue
+
+                    # After attribution starts, use char_pool left-to-right attribution
                     expected_char = current_word[i]
                     normalized_expected = normalize_enter(expected_char)
                     pool = char_pool.get(normalized_expected, [])
-
-                    # Calculate absolute position in text for this character
-                    absolute_pos = total_chars_before_word + i
 
                     # Find earliest unused keystroke from pool (with position window check)
                     for ks_id, typed_at_pos in pool:
