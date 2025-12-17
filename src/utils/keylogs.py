@@ -2,7 +2,14 @@ import re
 from typing import Optional
 
 
-FAT_FINGER_THRESHOLD_MS = 7
+# Transposition threshold: when keystrokes are typed in wrong order (inverted)
+# and close together in time, combine their times for raw WPM calculation
+# (also used for fatfinger detection)
+TRANSPOSITION_THRESHOLD_MS = 7
+
+# Attribution window: keystrokes can only be attributed to positions within this many
+# characters of where they were originally typed (prevents inflated raw WPM from spam)
+ATTRIBUTION_WINDOW = 10
 
 
 def get_keystroke_data(keystroke_data: dict):
@@ -11,7 +18,7 @@ def get_keystroke_data(keystroke_data: dict):
     post-hoc attribution algorithm (matching frontend/backend implementations).
 
     WPM: Uses contributor + delays (accounts for corrections)
-    Raw WPM: Uses absolute position matching + minimum picking + fat-finger detection
+    Raw WPM: Uses left-to-right attribution + tracking sequence + transposition adjustment
     """
     event_data = None
     newline = {"⏎": "\n"}
@@ -35,9 +42,24 @@ def get_keystroke_data(keystroke_data: dict):
     buffer_offset = 0  # virtual offset for O(1) word completion
     pending_delays: list[int] = []  # delays waiting for next insert
 
-    # Raw WPM attribution: absolute text position -> list of keystroke IDs
-    raw_attributions: dict[int, list[int]] = {}
-    fat_finger_times: dict[int, int] = {}  # keystrokeId -> adjusted time
+    # Character pool: tracks all keystrokes that typed each character (for left-to-right attribution)
+    # char -> array of (keystroke ID, position where typed) tuples in chronological order
+    char_pool: dict[str, list[tuple[int, int]]] = {}
+
+    # Fat-finger detection: when you type any wrong char then quickly type the correct char,
+    # combine times and add to pool. Maps keystrokeId -> combined time
+    fat_finger_times: dict[int, int] = {}
+
+    # Track previous keystroke info for fat-finger detection
+    prev_insert_key: Optional[str] = None
+    prev_insert_index: Optional[int] = None
+    prev_insert_keystroke_id: int = -1
+    prev_was_insert: bool = False
+
+    # Tracking sequence: when a char is typed at wrong position but matches somewhere in text,
+    # we track subsequent chars to see if they continue a valid sequence.
+    # -1 means no active tracking; >= 0 means expecting text[tracking_sequence_pos] next
+    tracking_sequence_pos = -1
 
     # Character timing results
     wpm_character_times: list[float] = []
@@ -50,18 +72,26 @@ def get_keystroke_data(keystroke_data: dict):
     total_chars_before_word = 0
     prev_input = ""
 
-    def add_raw_attribution(absolute_pos: int, keystroke_id: int):
-        """Add a keystroke as a candidate for raw WPM at an absolute position."""
-        if absolute_pos < 0 or absolute_pos >= len(text):
-            return
-        if absolute_pos not in raw_attributions:
-            raw_attributions[absolute_pos] = []
-        if keystroke_id not in raw_attributions[absolute_pos]:
-            raw_attributions[absolute_pos].append(keystroke_id)
+    def normalize_enter(char: str) -> str:
+        """Normalize enter characters: treat ⏎, \\n, and \\r as equivalent."""
+        if char == "\n" or char == "\r":
+            return "⏎"
+        return char
 
-    def get_raw_time(keystroke_id: int, time_deltas: list[int]) -> int:
-        """Get raw time for a keystroke (uses fat-finger adjusted time if available)."""
-        return fat_finger_times.get(keystroke_id, time_deltas[keystroke_id])
+    def add_to_char_pool(char: str, keystroke_id: int, typed_at_pos: int):
+        """Add a keystroke to the character pool (normalizes enter chars)."""
+        normalized = normalize_enter(char)
+        if normalized not in char_pool:
+            char_pool[normalized] = []
+        char_pool[normalized].append((keystroke_id, typed_at_pos))
+
+    def find_char_in_text(char: str, start_from: int = 0) -> int:
+        """Find where a char appears in text (normalizes enter chars for comparison)."""
+        normalized_char = normalize_enter(char)
+        for i in range(start_from, len(text)):
+            if normalize_enter(text[i]) == normalized_char:
+                return i
+        return -1
 
     if event_data:
         # CODEC_VERSION 1
@@ -102,6 +132,45 @@ def get_keystroke_data(keystroke_data: dict):
                     input_val_delays.insert(adjusted_i, pending_delays[:] if pending_delays else [])
                 pending_delays = []
 
+                # Add to character pool with tracking sequence logic
+                absolute_pos = total_chars_before_word + index
+                normalized_key = normalize_enter(key)
+
+                # Fat-finger detection: if previous keystroke was wrong and this one is correct for prev position
+                if (prev_was_insert and prev_insert_key is not None and
+                    prev_insert_index is not None and prev_insert_keystroke_id >= 0 and
+                    time_delta <= TRANSPOSITION_THRESHOLD_MS):
+                    prev_abs_pos = total_chars_before_word + prev_insert_index
+                    if (0 <= prev_abs_pos < len(text) and
+                        normalize_enter(prev_insert_key) != normalize_enter(text[prev_abs_pos]) and
+                        normalized_key == normalize_enter(text[prev_abs_pos])):
+                        # Fat-finger detected: prev was wrong, current is correct for prev position
+                        add_to_char_pool(text[prev_abs_pos], keystroke_id, prev_abs_pos)
+                        prev_time = fat_finger_times.get(prev_insert_keystroke_id, time_deltas[prev_insert_keystroke_id])
+                        fat_finger_times[keystroke_id] = prev_time + time_delta
+
+                if 0 <= absolute_pos < len(text) and normalized_key == normalize_enter(text[absolute_pos]):
+                    # Rule 1: Correct position - always add
+                    add_to_char_pool(key, keystroke_id, absolute_pos)
+                    tracking_sequence_pos = absolute_pos + 1
+                elif 0 <= tracking_sequence_pos < len(text) and normalized_key == normalize_enter(text[tracking_sequence_pos]):
+                    # Rule 2: Continues active tracking sequence - add and advance
+                    add_to_char_pool(key, keystroke_id, tracking_sequence_pos)
+                    tracking_sequence_pos += 1
+                else:
+                    # Rule 3: Try to start new tracking sequence
+                    match_pos = find_char_in_text(key, 0)
+                    if match_pos >= 0:
+                        tracking_sequence_pos = match_pos + 1
+                    else:
+                        tracking_sequence_pos = -1
+
+                # Update previous keystroke info for fat-finger detection
+                prev_insert_key = key
+                prev_insert_index = index
+                prev_insert_keystroke_id = keystroke_id
+                prev_was_insert = True
+
             # Insert (at pos)
             elif action == ">":
                 key = newline.get(params[-1], params[-1])
@@ -123,6 +192,45 @@ def get_keystroke_data(keystroke_data: dict):
                     input_val_contributors.insert(adjusted_i, keystroke_id)
                     input_val_delays.insert(adjusted_i, pending_delays[:] if pending_delays else [])
                 pending_delays = []
+
+                # Add to character pool with tracking sequence logic
+                absolute_pos = total_chars_before_word + index
+                normalized_key = normalize_enter(key)
+
+                # Fat-finger detection for insert at pos (same as append)
+                if (prev_was_insert and prev_insert_key is not None and
+                    prev_insert_index is not None and prev_insert_keystroke_id >= 0 and
+                    time_delta <= TRANSPOSITION_THRESHOLD_MS):
+                    prev_abs_pos = total_chars_before_word + prev_insert_index
+                    if (0 <= prev_abs_pos < len(text) and
+                        normalize_enter(prev_insert_key) != normalize_enter(text[prev_abs_pos]) and
+                        normalized_key == normalize_enter(text[prev_abs_pos])):
+                        # Fat-finger detected: prev was wrong, current is correct for prev position
+                        add_to_char_pool(text[prev_abs_pos], keystroke_id, prev_abs_pos)
+                        prev_time = fat_finger_times.get(prev_insert_keystroke_id, time_deltas[prev_insert_keystroke_id])
+                        fat_finger_times[keystroke_id] = prev_time + time_delta
+
+                if 0 <= absolute_pos < len(text) and normalized_key == normalize_enter(text[absolute_pos]):
+                    # Rule 1: Correct position - always add
+                    add_to_char_pool(key, keystroke_id, absolute_pos)
+                    tracking_sequence_pos = absolute_pos + 1
+                elif 0 <= tracking_sequence_pos < len(text) and normalized_key == normalize_enter(text[tracking_sequence_pos]):
+                    # Rule 2: Continues active tracking sequence - add and advance
+                    add_to_char_pool(key, keystroke_id, tracking_sequence_pos)
+                    tracking_sequence_pos += 1
+                else:
+                    # Rule 3: Try to start new tracking sequence
+                    match_pos = find_char_in_text(key, 0)
+                    if match_pos >= 0:
+                        tracking_sequence_pos = match_pos + 1
+                    else:
+                        tracking_sequence_pos = -1
+
+                # Update previous keystroke info for fat-finger detection
+                prev_insert_key = key
+                prev_insert_index = index
+                prev_insert_keystroke_id = keystroke_id
+                prev_was_insert = True
 
             # Delete (backspace)
             elif action == "<":
@@ -152,6 +260,11 @@ def get_keystroke_data(keystroke_data: dict):
                         input_val_delays[adj_d_start].extend(preserved_ids)
                     else:
                         pending_delays.extend(preserved_ids)
+
+                # Reset tracking sequence on delete
+                tracking_sequence_pos = -1
+                # Reset fat-finger tracking on delete
+                prev_was_insert = False
 
             # Delete (range)
             elif action == "-":
@@ -185,6 +298,11 @@ def get_keystroke_data(keystroke_data: dict):
                     input_val_delays[adj_d_start].extend(preserved_ids)
                 else:
                     pending_delays.extend(preserved_ids)
+
+                # Reset tracking sequence on delete
+                tracking_sequence_pos = -1
+                # Reset fat-finger tracking on delete
+                prev_was_insert = False
 
             # Replace
             elif action == "=":
@@ -222,6 +340,45 @@ def get_keystroke_data(keystroke_data: dict):
                     input_val_contributors.insert(adj_r_start, keystroke_id)
                     input_val_delays.insert(adj_r_start, preserved_ids)
 
+                # Add to character pool with tracking sequence logic
+                absolute_pos = total_chars_before_word + r_start
+                normalized_key = normalize_enter(key)
+
+                # Fat-finger detection for replace (same as insert)
+                if (prev_was_insert and prev_insert_key is not None and
+                    prev_insert_index is not None and prev_insert_keystroke_id >= 0 and
+                    time_delta <= TRANSPOSITION_THRESHOLD_MS):
+                    prev_abs_pos = total_chars_before_word + prev_insert_index
+                    if (0 <= prev_abs_pos < len(text) and
+                        normalize_enter(prev_insert_key) != normalize_enter(text[prev_abs_pos]) and
+                        normalized_key == normalize_enter(text[prev_abs_pos])):
+                        # Fat-finger detected: prev was wrong, current is correct for prev position
+                        add_to_char_pool(text[prev_abs_pos], keystroke_id, prev_abs_pos)
+                        prev_time = fat_finger_times.get(prev_insert_keystroke_id, time_deltas[prev_insert_keystroke_id])
+                        fat_finger_times[keystroke_id] = prev_time + time_delta
+
+                if 0 <= absolute_pos < len(text) and normalized_key == normalize_enter(text[absolute_pos]):
+                    # Rule 1: Correct position - always add
+                    add_to_char_pool(key, keystroke_id, absolute_pos)
+                    tracking_sequence_pos = absolute_pos + 1
+                elif 0 <= tracking_sequence_pos < len(text) and normalized_key == normalize_enter(text[tracking_sequence_pos]):
+                    # Rule 2: Continues active tracking sequence - add and advance
+                    add_to_char_pool(key, keystroke_id, tracking_sequence_pos)
+                    tracking_sequence_pos += 1
+                else:
+                    # Rule 3: Try to start new tracking sequence
+                    match_pos = find_char_in_text(key, 0)
+                    if match_pos >= 0:
+                        tracking_sequence_pos = match_pos + 1
+                    else:
+                        tracking_sequence_pos = -1
+
+                # Update previous keystroke info for fat-finger detection
+                prev_insert_key = key
+                prev_insert_index = r_start
+                prev_insert_keystroke_id = keystroke_id
+                prev_was_insert = True
+
             # Replace (redundant)
             elif action == "~":
                 # Just add as delay to first position
@@ -229,27 +386,6 @@ def get_keystroke_data(keystroke_data: dict):
                     input_val_delays[buffer_offset].append(keystroke_id)
 
             is_insert_action = action in ["+", ">"]
-
-            # Raw WPM attribution
-            if key is not None and index is not None:
-                absolute_pos = total_chars_before_word + index
-
-                # Fat-finger detection
-                if (keystroke_id > 0 and time_delta <= FAT_FINGER_THRESHOLD_MS and
-                    prev_was_insert and prev_key is not None and prev_index is not None and
-                    prev_index <= prev_input_len):
-                    prev_abs_pos = total_chars_before_word + prev_index
-                    if (0 <= prev_abs_pos < len(text) and
-                        prev_key != text[prev_abs_pos] and
-                        key == text[prev_abs_pos]):
-                        # Fat-finger detected
-                        prev_time = fat_finger_times.get(keystroke_id - 1, time_deltas[keystroke_id - 1])
-                        fat_finger_times[keystroke_id] = prev_time + time_delta
-                        add_raw_attribution(prev_abs_pos, keystroke_id)
-
-                # Normal attribution
-                if 0 <= absolute_pos < len(text) and key == text[absolute_pos]:
-                    add_raw_attribution(absolute_pos, keystroke_id)
 
             # Current text state
             input_string = "".join(input_box)
@@ -268,43 +404,57 @@ def get_keystroke_data(keystroke_data: dict):
                 typo_flag = False
 
             # Track used keystroke IDs across all words completing in this batch
-            # This prevents double-counting when a single keystroke triggers multiple word completions
-            used_raw_ids = set()
-            used_actual_ids = set()
+            used_raw_ids: set[int] = set()
+            used_actual_ids: set[int] = set()
 
             # Word completion
             while (current_word and
                    len(input_string) >= len(current_word) and
                    input_string[:len(current_word)] == current_word):
 
-                # Calculate times for this word using post-hoc attribution
+                # === Left-to-right raw attribution with transposition adjustment ===
+                attribution = [-1] * len(current_word)
+                raw_times = [0] * len(current_word)
+
+                # Step 1: Left-to-right attribution with position window check
+                for i in range(len(current_word)):
+                    expected_char = current_word[i]
+                    normalized_expected = normalize_enter(expected_char)
+                    pool = char_pool.get(normalized_expected, [])
+
+                    # Calculate absolute position in text for this character
+                    absolute_pos = total_chars_before_word + i
+
+                    # Find earliest unused keystroke from pool (with position window check)
+                    for ks_id, typed_at_pos in pool:
+                        # Check position window: keystroke must have been typed within ATTRIBUTION_WINDOW of target
+                        if ks_id not in used_raw_ids and abs(typed_at_pos - absolute_pos) <= ATTRIBUTION_WINDOW:
+                            used_raw_ids.add(ks_id)
+                            attribution[i] = ks_id
+                            # Use fat-finger combined time if available, otherwise use timeDelta
+                            raw_times[i] = fat_finger_times.get(ks_id, time_deltas[ks_id])
+                            break
+
+                # Step 2: Inversion adjustment (process backwards)
+                for i in range(len(current_word) - 1, 0, -1):
+                    ks_prev = attribution[i - 1]
+                    ks_curr = attribution[i]
+                    if ks_prev >= 0 and ks_curr >= 0 and ks_prev > ks_curr:
+                        # Inversion: pos-1's keystroke was typed AFTER pos's
+                        gap = sum(time_deltas[ks_curr + 1:ks_prev + 1])
+                        if gap <= TRANSPOSITION_THRESHOLD_MS:
+                            raw_times[i - 1] += raw_times[i]
+                            raw_times[i] = 0
+
+                # Add raw times to character times
+                raw_character_times.extend(raw_times)
+
+                # Calculate actual WPM times using post-hoc attribution (contributor + delays)
                 for i in range(len(current_word)):
                     adj_i = i + buffer_offset
                     contributor_id = input_val_contributors[adj_i] if adj_i < len(input_val_contributors) else -1
                     delay_ids = input_val_delays[adj_i] if adj_i < len(input_val_delays) else []
-                    absolute_pos = total_chars_before_word + i
 
-                    # Add contributor to raw attributions
-                    if contributor_id >= 0:
-                        add_raw_attribution(absolute_pos, contributor_id)
-
-                    # Raw WPM: minimum picking
-                    raw_time = 0
-                    attributed_ids = raw_attributions.get(absolute_pos, [])
-                    min_raw_time = float("inf")
-                    min_raw_id = -1
-                    for kid in attributed_ids:
-                        if kid not in used_raw_ids:
-                            t = get_raw_time(kid, time_deltas)
-                            if t < min_raw_time:
-                                min_raw_time = t
-                                min_raw_id = kid
-                    if min_raw_id >= 0:
-                        used_raw_ids.add(min_raw_id)
-                        raw_time = int(min_raw_time)
-                    raw_character_times.append(raw_time)
-
-                    # Actual WPM: contributor + delays
                     actual_time = 0
                     if contributor_id >= 0 and contributor_id not in used_actual_ids:
                         used_actual_ids.add(contributor_id)
@@ -324,18 +474,12 @@ def get_keystroke_data(keystroke_data: dict):
                 word_index += 1
                 current_word = words[word_index] if word_index < len(words) else ""
 
-            prev_key = key
-            prev_index = index
-            prev_input_len = len(input_box)  # After word completion
-            prev_was_insert = is_insert_action
+                # Reset tracking sequence after word completion
+                tracking_sequence_pos = -1
 
     else:
         # Legacy keystroke data format
         time_deltas = [ks["timeDelta"] for ks in keystrokes]
-        prev_key: Optional[str] = None
-        prev_index: Optional[int] = None
-        prev_input_len = 0
-        prev_was_insert = False
 
         for keystroke_id, keystroke in enumerate(keystrokes):
             action = keystroke["action"]
@@ -361,6 +505,45 @@ def get_keystroke_data(keystroke_data: dict):
                     input_val_contributors.insert(adjusted_i, keystroke_id)
                     input_val_delays.insert(adjusted_i, pending_delays[:] if pending_delays else [])
                 pending_delays = []
+
+                # Add to character pool with tracking sequence logic
+                absolute_pos = total_chars_before_word + index
+                normalized_key = normalize_enter(key)
+
+                # Fat-finger detection: if previous keystroke was wrong and this one is correct for prev position
+                if (prev_was_insert and prev_insert_key is not None and
+                    prev_insert_index is not None and prev_insert_keystroke_id >= 0 and
+                    time_delta <= TRANSPOSITION_THRESHOLD_MS):
+                    prev_abs_pos = total_chars_before_word + prev_insert_index
+                    if (0 <= prev_abs_pos < len(text) and
+                        normalize_enter(prev_insert_key) != normalize_enter(text[prev_abs_pos]) and
+                        normalized_key == normalize_enter(text[prev_abs_pos])):
+                        # Fat-finger detected: prev was wrong, current is correct for prev position
+                        add_to_char_pool(text[prev_abs_pos], keystroke_id, prev_abs_pos)
+                        prev_time = fat_finger_times.get(prev_insert_keystroke_id, time_deltas[prev_insert_keystroke_id])
+                        fat_finger_times[keystroke_id] = prev_time + time_delta
+
+                if 0 <= absolute_pos < len(text) and normalized_key == normalize_enter(text[absolute_pos]):
+                    # Rule 1: Correct position - always add
+                    add_to_char_pool(key, keystroke_id, absolute_pos)
+                    tracking_sequence_pos = absolute_pos + 1
+                elif 0 <= tracking_sequence_pos < len(text) and normalized_key == normalize_enter(text[tracking_sequence_pos]):
+                    # Rule 2: Continues active tracking sequence - add and advance
+                    add_to_char_pool(key, keystroke_id, tracking_sequence_pos)
+                    tracking_sequence_pos += 1
+                else:
+                    # Rule 3: Try to start new tracking sequence
+                    match_pos = find_char_in_text(key, 0)
+                    if match_pos >= 0:
+                        tracking_sequence_pos = match_pos + 1
+                    else:
+                        tracking_sequence_pos = -1
+
+                # Update previous keystroke info for fat-finger detection
+                prev_insert_key = key
+                prev_insert_index = index
+                prev_insert_keystroke_id = keystroke_id
+                prev_was_insert = True
 
             elif "rStart" in action:
                 # Replace
@@ -394,6 +577,45 @@ def get_keystroke_data(keystroke_data: dict):
                     input_val_contributors.insert(adj_r_start, keystroke_id)
                     input_val_delays.insert(adj_r_start, preserved_ids)
 
+                # Add to character pool with tracking sequence logic
+                absolute_pos = total_chars_before_word + r_start
+                normalized_key = normalize_enter(key)
+
+                # Fat-finger detection for replace (same as insert)
+                if (prev_was_insert and prev_insert_key is not None and
+                    prev_insert_index is not None and prev_insert_keystroke_id >= 0 and
+                    time_delta <= TRANSPOSITION_THRESHOLD_MS):
+                    prev_abs_pos = total_chars_before_word + prev_insert_index
+                    if (0 <= prev_abs_pos < len(text) and
+                        normalize_enter(prev_insert_key) != normalize_enter(text[prev_abs_pos]) and
+                        normalized_key == normalize_enter(text[prev_abs_pos])):
+                        # Fat-finger detected: prev was wrong, current is correct for prev position
+                        add_to_char_pool(text[prev_abs_pos], keystroke_id, prev_abs_pos)
+                        prev_time = fat_finger_times.get(prev_insert_keystroke_id, time_deltas[prev_insert_keystroke_id])
+                        fat_finger_times[keystroke_id] = prev_time + time_delta
+
+                if 0 <= absolute_pos < len(text) and normalized_key == normalize_enter(text[absolute_pos]):
+                    # Rule 1: Correct position - always add
+                    add_to_char_pool(key, keystroke_id, absolute_pos)
+                    tracking_sequence_pos = absolute_pos + 1
+                elif 0 <= tracking_sequence_pos < len(text) and normalized_key == normalize_enter(text[tracking_sequence_pos]):
+                    # Rule 2: Continues active tracking sequence - add and advance
+                    add_to_char_pool(key, keystroke_id, tracking_sequence_pos)
+                    tracking_sequence_pos += 1
+                else:
+                    # Rule 3: Try to start new tracking sequence
+                    match_pos = find_char_in_text(key, 0)
+                    if match_pos >= 0:
+                        tracking_sequence_pos = match_pos + 1
+                    else:
+                        tracking_sequence_pos = -1
+
+                # Update previous keystroke info for fat-finger detection
+                prev_insert_key = key
+                prev_insert_index = r_start
+                prev_insert_keystroke_id = keystroke_id
+                prev_was_insert = True
+
             elif "dStart" in action:
                 # Delete
                 d_start = max(0, min(action["dStart"], len(input_box)))
@@ -424,30 +646,10 @@ def get_keystroke_data(keystroke_data: dict):
                 else:
                     pending_delays.extend(preserved_ids)
 
-            # Track if this action is an insert (for fat-finger detection on next keystroke)
-            is_insert_action = "i" in action
-
-            # Raw WPM attribution
-            if key is not None and index is not None:
-                absolute_pos = total_chars_before_word + index
-
-                # Fat-finger detection (only if previous action was insert)
-                # Skip if word boundary crossed (prev_index > prev_input_len means word completion cleared buffer)
-                if (keystroke_id > 0 and time_delta <= FAT_FINGER_THRESHOLD_MS and
-                    prev_was_insert and prev_key is not None and prev_index is not None and
-                    prev_index <= prev_input_len):
-                    prev_abs_pos = total_chars_before_word + prev_index
-                    if (0 <= prev_abs_pos < len(text) and
-                        prev_key != text[prev_abs_pos] and
-                        key == text[prev_abs_pos]):
-                        # Fat-finger detected
-                        prev_time = fat_finger_times.get(keystroke_id - 1, time_deltas[keystroke_id - 1])
-                        fat_finger_times[keystroke_id] = prev_time + time_delta
-                        add_raw_attribution(prev_abs_pos, keystroke_id)
-
-                # Normal attribution
-                if 0 <= absolute_pos < len(text) and key == text[absolute_pos]:
-                    add_raw_attribution(absolute_pos, keystroke_id)
+                # Reset tracking sequence on delete
+                tracking_sequence_pos = -1
+                # Reset fat-finger tracking on delete
+                prev_was_insert = False
 
             # Current text state
             input_string = "".join(input_box)
@@ -466,43 +668,57 @@ def get_keystroke_data(keystroke_data: dict):
                 typo_flag = False
 
             # Track used keystroke IDs across all words completing in this batch
-            # This prevents double-counting when a single keystroke triggers multiple word completions
-            used_raw_ids = set()
-            used_actual_ids = set()
+            used_raw_ids: set[int] = set()
+            used_actual_ids: set[int] = set()
 
             # Word completion
             while (current_word and
                    len(input_string) >= len(current_word) and
                    input_string[:len(current_word)] == current_word):
 
-                # Calculate times for this word using post-hoc attribution
+                # === Left-to-right raw attribution with transposition adjustment ===
+                attribution = [-1] * len(current_word)
+                raw_times = [0] * len(current_word)
+
+                # Step 1: Left-to-right attribution with position window check
+                for i in range(len(current_word)):
+                    expected_char = current_word[i]
+                    normalized_expected = normalize_enter(expected_char)
+                    pool = char_pool.get(normalized_expected, [])
+
+                    # Calculate absolute position in text for this character
+                    absolute_pos = total_chars_before_word + i
+
+                    # Find earliest unused keystroke from pool (with position window check)
+                    for ks_id, typed_at_pos in pool:
+                        # Check position window: keystroke must have been typed within ATTRIBUTION_WINDOW of target
+                        if ks_id not in used_raw_ids and abs(typed_at_pos - absolute_pos) <= ATTRIBUTION_WINDOW:
+                            used_raw_ids.add(ks_id)
+                            attribution[i] = ks_id
+                            # Use fat-finger combined time if available, otherwise use timeDelta
+                            raw_times[i] = fat_finger_times.get(ks_id, time_deltas[ks_id])
+                            break
+
+                # Step 2: Inversion adjustment (process backwards)
+                for i in range(len(current_word) - 1, 0, -1):
+                    ks_prev = attribution[i - 1]
+                    ks_curr = attribution[i]
+                    if ks_prev >= 0 and ks_curr >= 0 and ks_prev > ks_curr:
+                        # Inversion: pos-1's keystroke was typed AFTER pos's
+                        gap = sum(time_deltas[ks_curr + 1:ks_prev + 1])
+                        if gap <= TRANSPOSITION_THRESHOLD_MS:
+                            raw_times[i - 1] += raw_times[i]
+                            raw_times[i] = 0
+
+                # Add raw times to character times
+                raw_character_times.extend(raw_times)
+
+                # Calculate actual WPM times using post-hoc attribution (contributor + delays)
                 for i in range(len(current_word)):
                     adj_i = i + buffer_offset
                     contributor_id = input_val_contributors[adj_i] if adj_i < len(input_val_contributors) else -1
                     delay_ids = input_val_delays[adj_i] if adj_i < len(input_val_delays) else []
-                    absolute_pos = total_chars_before_word + i
 
-                    # Add contributor to raw attributions
-                    if contributor_id >= 0:
-                        add_raw_attribution(absolute_pos, contributor_id)
-
-                    # Raw WPM: minimum picking
-                    raw_time = 0
-                    attributed_ids = raw_attributions.get(absolute_pos, [])
-                    min_raw_time = float("inf")
-                    min_raw_id = -1
-                    for kid in attributed_ids:
-                        if kid not in used_raw_ids:
-                            t = get_raw_time(kid, time_deltas)
-                            if t < min_raw_time:
-                                min_raw_time = t
-                                min_raw_id = kid
-                    if min_raw_id >= 0:
-                        used_raw_ids.add(min_raw_id)
-                        raw_time = int(min_raw_time)
-                    raw_character_times.append(raw_time)
-
-                    # Actual WPM: contributor + delays
                     actual_time = 0
                     if contributor_id >= 0 and contributor_id not in used_actual_ids:
                         used_actual_ids.add(contributor_id)
@@ -522,10 +738,8 @@ def get_keystroke_data(keystroke_data: dict):
                 word_index += 1
                 current_word = words[word_index] if word_index < len(words) else ""
 
-            prev_key = key
-            prev_index = index
-            prev_input_len = len(input_box)  # After word completion
-            prev_was_insert = is_insert_action
+                # Reset tracking sequence after word completion
+                tracking_sequence_pos = -1
 
     # Convert character times to cumulative WPM
     keystroke_wpm = get_keystroke_wpm(wpm_character_times)
