@@ -29,6 +29,7 @@ GRAPH_PALETTE = [
 ]
 plt.rcParams["axes.prop_cycle"] = plt.cycler(color=GRAPH_PALETTE)
 
+matplotlib.colormaps.register(LinearSegmentedColormap.from_list("plus", ["#4c0c39", "#FF27BE"]))
 matplotlib.colormaps.register(LinearSegmentedColormap.from_list("keegan", ["#0094FF", "#FF00DC"]))
 
 
@@ -54,6 +55,7 @@ def apply_theme(
     legend_loc: Optional[int | str] = "upper left",
     force_legend: bool = False,
     themed_line: int = 0,
+    show_gg_plus: bool = False,
 ):
     """Apply a theme to all graph elements."""
     # Backgrounds
@@ -114,7 +116,7 @@ def apply_theme(
         }
         caller_file = sys._getframe(1).f_code.co_filename
 
-        if any(graph in caller_file for graph in ["race", "daily"]):
+        if any(graph in caller_file for graph in ["race", "daily", "match"]):
             legend_kwargs.update({
                 "bbox_to_anchor": (1.03, 1),
                 "borderaxespad": 0,
@@ -134,7 +136,7 @@ def apply_theme(
         for text in legend.get_texts():
             text.set_color(theme["text"])
 
-    # Logo
+    # TypeGG Logo
     if "\n" in ax.get_title():
         fig = ax.figure
         fig.subplots_adjust(top=0.844)
@@ -169,6 +171,24 @@ def apply_theme(
     )
     ax.figure.add_artist(ab)
     ax.add_artist(ab)
+
+    # GG+ Badge
+    if show_gg_plus or True:
+        plus_path = ASSETS_DIR / "images" / "plus.png"
+        plus_img = mpimg.imread(plus_path)
+        plus_imagebox = OffsetImage(plus_img, zoom=0.045)
+
+        plus_ab = AnnotationBbox(
+            plus_imagebox,
+            (1, 1),
+            xycoords="figure fraction",
+            boxcoords="offset points",
+            xybox=(-6, -6),
+            box_alignment=(1, 1),
+            frameon=False
+        )
+        ax.figure.add_artist(plus_ab)
+        ax.add_artist(plus_ab)
 
 
 def get_line_colormap(ax: Axes, line_index: int, colormap_name: str):
