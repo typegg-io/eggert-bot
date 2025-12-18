@@ -9,6 +9,7 @@ from config import SOURCE_DIR, ROOT_DIR, TYPEGG_GUILD_ID
 from utils.logging import log
 from web_server.middleware import error_middleware, security_headers_middleware
 from web_server.routes.compare import compare_page
+from web_server.routes.update_gg_plus import update_gg_plus
 from web_server.routes.update_nwpm_role import update_nwpm_role
 from web_server.routes.verify import verify_user
 
@@ -33,6 +34,7 @@ class WebServer(commands.Cog):
         # Routes
         self.app.router.add_post("/verify", partial(verify_user, self))
         self.app.router.add_post("/update-nwpm-role", partial(update_nwpm_role, self))
+        self.app.router.add_patch("/update-gg-plus", partial(update_gg_plus, self))
         self.app.router.add_get("/compare/{username1}/vs/{username2}", compare_page)
 
         # Static files

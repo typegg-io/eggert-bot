@@ -151,6 +151,15 @@ def update_warning(discord_id: str):
     """, [discord_id])
 
 
+def update_gg_plus_status(user_id: str, is_gg_plus: bool):
+    """Update a user's GG+ subscription status."""
+    db.run("""
+        UPDATE users
+        SET isGgPlus = ?
+        WHERE userId = ?
+    """, [1 if is_gg_plus else 0, user_id])
+
+
 def link_user(discord_id: str, user_id: str):
     """Creates a link between a Discord ID and a User ID."""
     db.run("""

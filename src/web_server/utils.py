@@ -1,9 +1,33 @@
 import asyncio
 
 import discord
+from aiohttp import web
 
+from config import SECRET
 from utils.logging import log
 
+
+# Request Utilities
+
+def error_response(message: str, status: int = 500):
+    """Create a JSON error response."""
+    return web.json_response({"error": message}, status=status)
+
+
+def validate_authorization(request: web.Request):
+    """Validate the Authorization header with Bearer token, returns error response or None."""
+    auth_header = request.headers.get("Authorization")
+    if not auth_header:
+        return error_response("Missing Authorization header.", 401)
+
+    token = auth_header.removeprefix("Bearer ").strip()
+    if token != SECRET:
+        return error_response("Token is invalid.", 401)
+
+    return None
+
+
+# Discord Role Management
 
 def get_nwpm_role_name(nwpm):
     """Get the role name for a given nWPM value."""
