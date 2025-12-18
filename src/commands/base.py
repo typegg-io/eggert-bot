@@ -39,6 +39,7 @@ class Command(commands.Cog):
                 raise DailyQuoteChannel
             if not hasattr(ctx, "user"):
                 ctx.user = get_user(str(ctx.author.id))
+                ctx.user["theme"]["isGgPlus"] = ctx.user["isGgPlus"]
             if ctx.user["isBanned"]:
                 raise UserBanned("Banned user attempted to use a command")
             return True

@@ -55,7 +55,6 @@ def apply_theme(
     legend_loc: Optional[int | str] = "upper left",
     force_legend: bool = False,
     themed_line: int = 0,
-    show_gg_plus: bool = False,
 ):
     """Apply a theme to all graph elements."""
     # Backgrounds
@@ -173,7 +172,7 @@ def apply_theme(
     ax.add_artist(ab)
 
     # GG+ Badge
-    if show_gg_plus or True:
+    if theme["isGgPlus"]:
         plus_path = ASSETS_DIR / "images" / "plus.png"
         plus_img = mpimg.imread(plus_path)
         plus_imagebox = OffsetImage(plus_img, zoom=0.045)
