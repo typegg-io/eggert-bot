@@ -27,7 +27,7 @@ def add_user(discord_id: str):
         "isBanned": 0,
         "isAdmin": 0,
         "isPrivacyWarned": 0,
-        "isGgPlus": 1,
+        "isGgPlus": 0,
     }
     user_values = user.values()
 
