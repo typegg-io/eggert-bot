@@ -3,8 +3,9 @@ from typing import Optional
 from discord.ext import commands
 
 from commands.base import Command
+from utils.dates import format_date, parse_date
 from utils.messages import Page, Message, Field
-from utils.strings import discord_date, format_duration
+from utils.strings import discord_date, format_duration, GG_PLUS
 from utils.urls import profile_url
 
 info = {
@@ -65,7 +66,11 @@ async def run(ctx: commands.Context, profile: dict):
                 + (f"**Layout:** {profile["hardware"]["layout"]}\n" if profile["hardware"]["layout"] else "")
                 + (f"**Keyboard:** {profile["hardware"]["keyboard"]}\n" if profile["hardware"]["keyboard"] else "")
                 + (f"**Switches:** {profile["hardware"]["switches"]}\n" if profile["hardware"]["switches"] else "")
-                + f"**Profile Views:** {profile["profileViews"]}"
+                + f"**Profile Views:** {profile["profileViews"]:,}\n"
+                + (
+                    f"{GG_PLUS} **Since:** {format_date(parse_date(profile["subscribeDate"]))}"
+                    if (profile.get("subscribeDate", None) and profile["isGgPlus"]) else ""
+                )
             )
         )
     ]
