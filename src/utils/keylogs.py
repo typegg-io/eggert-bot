@@ -88,8 +88,8 @@ def get_keystroke_data(keystroke_data: dict):
         positions_typed_correctly.add(absolute_pos)
 
     def add_to_char_pool(char: str, keystroke_id: int, typed_at_pos: int):
-        """Add a keystroke to the character pool (normalizes enter chars)."""
-        normalized = normalize_enter(char)
+        """Add a keystroke to the character pool (normalizes enter chars and lowercases for case-insensitive matching)."""
+        normalized = normalize_enter(char).lower()
         if normalized not in char_pool:
             char_pool[normalized] = []
         char_pool[normalized].append((keystroke_id, typed_at_pos))
@@ -101,6 +101,27 @@ def get_keystroke_data(keystroke_data: dict):
             if normalize_enter(text[i]) == normalized_char:
                 return i
         return -1
+
+    # Global tracking sets to prevent double-counting across entire replay
+    # Each keystroke should only contribute its timing to ONE character position
+    global_used_raw_ids: set[int] = set()
+    global_used_actual_ids: set[int] = set()
+
+    # Post-correction position tracking:
+    # Track ALL keystrokes at each position (regardless of character correctness)
+    # Used for post-correction positions to find minimum non-fatfinger time
+    position_keystrokes: dict[int, list[tuple[int, int]]] = {}  # pos -> [(ks_id, time_delta), ...]
+
+    # Track positions that are "post-correction first positions"
+    # These occur at: (1) tail position after DELETE, (2) r_start position of REPLACE
+    # For these positions, use minimum non-fatfinger time instead of earliest char_pool match
+    post_correction_positions: set[int] = set()
+
+    def add_to_position_keystrokes(absolute_pos: int, keystroke_id: int, time_delta: int):
+        """Track ALL keystrokes at each position (for post-correction minimum time lookup)."""
+        if absolute_pos not in position_keystrokes:
+            position_keystrokes[absolute_pos] = []
+        position_keystrokes[absolute_pos].append((keystroke_id, time_delta))
 
     # CODEC_VERSION 1
     events = re.split(r"\|(?=\d)", event_data)
@@ -137,6 +158,10 @@ def get_keystroke_data(keystroke_data: dict):
 
             # Add to character pool with tracking sequence logic
             absolute_pos = total_chars_before_word + index
+
+            # Track ALL keystrokes at each position (for post-correction minimum time lookup)
+            add_to_position_keystrokes(absolute_pos, keystroke_id, time_delta)
+
             normalized_key = normalize_enter(key)
 
             # Fat-finger detection: if previous keystroke was wrong and this one is correct for prev position
@@ -153,12 +178,17 @@ def get_keystroke_data(keystroke_data: dict):
                     prev_time = fat_finger_times.get(prev_insert_keystroke_id, time_deltas[prev_insert_keystroke_id])
                     fat_finger_times[keystroke_id] = prev_time + time_delta
 
-            if 0 <= absolute_pos < len(text) and normalized_key == normalize_enter(text[absolute_pos]):
-                # Rule 1: Correct position - always add
-                track_correct_position(absolute_pos)
+            expected_char = normalize_enter(text[absolute_pos]) if 0 <= absolute_pos < len(text) else ""
+            exact_match = 0 <= absolute_pos < len(text) and normalized_key == expected_char
+            case_insensitive_match = not exact_match and 0 <= absolute_pos < len(text) and normalized_key.lower() == expected_char.lower()
+
+            if exact_match or case_insensitive_match:
+                # Rule 1: Correct position (exact or case-insensitive) - always add
+                if exact_match:
+                    track_correct_position(absolute_pos)
                 add_to_char_pool(key, keystroke_id, absolute_pos)
                 tracking_sequence_pos = absolute_pos + 1
-            elif 0 <= tracking_sequence_pos < len(text) and normalized_key == normalize_enter(text[tracking_sequence_pos]):
+            elif 0 <= tracking_sequence_pos < len(text) and normalized_key.lower() == normalize_enter(text[tracking_sequence_pos]).lower():
                 # Rule 2: Continues active tracking sequence - add and advance
                 track_correct_position(tracking_sequence_pos)
                 add_to_char_pool(key, keystroke_id, tracking_sequence_pos)
@@ -201,6 +231,10 @@ def get_keystroke_data(keystroke_data: dict):
 
             # Add to character pool with tracking sequence logic
             absolute_pos = total_chars_before_word + index
+
+            # Track ALL keystrokes at each position (for post-correction minimum time lookup)
+            add_to_position_keystrokes(absolute_pos, keystroke_id, time_delta)
+
             normalized_key = normalize_enter(key)
 
             # Fat-finger detection for insert at pos (same as append)
@@ -217,12 +251,17 @@ def get_keystroke_data(keystroke_data: dict):
                     prev_time = fat_finger_times.get(prev_insert_keystroke_id, time_deltas[prev_insert_keystroke_id])
                     fat_finger_times[keystroke_id] = prev_time + time_delta
 
-            if 0 <= absolute_pos < len(text) and normalized_key == normalize_enter(text[absolute_pos]):
-                # Rule 1: Correct position - always add
-                track_correct_position(absolute_pos)
+            expected_char = normalize_enter(text[absolute_pos]) if 0 <= absolute_pos < len(text) else ""
+            exact_match = 0 <= absolute_pos < len(text) and normalized_key == expected_char
+            case_insensitive_match = not exact_match and 0 <= absolute_pos < len(text) and normalized_key.lower() == expected_char.lower()
+
+            if exact_match or case_insensitive_match:
+                # Rule 1: Correct position (exact or case-insensitive) - always add
+                if exact_match:
+                    track_correct_position(absolute_pos)
                 add_to_char_pool(key, keystroke_id, absolute_pos)
                 tracking_sequence_pos = absolute_pos + 1
-            elif 0 <= tracking_sequence_pos < len(text) and normalized_key == normalize_enter(text[tracking_sequence_pos]):
+            elif 0 <= tracking_sequence_pos < len(text) and normalized_key.lower() == normalize_enter(text[tracking_sequence_pos]).lower():
                 # Rule 2: Continues active tracking sequence - add and advance
                 track_correct_position(tracking_sequence_pos)
                 add_to_char_pool(key, keystroke_id, tracking_sequence_pos)
@@ -270,6 +309,12 @@ def get_keystroke_data(keystroke_data: dict):
                 else:
                     pending_delays.extend(preserved_ids)
 
+                # Mark tail position after delete as post-correction
+                # The next INSERT at this position will have inflated timeDelta (correction overhead)
+                tail_pos_after_delete = total_chars_before_word + d_start
+                if 0 <= tail_pos_after_delete < len(text):
+                    post_correction_positions.add(tail_pos_after_delete)
+
             # Reset tracking sequence on delete
             tracking_sequence_pos = -1
             # Reset fat-finger tracking on delete
@@ -307,6 +352,12 @@ def get_keystroke_data(keystroke_data: dict):
                 input_val_delays[adj_d_start].extend(preserved_ids)
             else:
                 pending_delays.extend(preserved_ids)
+
+            # Mark tail position after delete as post-correction
+            # The next INSERT at this position will have inflated timeDelta (correction overhead)
+            tail_pos_after_delete = total_chars_before_word + d_start
+            if 0 <= tail_pos_after_delete < len(text):
+                post_correction_positions.add(tail_pos_after_delete)
 
             # Reset tracking sequence on delete
             tracking_sequence_pos = -1
@@ -350,6 +401,15 @@ def get_keystroke_data(keystroke_data: dict):
 
             # Add to character pool with tracking sequence logic
             absolute_pos = total_chars_before_word + r_start
+
+            # Track ALL keystrokes at each position (for post-correction minimum time lookup)
+            add_to_position_keystrokes(absolute_pos, keystroke_id, time_delta)
+
+            # Mark r_start position as post-correction for REPLACE
+            # The REPLACE keystroke itself has inflated timeDelta (correction overhead)
+            if 0 <= absolute_pos < len(text):
+                post_correction_positions.add(absolute_pos)
+
             normalized_key = normalize_enter(key)
 
             # Fat-finger detection for replace (same as insert)
@@ -366,12 +426,17 @@ def get_keystroke_data(keystroke_data: dict):
                     prev_time = fat_finger_times.get(prev_insert_keystroke_id, time_deltas[prev_insert_keystroke_id])
                     fat_finger_times[keystroke_id] = prev_time + time_delta
 
-            if 0 <= absolute_pos < len(text) and normalized_key == normalize_enter(text[absolute_pos]):
-                # Rule 1: Correct position - always add
-                track_correct_position(absolute_pos)
+            expected_char = normalize_enter(text[absolute_pos]) if 0 <= absolute_pos < len(text) else ""
+            exact_match = 0 <= absolute_pos < len(text) and normalized_key == expected_char
+            case_insensitive_match = not exact_match and 0 <= absolute_pos < len(text) and normalized_key.lower() == expected_char.lower()
+
+            if exact_match or case_insensitive_match:
+                # Rule 1: Correct position (exact or case-insensitive) - always add
+                if exact_match:
+                    track_correct_position(absolute_pos)
                 add_to_char_pool(key, keystroke_id, absolute_pos)
                 tracking_sequence_pos = absolute_pos + 1
-            elif 0 <= tracking_sequence_pos < len(text) and normalized_key == normalize_enter(text[tracking_sequence_pos]):
+            elif 0 <= tracking_sequence_pos < len(text) and normalized_key.lower() == normalize_enter(text[tracking_sequence_pos]).lower():
                 # Rule 2: Continues active tracking sequence - add and advance
                 track_correct_position(tracking_sequence_pos)
                 add_to_char_pool(key, keystroke_id, tracking_sequence_pos)
@@ -412,9 +477,9 @@ def get_keystroke_data(keystroke_data: dict):
         elif not is_typo and typo_flag:
             typo_flag = False
 
-        # Track used keystroke IDs across all words completing in this batch
-        used_raw_ids: set[int] = set()
-        used_actual_ids: set[int] = set()
+        # Use global tracking sets to prevent double-counting across entire replay
+        used_raw_ids = global_used_raw_ids
+        used_actual_ids = global_used_actual_ids
 
         # Word completion
         while (current_word and
@@ -425,27 +490,53 @@ def get_keystroke_data(keystroke_data: dict):
             attribution = [-1] * len(current_word)
             raw_times = [0] * len(current_word)
 
-            # Step 1: Left-to-right attribution with position window check
-            # EXCEPT: before attribution_started_at_position, use contributor timing (raw = wpm, no corrections yet)
+            # Step 1: Left-to-right attribution - try char_pool first, fall back to contributor
             for i in range(len(current_word)):
                 # Calculate absolute position in text for this character
                 absolute_pos = total_chars_before_word + i
 
-                # Before attribution starts, use contributor timing (1:1 mapping, raw = wpm)
-                if attribution_started_at_position < 0 or absolute_pos < attribution_started_at_position:
-                    adj_i = i + buffer_offset
-                    contributor_id = input_val_contributors[adj_i] if adj_i < len(input_val_contributors) else -1
-                    if contributor_id >= 0 and contributor_id not in used_raw_ids:
-                        used_raw_ids.add(contributor_id)
-                        attribution[i] = contributor_id
-                        raw_times[i] = time_deltas[contributor_id]
-                    continue
+                # For post-correction positions: use minimum non-fatfinger time from ALL keystrokes at this position
+                if absolute_pos in post_correction_positions:
+                    all_at_pos = position_keystrokes.get(absolute_pos, [])
+                    min_time = float('inf')
+                    min_ks_id = -1
+                    for ks_id, ks_time_delta in all_at_pos:
+                        # Skip fat-fingered keystrokes (they have combined times)
+                        # Skip already-used keystrokes
+                        if ks_id not in fat_finger_times and ks_id not in used_raw_ids and ks_time_delta < min_time:
+                            min_time = ks_time_delta
+                            min_ks_id = ks_id
+                    if min_ks_id >= 0:
+                        used_raw_ids.add(min_ks_id)
+                        attribution[i] = min_ks_id
+                        raw_times[i] = int(min_time)
+                        continue
+                    # Fall through to normal logic if no valid keystroke found
 
-                # After attribution starts, use char_pool left-to-right attribution
+                # Check for inversion: if there are keystrokes typed AT this exact position,
+                # prefer those over char_pool keystrokes from other positions.
+                # This handles inversions where user typed wrong char at correct position.
+                keystrokes_at_this_pos = position_keystrokes.get(absolute_pos, [])
+                if keystrokes_at_this_pos:
+                    # Find minimum non-fatfinger time from keystrokes at this position
+                    min_time = float('inf')
+                    min_ks_id = -1
+                    for ks_id, ks_time_delta in keystrokes_at_this_pos:
+                        if ks_id not in fat_finger_times and ks_id not in used_raw_ids and ks_time_delta < min_time:
+                            min_time = ks_time_delta
+                            min_ks_id = ks_id
+                    if min_ks_id >= 0:
+                        used_raw_ids.add(min_ks_id)
+                        attribution[i] = min_ks_id
+                        raw_times[i] = int(min_time)
+                        continue
+
+                # Try char_pool - find earliest unused keystroke that typed expected char
                 expected_char = current_word[i]
-                normalized_expected = normalize_enter(expected_char)
+                normalized_expected = normalize_enter(expected_char).lower()
                 pool = char_pool.get(normalized_expected, [])
 
+                found_in_pool = False
                 # Find earliest unused keystroke from pool (with position window check)
                 for ks_id, typed_at_pos in pool:
                     # Check position window: keystroke must have been typed within ATTRIBUTION_WINDOW of target
@@ -454,7 +545,17 @@ def get_keystroke_data(keystroke_data: dict):
                         attribution[i] = ks_id
                         # Use fat-finger combined time if available, otherwise use timeDelta
                         raw_times[i] = fat_finger_times.get(ks_id, time_deltas[ks_id])
+                        found_in_pool = True
                         break
+
+                # Fall back to contributor timing if char_pool had no match
+                if not found_in_pool:
+                    adj_i = i + buffer_offset
+                    contributor_id = input_val_contributors[adj_i] if adj_i < len(input_val_contributors) else -1
+                    if contributor_id >= 0 and contributor_id not in used_raw_ids:
+                        used_raw_ids.add(contributor_id)
+                        attribution[i] = contributor_id
+                        raw_times[i] = time_deltas[contributor_id]
 
             # Step 2: Inversion adjustment (process backwards)
             for i in range(len(current_word) - 1, 0, -1):
