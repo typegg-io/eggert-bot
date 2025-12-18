@@ -110,18 +110,18 @@ def get_keystroke_data(keystroke_data: dict):
     # Post-correction position tracking:
     # Track ALL keystrokes at each position (regardless of character correctness)
     # Used for post-correction positions to find minimum non-fatfinger time
-    position_keystrokes: dict[int, list[tuple[int, int]]] = {}  # pos -> [(ks_id, time_delta), ...]
+    position_keystrokes: dict[int, list[tuple[int, int, str]]] = {}  # pos -> [(ks_id, time_delta, typed_char), ...]
 
     # Track positions that are "post-correction first positions"
     # These occur at: (1) tail position after DELETE, (2) r_start position of REPLACE
     # For these positions, use minimum non-fatfinger time instead of earliest char_pool match
     post_correction_positions: set[int] = set()
 
-    def add_to_position_keystrokes(absolute_pos: int, keystroke_id: int, time_delta: int):
+    def add_to_position_keystrokes(absolute_pos: int, keystroke_id: int, time_delta: int, typed_char: str):
         """Track ALL keystrokes at each position (for post-correction minimum time lookup)."""
         if absolute_pos not in position_keystrokes:
             position_keystrokes[absolute_pos] = []
-        position_keystrokes[absolute_pos].append((keystroke_id, time_delta))
+        position_keystrokes[absolute_pos].append((keystroke_id, time_delta, typed_char))
 
     # CODEC_VERSION 1
     events = re.split(r"\|(?=\d)", event_data)
@@ -160,7 +160,7 @@ def get_keystroke_data(keystroke_data: dict):
             absolute_pos = total_chars_before_word + index
 
             # Track ALL keystrokes at each position (for post-correction minimum time lookup)
-            add_to_position_keystrokes(absolute_pos, keystroke_id, time_delta)
+            add_to_position_keystrokes(absolute_pos, keystroke_id, time_delta, key)
 
             normalized_key = normalize_enter(key)
 
@@ -233,7 +233,7 @@ def get_keystroke_data(keystroke_data: dict):
             absolute_pos = total_chars_before_word + index
 
             # Track ALL keystrokes at each position (for post-correction minimum time lookup)
-            add_to_position_keystrokes(absolute_pos, keystroke_id, time_delta)
+            add_to_position_keystrokes(absolute_pos, keystroke_id, time_delta, key)
 
             normalized_key = normalize_enter(key)
 
@@ -403,7 +403,7 @@ def get_keystroke_data(keystroke_data: dict):
             absolute_pos = total_chars_before_word + r_start
 
             # Track ALL keystrokes at each position (for post-correction minimum time lookup)
-            add_to_position_keystrokes(absolute_pos, keystroke_id, time_delta)
+            add_to_position_keystrokes(absolute_pos, keystroke_id, time_delta, key)
 
             # Mark r_start position as post-correction for REPLACE
             # The REPLACE keystroke itself has inflated timeDelta (correction overhead)
@@ -500,7 +500,7 @@ def get_keystroke_data(keystroke_data: dict):
                     all_at_pos = position_keystrokes.get(absolute_pos, [])
                     min_time = float('inf')
                     min_ks_id = -1
-                    for ks_id, ks_time_delta in all_at_pos:
+                    for ks_id, ks_time_delta, _ in all_at_pos:
                         # Skip fat-fingered keystrokes (they have combined times)
                         # Skip already-used keystrokes
                         if ks_id not in fat_finger_times and ks_id not in used_raw_ids and ks_time_delta < min_time:
@@ -516,13 +516,26 @@ def get_keystroke_data(keystroke_data: dict):
                 # Check for inversion: if there are keystrokes typed AT this exact position,
                 # prefer those over char_pool keystrokes from other positions.
                 # This handles inversions where user typed wrong char at correct position.
+                # BUT: only use if typed char matches expected char OR adjacent expected char (true inversion).
                 keystrokes_at_this_pos = position_keystrokes.get(absolute_pos, [])
                 if keystrokes_at_this_pos:
-                    # Find minimum non-fatfinger time from keystrokes at this position
+                    expected_char = normalize_enter(current_word[i]).lower()
+                    prev_expected = normalize_enter(text[absolute_pos - 1]).lower() if absolute_pos > 0 and absolute_pos - 1 < len(text) else ''
+                    next_expected = normalize_enter(text[absolute_pos + 1]).lower() if absolute_pos + 1 < len(text) else ''
+
+                    # Find minimum non-fatfinger time from VALID keystrokes at this position
+                    # Valid = typed char matches expected OR adjacent expected (inversion)
                     min_time = float('inf')
                     min_ks_id = -1
-                    for ks_id, ks_time_delta in keystrokes_at_this_pos:
-                        if ks_id not in fat_finger_times and ks_id not in used_raw_ids and ks_time_delta < min_time:
+                    for ks_id, ks_time_delta, typed_char in keystrokes_at_this_pos:
+                        if ks_id in fat_finger_times or ks_id in used_raw_ids:
+                            continue
+
+                        # Only use if typed char is valid: matches expected OR adjacent (inversion)
+                        normalized_typed = normalize_enter(typed_char).lower()
+                        is_valid = normalized_typed == expected_char or normalized_typed == prev_expected or normalized_typed == next_expected
+
+                        if is_valid and ks_time_delta < min_time:
                             min_time = ks_time_delta
                             min_ks_id = ks_id
                     if min_ks_id >= 0:
