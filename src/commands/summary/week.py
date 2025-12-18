@@ -4,7 +4,7 @@ from dateutil.relativedelta import relativedelta
 from discord.ext import commands
 
 from commands.base import Command
-from commands.stats.races import run
+from commands.summary.races import run
 from utils.dates import parse_date
 
 info = {

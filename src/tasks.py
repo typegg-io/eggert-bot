@@ -5,7 +5,7 @@ from discord.ext import commands, tasks
 
 from api.daily_quotes import get_daily_quote
 from api.users import get_profile, get_race
-from commands.quotes.dailyleaderboard import display_daily_quote
+from commands.daily.dailyleaderboard import display_daily_quote
 from config import DAILY_QUOTE_CHANNEL_ID, SITE_URL, TYPEGG_GUILD_ID, DAILY_QUOTE_ROLE_ID, DEFAULT_THEME
 from database.bot.users import get_user
 from database.typegg.daily_quotes import add_daily_quote, add_daily_results, get_missing_days

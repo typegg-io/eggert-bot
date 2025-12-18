@@ -2,7 +2,7 @@ from discord.ext import commands
 
 from api.daily_quotes import get_daily_quote
 from commands.base import Command
-from commands.quotes.dailyleaderboard import daily_quote_display
+from commands.daily.dailyleaderboard import daily_quote_display
 from database.bot.recent_quotes import set_recent_quote
 from database.typegg.quotes import get_quote
 from graphs import daily as daily_graph

@@ -43,6 +43,8 @@ async def help_main(ctx: commands.Context):
     fields = []
     groups = files.get_command_groups()
     for group in groups:
+        if group == "unlisted":
+            continue
         if group == "admin" and not ctx.user["isAdmin"]:
             continue
         command_list = []
