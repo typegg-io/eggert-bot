@@ -13,7 +13,7 @@ def get_command_groups():
         if not dir.startswith("_") and os.path.isdir(SOURCE_DIR / "commands" / dir):
             groups.append(dir)
 
-    return groups
+    return sorted(groups)
 
 
 def get_command_modules():
