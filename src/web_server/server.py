@@ -34,7 +34,7 @@ class WebServer(commands.Cog):
         # Routes
         self.app.router.add_post("/verify", partial(verify_user, self))
         self.app.router.add_post("/update-nwpm-role", partial(update_nwpm_role, self))
-        self.app.router.add_patch("/update-gg-plus", partial(update_gg_plus, self))
+        self.app.router.add_post("/update-gg-plus", partial(update_gg_plus, self))
         self.app.router.add_get("/compare/{username1}/vs/{username2}", compare_page)
 
         # Static files
