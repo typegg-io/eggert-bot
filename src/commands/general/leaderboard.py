@@ -4,13 +4,13 @@ from api.leaders import get_leaders
 from commands.base import Command
 from utils import strings
 from utils.messages import Message, paginate_data
-from utils.strings import get_argument, username_with_flag, rank
+from utils.strings import get_argument, username_with_flag, rank, get_flag_title
 
 categories = {
     "pp": {
         "sort": "totalPp",
         "title": "Total pp",
-        "formatter": lambda user: f"{user["stats"]["totalPp"]:,} pp ({user["stats"]["accuracy"]:.2%} Accuracy)"
+        "formatter": lambda user: f"{user["stats"]["totalPp"]:,.0f} pp ({user["stats"]["accuracy"]:.2%} Accuracy)"
     },
     "best": {
         "sort": "bestPp",
@@ -99,19 +99,29 @@ def entry_formatter(data):
 
 
 async def run(ctx: commands.Context, category: dict):
+    gamemode = ctx.flags.get("gamemode", "any")
     results = await get_leaders(
         sort=category["sort"],
         per_page=100,
+        gamemode=gamemode,
     )
+
+    if gamemode == "multiplayer" and category["sort"] == "races":
+        category["formatter"] = lambda user: f"{user["stats"]["multiplayerRaces"]:,}"
 
     leaderboard = results["users"]
     for i in range(len(leaderboard)):
         leaderboard[i] |= {"rank": i + 1, "category": category}
     pages = paginate_data(leaderboard, entry_formatter, page_count=5, per_page=20)
 
+    title = f"{category["title"]} Leaderboard"
+
+    if category["sort"] not in ["wins", "level", "nWpm", "profileViews"]:
+        title += get_flag_title(ctx.flags)
+
     message = Message(
         ctx,
-        title=f"{category["title"]} Leaderboard",
+        title=title,
         pages=pages,
     )
 
