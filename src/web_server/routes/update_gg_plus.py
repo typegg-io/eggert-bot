@@ -1,8 +1,9 @@
 from json import JSONDecodeError
 
+import discord
 from aiohttp import web
 
-from database.bot.users import update_gg_plus_status, get_discord_id, get_user, update_theme
+from database.bot.users import update_gg_plus_status, get_discord_id, update_theme
 from utils.colors import GG_PLUS_THEME
 from utils.logging import log
 from web_server.utils import validate_authorization, error_response
@@ -44,11 +45,22 @@ async def update_gg_plus(cog, request: web.Request):
     # Update theme
     update_theme(discord_id, GG_PLUS_THEME)
 
-    # Update GG+ role
-    # ...
-
     status_text = "subscribed to" if is_gg_plus else "unsubscribed from"
     log(f"User {user_id} (<@{discord_id}>) {status_text} GG+")
+
+    # Update GG+ role
+    guild = cog.guild
+    member = guild.get_member(int(discord_id))
+
+    if member:
+        role = discord.utils.get(guild.roles, name="GG+")
+
+        if is_gg_plus:
+            await member.add_roles(role, reason="Assigning GG+ role")
+        else:
+            await member.remove_roles(role, reason="Removing GG+ role")
+
+        log(f"Assigned GG+ role to {member.name}")
 
     return web.json_response({
         "success": True,
