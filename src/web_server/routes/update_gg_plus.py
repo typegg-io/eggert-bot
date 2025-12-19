@@ -4,7 +4,7 @@ import discord
 from aiohttp import web
 
 from database.bot.users import update_gg_plus_status, get_discord_id, update_theme
-from utils.colors import GG_PLUS_THEME
+from utils.colors import GG_PLUS_THEME, DEFAULT_THEME
 from utils.logging import log
 from web_server.utils import validate_authorization, error_response
 
@@ -43,7 +43,10 @@ async def update_gg_plus(cog, request: web.Request):
     update_gg_plus_status(user_id, is_gg_plus)
 
     # Update theme
-    update_theme(discord_id, GG_PLUS_THEME)
+    if is_gg_plus:
+        update_theme(discord_id, GG_PLUS_THEME)
+    else:
+        update_theme(discord_id, DEFAULT_THEME)
 
     status_text = "subscribed to" if is_gg_plus else "unsubscribed from"
     log(f"User {user_id} (<@{discord_id}>) {status_text} GG+")
