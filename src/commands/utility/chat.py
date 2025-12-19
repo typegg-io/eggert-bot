@@ -4,6 +4,7 @@ from discord.ext import commands
 from commands.base import Command
 from config import CHATBOT_WEBHOOK_URL, SECRET
 from utils.colors import ERROR
+from utils.errors import NotSubscribed
 from utils.messages import Message, Page
 from utils.strings import EGGERT
 
@@ -18,7 +19,9 @@ info = {
 class Chat(Command):
     @commands.command(aliases=info["aliases"])
     async def chat(self, ctx, *, question: str = None):
-        return
+        if not ctx.user["isGgPlus"]:
+            raise NotSubscribed("AI chat")
+
         if not question:
             return await ctx.send(content=f"Hello {EGGERT} If you have any questions, just ask!")
 
