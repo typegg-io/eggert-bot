@@ -103,7 +103,9 @@ def get_keystroke_data(keystroke_data: dict):
 
     for typo in typos:
         index = typo["typo_index"]
-        raw_delays[index] = (raw_delays[index - 1] + raw_delays[index + 1]) / 2
+        prev_delay = raw_delays[index - 1]
+        next_delay = raw_delays[index + 1] if index < len(raw_delays) - 1 else prev_delay
+        raw_delays[index] = (prev_delay + next_delay) / 2
 
     keystroke_wpm = get_keystroke_wpm(delays)
     keystroke_wpm_raw = get_keystroke_wpm(raw_delays)
