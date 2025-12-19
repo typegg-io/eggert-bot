@@ -6,11 +6,12 @@ from discord import Embed, Member, File
 from discord.ext import commands
 
 from commands.base import Command
-from config import DEFAULT_THEME, DARK_THEME, LIGHT_THEME, KEEGAN
+from config import KEEGAN
 from database.bot.users import update_theme, get_theme, get_user
 from graphs import sample
 from graphs.core import plt
 from utils import strings
+from utils.colors import DEFAULT_THEME, DARK_THEME, LIGHT_THEME
 from utils.colors import ERROR
 from utils.errors import MissingArguments, BotUserNotFound
 from utils.files import remove_file
@@ -139,6 +140,7 @@ async def display_user_theme(ctx: commands.Context, member: Member):
         f"**{element.replace("_", " ").title()}:** " +
         (("#%06x" % value).upper() if element == "embed" else f"{value}")
         for element, value in user_theme.items()
+        if element != "isGgPlus"
     )
 
     file_name = sample.render(user_theme)

@@ -1,7 +1,7 @@
 import numpy as np
 
-from config import DEFAULT_THEME
 from graphs.core import plt, apply_theme, generate_file_name
+from utils.colors import DEFAULT_THEME
 
 
 def render(

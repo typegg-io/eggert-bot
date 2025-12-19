@@ -1,9 +1,9 @@
 import json
 from typing import Counter
 
-from config import DEFAULT_THEME
 from database.bot import db
 from utils import dates
+from utils.colors import DEFAULT_THEME
 
 
 def _parse_counts(commands_json: str):

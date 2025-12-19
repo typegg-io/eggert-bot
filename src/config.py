@@ -3,8 +3,6 @@ from pathlib import Path
 
 from dotenv import load_dotenv
 
-from utils.colors import DEFAULT
-
 load_dotenv()
 
 # === Environment variables ===
@@ -34,43 +32,3 @@ KEEGAN = 155481579005804544
 # === Paths ===
 ROOT_DIR = Path(__file__).resolve().parents[1]
 SOURCE_DIR = ROOT_DIR / "src"
-
-# Bot themes
-DEFAULT_THEME = {
-    "embed": DEFAULT,
-    "axis": "#8E8E8E",
-    "background": "#00031B",
-    "graph_background": "#00031B",
-    "grid": "#8E8E8E",
-    "grid_opacity": 0.25,
-    "line": "#00B5E2",
-    "raw_speed": "#FFB600",
-    "title": "#FFFFFF",
-    "text": "#FFFFFF"
-}
-
-LIGHT_THEME = {
-    "embed": DEFAULT,
-    "axis": "#000000",
-    "background": "#FFFFFF",
-    "graph_background": "#FFFFFF",
-    "grid": "#B0B0B0",
-    "grid_opacity": 1,
-    "line": "#157EFD",
-    "raw_speed": "#FFB600",
-    "title": "#000000",
-    "text": "#000000",
-}
-
-DARK_THEME = {
-    "embed": DEFAULT,
-    "axis": "#777777",
-    "background": "#111111",
-    "graph_background": "#161616",
-    "grid": "#333333",
-    "grid_opacity": 1,
-    "line": "#157EFD",
-    "raw_speed": "#FFB600",
-    "title": "#FFFFFF",
-    "text": "#FFFFFF"
-}
