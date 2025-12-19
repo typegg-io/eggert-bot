@@ -23,7 +23,7 @@ fm.fontManager.addfont(FONT_PATH)
 plt.rcParams["font.family"] = fm.FontProperties(fname=FONT_PATH).get_name()
 
 GRAPH_PALETTE = [
-    "#00E1FF", "#E41A1C", "#118011", "#FF7F00", "#7C3AFF",
+    "#00AAD6", "#E41A1C", "#118011", "#FF7F00", "#7C3AFF",
     "#FCD500", "#F781BF", "#A65628", "#43B187", "#999999",
     "#BCBD22",
 ]
@@ -278,5 +278,5 @@ def filter_palette(ax: Axes, line_color: str):
 
     ax.set_prop_cycle(plt.cycler(color=[
         color for color in GRAPH_PALETTE
-        if color_distance(line_color, color) > 0.2
+        if color_distance(line_color, color) > 0.25
     ]))
