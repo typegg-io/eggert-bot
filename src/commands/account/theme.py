@@ -58,7 +58,9 @@ class Theme(Command):
 
         theme = themes.get(element, None)
         if theme:
+            is_gg_plus = ctx.user["theme"].get("isGgPlus", False)
             ctx.user["theme"] = theme
+            ctx.user["theme"]["isGgPlus"] = is_gg_plus
             return await run(ctx)
 
         try:
@@ -109,6 +111,8 @@ class Theme(Command):
 
 
 async def run(ctx: commands.Context):
+    print(id(ctx))
+    print(ctx.user["theme"])
     update_theme(str(ctx.author.id), ctx.user["theme"])
 
     page = Page(
