@@ -79,7 +79,6 @@ async def run(ctx: commands.Context, profile: dict, race_number: int):
             title,
             ctx.user["theme"],
         ),
-        footer="Raw speed line is temporarily disabled"
     )
 
     message = Message(
