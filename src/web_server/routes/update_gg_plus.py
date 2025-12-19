@@ -60,7 +60,7 @@ async def update_gg_plus(cog, request: web.Request):
         else:
             await member.remove_roles(role, reason="Removing GG+ role")
 
-        log(f"Assigned GG+ role to {member.name}")
+        log(f"Updated GG+ role for {member.name}")
 
     return web.json_response({
         "success": True,
