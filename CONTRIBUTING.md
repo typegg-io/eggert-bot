@@ -117,7 +117,20 @@ Make sure you are in the `src` directory, then run the following command:
 python main.py
 ```
 
+
 The bot should now appear as online and respond to commands, at which point you're ready for development!
+
+<details>
+<summary>Running into problems?</summary>
+
+If you're getting an error that looks similar to the following:
+
+```
+ModuleNotFoundError: No module named 'audioop'
+```
+You are probably in a virtual environment using the wrong version of Python. Please ensure that you are using Python 3.12, as mentioned earlier in these instructions!
+
+</details>
 
 ---
 
