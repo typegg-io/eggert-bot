@@ -29,7 +29,7 @@ GRAPH_PALETTE = [
 ]
 plt.rcParams["axes.prop_cycle"] = plt.cycler(color=GRAPH_PALETTE)
 
-matplotlib.colormaps.register(LinearSegmentedColormap.from_list("plus", ["#4c0c39", "#FF27BE"]))
+matplotlib.colormaps.register(LinearSegmentedColormap.from_list("plus", ["#8B1F6B", "#FF279A", "#FF6BC7"]))
 matplotlib.colormaps.register(LinearSegmentedColormap.from_list("keegan", ["#0094FF", "#FF00DC"]))
 
 

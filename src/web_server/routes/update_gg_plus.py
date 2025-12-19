@@ -2,7 +2,8 @@ from json import JSONDecodeError
 
 from aiohttp import web
 
-from database.bot.users import update_gg_plus_status, get_discord_id
+from database.bot.users import update_gg_plus_status, get_discord_id, get_user, update_theme
+from utils.colors import GG_PLUS_THEME
 from utils.logging import log
 from web_server.utils import validate_authorization, error_response
 
@@ -39,6 +40,9 @@ async def update_gg_plus(cog, request: web.Request):
 
     # Update GG+ status
     update_gg_plus_status(user_id, is_gg_plus)
+
+    # Update theme
+    update_theme(discord_id, GG_PLUS_THEME)
 
     # Update GG+ role
     # ...
