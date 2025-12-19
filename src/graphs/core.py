@@ -172,7 +172,7 @@ def apply_theme(
     ax.add_artist(ab)
 
     # GG+ Badge
-    if theme["isGgPlus"]:
+    if theme.get("isGgPlus"):
         plus_path = ASSETS_DIR / "images" / "plus.png"
         plus_img = mpimg.imread(plus_path)
         plus_imagebox = OffsetImage(plus_img, zoom=0.045)
