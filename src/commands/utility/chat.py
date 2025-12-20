@@ -5,7 +5,7 @@ from commands.base import Command
 from config import CHATBOT_WEBHOOK_URL, SECRET
 from utils.colors import ERROR
 from utils.errors import NotSubscribed
-from utils.messages import Message, Page
+from utils.messages import Message, Page, usable_in
 from utils.strings import EGGERT
 
 info = {
@@ -18,6 +18,7 @@ info = {
 
 class Chat(Command):
     @commands.command(aliases=info["aliases"])
+    @usable_in(1397687954117361745)
     async def chat(self, ctx, *, question: str = None):
         if not ctx.user["isGgPlus"]:
             raise NotSubscribed("AI chat")
