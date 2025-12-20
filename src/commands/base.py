@@ -7,14 +7,14 @@ from discord.ext import commands
 
 from api.quotes import get_quote as get_quote_api
 from api.users import get_profile, get_races
-from config import DAILY_QUOTE_CHANNEL_ID, SITE_URL, BOT_PREFIX, STAGING, STATS_CHANNEL_ID
+from config import SITE_URL, BOT_PREFIX, STAGING, STATS_CHANNEL_ID
 from database.bot.recent_quotes import set_recent_quote, get_recent_quote
 from database.bot.users import get_user, update_warning, get_user_ids, get_all_command_usage, update_commands
 from database.typegg.quotes import get_quote
 from database.typegg.races import get_latest_race
-from utils.errors import UserBanned, MissingUsername, NoRaces, DailyQuoteChannel, NotSubscribed
+from utils.errors import UserBanned, MissingUsername, NoRaces, NotSubscribed
 from utils.logging import get_log_message, log
-from utils.messages import privacy_warning, welcome_message, command_milestone
+from utils.messages import privacy_warning, welcome_message, command_milestone, check_channel_permissions
 from utils.strings import parse_number, get_argument
 
 FLAGS = {"raw", "solo", "multiplayer", "unranked", "any"}
@@ -32,11 +32,10 @@ class Command(commands.Cog):
         async def set_user(ctx: commands.Context):
             """Attach a user to the context and block banned users."""
             ctx.flags = ctx.message.flags
-            if (
-                ctx.channel.id == DAILY_QUOTE_CHANNEL_ID
-                and str(ctx.command) not in ["dailyleaderboard", "dailystats", "dailygraph"]
-            ):
-                raise DailyQuoteChannel
+
+            if not check_channel_permissions(ctx):
+                return False
+
             if not hasattr(ctx, "user"):
                 ctx.user = get_user(str(ctx.author.id))
                 ctx.user["theme"]["isGgPlus"] = ctx.user["isGgPlus"]

@@ -6,9 +6,10 @@ from discord.ext import commands
 
 from api.daily_quotes import START_DATE
 from commands.base import Command
+from config import DAILY_QUOTE_CHANNEL_ID
 from database.typegg.daily_quotes import get_user_results
 from utils import dates
-from utils.messages import Page, Message, Field
+from utils.messages import Page, Message, Field, usable_in
 
 info = {
     "name": "dailystats",
@@ -20,6 +21,7 @@ info = {
 
 class DailyStats(Command):
     @commands.command(aliases=info["aliases"])
+    @usable_in(DAILY_QUOTE_CHANNEL_ID)
     async def dailystats(self, ctx, username: Optional[str] = "me"):
         profile = await self.get_profile(ctx, username)
 

@@ -3,12 +3,13 @@ from discord.ext import commands
 from api.daily_quotes import get_daily_quote
 from commands.base import Command
 from commands.daily.dailyleaderboard import daily_quote_display
+from config import DAILY_QUOTE_CHANNEL_ID
 from database.bot.recent_quotes import set_recent_quote
 from database.typegg.quotes import get_quote
 from graphs import daily as daily_graph
 from utils.dates import parse_date, format_date
 from utils.keylogs import get_keystroke_data
-from utils.messages import Page, Message
+from utils.messages import Page, Message, usable_in
 from utils.urls import race_url
 
 info = {
@@ -21,6 +22,7 @@ info = {
 
 class DailyGraph(Command):
     @commands.command(aliases=info["aliases"])
+    @usable_in(DAILY_QUOTE_CHANNEL_ID)
     async def dailygraph(self, ctx: commands.Context, *args: str):
         arg = "".join(args)
         try:

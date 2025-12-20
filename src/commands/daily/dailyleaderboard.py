@@ -3,11 +3,11 @@ from discord.ext import commands
 
 from api.daily_quotes import get_daily_quote
 from commands.base import Command
-from config import DAILY_QUOTE_ROLE_ID
+from config import DAILY_QUOTE_ROLE_ID, DAILY_QUOTE_CHANNEL_ID
 from database.bot.recent_quotes import set_recent_quote
 from utils import dates
 from utils.dates import parse_date, format_date
-from utils.messages import Page, Message, paginate_data
+from utils.messages import Page, Message, paginate_data, usable_in
 from utils.strings import rank, discord_date, quote_display, username_with_flag
 from utils.urls import race_url
 
@@ -21,6 +21,7 @@ info = {
 
 class DailyLeaderboard(Command):
     @commands.command(aliases=info["aliases"])
+    @usable_in(DAILY_QUOTE_CHANNEL_ID)
     async def dailyleaderboard(self, ctx: commands.Context, *args: str):
         arg = "".join(args)
         try:

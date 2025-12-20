@@ -3,8 +3,9 @@ import importlib
 import discord
 from discord.ext import commands
 
+from config import DAILY_QUOTE_CHANNEL_ID
 from utils.colors import ERROR
-from utils.errors import UserBanned, MissingUsername, DailyQuoteChannel, MissingArguments, UnknownCommand, UnexpectedError, CommandOnCooldown, BotUserNotFound, DiscordUserNotFound
+from utils.errors import UserBanned, MissingUsername, DailyQuoteChannel, MissingArguments, UnknownCommand, UnexpectedError, CommandOnCooldown, DiscordUserNotFound
 from utils.logging import get_log_message, log_error
 
 
@@ -15,6 +16,12 @@ class ErrorHandler(commands.Cog):
     @commands.Cog.listener()
     async def on_command_error(self, ctx, error):
         error = getattr(error, "original", error)
+
+        # Ignore channel permission failures
+        if isinstance(error, commands.CheckFailure):
+            if ctx.channel.id == DAILY_QUOTE_CHANNEL_ID:
+                await send_error(ctx, DailyQuoteChannel.embed)
+            return
 
         if isinstance(error, UserBanned):
             try:

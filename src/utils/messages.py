@@ -8,6 +8,7 @@ from discord.ext import commands
 from discord.ui import View, Button as DiscordButton
 
 from config import BOT_PREFIX
+from config import TYPEGG_GUILD_ID, STATS_CHANNEL_ID
 from utils import files
 from utils.colors import SUCCESS, WARNING
 from utils.urls import profile_url
@@ -417,3 +418,61 @@ def privacy_warning():
         ),
         color=WARNING,
     )
+
+
+def usable_in(*channel_ids):
+    """
+    Decorator to mark commands as usable in specific channels.
+
+    Usage:
+        @usable_in(CHANNEL_ID_1, CHANNEL_ID_2)
+        async def mycommand(self, ctx):
+            ...
+    """
+
+    def decorator(func):
+        if not hasattr(func, 'allowed_channels'):
+            func.allowed_channels = set()
+        func.allowed_channels.update(channel_ids)
+        return func
+
+    return decorator
+
+
+def check_channel_permissions(ctx: commands.Context) -> bool:
+    """
+    Check if a command can be used in the current channel.
+
+    Rules:
+    1. DMs: always allowed
+    2. Non-TypeGG servers: always allowed
+    3. TypeGG server stats channel: all commands allowed
+    4. TypeGG server other channels: only commands decorated with @usable_in for that channel
+
+    Returns:
+        bool: True if command is allowed, False otherwise
+    """
+    # Rule 1: DMs are always allowed
+    if ctx.guild is None:
+        return True
+
+    # Rule 2: Non-TypeGG servers are always allowed
+    if ctx.guild.id != TYPEGG_GUILD_ID:
+        return True
+
+    # Rule 3: Stats channel allows all commands
+    if ctx.channel.id == STATS_CHANNEL_ID:
+        return True
+
+    # Rule 4: Other channels in TypeGG server - check if command is decorated
+    command = ctx.command
+    if command is None:
+        return True
+
+    # Check if the command callback has allowed_channels attribute
+    callback = command.callback
+    if hasattr(callback, 'allowed_channels'):
+        return ctx.channel.id in callback.allowed_channels
+
+    # If not decorated, command is not allowed in this channel
+    return False
