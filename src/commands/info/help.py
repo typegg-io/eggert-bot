@@ -1,14 +1,14 @@
-import os
 from typing import Optional
 
 from discord.ext import commands
 
 from commands.base import Command
-from config import BOT_PREFIX as prefix, SOURCE_DIR
+from config import BOT_PREFIX as prefix
 from utils import files
 from utils.errors import UnknownCommand, UserNotAdmin
 from utils.files import get_command_modules
 from utils.messages import Page, Message, Field
+from utils.strings import GG_PLUS
 
 info = {
     "name": "help",
@@ -42,19 +42,37 @@ async def help_main(ctx: commands.Context):
 
     fields = []
     groups = files.get_command_groups()
+
+    modules_by_group = {}
+    for group, file, module in get_command_modules():
+        if group not in modules_by_group:
+            modules_by_group[group] = []
+        modules_by_group[group].append(module)
+
     for group in groups:
         if group == "unlisted":
             continue
         if group == "admin" and not ctx.user["isAdmin"]:
             continue
+
+        commands = []
+        if group in modules_by_group:
+            for module in modules_by_group[group]:
+                command_info = module.info
+                commands.append((command_info["name"], command_info.get("plus", False)))
+
+        commands.sort(key=lambda x: x[0])
+
         command_list = []
-        for file in os.listdir(SOURCE_DIR / "commands" / group):
-            if file.endswith(".py") and not file.startswith("_") and not file.startswith("help"):
-                command_list.append(file[:-3])
-        command_list.sort()
+        for name, is_plus in commands:
+            if is_plus:
+                command_list.append(f"`{name}` {GG_PLUS}")
+            else:
+                command_list.append(f"`{name}`")
+
         fields.append(Field(
             title=f"{group.title()}",
-            content=", ".join(f"`{command}`" for command in command_list),
+            content=", ".join(command_list),
         ))
 
     page = Page(
@@ -121,6 +139,12 @@ async def help_command(ctx: commands.Context, command_name: str):
         fields.append(Field(
             title="\t",
             content=f"-# Command by <@{command_author}>"
+        ))
+
+    if command.get("plus"):
+        fields.append(Field(
+            title="\t",
+            content=f"{GG_PLUS} exclusive"
         ))
 
     page = Page(

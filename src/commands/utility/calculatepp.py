@@ -13,6 +13,7 @@ info = {
     "aliases": ["calculatewpm", "qc"],
     "description": "Calculate WPM or pp for a specific quote, given the opposite.",
     "parameters": "<quote_id> <value> [pp|wpm]",
+    "plus": True,
 }
 
 
