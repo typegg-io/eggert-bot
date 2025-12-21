@@ -7,7 +7,7 @@ from config import DAILY_QUOTE_CHANNEL_ID
 from utils.colors import ERROR
 from utils.errors import UserBanned, MissingUsername, DailyQuoteChannel, MissingArguments, UnknownCommand, UnexpectedError, CommandOnCooldown, DiscordUserNotFound
 from utils.logging import get_log_message, log_error
-from utils.permissions import check_channel_permissions
+from utils.messages import check_channel_permissions
 
 
 class ErrorHandler(commands.Cog):
