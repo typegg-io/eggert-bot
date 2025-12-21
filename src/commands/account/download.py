@@ -74,7 +74,7 @@ async def run(
     if not user_entry:
         create_user(user_id)
 
-    total_races = profile["stats"]["races"]
+    total_races = await get_total_races(user_id)
     latest_race = get_latest_race(user_id)
 
     if latest_race is None:
@@ -198,3 +198,25 @@ async def run(
         page.title = "New Quotes Import"
         page.description = "Finished adding new quotes"
         await message.edit()
+
+
+async def get_total_races(user_id):
+    """Get the true latest race number by iterating backwards through races."""
+    page = 1
+    per_page = 20
+    max_pages = 5
+
+    while page <= max_pages:
+        races_data = await get_races(user_id, page=page, per_page=per_page)
+        races = races_data["races"]
+
+        if not races:
+            return 0
+
+        for race in races:
+            if race.get("raceNumber") is not None:
+                return race["raceNumber"]
+
+        page += 1
+
+    return 0
