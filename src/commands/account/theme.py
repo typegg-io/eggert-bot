@@ -11,7 +11,7 @@ from database.bot.users import update_theme, get_theme, get_user
 from graphs import sample
 from graphs.core import plt
 from utils import strings
-from utils.colors import DEFAULT_THEME, DARK_THEME, LIGHT_THEME
+from utils.colors import DEFAULT_THEME, DARK_THEME, LIGHT_THEME, GG_PLUS_THEME
 from utils.colors import ERROR
 from utils.errors import MissingArguments, BotUserNotFound
 from utils.files import remove_file
@@ -37,6 +37,7 @@ themes = {
     "typegg": DEFAULT_THEME,
     "default": DEFAULT_THEME,
     "reset": DEFAULT_THEME,
+    "plus": GG_PLUS_THEME,
 }
 info = {
     "name": "theme",
