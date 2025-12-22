@@ -3,8 +3,9 @@ from discord.ext import commands
 
 from commands.base import Command
 from config import CHATBOT_WEBHOOK_URL, SECRET
+from database.bot.chat_usage import get_daily_usage, increment_usage
 from utils.colors import ERROR
-from utils.errors import NotSubscribed
+from utils.errors import DailyLimitReached
 from utils.messages import Message, Page, usable_in
 from utils.strings import EGGERT
 
@@ -15,13 +16,19 @@ info = {
     "parameters": "[question]",
 }
 
+FREE_DAILY_LIMIT = 20
+
 
 class Chat(Command):
     @commands.command(aliases=info["aliases"])
     @usable_in(1397687954117361745)
     async def chat(self, ctx, *, question: str = None):
-        if not ctx.user["isGgPlus"]:
-            raise NotSubscribed("AI chat")
+        # Check daily limit (GG+ users have unlimited)
+        is_gg_plus = ctx.user["isGgPlus"]
+        if not is_gg_plus:
+            current_usage = get_daily_usage(str(ctx.author.id))
+            if current_usage >= FREE_DAILY_LIMIT:
+                raise DailyLimitReached
 
         if not question:
             return await ctx.send(content=f"Hello {EGGERT} If you have any questions, just ask!")
@@ -55,6 +62,9 @@ class Chat(Command):
                         data = await response.json()
                         output = data.get("output")
                         await ctx.message.reply(output, mention_author=False)
+
+                        if not is_gg_plus:
+                            increment_usage(str(ctx.author.id))
 
             except aiohttp.ClientError:
                 message = Message(ctx, Page(

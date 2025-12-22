@@ -22,3 +22,11 @@ db.run("""
         quoteId TEXT
     )
 """)
+
+db.run("""
+    CREATE TABLE IF NOT EXISTS chat_usage (
+        discordId TEXT PRIMARY KEY,
+        usageCount INTEGER DEFAULT 0,
+        lastReset REAL
+    )
+""")

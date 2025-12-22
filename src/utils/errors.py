@@ -262,6 +262,23 @@ class CommandOnCooldown(CommandError):
         )
 
 
+@dataclass
+class DailyLimitReached(CommandError):
+    """Raised when a user has reached their daily usage limit."""
+
+    @property
+    def embed(self):
+        from utils.strings import GG_PLUS_LINK
+
+        return Embed(
+            title="Daily Limit Reached",
+            description=(
+                f"[Get GG+]({GG_PLUS_LINK}) to continue our conversation!"
+            ),
+            color=PLUS,
+        )
+
+
 class InvalidNumber(CommandError):
     """Raised when a number string is improperly formatted."""
     embed = Embed(
