@@ -69,11 +69,24 @@ async def verify_user(cog, request: web.Request):
     log(f"Sent verification success message to {user.name}")
 
     async with aiohttp.ClientSession() as session:
+        # Fetch nWPM and assign role
         async with session.get(f"{API_URL}/user/{user_id}/nwpm") as response:
             response.raise_for_status()
 
             data = await response.json()
             nwpm = data.get("nwpm")
             await update_nwpm_role(cog, guild, discord_id, nwpm)
+
+        # Fetch GG+ status and assign role if applicable
+        async with session.get(f"{API_URL}/user/{user_id}") as response:
+            if response.status == 200:
+                profile_data = await response.json()
+                is_gg_plus = profile_data.get("isGgPlus", False)
+
+                if is_gg_plus:
+                    gg_plus_role = discord.utils.get(guild.roles, name="GG+")
+                    if gg_plus_role:
+                        await member.add_roles(gg_plus_role)
+                        log(f"Assigned GG+ role to {member.name}")
 
     return web.json_response({"success": True, "message": "User verified successfully."})
