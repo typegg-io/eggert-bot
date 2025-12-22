@@ -13,7 +13,7 @@ from graphs.core import plt
 from utils import strings
 from utils.colors import DEFAULT_THEME, DARK_THEME, LIGHT_THEME, GG_PLUS_THEME
 from utils.colors import ERROR
-from utils.errors import MissingArguments, BotUserNotFound
+from utils.errors import MissingArguments, BotUserNotFound, NotSubscribed
 from utils.files import remove_file
 from utils.messages import Page, Message, Button
 from utils.strings import GG_PLUS, GG_PLUS_LINK
@@ -61,6 +61,8 @@ class Theme(Command):
         theme = themes.get(element, None)
         if theme:
             is_gg_plus = ctx.user["theme"].get("isGgPlus", False)
+            if element == "plus" and not is_gg_plus:
+                raise NotSubscribed("this theme")
             ctx.user["theme"] = theme
             ctx.user["theme"]["isGgPlus"] = is_gg_plus
             return await run(ctx)
