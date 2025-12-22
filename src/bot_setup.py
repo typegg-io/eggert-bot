@@ -1,11 +1,15 @@
+import aiohttp
+import discord
 from discord.ext import commands
 
-from config import BOT_PREFIX, STAGING, STATS_CHANNEL_ID
+from api.core import API_URL
+from config import BOT_PREFIX, STAGING, STATS_CHANNEL_ID, TYPEGG_GUILD_ID, VERIFIED_ROLE_NAME
 from database.bot.users import get_user, update_commands, get_user_ids, get_all_command_usage
 from utils.errors import UserBanned
 from utils.files import get_command_modules
 from utils.logging import get_log_message, log
 from utils.messages import check_channel_permissions, welcome_message, command_milestone
+from web_server.utils import get_nwpm_role_name
 
 users = get_user_ids()
 total_commands = sum(get_all_command_usage().values())
@@ -103,3 +107,48 @@ def register_bot_checks(bot):
             channel = bot.get_channel(STATS_CHANNEL_ID)
             if channel:
                 await channel.send(embed=command_milestone(ctx.author.id, total_commands))
+
+    @bot.event
+    async def on_member_join(member: discord.Member):
+        """Reassign roles to linked users who rejoin the server."""
+        if member.guild.id != TYPEGG_GUILD_ID:
+            return
+
+        user = get_user(str(member.id), auto_insert=False)
+        if not user or not user.get("userId"):
+            return
+
+        user_id = user["userId"]
+        log(f"Rejoining linked user detected: {member.name} (userId: {user_id})")
+
+        try:
+            # Assign verified role
+            verified_role = discord.utils.get(member.guild.roles, name=VERIFIED_ROLE_NAME)
+            if verified_role:
+                await member.add_roles(verified_role)
+                log(f"Assigned '{VERIFIED_ROLE_NAME}' role to {member.name}")
+
+            # Fetch nWPM and assign role
+            async with aiohttp.ClientSession() as session:
+                async with session.get(f"{API_URL}/user/{user_id}/nwpm") as response:
+                    if response.status == 200:
+                        data = await response.json()
+                        nwpm = data.get("nwpm")
+
+                        if nwpm is not None:
+                            role_name = get_nwpm_role_name(nwpm)
+                            if role_name:
+                                nwpm_role = discord.utils.get(member.guild.roles, name=role_name)
+                                if nwpm_role:
+                                    await member.add_roles(nwpm_role)
+                                    log(f"Assigned {role_name} nWPM role to {member.name}")
+
+            # Assign GG+ role if applicable
+            if user.get("isGgPlus"):
+                gg_plus_role = discord.utils.get(member.guild.roles, name="GG+")
+                if gg_plus_role:
+                    await member.add_roles(gg_plus_role)
+                    log(f"Assigned GG+ role to {member.name}")
+
+        except Exception as e:
+            log(f"Error reassigning roles to {member.name}: {e}")
