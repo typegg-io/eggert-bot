@@ -467,7 +467,7 @@ def check_channel_permissions(ctx: commands.Context) -> bool:
     # Rule 4: Other channels in TypeGG server - check if command is decorated
     command = ctx.command
     if command is None:
-        return True
+        return False
 
     # Check if the command callback has allowed_channels attribute
     callback = command.callback
