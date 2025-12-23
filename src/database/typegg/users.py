@@ -1,6 +1,7 @@
 from typing import Optional
 
 from database.typegg import db
+from utils.logging import log
 
 
 def create_user(user_id: str):
@@ -65,9 +66,9 @@ def get_quote_bests(
         params.append(gamemode)
         if gamemode == "multiplayer":
             columns = (
-                "matchWpm as wpm, rawMatchWpm as rawWpm, "
-                "matchPp as pp, rawMatchPp as rawPp, "
-            ) + columns
+                          "matchWpm as wpm, rawMatchWpm as rawWpm, "
+                          "matchPp as pp, rawMatchPp as rawPp, "
+                      ) + columns
             if order_by in ["pp", "wpm"]:
                 aggregate_column = aggregate_column.replace(order_by, "match" + order_by.title())
 
@@ -97,10 +98,16 @@ def delete_user(user_id: str):
 async def reimport_users():
     from database.typegg.races import delete_races
     from commands.account.download import run as download
+    from api.users import get_profile
 
     user_list = db.fetch("SELECT userId FROM users")
     for user in user_list:
         user_id = user["userId"]
+        try:
+            await get_profile(user_id)
+        except Exception as e:
+            log(f"Failed to migrate user {user_id}: {e.__class__.__name__}")
+            continue
         delete_races(user_id)
         delete_user(user_id)
 
