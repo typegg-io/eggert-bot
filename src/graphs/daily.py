@@ -49,7 +49,8 @@ def apply_padding(ax, keystroke_wpms: list[list[float]]):
 
         min_wpm = min(min(valid_wpm), min_wpm)
         max_wpm = max(max(valid_wpm), max_wpm)
-        starts, remaining = valid_wpm[:9], valid_wpm[9:]
+        cutoff = int(len(valid_wpm) / 5)
+        starts, remaining = valid_wpm[:cutoff], valid_wpm[cutoff:]
 
         all_starts += starts
         all_remaining += remaining
