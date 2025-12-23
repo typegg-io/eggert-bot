@@ -72,8 +72,8 @@ async def request(
         return json
 
     if status == 429:
-        log(f"Rate limit exceeded, retrying in 1s...")
-        await asyncio.sleep(1)
+        log(f"Rate limit exceeded, retrying in 3s...")
+        await asyncio.sleep(3)
 
         status, json, message = await do_request()
 
