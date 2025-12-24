@@ -4,7 +4,7 @@ import aiohttp
 import discord
 import jwt
 from aiohttp import web
-from discord import Embed
+from discord import Embed, Forbidden
 
 from api.core import API_URL
 from config import SECRET, TYPEGG_GUILD_ID, VERIFIED_ROLE_NAME
@@ -61,12 +61,15 @@ async def verify_user(cog, request: web.Request):
     log(f"Linked user {discord_id} to user ID {user_id}")
 
     user = await cog.bot.fetch_user(discord_id)
-    await user.send(embed=Embed(
-        title="Verification Successful",
-        description="Successfully verified your account.",
-        color=SUCCESS,
-    ))
-    log(f"Sent verification success message to {user.name}")
+    try:
+        await user.send(embed=Embed(
+            title="Verification Successful",
+            description="Successfully verified your account.",
+            color=SUCCESS,
+        ))
+        log(f"Sent verification success message to {user.name}")
+    except Forbidden:
+        pass
 
     async with aiohttp.ClientSession() as session:
         # Fetch nWPM and assign role
