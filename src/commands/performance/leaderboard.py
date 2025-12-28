@@ -89,7 +89,7 @@ info = {
 
 class Leaderboard(Command):
     @commands.command(aliases=info["aliases"])
-    async def leaderboard(self, ctx, category: str):
+    async def leaderboard(self, ctx, category: str = "pp"):
         category = get_argument(categories.keys(), category)
         await run(ctx, categories[category])
 
