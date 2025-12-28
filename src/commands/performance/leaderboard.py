@@ -42,11 +42,6 @@ categories = {
         "title": "Races",
         "formatter": lambda user: f"{user["stats"]["races"]:,}"
     },
-    "races.multiplayer": {
-        "sort": "races",
-        "title": "Races",
-        "formatter": lambda user: f"{user["stats"]["multiplayerRaces"]:,}",
-    },
     "wins": {
         "sort": "wins",
         "title": "Wins",
@@ -112,7 +107,11 @@ async def run(ctx: commands.Context, category: dict):
     )
 
     if gamemode == "multiplayer" and category["sort"] == "races":
-        category = categories["races.multiplayer"]
+        category = {
+            "sort": "races",
+            "title": "Races",
+            "formatter": lambda user: f"{user["stats"]["multiplayerRaces"]:,}",
+        }
 
     leaderboard = results["users"]
     for i in range(len(leaderboard)):
