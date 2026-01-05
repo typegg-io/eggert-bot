@@ -19,64 +19,64 @@ def get_keystroke_data(keystroke_data: dict):
     typo_flag = False
 
     events = re.split(r"\|(?=\d)", event_data)
-    event_re = re.compile(r"^(\d+)(.)(.*)$")
+    event_re = re.compile(r"^(\d+)([LRSCVXM]?)([+><\-=~^])(.*)$")
 
     for event in events:
-        time_delta, action, params = event_re.match(event).groups()
+        match = event_re.match(event)
+        if not match:
+            continue
+
+        time_delta, modifier, action, params = match.groups()
         time_delta = int(time_delta)
 
-        # Insert (append)
         if action == "+":
-            input_box.append(newline.get(params, params))
+            for char in params:
+                input_box.append(newline.get(char, char))
 
-        # Insert (at pos)
         elif action == ">":
             char = params[-1]
             index = int(params[:-2])
-
             if index >= len(input_box):
                 input_box.extend([""] * (index + 1 - len(input_box)))
-
             input_box[index] = newline.get(char, char)
 
-        # Delete (backspace)
         elif action == "<":
-            input_box.pop()
+            if input_box:
+                input_box.pop()
 
-        # Delete
         elif action == "-":
-            if "," in params:  # range
+            if "," in params:
                 start_index, end_index = params.split(",")
-            else:  # from end
+            else:
                 start_index, end_index = params, len(input_box)
             input_box = input_box[:int(start_index)] + input_box[int(end_index):]
 
-        # Replace
         elif action == "=":
             char = params[-1]
             params = params[:-2]
-            if "," in params:  # range
+            if "," in params:
                 start_index, end_index = params.split(",")
-            else:  # from end
+            else:
                 start_index, end_index = params, len(input_box)
             input_box[int(start_index):int(end_index)] = newline.get(char, char)
 
-        # Replace (redundant)
         elif action == "~":
             pass
 
-        # Accumulate timing
+        elif action == "^":
+            char = params.split(":")[0]
+            for c in char:
+                input_box.append(newline.get(c, c))
+
         current_duration += time_delta
 
-        # Current text state
         input_string = "".join(input_box)
         current_word = words[current_word_index]
         text_typed = "".join(typed_words) + input_string
         current_index = min(len(text_typed) - 1, len(text) - 1)
 
-        # Detect typo
         is_typo = input_string[:len(current_word)] != current_word[:len(input_string)]
-        if is_typo and not typo_flag and action not in ["<", "-"]:
+        if is_typo and not typo_flag and action not in ["<", "-", "^", "~"]:
             typo_flag = True
             typos.append({
                 "word_index": current_word_index,
