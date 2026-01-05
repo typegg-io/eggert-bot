@@ -9,12 +9,12 @@ def render(
     username: str,
     quotes: list[dict],
     quote_bests: list[dict],
+    log_base: int,
     theme: dict,
 ):
     fig, ax = plt.subplots()
     color = theme["line"]
     filter_palette(ax, color)
-    log_base = 10
 
     pp = []
     length = []
