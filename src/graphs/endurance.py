@@ -1,3 +1,5 @@
+from dataclasses import dataclass, astuple
+from typing import List
 from numpy import append, power, log as np_log
 from graphs.core import plt, apply_theme, generate_file_name, filter_palette
 from math import log
@@ -5,34 +7,50 @@ from matplotlib.ticker import MaxNLocator
 from utils.prettify_xticks import prettyfyLengthXticks
 
 
+@dataclass
+class UserEnduranceData:
+    username: str
+    wpm_values: List[float]
+    length_values: List[int]
+
+
 def render(
-    username: str,
-    wpm: list[float],
-    length: list[int],
+    first_username: str,
+    data: List[UserEnduranceData],
     log_base: int,
     theme: dict,
 ):
     fig, ax = plt.subplots()
-    color = theme["line"]
-    filter_palette(ax, color)
+    filter_palette(ax, theme["line"])
 
-    ax.step(length, wpm, color=color, where="pre")
+    max_length = 0
+    themed_line = 0
 
-    ax.set_title(f"WPM PB Per Quote Length - {username}")
+    for i, (username, wpm_values, length_values) in enumerate(map(astuple, data)):
+        if username == first_username:
+            themed_line = i
+
+        ax.step(length_values, wpm_values, where="pre", label=username)
+
+        local_max_length = max(length_values)
+
+        if local_max_length > max_length:
+            max_length = local_max_length
+
+    ax.set_title("WPM PB Per Quote Length")
     ax.set_xlabel("Quote Length")
     ax.set_ylabel("WPM")
 
     ax.xaxis.set_major_locator(MaxNLocator(nbins=11))  # Needs to be odd if you want to include the start and end xtick
     xticks = ax.get_xticks()
-    xticks = append(xticks[:-1], log(max(length), log_base))  # Make the max xtick equal to the max length
+    xticks = append(xticks[:-1], log(max_length, log_base))  # Make the max xtick equal to the max length
     xticks = power(log_base, xticks)
     xticks = np_log(prettyfyLengthXticks(xticks)) / np_log(log_base)
 
     ax.set_xticks(xticks)
 
     ax.set_xticklabels([f"{xtick:.0f}" for xtick in log_base ** ax.get_xticks()])
-
-    apply_theme(ax, theme=theme)
+    apply_theme(ax, theme=theme, legend_loc=1, force_legend=True, themed_line=themed_line)
 
     file_name = generate_file_name("endurance")
     plt.savefig(file_name)

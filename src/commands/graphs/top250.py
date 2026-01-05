@@ -11,7 +11,9 @@ from utils.messages import Page, Message
 from utils.stats import calculate_total_pp
 from utils.strings import get_flag_title
 
+
 max_users_shown = 5
+log_base = 10
 
 info = {
     "name": "top250",
@@ -76,6 +78,7 @@ async def run(ctx: commands.Context, profiles: List[dict]):
         render=lambda: top250_graph.render(
             username,
             top_250s,
+            log_base,
             ctx.user["theme"]
         )
     )
