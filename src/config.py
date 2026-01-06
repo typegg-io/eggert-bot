@@ -28,6 +28,7 @@ DAILY_QUOTE_ROLE_ID = 1421957288385712230
 # === User IDs ===
 EIKO = 87926662364160000
 KEEGAN = 155481579005804544
+DISCORD_UUID = os.getenv("DISCORD_UUID")  # This way contributors can easily access admin commands too for migrations
 
 # === Paths ===
 ROOT_DIR = Path(__file__).resolve().parents[1]

@@ -1,6 +1,6 @@
 from discord.ext import commands
 
-from config import EIKO, KEEGAN
+from config import EIKO, KEEGAN, DISCORD_UUID
 from utils.errors import UserNotAdmin, UserNotOwner
 
 
@@ -15,7 +15,7 @@ def is_bot_admin():
 
 def is_bot_owner():
     async def predicate(ctx: commands.Context):
-        if ctx.author.id in [EIKO, KEEGAN]:
+        if ctx.author.id in [EIKO, KEEGAN, DISCORD_UUID]:
             return True
         raise UserNotOwner
 
