@@ -13,7 +13,6 @@ from utils.strings import get_flag_title
 
 
 max_users_shown = 5
-log_base = 10
 
 info = {
     "name": "top250",

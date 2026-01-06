@@ -6,6 +6,9 @@ from database.typegg.users import get_quote_bests
 from graphs import pplength
 from utils.messages import Page, Message
 
+
+log_base = 10
+
 info = {
     "name": "pplength",
     "aliases": ["pl"],
@@ -37,6 +40,7 @@ async def run(ctx: commands.Context, profile: dict):
             username,
             quotes,
             quote_bests,
+            log_base,
             ctx.user["theme"],
         )
     )
