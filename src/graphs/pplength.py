@@ -23,8 +23,8 @@ def render(
     for race in quote_bests:
         quote = quotes[race["quoteId"]]
         pp.append(race["pp"])
-        local_length = len(quote["text"])
-        length.append(log(local_length, log_base))
+        local_length = log(len(quote["text"]), log_base)
+        length.append(local_length)
 
         if local_length > max_length:
             max_length = local_length
@@ -34,9 +34,9 @@ def render(
     else:
         ax.scatter(length, pp, s=6, color=color)
 
-    ax.xaxis.set_major_locator(MaxNLocator(nbins=11))  # Needs to be odd if you want to include the start and end xtick
+    ax.xaxis.set_major_locator(MaxNLocator(nbins=8))
     xticks = ax.get_xticks()
-    xticks = append(xticks[:-1], log(max_length, log_base))  # Make the max xtick equal to the max length
+    xticks = append(xticks[:-1], max_length)  # Make the max xtick equal to the max length
     xticks = power(log_base, xticks)
     xticks = np_log(prettyfyLengthXticks(xticks)) / np_log(log_base)
 

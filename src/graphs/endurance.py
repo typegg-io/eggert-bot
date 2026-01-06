@@ -41,9 +41,9 @@ def render(
     ax.set_xlabel("Quote Length")
     ax.set_ylabel("WPM")
 
-    ax.xaxis.set_major_locator(MaxNLocator(nbins=11))  # Needs to be odd if you want to include the start and end xtick
+    ax.xaxis.set_major_locator(MaxNLocator(nbins=8))
     xticks = ax.get_xticks()
-    xticks = append(xticks[:-1], log(max_length, log_base))  # Make the max xtick equal to the max length
+    xticks = append(xticks[:-1], max_length)  # Make the max xtick equal to the max length
     xticks = power(log_base, xticks)
     xticks = np_log(prettyfyLengthXticks(xticks)) / np_log(log_base)
 
