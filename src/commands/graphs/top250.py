@@ -77,7 +77,6 @@ async def run(ctx: commands.Context, profiles: List[dict]):
         render=lambda: top250_graph.render(
             username,
             top_250s,
-            log_base,
             ctx.user["theme"]
         )
     )
