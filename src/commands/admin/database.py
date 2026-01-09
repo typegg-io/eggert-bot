@@ -1,6 +1,7 @@
 from discord.ext import commands
 
 from commands.base import Command
+from commands.checks import is_bot_owner
 from database.typegg.db import get_row_count
 from utils.messages import Page, Message
 
@@ -13,6 +14,7 @@ info = {
 
 class Database(Command):
     @commands.command(aliases=info["aliases"])
+    @is_bot_owner()
     async def database(self, ctx):
         race_rows = get_row_count("races")
         user_rows = get_row_count("users")
