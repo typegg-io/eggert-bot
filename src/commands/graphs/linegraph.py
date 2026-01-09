@@ -7,6 +7,8 @@ from discord.ext import commands
 from commands.base import Command
 from database.typegg.races import get_races
 from graphs import line
+from utils.errors import GeneralException
+from utils.nwpm_model import calculate_nwpm
 from utils.stats import calculate_quote_length
 from utils.strings import get_argument, get_flag_title
 
@@ -40,7 +42,12 @@ metrics = {
         "columns": "wpm duration",
         "title": "Characters Typed",
         "alias": "cl",
-    }
+    },
+    "nwpm": {
+        "columns": "pp quoteId",
+        "title": "nWPM",
+        "alias": "nl",
+    },
 }
 
 max_users = 5
@@ -155,6 +162,41 @@ def get_characters_over_time(race_list: list[dict]):
     return characters_typed
 
 
+def get_nwpm_over_time(race_list: list[dict]):
+    quote_bests = {}
+    best_pps = []
+    nwpm = []
+    current_total = 0.0
+    max_entries = 250
+
+    for race in race_list:
+        quote_id = race["quoteId"]
+        pp = race["pp"]
+        old_best = quote_bests.get(quote_id)
+
+        if old_best is None or pp > old_best["pp"]:
+            if old_best is not None:
+                old_pp = old_best["pp"]
+                idx = bisect.bisect_left([-x for x in best_pps], -old_pp)
+                if idx < len(best_pps) and best_pps[idx] == old_pp:
+                    best_pps.pop(idx)
+
+            bisect.insort_left(best_pps, pp)
+            best_pps.sort(reverse=True)
+
+            quote_bests[quote_id] = race
+
+            if len(best_pps) <= max_entries or best_pps.index(pp) < max_entries:
+                current_total = 0.0
+                for i, p in enumerate(best_pps[:max_entries]):
+                    current_total += p * 0.97 ** i
+
+        if len(best_pps) >= 125:
+            nwpm.append(calculate_nwpm(current_total))
+
+    return nwpm
+
+
 async def run(ctx: commands.Context, metric: str, profiles: list[dict]):
     profiles.sort(key=lambda x: -x["stats"]["races"])
     username = profiles[0]["username"]
@@ -187,6 +229,11 @@ async def run(ctx: commands.Context, metric: str, profiles: list[dict]):
             y_values = get_quotes_over_time(race_list)
         elif metric == "characters":
             y_values = get_characters_over_time(race_list)
+        elif metric == "nwpm":
+            y_values = get_nwpm_over_time(race_list)
+            if not y_values:
+                raise GeneralException("Not Enough Data", "User must have completed at least\n125 quotes for this graph")
+            x_values = x_values[-len(y_values):]
 
         lines.append({
             "username": profile["username"],

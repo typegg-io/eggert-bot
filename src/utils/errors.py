@@ -7,6 +7,19 @@ from config import BOT_PREFIX as prefix
 from utils.colors import WARNING, PLUS
 
 
+@dataclass
+class GeneralException(CommandError):
+    title: str
+    text: str
+
+    @property
+    def embed(self):
+        return Embed(
+            title=self.title,
+            description=self.text,
+        )
+
+
 class MissingArguments(CommandError):
     """Raised when one or more parameters are missing from command arguments."""
 
