@@ -176,3 +176,11 @@ cython_debug/
 /src/sandbox.py
 
 Makefile
+
+# Image filetypes
+.png
+.PNG
+.jpg
+.jpeg
+.webp
+.gif

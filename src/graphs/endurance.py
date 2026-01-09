@@ -1,10 +1,9 @@
 from dataclasses import dataclass, astuple
 from typing import List
-from numpy import append, power, log as np_log
+from numpy import append
 from graphs.core import plt, apply_theme, generate_file_name, filter_palette
-from math import log
 from matplotlib.ticker import MaxNLocator
-from utils.prettify_xticks import prettyfyLengthXticks
+from utils.prettify_xticks import prettyfyLogLengthXticks
 
 
 @dataclass
@@ -41,11 +40,10 @@ def render(
     ax.set_xlabel("Quote Length")
     ax.set_ylabel("WPM")
 
-    ax.xaxis.set_major_locator(MaxNLocator(nbins=8))
+    ax.xaxis.set_major_locator(MaxNLocator(nbins=10))
     xticks = ax.get_xticks()
     xticks = append(xticks[:-1], max_length)  # Make the max xtick equal to the max length
-    xticks = power(log_base, xticks)
-    xticks = np_log(prettyfyLengthXticks(xticks)) / np_log(log_base)
+    xticks = prettyfyLogLengthXticks(xticks, log_base, min_overlapping_scale=0.068)
 
     ax.set_xticks(xticks)
 
