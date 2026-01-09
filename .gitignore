@@ -178,9 +178,9 @@ cython_debug/
 Makefile
 
 # Image filetypes
-.png
-.PNG
-.jpg
-.jpeg
-.webp
-.gif
+*.png
+*.PNG
+*.jpg
+*.jpeg
+*.webp
+*.gif
