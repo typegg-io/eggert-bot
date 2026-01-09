@@ -101,11 +101,9 @@ BOT_TOKEN=[Your Bot Token]
 API_URL=https://api.typegg.io
 SITE_URL=https://typegg.io
 BOT_SUBDOMAIN=http://localhost:8888
-DISCORD_UUID=[Your Discord UUID]
 ```
 
 - **`BOT_TOKEN`**: This is your bot's authentication token obtained in the **Creating a Bot** section.
-- **`DISCORD_UUID`**: This is your discord's UUID. This env variable is optional and is intended for contributors to be able to access admin tools like the `migrate` command.
 
 ### Step 2: Configure Bot Settings
 
