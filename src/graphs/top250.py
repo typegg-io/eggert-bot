@@ -11,14 +11,15 @@ def render(
     fig, ax = plt.subplots()
     filter_palette(ax, theme["line"])
     themed_line = 0
+    profile_count = len(profiles)
 
-    for i, profile in enumerate(profiles[::-1]):
+    for i, profile in enumerate(profiles):
         pp_values = profile["pp_values"]
 
         if profile["username"] == username:
             themed_line = i
 
-        ax.plot(range(1, len(pp_values) + 1), pp_values, label=profile["username"])
+        ax.plot(range(1, len(pp_values) + 1), pp_values, label=profile["username"], zorder=profile_count - i)
 
     ax.set_title("Top 250 pp Scores")
     ax.set_xlabel("Quote Rank")

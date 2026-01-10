@@ -22,8 +22,9 @@ def render(
 
     themed_line = 0
     max_length = 0
+    data_count = len(data)
 
-    for line_index, endurance_data in enumerate(data[::-1]):
+    for line_index, endurance_data in enumerate(data):
         username = endurance_data.username
         wpm_values = endurance_data.wpm_values
         length_values = endurance_data.length_values
@@ -41,7 +42,7 @@ def render(
         if username == first_username:
             themed_line = line_index
 
-        ax.plot(step_length, step_wpm, label=username)
+        ax.plot(step_length, step_wpm, label=username, zorder=data_count - line_index)
 
         local_max = max(length_values) if length_values else 0
         if local_max > max_length:

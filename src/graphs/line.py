@@ -18,8 +18,9 @@ def render(
     themed_line = 0
     timestamps = get_timestamp_list([timestamp for line in lines for timestamp in line["x_values"]])
     max_timestamp = max(timestamps)
+    line_count = len(lines)
 
-    for i, line in enumerate(lines[::-1]):
+    for i, line in enumerate(lines):
         username = line["username"]
         x = line["x_values"]
         y = line["y_values"]
@@ -41,7 +42,7 @@ def render(
         y.append(last_y)
 
         x, y = interpolate_segments(x, y)
-        ax.plot(x, y, label=username)
+        ax.plot(x, y, label=username, zorder=line_count - i)
 
         if username == author_username:
             themed_line = i

@@ -12,13 +12,14 @@ def render(
     fig, ax = plt.subplots()
     filter_palette(ax, theme["line"])
     keystroke_wpms = []
+    score_count = len(score_list)
 
-    for score in score_list[::-1]:
+    for i, score in enumerate(score_list):
         keystroke_wpm = score["keystroke_wpm"]
         keystroke_wpms.append(keystroke_wpm)
 
         keystrokes = np.arange(1, len(keystroke_wpm) + 1)
-        ax.plot(keystrokes, keystroke_wpm, label=score["username"])
+        ax.plot(keystrokes, keystroke_wpm, label=score["username"], zorder=score_count - i)
 
     apply_padding(ax, keystroke_wpms)
     ax.set_xlabel("Keystrokes")
