@@ -58,7 +58,16 @@ async def update_nwpm_role(cog, guild: discord.Guild, discord_id: int, nwpm: flo
     if not new_role:
         raise ValueError(f"nWPM role '{role_name}' not found in guild")
 
-    current_roles = [role for role in member.roles if role in cog.nwpm_roles]
+    # Find all nWPM roles the member currently has
+    current_roles = [
+        role for role in member.roles
+        if role.name == "250+" or (
+            "-" in role.name and
+            role.name.split("-")[0].isdigit() and
+            len(role.name.split("-")) == 2 and
+            role.name.split("-")[1].isdigit()
+        )
+    ]
 
     if len(current_roles) == 1 and current_roles[0] == new_role:
         log(f"Member {member.name} already has correct nWPM role '{role_name}'")
