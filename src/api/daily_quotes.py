@@ -3,7 +3,7 @@ from typing import Dict, Any
 
 from api.core import API_URL, request
 from utils import dates
-from utils.dates import parse_date
+from utils.dates import parse_date, now
 
 START_DATE = parse_date("2025-09-21")
 
@@ -21,8 +21,10 @@ async def get_daily_quote(
     Returns the JSON response as a dict.
     """
     if number is not None:
-        number = max(0, number)
-        date = (START_DATE + timedelta(days=number - 1)).strftime("%Y-%m-%d")
+        if number < 0:
+            date = (now() + timedelta(days=number)).strftime("%Y-%m-%d")
+        else:
+            date = (START_DATE + timedelta(days=number - 1)).strftime("%Y-%m-%d")
 
     return await request(
         url=f"{API_URL}/v1/daily",
