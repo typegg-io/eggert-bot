@@ -56,7 +56,9 @@ def render(
         else:
             ax.plot(x_points, moving_values, label="_")
 
-    ax.set_ylim(bottom=min([val for val in values if val > 0]) * 0.95)
+    non_zeroes = [val for val in values if val > 0]
+    if non_zeroes:
+        ax.set_ylim(bottom=min(non_zeroes) * 0.95)
 
     if dates:
         ax.set_xlabel(f"Date")
