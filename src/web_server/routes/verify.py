@@ -88,7 +88,7 @@ async def verify_user(cog, request: web.Request):
 
         # Fetch GG+ status and assign role if applicable
         try:
-            async with session.get(f"{API_URL}/user/{user_id}") as response:
+            async with session.get(f"{API_URL}/users/{user_id}") as response:
                 if response.status == 200:
                     profile_data = await response.json()
                     is_gg_plus = profile_data.get("isGgPlus", False)
