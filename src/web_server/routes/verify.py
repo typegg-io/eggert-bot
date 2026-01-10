@@ -8,8 +8,8 @@ from discord import Embed, Forbidden
 
 from api.core import API_URL
 from config import SECRET, TYPEGG_GUILD_ID, VERIFIED_ROLE_NAME
-from database.bot.users import link_user
-from utils.colors import SUCCESS
+from database.bot.users import link_user, update_gg_plus_status, update_theme
+from utils.colors import SUCCESS, GG_PLUS_THEME
 from utils.logging import log
 from web_server.utils import update_nwpm_role, error_response
 
@@ -80,6 +80,12 @@ async def verify_user(cog, request: web.Request):
                 if response.status == 200:
                     profile_data = await response.json()
                     is_gg_plus = profile_data.get("isGgPlus", False)
+
+                    # Update GG+ status in database
+                    update_gg_plus_status(user_id, is_gg_plus)
+                    if is_gg_plus:
+                        update_theme(discord_id, GG_PLUS_THEME)
+                    log(f"Updated GG+ status in database for user {user_id}: {is_gg_plus}")
 
                     if is_gg_plus:
                         gg_plus_role = discord.utils.get(guild.roles, name="GG+")
