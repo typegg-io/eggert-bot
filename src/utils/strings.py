@@ -212,6 +212,7 @@ def escape_formatting(string, remove_backticks=True):
         .replace("~", "\\~")
         .replace("||", "\\|\\|")
         .replace("`", backtick_sub)
+        .replace("-", "\\-")
     )
 
 
