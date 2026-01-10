@@ -12,7 +12,7 @@ log_base = 10
 info = {
     "name": "endurance",
     "aliases": ["end"],
-    "description": "Displays a graph of a user's ranked WPM PB over the quote length.\n"
+    "description": "Displays the top typing speed in WPM achieved up until the given quote lengths. This graph shows the endurance capabilities of the given user(s) to maintain their typing speed.\n"
                    f"This graph can be generated for up to {max_users_shown} users.",
     "parameters": f"[username1] [username2] ... [username{max_users_shown}]",
     "author": 231721357484752896,
