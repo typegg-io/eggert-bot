@@ -28,6 +28,13 @@ def render(
 
     typo_count = 0
     word_indexes = {}
+    max_legend_typos = 16
+    quote_length = len(keystroke_wpm)
+    marker_size = 7
+    if quote_length >= 500:
+        marker_size = 4
+    if quote_length >= 1000:
+        marker_size = 2
 
     for typo in typos:
         word_index = typo["word_index"]
@@ -43,13 +50,20 @@ def render(
         label = None
         if last_index == -1:
             typo_count += 1
-            label = f"{typo_count}. {word}"
-            if word_counts[word_index] > 1:
-                label += f" (x{word_counts[word_index]})"
+            if typo_count <= max_legend_typos:
+                label = f"{typo_count}. {word}"
+                if word_counts[word_index] > 1:
+                    label += f" (x{word_counts[word_index]})"
 
         ax.plot(
             index, wpm, marker="x", color="red", zorder=777,
-            markersize=7, markeredgewidth=1.5, label=label
+            markersize=marker_size, markeredgewidth=1.5, label=label
+        )
+
+    if typo_count > max_legend_typos:
+        ax.plot(
+            [], [], marker="x", color="red", markersize=marker_size,
+            markeredgewidth=1.5, label=f"{typo_count - max_legend_typos} more typos..."
         )
 
     apply_padding(ax, keystroke_wpm + keystroke_wpm_raw)
