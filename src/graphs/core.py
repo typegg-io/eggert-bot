@@ -287,7 +287,7 @@ def apply_log_ticks(ax: Axes, max_value: int):
     ax.set_xscale("log")
 
     all_ticks = [50, 100, 250, 500, 1000, 2500, 5000, 10000]
-    cap_i = next(i for i, t in enumerate(all_ticks) if t > max_value)
+    cap_i = next((i for i, t in enumerate(all_ticks) if t > max_value), len(all_ticks) - 1)
     x_ticks = all_ticks[:cap_i + 1]
 
     ax.set_xticks(x_ticks)
