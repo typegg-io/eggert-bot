@@ -50,8 +50,7 @@ class ForceLink(Command):
                     json={"token": token}
                 ) as response:
                     if response.status == 200:
-                        response_data = await response.json()
-                        log(f"Force link successful for {user.name} ({discord_id}): {response_data}")
+                        log(f"Force link successful for {user.name} ({discord_id})")
                         message = Message(ctx, Page(
                             title="Force Link Successful",
                             description=f"Successfully linked {user.mention} to TypeGG user `{typegg_user_id}` and assigned roles",

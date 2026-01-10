@@ -1,9 +1,11 @@
 import asyncio
 
+import aiohttp
 import discord
 from aiohttp import web
 
-from config import SECRET
+from api.core import API_URL
+from config import SECRET, VERIFIED_ROLE_NAME
 from utils.logging import log
 
 
@@ -72,3 +74,60 @@ async def update_nwpm_role(cog, guild: discord.Guild, discord_id: int, nwpm: flo
         await asyncio.sleep(1)
     except (discord.Forbidden, discord.HTTPException) as e:
         raise RuntimeError(f"Failed to update nWPM role for {member.name}: {e}")
+
+
+async def assign_user_roles(cog, guild: discord.Guild, discord_id: int, user_id: str):
+    """Fetch user profile and assign all roles (verified, nWPM, GG+)."""
+    from database.bot.users import update_gg_plus_status, update_theme
+    from utils.colors import GG_PLUS_THEME
+
+    member = guild.get_member(discord_id)
+    if not member:
+        raise ValueError(f"Member with ID {discord_id} not found in guild")
+
+    # Assign verified role
+    verified_role = discord.utils.get(guild.roles, name=VERIFIED_ROLE_NAME)
+    if not verified_role:
+        raise ValueError(f"'{VERIFIED_ROLE_NAME}' role not found in guild")
+
+    try:
+        await member.add_roles(verified_role)
+        log(f"Assigned '{VERIFIED_ROLE_NAME}' role to {member.name}")
+    except (discord.Forbidden, discord.HTTPException) as e:
+        raise RuntimeError(f"Failed to assign verification role: {e}")
+
+    # Fetch profile data and assign roles
+    async with aiohttp.ClientSession() as session:
+        async with session.get(f"{API_URL}/v1/users/{user_id}") as response:
+            if response.status != 200:
+                raise RuntimeError(f"Failed to fetch profile for user {user_id}: HTTP {response.status}")
+
+            profile_data = await response.json()
+
+            # Get nWPM and assign nWPM role
+            nwpm = profile_data.get("stats", {}).get("nWpm")
+            if nwpm is not None:
+                await update_nwpm_role(cog, guild, discord_id, nwpm)
+            else:
+                log(f"No nWPM data available for user {user_id}")
+
+            # Get GG+ status
+            is_gg_plus = profile_data.get("isGgPlus", False)
+
+            # Update database
+            update_gg_plus_status(user_id, is_gg_plus)
+            if is_gg_plus:
+                update_theme(discord_id, GG_PLUS_THEME)
+            log(f"Updated GG+ status in database for user {user_id}: {is_gg_plus}")
+
+            # Assign GG+ role if applicable
+            if is_gg_plus:
+                gg_plus_role = discord.utils.get(guild.roles, name="GG+")
+                if not gg_plus_role:
+                    raise ValueError("GG+ role not found in guild")
+
+                try:
+                    await member.add_roles(gg_plus_role)
+                    log(f"Assigned GG+ role to {member.name}")
+                except (discord.Forbidden, discord.HTTPException) as e:
+                    raise RuntimeError(f"Failed to assign GG+ role to {member.name}: {e}")

@@ -1,17 +1,14 @@
 from datetime import datetime, timezone
 
-import aiohttp
-import discord
 import jwt
 from aiohttp import web
 from discord import Embed, Forbidden
 
-from api.core import API_URL
-from config import SECRET, TYPEGG_GUILD_ID, VERIFIED_ROLE_NAME
-from database.bot.users import link_user, update_gg_plus_status, update_theme
-from utils.colors import SUCCESS, GG_PLUS_THEME
+from config import SECRET, TYPEGG_GUILD_ID
+from database.bot.users import link_user
+from utils.colors import SUCCESS
 from utils.logging import log
-from web_server.utils import update_nwpm_role, error_response
+from web_server.utils import assign_user_roles, error_response
 
 
 async def verify_user(cog, request: web.Request):
@@ -46,61 +43,15 @@ async def verify_user(cog, request: web.Request):
     if not member:
         return error_response("User not found in server.", 404)
 
-    role = discord.utils.get(guild.roles, name=VERIFIED_ROLE_NAME)
-    if not role:
-        return error_response("Verification role not found.", 500)
-
-    # Assign verified role
-    try:
-        await member.add_roles(role)
-        log(f"Assigned '{VERIFIED_ROLE_NAME}' role to {member.name}")
-    except (Forbidden, discord.HTTPException) as e:
-        return error_response(f"Failed to assign verification role: {e}", 500)
-
     # Link user in database
     link_user(discord_id, user_id)
     log(f"Linked user {discord_id} to user ID {user_id}")
 
-    # Fetch and assign nWPM role
-    async with aiohttp.ClientSession() as session:
-        try:
-            async with session.get(f"{API_URL}/user/{user_id}/nwpm") as response:
-                if response.status == 200:
-                    data = await response.json()
-                    nwpm = data.get("nwpm")
-                    await update_nwpm_role(cog, guild, discord_id, nwpm)
-                else:
-                    return error_response(f"Failed to fetch nWPM for user {user_id}: HTTP {response.status}", 500)
-        except Exception as e:
-            return error_response(f"Error fetching nWPM for user {user_id}: {e}", 500)
-
-        # Fetch GG+ status and assign role if applicable
-        try:
-            async with session.get(f"{API_URL}/v1/users/{user_id}") as response:
-                if response.status == 200:
-                    profile_data = await response.json()
-                    is_gg_plus = profile_data.get("isGgPlus", False)
-
-                    # Update GG+ status in database
-                    update_gg_plus_status(user_id, is_gg_plus)
-                    if is_gg_plus:
-                        update_theme(discord_id, GG_PLUS_THEME)
-                    log(f"Updated GG+ status in database for user {user_id}: {is_gg_plus}")
-
-                    if is_gg_plus:
-                        gg_plus_role = discord.utils.get(guild.roles, name="GG+")
-                        if not gg_plus_role:
-                            return error_response("GG+ role not found in guild", 500)
-
-                        try:
-                            await member.add_roles(gg_plus_role)
-                            log(f"Assigned GG+ role to {member.name}")
-                        except (Forbidden, discord.HTTPException) as e:
-                            return error_response(f"Failed to assign GG+ role to {member.name}: {e}", 500)
-                else:
-                    return error_response(f"Failed to fetch profile for user {user_id}: HTTP {response.status}", 500)
-        except Exception as e:
-            return error_response(f"Error fetching profile for user {user_id}: {e}", 500)
+    # Assign all roles (verified, nWPM, GG+) and update database
+    try:
+        await assign_user_roles(cog, guild, discord_id, user_id)
+    except Exception as e:
+        return error_response(str(e), 500)
 
     # Send success DM
     user = await cog.bot.fetch_user(discord_id)
