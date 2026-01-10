@@ -61,6 +61,41 @@ async def verify_user(cog, request: web.Request):
     link_user(discord_id, user_id)
     log(f"Linked user {discord_id} to user ID {user_id}")
 
+    # Fetch and assign nWPM role
+    async with aiohttp.ClientSession() as session:
+        try:
+            async with session.get(f"{API_URL}/user/{user_id}/nwpm") as response:
+                if response.status == 200:
+                    data = await response.json()
+                    nwpm = data.get("nwpm")
+                    await update_nwpm_role(cog, guild, discord_id, nwpm)
+                else:
+                    return error_response(f"Failed to fetch nWPM for user {user_id}: HTTP {response.status}", 500)
+        except Exception as e:
+            return error_response(f"Error fetching nWPM for user {user_id}: {e}", 500)
+
+        # Fetch GG+ status and assign role if applicable
+        try:
+            async with session.get(f"{API_URL}/v1/users/{user_id}") as response:
+                if response.status == 200:
+                    profile_data = await response.json()
+                    is_gg_plus = profile_data.get("isGgPlus", False)
+
+                    if is_gg_plus:
+                        gg_plus_role = discord.utils.get(guild.roles, name="GG+")
+                        if not gg_plus_role:
+                            return error_response("GG+ role not found in guild", 500)
+
+                        try:
+                            await member.add_roles(gg_plus_role)
+                            log(f"Assigned GG+ role to {member.name}")
+                        except (Forbidden, discord.HTTPException) as e:
+                            return error_response(f"Failed to assign GG+ role to {member.name}: {e}", 500)
+                else:
+                    return error_response(f"Failed to fetch profile for user {user_id}: HTTP {response.status}", 500)
+        except Exception as e:
+            return error_response(f"Error fetching profile for user {user_id}: {e}", 500)
+
     # Send success DM
     user = await cog.bot.fetch_user(discord_id)
     try:
@@ -72,41 +107,6 @@ async def verify_user(cog, request: web.Request):
         log(f"Sent verification success message to {user.name}")
     except Forbidden:
         pass
-
-    # Fetch and assign nWPM role
-    async with aiohttp.ClientSession() as session:
-        try:
-            async with session.get(f"{API_URL}/user/{user_id}/nwpm") as response:
-                if response.status == 200:
-                    data = await response.json()
-                    nwpm = data.get("nwpm")
-                    await update_nwpm_role(cog, guild, discord_id, nwpm)
-                else:
-                    log(f"Failed to fetch nWPM for user {user_id}: HTTP {response.status}")
-        except Exception as e:
-            log(f"Error fetching nWPM for user {user_id}: {e}")
-
-        # Fetch GG+ status and assign role if applicable
-        try:
-            async with session.get(f"{API_URL}/v1/users/{user_id}") as response:
-                if response.status == 200:
-                    profile_data = await response.json()
-                    is_gg_plus = profile_data.get("isGgPlus", False)
-
-                    if is_gg_plus:
-                        gg_plus_role = discord.utils.get(guild.roles, name="GG+")
-                        if gg_plus_role:
-                            try:
-                                await member.add_roles(gg_plus_role)
-                                log(f"Assigned GG+ role to {member.name}")
-                            except (Forbidden, discord.HTTPException) as e:
-                                log(f"Failed to assign GG+ role to {member.name}: {e}")
-                        else:
-                            log("GG+ role not found in guild")
-                else:
-                    log(f"Failed to fetch profile for user {user_id}: HTTP {response.status}")
-        except Exception as e:
-            log(f"Error fetching profile for user {user_id}: {e}")
 
     # Invalidate token
     expiry_date = datetime.fromtimestamp(expiry_timestamp, timezone.utc)
