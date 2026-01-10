@@ -115,8 +115,6 @@ class Theme(Command):
 
 
 async def run(ctx: commands.Context):
-    print(id(ctx))
-    print(ctx.user["theme"])
     update_theme(str(ctx.author.id), ctx.user["theme"])
 
     page = Page(
