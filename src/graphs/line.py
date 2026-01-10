@@ -19,7 +19,7 @@ def render(
     timestamps = get_timestamp_list([timestamp for line in lines for timestamp in line["x_values"]])
     max_timestamp = max(timestamps)
 
-    for i, line in enumerate(lines):
+    for i, line in enumerate(lines[::-1]):
         username = line["username"]
         x = line["x_values"]
         y = line["y_values"]

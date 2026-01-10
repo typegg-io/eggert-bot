@@ -23,7 +23,7 @@ def render(
     themed_line = 0
     max_length = 0
 
-    for line_index, endurance_data in enumerate(data):
+    for line_index, endurance_data in enumerate(data[::-1]):
         username = endurance_data.username
         wpm_values = endurance_data.wpm_values
         length_values = endurance_data.length_values

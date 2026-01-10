@@ -12,7 +12,7 @@ def render(
     filter_palette(ax, theme["line"])
     themed_line = 0
 
-    for i, profile in enumerate(profiles):
+    for i, profile in enumerate(profiles[::-1]):
         pp_values = profile["pp_values"]
 
         if profile["username"] == username:

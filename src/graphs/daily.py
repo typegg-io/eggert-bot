@@ -13,7 +13,7 @@ def render(
     filter_palette(ax, theme["line"])
     keystroke_wpms = []
 
-    for score in score_list:
+    for score in score_list[::-1]:
         keystroke_wpm = score["keystroke_wpm"]
         keystroke_wpms.append(keystroke_wpm)
 
