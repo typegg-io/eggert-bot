@@ -8,6 +8,7 @@ from commands.base import Command
 from config import BOT_PREFIX, TYPEGG_GUILD_ID, VERIFIED_ROLE_NAME
 from database.bot.users import unlink_user
 from utils.colors import ERROR, WARNING
+from utils.logging import log
 
 info = {
     "name": "unlink",
@@ -55,26 +56,48 @@ class Unlink(Command):
 async def unverify_user(bot_instance: commands.Bot, discord_id: str):
     guild = bot_instance.get_guild(TYPEGG_GUILD_ID)
     if not guild:
-        print(f"Guild with ID {TYPEGG_GUILD_ID} not found")
+        log(f"Guild with ID {TYPEGG_GUILD_ID} not found")
         return
 
     member = guild.get_member(int(discord_id))
     if not member:
-        print(f"Member with ID {discord_id} not found in guild {guild.name}")
+        log(f"Member with ID {discord_id} not found in guild {guild.name}")
         return
 
-    role = discord.utils.get(guild.roles, name=VERIFIED_ROLE_NAME)
-    if not role:
-        print(f"Role '{VERIFIED_ROLE_NAME}' not found in guild {guild.name}")
+    roles_to_remove = []
+
+    # Find verified role
+    verified_role = discord.utils.get(guild.roles, name=VERIFIED_ROLE_NAME)
+    if verified_role and verified_role in member.roles:
+        roles_to_remove.append(verified_role)
+
+    # Find GG+ role
+    gg_plus_role = discord.utils.get(guild.roles, name="GG+")
+    if gg_plus_role and gg_plus_role in member.roles:
+        roles_to_remove.append(gg_plus_role)
+
+    # Find nWPM roles
+    nwpm_roles = [
+        role for role in member.roles
+        if role.name == "250+" or (
+            "-" in role.name and
+            role.name.split("-")[0].isdigit() and
+            role.name.split("-")[-1].isdigit()
+        )
+    ]
+    roles_to_remove.extend(nwpm_roles)
+
+    if not roles_to_remove:
+        log(f"No roles to remove for {member.name}")
         return
 
+    # Remove all roles
     try:
-        await member.remove_roles(role)
-        print(f"Removed {VERIFIED_ROLE_NAME} role from {member.name}")
-    except discord.errors.Forbidden:
-        print(f"Bot lacks permission to remove {VERIFIED_ROLE_NAME} role from {member.name}")
-    except Exception as e:
-        print(f"Error removing {VERIFIED_ROLE_NAME} role from {member.name}: {e}")
+        await member.remove_roles(*roles_to_remove, reason="Unlinking account")
+        role_names = ", ".join([role.name for role in roles_to_remove])
+        log(f"Removed roles from {member.name}: {role_names}")
+    except (discord.Forbidden, discord.HTTPException) as e:
+        log(f"Failed to remove roles from {member.name}: {e}")
 
 
 def not_verified():
