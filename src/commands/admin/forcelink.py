@@ -50,21 +50,29 @@ class ForceLink(Command):
                     json={"token": token}
                 ) as response:
                     if response.status == 200:
+                        response_data = await response.json()
+                        log(f"Force link successful for {user.name} ({discord_id}): {response_data}")
                         message = Message(ctx, Page(
                             title="Force Link Successful",
                             description=f"Successfully linked {user.mention} to TypeGG user `{typegg_user_id}` and assigned roles",
                             color=SUCCESS,
                         ))
                     else:
-                        error_data = await response.json()
-                        error_message = error_data.get("error", "Unknown error")
+                        response_text = await response.text()
+                        try:
+                            import json
+                            error_data = json.loads(response_text)
+                            error_message = error_data.get("error", "Unknown error")
+                        except:
+                            error_message = response_text
+                        log(f"Force link failed for {user.name} ({discord_id}): {error_message}")
                         message = Message(ctx, Page(
                             title="Force Link Failed",
                             description=f"Failed to link {user.mention}: {error_message}",
                             color=ERROR,
                         ))
         except aiohttp.ClientError as e:
-            log(f"Error during forcelink: {e}")
+            log(f"Error during forcelink for {user.name} ({discord_id}): {e}")
             message = Message(ctx, Page(
                 title="Force Link Error",
                 description=f"Failed to connect to verification service: {str(e)}",

@@ -45,20 +45,21 @@ async def update_nwpm_role(cog, guild: discord.Guild, discord_id: int, nwpm: flo
     """Update a given user's nWPM role."""
     member = guild.get_member(discord_id)
     if not member:
-        return
+        raise ValueError(f"Member with ID {discord_id} not found in guild")
 
     role_name = get_nwpm_role_name(nwpm)
     if not role_name:
+        log(f"No nWPM role needed for nwpm={nwpm}")
         return
 
     new_role = discord.utils.get(guild.roles, name=role_name)
     if not new_role:
-        log(f"nWPM role '{role_name}' not found in guild")
-        return
+        raise ValueError(f"nWPM role '{role_name}' not found in guild")
 
     current_roles = [role for role in member.roles if role in cog.nwpm_roles]
 
     if len(current_roles) == 1 and current_roles[0] == new_role:
+        log(f"Member {member.name} already has correct nWPM role '{role_name}'")
         return
 
     try:
@@ -70,4 +71,4 @@ async def update_nwpm_role(cog, guild: discord.Guild, discord_id: int, nwpm: flo
         log(f"Assigned {role_name} role to {member.name}")
         await asyncio.sleep(1)
     except (discord.Forbidden, discord.HTTPException) as e:
-        log(f"Failed to update nWPM role for {member.name}: {e}")
+        raise RuntimeError(f"Failed to update nWPM role for {member.name}: {e}")
