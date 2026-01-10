@@ -280,3 +280,16 @@ def filter_palette(ax: Axes, line_color: str):
         color for color in GRAPH_PALETTE
         if color_distance(line_color, color) > 0.25
     ]))
+
+
+def apply_log_ticks(ax: Axes, max_value: int):
+    """Applies ticks by log scale on the X-axis."""
+    ax.set_xscale("log")
+
+    all_ticks = [50, 100, 250, 500, 1000, 2500, 5000, 10000]
+    cap_i = next(i for i, t in enumerate(all_ticks) if t > max_value)
+    x_ticks = all_ticks[:cap_i + 1]
+
+    ax.set_xticks(x_ticks)
+    ax.set_xticklabels([str(tick) for tick in x_ticks])
+    ax.minorticks_off()

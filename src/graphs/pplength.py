@@ -1,4 +1,5 @@
-from graphs.core import plt, apply_theme, generate_file_name, filter_palette
+from graphs.core import plt, apply_theme, generate_file_name, filter_palette, apply_log_ticks
+from utils.strings import format_big_number
 
 
 def render(
@@ -13,25 +14,28 @@ def render(
 
     pp = []
     length = []
+    max_length = 0
 
     for race in quote_bests:
         quote = quotes[race["quoteId"]]
         pp.append(race["pp"])
-        length.append(len(quote["text"]))
+        local_length = len(quote["text"])
+        length.append(local_length)
+
+        if local_length > max_length:
+            max_length = local_length
 
     if color in plt.colormaps():
         ax.scatter(length, pp, s=6, c=pp, cmap=color)
     else:
         ax.scatter(length, pp, s=6, color=color)
 
+    apply_log_ticks(ax, max_length)
+    ax.xaxis.set_major_formatter(format_big_number)
+
     ax.set_title(f"pp Per Quote Length - {username}")
     ax.set_xlabel("Quote Length")
     ax.set_ylabel("pp")
-
-    max_length = max(length)
-    intervals = [50, 500, 1000, 1500, 2000, 2500, 3000, 4000, 5000]
-    intervals = [i for i in intervals if i <= max_length]
-    ax.set_xticks(intervals)
 
     apply_theme(ax, theme=theme)
 
