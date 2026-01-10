@@ -11,6 +11,7 @@ from utils.logging import log
 
 def error_response(message: str, status: int = 500):
     """Create a JSON error response."""
+    log(f"Error response ({status}): {message}")
     return web.json_response({"error": message}, status=status)
 
 
@@ -51,15 +52,22 @@ async def update_nwpm_role(cog, guild: discord.Guild, discord_id: int, nwpm: flo
         return
 
     new_role = discord.utils.get(guild.roles, name=role_name)
+    if not new_role:
+        log(f"nWPM role '{role_name}' not found in guild")
+        return
+
     current_roles = [role for role in member.roles if role in cog.nwpm_roles]
 
     if len(current_roles) == 1 and current_roles[0] == new_role:
         return
 
-    if current_roles:
-        await member.remove_roles(*current_roles, reason="Updating nWPM role")
-        await asyncio.sleep(0.5)
+    try:
+        if current_roles:
+            await member.remove_roles(*current_roles, reason="Updating nWPM role")
+            await asyncio.sleep(0.5)
 
-    await member.add_roles(new_role, reason="Assigning nWPM role")
-    log(f"Assigned {role_name} role to {member.name}")
-    await asyncio.sleep(1)
+        await member.add_roles(new_role, reason="Assigning nWPM role")
+        log(f"Assigned {role_name} role to {member.name}")
+        await asyncio.sleep(1)
+    except (discord.Forbidden, discord.HTTPException) as e:
+        log(f"Failed to update nWPM role for {member.name}: {e}")

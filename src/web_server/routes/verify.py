@@ -11,7 +11,7 @@ from config import SECRET, TYPEGG_GUILD_ID, VERIFIED_ROLE_NAME
 from database.bot.users import link_user
 from utils.colors import SUCCESS
 from utils.logging import log
-from web_server.utils import update_nwpm_role
+from web_server.utils import update_nwpm_role, error_response
 
 
 async def verify_user(cog, request: web.Request):
@@ -19,47 +19,49 @@ async def verify_user(cog, request: web.Request):
     token = data.get("token")
 
     if not token:
-        return web.json_response({"error": "Token is required."}, status=400)
+        return error_response("Token is required.", 400)
 
     if token in cog.used_tokens:
-        return web.json_response({"error": "Token already invalidated."}, status=401)
+        return error_response("Token already invalidated.", 401)
 
     try:
         decoded_token = jwt.decode(token, SECRET, algorithms=["HS256"])
     except jwt.ExpiredSignatureError:
-        return web.json_response({"error": "Token has expired."}, status=401)
+        return error_response("Token has expired.", 401)
     except jwt.InvalidTokenError:
-        return web.json_response({"error": "Token is invalid."}, status=401)
+        return error_response("Token is invalid.", 401)
 
     discord_id = int(decoded_token.get("discordId"))
     user_id = decoded_token.get("userId")
     expiry_timestamp = decoded_token.get("exp")
 
     if not (discord_id and user_id and expiry_timestamp):
-        return web.json_response({"error": "Invalid token payload."}, status=400)
-
-    expiry_date = datetime.fromtimestamp(expiry_timestamp, timezone.utc)
-    cog.used_tokens[token] = expiry_date
+        return error_response("Invalid token payload.", 400)
 
     guild = cog.bot.get_guild(TYPEGG_GUILD_ID)
     if not guild:
-        return web.json_response({"error": "Guild not found."}, status=500)
+        return error_response("Guild not found.", 500)
 
     member = guild.get_member(int(discord_id))
     if not member:
-        return web.json_response({"error": "User not found in server."}, status=404)
+        return error_response("User not found in server.", 404)
 
     role = discord.utils.get(guild.roles, name=VERIFIED_ROLE_NAME)
     if not role:
-        log(f"'{VERIFIED_ROLE_NAME}' role not found in guild {guild.name}")
-        return web.json_response({"error": "Verification role not found."}, status=500)
+        return error_response("Verification role not found.", 500)
 
-    await member.add_roles(role)
-    log(f"Assigned '{VERIFIED_ROLE_NAME}' role to {member.name}")
+    # Assign verified role
+    try:
+        await member.add_roles(role)
+        log(f"Assigned '{VERIFIED_ROLE_NAME}' role to {member.name}")
+    except (Forbidden, discord.HTTPException) as e:
+        return error_response(f"Failed to assign verification role: {e}", 500)
 
+    # Link user in database
     link_user(discord_id, user_id)
     log(f"Linked user {discord_id} to user ID {user_id}")
 
+    # Send success DM
     user = await cog.bot.fetch_user(discord_id)
     try:
         await user.send(embed=Embed(
@@ -71,25 +73,43 @@ async def verify_user(cog, request: web.Request):
     except Forbidden:
         pass
 
+    # Fetch and assign nWPM role
     async with aiohttp.ClientSession() as session:
-        # Fetch nWPM and assign role
-        async with session.get(f"{API_URL}/user/{user_id}/nwpm") as response:
-            response.raise_for_status()
-
-            data = await response.json()
-            nwpm = data.get("nwpm")
-            await update_nwpm_role(cog, guild, discord_id, nwpm)
+        try:
+            async with session.get(f"{API_URL}/user/{user_id}/nwpm") as response:
+                if response.status == 200:
+                    data = await response.json()
+                    nwpm = data.get("nwpm")
+                    await update_nwpm_role(cog, guild, discord_id, nwpm)
+                else:
+                    log(f"Failed to fetch nWPM for user {user_id}: HTTP {response.status}")
+        except Exception as e:
+            log(f"Error fetching nWPM for user {user_id}: {e}")
 
         # Fetch GG+ status and assign role if applicable
-        async with session.get(f"{API_URL}/user/{user_id}") as response:
-            if response.status == 200:
-                profile_data = await response.json()
-                is_gg_plus = profile_data.get("isGgPlus", False)
+        try:
+            async with session.get(f"{API_URL}/user/{user_id}") as response:
+                if response.status == 200:
+                    profile_data = await response.json()
+                    is_gg_plus = profile_data.get("isGgPlus", False)
 
-                if is_gg_plus:
-                    gg_plus_role = discord.utils.get(guild.roles, name="GG+")
-                    if gg_plus_role:
-                        await member.add_roles(gg_plus_role)
-                        log(f"Assigned GG+ role to {member.name}")
+                    if is_gg_plus:
+                        gg_plus_role = discord.utils.get(guild.roles, name="GG+")
+                        if gg_plus_role:
+                            try:
+                                await member.add_roles(gg_plus_role)
+                                log(f"Assigned GG+ role to {member.name}")
+                            except (Forbidden, discord.HTTPException) as e:
+                                log(f"Failed to assign GG+ role to {member.name}: {e}")
+                        else:
+                            log("GG+ role not found in guild")
+                else:
+                    log(f"Failed to fetch profile for user {user_id}: HTTP {response.status}")
+        except Exception as e:
+            log(f"Error fetching profile for user {user_id}: {e}")
+
+    # Invalidate token
+    expiry_date = datetime.fromtimestamp(expiry_timestamp, timezone.utc)
+    cog.used_tokens[token] = expiry_date
 
     return web.json_response({"success": True, "message": "User verified successfully."})
