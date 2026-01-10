@@ -6,8 +6,8 @@ from discord.ext import commands
 
 from commands.base import Command
 from config import BOT_PREFIX, TYPEGG_GUILD_ID, VERIFIED_ROLE_NAME
-from database.bot.users import unlink_user
-from utils.colors import ERROR, WARNING
+from database.bot.users import unlink_user, update_gg_plus_status, update_theme
+from utils.colors import ERROR, WARNING, DEFAULT_THEME
 from utils.logging import log
 
 info = {
@@ -42,6 +42,13 @@ class Unlink(Command):
             return
         else:
             await unverify_user(self.bot, ctx.author.id)
+
+            # Reset GG+ status and theme in database
+            if ctx.user["userId"]:
+                update_gg_plus_status(ctx.user["userId"], False)
+                update_theme(ctx.author.id, DEFAULT_THEME)
+                log(f"Reset GG+ status and theme for user {ctx.user['userId']}")
+
             unlink_user(ctx.author.id)
 
             embed = Embed(
