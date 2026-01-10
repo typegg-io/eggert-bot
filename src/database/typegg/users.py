@@ -114,8 +114,8 @@ async def reimport_users():
         await download(user_id=user_id)
 
 
-def get_running_maximum_by_length(user_id: str, log: int = 10):
-    return db.fetch(f"""
+def get_running_maximum_by_length(user_id: str):
+    return db.fetch("""
         WITH text_bests_with_length AS (
             SELECT MAX(r.wpm) AS wpm, LENGTH(q.text) AS length
             FROM races as r
@@ -127,8 +127,8 @@ def get_running_maximum_by_length(user_id: str, log: int = 10):
             SELECT wpm, length, MAX(wpm) OVER (ORDER BY length DESC ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW) AS running_max_wpm
             FROM text_bests_with_length
         )
-        SELECT wpm, LOG(?, length) AS length
+        SELECT wpm, length
         FROM running
         WHERE wpm = running_max_wpm
         ORDER BY length;
-    """, [user_id, log])
+    """, [user_id])

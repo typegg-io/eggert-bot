@@ -1,9 +1,8 @@
-from dataclasses import dataclass, astuple
+from dataclasses import dataclass
 from typing import List
-from numpy import append
-from graphs.core import plt, apply_theme, generate_file_name, filter_palette
-from matplotlib.ticker import MaxNLocator
-from utils.prettify_xticks import prettyfyLogLengthXticks
+
+from graphs.core import plt, apply_theme, generate_file_name, filter_palette, apply_log_ticks
+from utils.strings import format_big_number
 
 
 @dataclass
@@ -16,38 +15,45 @@ class UserEnduranceData:
 def render(
     first_username: str,
     data: List[UserEnduranceData],
-    log_base: int,
     theme: dict,
 ):
     fig, ax = plt.subplots()
     filter_palette(ax, theme["line"])
 
-    max_length = 0
     themed_line = 0
+    max_length = 0
 
-    for i, (username, wpm_values, length_values) in enumerate(map(astuple, data)):
+    for line_index, endurance_data in enumerate(data):
+        username = endurance_data.username
+        wpm_values = endurance_data.wpm_values
+        length_values = endurance_data.length_values
+
+        step_wpm = []
+        step_length = []
+
+        for j in range(len(wpm_values) - 1):
+            step_wpm.extend([wpm_values[j], wpm_values[j + 1]])
+            step_length.extend([length_values[j], length_values[j]])
+
+        step_wpm.append(wpm_values[-1])
+        step_length.append(length_values[-1])
+
         if username == first_username:
-            themed_line = i
+            themed_line = line_index
 
-        ax.step(length_values, wpm_values, where="pre", label=username)
+        ax.plot(step_length, step_wpm, label=username)
 
-        local_max_length = max(length_values)
+        local_max = max(length_values) if length_values else 0
+        if local_max > max_length:
+            max_length = local_max
 
-        if local_max_length > max_length:
-            max_length = local_max_length
+    apply_log_ticks(ax, max_length)
+    ax.xaxis.set_major_formatter(format_big_number)
 
     ax.set_title("WPM PB Per Quote Length")
     ax.set_xlabel("Quote Length")
     ax.set_ylabel("WPM")
 
-    ax.xaxis.set_major_locator(MaxNLocator(nbins=10))
-    xticks = ax.get_xticks()
-    xticks = append(xticks[:-1], max_length)  # Make the max xtick equal to the max length
-    xticks = prettyfyLogLengthXticks(xticks, log_base, min_overlapping_scale=0.068)
-
-    ax.set_xticks(xticks)
-
-    ax.set_xticklabels([f"{xtick:.0f}" for xtick in log_base ** ax.get_xticks()])
     apply_theme(ax, theme=theme, legend_loc=1, force_legend=True, themed_line=themed_line)
 
     file_name = generate_file_name("endurance")
@@ -55,4 +61,3 @@ def render(
     plt.close(fig)
 
     return file_name
-

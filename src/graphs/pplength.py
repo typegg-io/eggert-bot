@@ -1,15 +1,11 @@
-from graphs.core import plt, apply_theme, generate_file_name, filter_palette
-from math import log
-from matplotlib.ticker import MaxNLocator
-from utils.prettify_xticks import prettyfyLogLengthXticks
-from numpy import append
+from graphs.core import plt, apply_theme, generate_file_name, filter_palette, apply_log_ticks
+from utils.strings import format_big_number
 
 
 def render(
     username: str,
     quotes: list[dict],
     quote_bests: list[dict],
-    log_base: int,
     theme: dict,
 ):
     fig, ax = plt.subplots()
@@ -23,7 +19,7 @@ def render(
     for race in quote_bests:
         quote = quotes[race["quoteId"]]
         pp.append(race["pp"])
-        local_length = log(len(quote["text"]), log_base)
+        local_length = len(quote["text"])
         length.append(local_length)
 
         if local_length > max_length:
@@ -34,14 +30,8 @@ def render(
     else:
         ax.scatter(length, pp, s=6, color=color)
 
-    ax.xaxis.set_major_locator(MaxNLocator(nbins=10))
-    xticks = ax.get_xticks()
-    xticks = append(xticks[:-1], max_length)  # Make the max xtick equal to the max length
-    xticks = prettyfyLogLengthXticks(xticks, log_base, min_overlapping_scale=0.068)
-
-    ax.set_xticks(xticks)
-
-    ax.set_xticklabels([f"{xtick:.0f}" for xtick in log_base ** ax.get_xticks()])
+    apply_log_ticks(ax, max_length)
+    ax.xaxis.set_major_formatter(format_big_number)
 
     ax.set_title(f"pp Per Quote Length - {username}")
     ax.set_xlabel("Quote Length")

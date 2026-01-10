@@ -11,7 +11,6 @@ from utils.messages import Page, Message
 from utils.stats import calculate_total_pp
 from utils.strings import get_flag_title
 
-
 max_users_shown = 5
 
 info = {
