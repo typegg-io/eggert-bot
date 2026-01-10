@@ -2,7 +2,6 @@ import asyncio
 
 import discord
 from discord import Embed
-from discord.errors import Forbidden
 from discord.ext import commands
 
 from commands.base import Command
@@ -23,7 +22,7 @@ class Unlink(Command):
         if not ctx.user["userId"]:
             return await ctx.send(embed=not_verified())
 
-        await ctx.author.send(embed=Embed(
+        await ctx.send(embed=Embed(
             title="Are You Sure?",
             description=(
                 "You are about to remove the verification link\n"
@@ -50,10 +49,7 @@ class Unlink(Command):
                 color=ctx.user["theme"]["embed"]
             )
 
-            try:
-                await ctx.author.send(embed=embed)
-            except Forbidden:
-                return await ctx.send(embed=embed)
+            return await ctx.send(embed=embed)
 
 
 async def unverify_user(bot_instance: commands.Bot, discord_id: str):
