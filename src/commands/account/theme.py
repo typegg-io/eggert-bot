@@ -151,6 +151,7 @@ async def display_user_theme(ctx: commands.Context, member: Member):
         color=user_theme["embed"],
     )
     embed.set_image(url=f"attachment://{file_name}")
+    embed.set_footer(text="-help theme to customize your theme!")
     file = File(file_name, filename=file_name)
 
     async def copy_theme(interaction, theme: dict):
