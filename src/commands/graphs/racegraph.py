@@ -2,15 +2,17 @@ from typing import Optional
 
 from discord.ext import commands
 
+from api.daily_quotes import get_daily_quote
 from api.users import get_race
 from commands.base import Command
+from config import DAILY_QUOTE_CHANNEL_ID
 from database.bot.recent_quotes import set_recent_quote
 from database.typegg.quotes import get_quote
 from database.typegg.users import get_quote_bests
 from graphs import race as race_graph
-from utils.errors import NoQuoteRaces
+from utils.errors import NoQuoteRaces, DailyQuoteChannel
 from utils.keylogs import get_keystroke_data
-from utils.messages import Page, Message, Field
+from utils.messages import Page, Message, Field, usable_in
 from utils.strings import quote_display, discord_date, format_duration, GG_PLUS, GG_PLUS_LINK
 
 info = {
@@ -24,6 +26,7 @@ info = {
 
 class RaceGraph(Command):
     @commands.command(aliases=info["aliases"])
+    @usable_in(DAILY_QUOTE_CHANNEL_ID)
     async def racegraph(self, ctx, username: Optional[str] = "me", race_identifier: Optional[str] = None):
         profile = await self.get_profile(ctx, username, races_required=True)
         await self.import_user(ctx, profile)
@@ -43,6 +46,12 @@ class RaceGraph(Command):
 async def run(ctx: commands.Context, profile: dict, race_number: int):
     race = await get_race(profile["userId"], race_number, get_keystrokes=True)
     quote = get_quote(race["quoteId"])
+
+    if ctx.channel.id == DAILY_QUOTE_CHANNEL_ID:
+        daily_data = await get_daily_quote(results=1)
+        if race["quoteId"] != daily_data["quote"]["quoteId"]:
+            raise DailyQuoteChannel
+
     keystroke_data = get_keystroke_data(race["keystrokeData"])
     set_recent_quote(ctx.channel.id, race["quoteId"])
 
