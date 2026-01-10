@@ -104,6 +104,17 @@ class NoRacesFiltered(ErrorWithUsername):
         )
 
 
+class NoQuoteRaces(ErrorWithUsername):
+    """Raised when a user has no races on a specific quote."""
+
+    @property
+    def embed(self):
+        return Embed(
+            title="No Quote Races",
+            description=f"User `{self.username.replace("`", "")}` has no races on this quote",
+        )
+
+
 class UserBanned(CheckFailure):
     """Raised when a banned user attempts to run a command."""
     embed = Embed(

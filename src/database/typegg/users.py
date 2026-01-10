@@ -15,6 +15,7 @@ def get_user(user_id: str):
 def get_quote_bests(
     user_id: str,
     columns: list[str] = ["*"],
+    quote_id: str = None,
     start_date: Optional[str] = None,
     end_date: Optional[str] = None,
     order_by: Optional[str] = "pp",
@@ -55,6 +56,9 @@ def get_quote_bests(
     conditions = ["userId = ?"]
     params = [user_id]
 
+    if quote_id is not None:
+        conditions.append("quoteId = ?")
+        params.append(quote_id)
     if start_date is not None:
         conditions.append("timestamp >= ?")
         params.append(start_date)
