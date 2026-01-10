@@ -17,36 +17,43 @@ metrics = {
         "columns": "pp quoteId",
         "title": "Total pp",
         "alias": "ppl",
+        "sort": lambda p: p["stats"]["totalPp"],
     },
     "best": {
         "columns": "pp",
         "title": "Best pp",
         "alias": "bl",
+        "sort": lambda p: p["stats"]["bestPp"]["value"],
     },
     "wpm": {
         "columns": "wpm",
         "title": "Best WPM",
         "alias": "wl",
+        "sort": lambda p: p["stats"]["bestWpm"]["value"],
     },
     "races": {
         "columns": "raceNumber",
         "title": "Races",
         "alias": "rl",
+        "sort": lambda p: p["stats"]["races"],
     },
     "quotes": {
         "columns": "quoteId",
         "title": "Quotes Typed",
         "alias": "ql",
+        "sort": lambda p: p["stats"]["quotesTyped"],
     },
     "characters": {
         "columns": "wpm duration",
         "title": "Characters Typed",
         "alias": "cl",
+        "sort": lambda p: p["stats"]["charactersTyped"],
     },
     "nwpm": {
         "columns": "pp quoteId",
         "title": "nWPM",
         "alias": "nl",
+        "sort": lambda p: p["stats"]["nWpm"],
     },
 }
 
@@ -198,7 +205,7 @@ def get_nwpm_over_time(race_list: list[dict]):
 
 
 async def run(ctx: commands.Context, metric: str, profiles: list[dict]):
-    profiles.sort(key=lambda x: -x["stats"]["races"])
+    profiles.sort(key=lambda x: -metrics[metric]["sort"](x))
     username = profiles[0]["username"]
 
     lines = []
