@@ -18,12 +18,6 @@ class ErrorHandler(commands.Cog):
     async def on_command_error(self, ctx, error):
         error = getattr(error, "original", error)
 
-        # Ignore channel permission failures
-        if isinstance(error, commands.CheckFailure):
-            if ctx.channel.id == DAILY_QUOTE_CHANNEL_ID:
-                await send_error(ctx, DailyQuoteChannel.embed)
-            return
-
         if isinstance(error, UserBanned):
             try:
                 await send_error(ctx, error.embed)
@@ -52,6 +46,12 @@ class ErrorHandler(commands.Cog):
 
         if hasattr(error, "embed"):
             return await send_error(ctx, error.embed)
+
+        # Ignore other channel permission failures
+        if isinstance(error, commands.CheckFailure):
+            if ctx.channel.id == DAILY_QUOTE_CHANNEL_ID:
+                await send_error(ctx, DailyQuoteChannel.embed)
+            return
 
         if isinstance(error, commands.CommandNotFound):
             if check_channel_permissions(ctx):
