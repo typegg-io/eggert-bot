@@ -26,7 +26,7 @@ class Translate(Command):
         words = text.split(" ")
         if words[0].lower() in external_keymaps:
             layout_to = words[0].lower()
-            text = words[1:]
+            text = " ".join(words[1:])
         else:
             layout_from, layout_to = "qwerty", layout_from.lower()
 
