@@ -22,20 +22,16 @@ info = {
 class Translate(Command):
     @commands.command(aliases=info["aliases"])
     @usable_in(GENERAL_CHANNEL_ID)
-    async def translate(self, ctx, layout_from: str, *text_tuple: str):
-        if not text_tuple:
-            raise GeneralException("Missing Text", "Please provide text to translate.")
-
-        if text_tuple[0].lower() in external_keymaps:
-            layout_to = text_tuple[0].lower()
-            text_tuple = text_tuple[1:]
+    async def translate(self, ctx, layout_from: str, *, text: str):
+        words = text.split(" ")
+        if words[0].lower() in external_keymaps:
+            layout_to = words[0].lower()
+            text = words[1:]
         else:
             layout_from, layout_to = "qwerty", layout_from.lower()
 
         if layout_to not in external_keymaps:
             raise GeneralException("Invalid Layout", supported_layouts_string)
-
-        text = " ".join(text_tuple)
 
         keymap_from, layout_from = get_keymap(layout_from)
         keymap_from = get_keylist(keymap_from)
