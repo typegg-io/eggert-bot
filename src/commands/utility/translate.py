@@ -3,9 +3,10 @@ from typing import List
 from discord.ext import commands
 
 from commands.base import Command
+from config import GENERAL_CHANNEL_ID
 from utils.errors import GeneralException
 from utils.keyboard_layouts import get_keymap, K, keymaps as external_keymaps
-from utils.messages import Page, Message
+from utils.messages import Page, Message, usable_in
 
 supported_layouts_string = "Supported layouts: `QWERTY` (default), `Dvorak`, `Colemak`, `Gallium`"
 
@@ -20,6 +21,7 @@ info = {
 
 class Translate(Command):
     @commands.command(aliases=info["aliases"])
+    @usable_in(GENERAL_CHANNEL_ID)
     async def translate(self, ctx, layout_from: str, *text_tuple: str):
         if not text_tuple:
             raise GeneralException("Missing Text", "Please provide text to translate.")
