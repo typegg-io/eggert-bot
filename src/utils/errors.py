@@ -354,3 +354,10 @@ class NotEnoughRaces(CommandError):
         title="Not Enough Races",
         description="User has not completed this many races",
     )
+
+
+class MessageTooLong(CommandError):
+    embed = Embed(
+        title="Message Too Long",
+        description="The maximum number of characters\nfor a message has been exceeded"
+    )
