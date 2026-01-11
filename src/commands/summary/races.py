@@ -9,6 +9,7 @@ from database.typegg.quotes import get_quotes
 from database.typegg.races import get_races
 from database.typegg.users import get_quote_bests
 from utils.dates import count_unique_dates, parse_date, get_start_end_dates
+from utils.errors import NoRacesFiltered
 from utils.messages import Page, Message, Field
 from utils.stats import calculate_quote_length, calculate_duration, calculate_quote_bests, calculate_total_pp
 from utils.strings import format_duration, discord_date, get_flag_title, date_range_display
@@ -49,12 +50,17 @@ def build_stat_fields(profile, race_list, flags={}, all_time=False):
     correction_duration = 0
     words_typed = 0
     chars_typed = 0
+
     longest_break = {
         "start_race": next(
-            race for race in race_list if race["raceNumber"] is not None
+            (race for race in race_list if race["raceNumber"] is not None), None
         ),
         "duration": 0
     }
+
+    if not longest_break["start_race"]:
+        raise NoRacesFiltered(profile["username"])
+
     previous_race = None
 
     for race in race_list:
