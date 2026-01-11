@@ -66,7 +66,7 @@ def render(
             markeredgewidth=1.5, label=f"{typo_count - max_legend_typos} more typos..."
         )
 
-    apply_padding(ax, keystroke_wpm + keystroke_wpm_raw)
+    apply_padding(ax, [keystroke_wpm, keystroke_wpm_raw])
     ax.set_xlabel("Keystrokes")
     ax.set_ylabel("WPM")
     ax.set_title(title)
@@ -80,23 +80,33 @@ def render(
     return file_name
 
 
-def apply_padding(ax: Axes, keystroke_wpm: list[float]):
+def apply_padding(ax: Axes, keystroke_wpms: list[list[float]]):
     """Set Y-axis limits to reasonable WPM bounds with padding."""
-    valid_wpm = [w for w in keystroke_wpm if w < float("inf")]
-    if not valid_wpm:
-        return
+    starts = []
+    rest = []
+    max_wpm = float("-inf")
+    min_wpm = float("inf")
 
-    min_wpm, max_wpm = min(valid_wpm), max(valid_wpm)
-    starts, remaining = valid_wpm[:9], valid_wpm[9:]
+    for keystroke_wpm in keystroke_wpms:
+        valid_wpm = [w for w in keystroke_wpm if w < float("inf")]
 
-    if remaining:
-        max_start, max_rest = max(starts), max(remaining)
-        min_start, min_rest = min(starts), min(remaining)
+        if not valid_wpm:
+            continue
+
+        starts.extend(valid_wpm[:9])
+        rest.extend(valid_wpm[9:])
+
+        max_wpm = max(max(valid_wpm), max_wpm)
+        min_wpm = min(min(valid_wpm), min_wpm)
+
+    if rest:
+        max_start, max_rest = max(starts), max(rest)
+        min_start, min_rest = min(starts), min(rest)
 
         if max_start > max_rest:
-            max_wpm = max_rest * 1.1
+            max_wpm = max_rest * 1.05
         if min_start < min_rest:
-            min_wpm = min_rest * 0.9
+            min_wpm = min_rest * 0.95
 
     padding = 0.1 * (max_wpm - min_wpm)
     ax.set_ylim(min_wpm - padding, max_wpm + padding)

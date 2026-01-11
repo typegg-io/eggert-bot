@@ -60,8 +60,8 @@ def apply_padding(ax, keystroke_wpms: list[list[float]]):
     min_start, min_rest = min(all_starts), min(all_remaining)
 
     if max_start > max_rest:
-        max_wpm = max_rest * 1.1
+        max_wpm = max_rest * 1.05
     if min_start < min_rest:
-        min_wpm = min_rest * 0.9
+        min_wpm = min_rest * 0.95
 
     ax.set_ylim(min_wpm, max_wpm)
