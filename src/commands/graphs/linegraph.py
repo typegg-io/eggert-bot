@@ -8,7 +8,7 @@ from commands.base import Command
 from database.typegg.races import get_races
 from graphs import line
 from utils.errors import GeneralException
-from utils.nwpm_model import calculate_nwpm
+from utils.nwpm_model import calculate_nwpm, initialize_nwpm_model
 from utils.stats import calculate_quote_length
 from utils.strings import get_argument, get_flag_title
 
@@ -205,6 +205,9 @@ def get_nwpm_over_time(race_list: list[dict]):
 
 
 async def run(ctx: commands.Context, metric: str, profiles: list[dict]):
+    if metric == "nwpm":
+        await initialize_nwpm_model()
+
     profiles.sort(key=lambda x: -metrics[metric]["sort"](x))
     username = profiles[0]["username"]
 

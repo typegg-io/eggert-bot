@@ -16,6 +16,7 @@ except FileNotFoundError:
         f.write("[]")
 
 nwpm_data = []  # Local copy of [pp, nWPM] data
+_initialized = False  # Track if model has been initialized
 
 
 async def update_nwpm_data():
@@ -71,12 +72,20 @@ def load_local_data():
 
 async def initialize_nwpm_model():
     """Initialize the nWPM model, fetching data if empty."""
+    global _initialized
+
+    if _initialized:
+        return
+
     load_local_data()
 
     if not nwpm_data:
         log("nWPM data is empty. Fetching data from leaderboards...")
         await update_nwpm_data()
         load_local_data()
+
+    _initialized = True
+    log("nWPM model initialized")
 
 
 def _interpolate(x, x0, y0, x1, y1):

@@ -7,7 +7,6 @@ from bot_setup import load_commands, register_bot_checks
 from config import BOT_PREFIX, BOT_TOKEN, STAGING
 from utils.files import clear_image_cache
 from utils.logging import log
-from utils.nwpm_model import initialize_nwpm_model
 from watcher import start_watcher
 
 intents = discord.Intents.default()
@@ -29,7 +28,6 @@ async def on_ready():
     register_bot_checks(bot)
     await bot.load_extension("error_handler")
     await bot.load_extension("web_server.server")
-    await initialize_nwpm_model()
 
     if not STAGING:
         await bot.load_extension("tasks")
