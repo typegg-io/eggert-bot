@@ -35,7 +35,7 @@ class CommandLeaderboard(Command):
             await command_leaderboard(ctx, command_aliases[arg])
 
         elif arg in ["users", "all"]:
-            if not ctx.user["isAdmin"]:
+            if arg == "users" and ctx.user["isAdmin"]:
                 raise UserNotAdmin
             await user_command_leaderboard(ctx, arg)
 
