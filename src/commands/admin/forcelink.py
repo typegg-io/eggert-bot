@@ -79,7 +79,3 @@ class ForceLink(Command):
             ))
 
         await message.send()
-
-
-async def setup(bot):
-    await bot.add_cog(ForceLink(bot))

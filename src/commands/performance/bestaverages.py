@@ -101,7 +101,3 @@ async def run(ctx: commands.Context, profile: dict, n: int):
     )
 
     await message.send()
-
-
-async def setup(bot):
-    await bot.add_cog(BestAverages(bot))

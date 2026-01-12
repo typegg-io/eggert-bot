@@ -48,7 +48,3 @@ class Calculator(Command):
                 color=ERROR,
             ))
             await message.send()
-
-
-async def setup(bot):
-    await bot.add_cog(Calculator(bot))
