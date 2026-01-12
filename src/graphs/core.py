@@ -29,8 +29,19 @@ GRAPH_PALETTE = [
 ]
 plt.rcParams["axes.prop_cycle"] = plt.cycler(color=GRAPH_PALETTE)
 
-matplotlib.colormaps.register(LinearSegmentedColormap.from_list("plus", ["#8B1F6B", "#FF279A", "#FF6BC7"]))
-matplotlib.colormaps.register(LinearSegmentedColormap.from_list("keegan", ["#0094FF", "#FF00DC"]))
+CUSTOM_COLORMAPS = [
+    ("plus", ["#8B1F6B", "#FF279A", "#FF6BC7"]),
+    ("keegan", ["#0094FF", "#FF00DC"]),
+]
+
+
+def load_custom_colormaps():
+    for name, colors in CUSTOM_COLORMAPS:
+        if name not in plt.colormaps():
+            matplotlib.colormaps.register(LinearSegmentedColormap.from_list(name, colors))
+
+
+load_custom_colormaps()
 
 
 class LineHandler(HandlerLine2D):
