@@ -42,6 +42,7 @@ def add_races(races):
 async def get_races(
     user_id: str,
     columns: list[str] = ["*"],
+    quote_id: str = None,
     start_date: Optional[str] = None,
     end_date: Optional[str] = None,
     start_number: Optional[int] = None,
@@ -80,6 +81,9 @@ async def get_races(
     conditions = ["userId = ?"]
     params = [user_id]
 
+    if quote_id is not None:
+        conditions.append("quoteId = ?")
+        params.append(quote_id)
     if start_number is not None:
         conditions.append(f"raceNumber >= {start_number}")
     if end_number is not None:
