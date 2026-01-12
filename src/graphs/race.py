@@ -104,9 +104,9 @@ def apply_padding(ax: Axes, keystroke_wpms: list[list[float]]):
         min_start, min_rest = min(starts), min(rest)
 
         if max_start > max_rest:
-            max_wpm = max_rest * 1.05
+            max_wpm = max_rest
         if min_start < min_rest:
-            min_wpm = min_rest * 0.95
+            min_wpm = min_rest
 
     padding = 0.1 * (max_wpm - min_wpm)
     ax.set_ylim(min_wpm - padding, max_wpm + padding)
