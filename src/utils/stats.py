@@ -37,3 +37,16 @@ def calculate_wpm(duration, chars_typed):
 def calculate_duration(wpm, chars_typed):
     """Returns the ms duration given WPM and number of characters typed."""
     return (chars_typed * 12000) / wpm if wpm else 0
+
+
+def get_pauseless_delays(raw_delays: int):
+    """Returns a list of delays for "pauseless WPM", estimating a run with no pauses based on the average speed."""
+    average = sum(raw_delays) / max(len(raw_delays), 1)
+    pauseless_delays = []
+    for j, time in enumerate(raw_delays):
+        if time < average * 5:
+            pauseless_delays.append(time)
+        else:
+            pauseless_delays.append(average)
+
+    return pauseless_delays

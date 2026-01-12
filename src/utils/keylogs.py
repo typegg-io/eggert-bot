@@ -112,6 +112,7 @@ def get_keystroke_data(keystroke_data: dict):
 
     return {
         "delays": delays,
+        "raw_delays": raw_delays,
         "keystroke_wpm": keystroke_wpm,
         "keystroke_wpm_raw": keystroke_wpm_raw,
         "typos": typos,
