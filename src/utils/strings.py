@@ -53,6 +53,24 @@ ALIAS_LOOKUP = {
     for alias in [original, *aliases]
 }
 
+LANGUAGES = {
+    "en": "English",
+    "es": "Spanish",
+    "fr": "French",
+    "de": "German",
+    "it": "Italian",
+    "pt": "Portuguese",
+    "nl": "Dutch",
+    "ru": "Russian",
+    "ja": "Japanese",
+    "zh": "Chinese (Simplified)",
+    "ko": "Korean",
+    "tr": "Turkish",
+    "no": "Norwegian",
+    "id": "Indonesian",
+    "la": "Latin",
+}
+
 
 # Argument & Parameter Parsing
 
@@ -89,6 +107,8 @@ def get_flag_title(flags):
         flag_titles.append(flags["gamemode"].title())
     if flags.get("status"):
         flag_titles.append(flags["status"].title())
+    if flags.get("language"):
+        flag_titles.append(LANGUAGES.get(flags["language"]))
 
     if not flag_titles:
         return ""

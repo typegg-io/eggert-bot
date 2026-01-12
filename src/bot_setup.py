@@ -7,7 +7,12 @@ from utils.errors import UserBanned
 from utils.files import get_command_modules
 from utils.logging import get_log_message, log
 from utils.messages import check_channel_permissions, welcome_message, command_milestone
+from utils.strings import get_argument, LANGUAGES
 from web_server.utils import assign_user_roles
+
+FLAGS = {"raw", "solo", "multiplayer", "unranked", "any"}
+for language in LANGUAGES.keys():
+    FLAGS.add(language)
 
 users = get_user_ids()
 total_commands = sum(get_all_command_usage().values())
@@ -64,9 +69,6 @@ def register_bot_checks(bot):
         content = message.content
         invoke, raw_args = content.split()[0], content.split()[1:]
 
-        from utils.strings import get_argument
-        from commands.base import FLAGS
-
         flags = {}
         regular_args = []
 
@@ -85,8 +87,13 @@ def register_bot_checks(bot):
                         flags["gamemode"] = flag
                     case "unranked" | "any":
                         flags["status"] = flag
+                    case _:
+                        flags["language"] = flag
             else:
                 regular_args.append(arg)
+
+        if flags.get("language"):
+            flags["status"] = "unranked"
 
         message.flags = flags
         message.content = f"{invoke} " + " ".join(regular_args)

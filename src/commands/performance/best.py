@@ -72,7 +72,7 @@ async def run(ctx: commands.Context, profile: dict, metric: str, reverse: bool =
         pages.append(Page(description=description))
 
     pages = paginate_data(quote_bests, entry_formatter, 20, 5)
-    title = f"{["Worst", "Best"][reverse]} {["WPM", "pp"][metric == "pp"]} Quotes"
+    title = f"{["Worst", "Best"][reverse]}{[" WPM", ""][metric == "pp"]} Quotes"
     title += get_flag_title(flags)
 
     message = Message(

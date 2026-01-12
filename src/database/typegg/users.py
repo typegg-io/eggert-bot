@@ -2,6 +2,7 @@ from typing import Optional
 
 from database.typegg import db
 from utils.logging import log
+from utils.strings import LANGUAGES
 
 
 def create_user(user_id: str):
@@ -15,15 +16,16 @@ def get_user(user_id: str):
 def get_quote_bests(
     user_id: str,
     columns: list[str] = ["*"],
-    quote_id: str = None,
+    quote_id: Optional[str] = None,
     start_date: Optional[str] = None,
     end_date: Optional[str] = None,
     order_by: Optional[str] = "pp",
     gamemode: Optional[str] = None,
+    language: Optional[str] = None,
     reverse: Optional[bool] = True,
     limit: Optional[int] = None,
     as_dictionary: Optional[bool] = False,
-    flags: dict = {},
+    flags: Optional[dict] = {},
 ):
     """Returns quote bests for a user, with available filters."""
 
@@ -48,6 +50,7 @@ def get_quote_bests(
                 order_by = "raw" + order_by.capitalize()
 
         gamemode = flags.get("gamemode")
+        language = flags.get("language")
 
     aggregate_column = f"MAX({order_by}) AS {order_by}"
     order = "DESC" if reverse else "ASC"
@@ -57,7 +60,7 @@ def get_quote_bests(
     params = [user_id]
 
     if quote_id is not None:
-        conditions.append("quoteId = ?")
+        conditions.append("r.quoteId = ?")
         params.append(quote_id)
     if start_date is not None:
         conditions.append("timestamp >= ?")
@@ -69,22 +72,27 @@ def get_quote_bests(
         conditions.append("gamemode = ?")
         params.append(gamemode)
         if gamemode == "multiplayer":
-            columns = (
-                          "matchWpm as wpm, rawMatchWpm as rawWpm, "
-                          "matchPp as pp, rawMatchPp as rawPp, "
-                      ) + columns
+            columns = "matchWpm as wpm, rawMatchWpm as rawWpm, matchPp as pp, rawMatchPp as rawPp, " + columns
             if order_by in ["pp", "wpm"]:
                 aggregate_column = aggregate_column.replace(order_by, "match" + order_by.title())
+
+    join_clause = ""
+    if language is not None and language in LANGUAGES:
+        join_clause = "JOIN quotes q ON q.quoteId = r.quoteId"
+        conditions.append("q.language = ?")
+        params.append(LANGUAGES.get(language))
+        columns = columns.replace("quoteId", "r.quoteId")
 
     where_clause = "WHERE " + " AND ".join(conditions)
 
     results = db.fetch(f"""
         SELECT {aggregate_column}, {columns}
-        FROM races
+        FROM races r
+        {join_clause}
         {where_clause}
         AND pp > {min_pp}
         AND pp <= {max_pp}
-        GROUP BY quoteId
+        GROUP BY r.quoteId
         ORDER BY {order_by} {order}
         {limit}
     """, params)

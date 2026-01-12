@@ -16,8 +16,6 @@ from utils.errors import MissingUsername, NoRaces, NotSubscribed
 from utils.messages import privacy_warning, command_milestone
 from utils.strings import parse_number
 
-FLAGS = {"raw", "solo", "multiplayer", "unranked", "any"}
-
 
 class Command(commands.Cog):
     """Base command class providing common command utilities."""

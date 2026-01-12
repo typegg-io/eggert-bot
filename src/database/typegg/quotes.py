@@ -17,6 +17,7 @@ def quote_insert(quote):
         quote["submittedByUsername"],
         quote["ranked"],
         quote["created"],
+        quote["language"],
     )
 
 
@@ -24,14 +25,14 @@ def add_quotes(quotes):
     """Batch insert quotes."""
     db.run_many(f"""
         INSERT OR IGNORE INTO quotes
-        VALUES ({",".join(["?"] * 8)})
+        VALUES ({",".join(["?"] * 9)})
     """, [quote_insert(quote) for quote in quotes])
 
 
 def add_quote(quote):
     db.run(f"""
         INSERT OR IGNORE INTO quotes
-        VALUES ({",".join(["?"] * 8)})
+        VALUES ({",".join(["?"] * 9)})
     """, quote_insert(quote))
 
 

@@ -1,6 +1,7 @@
 from typing import Optional
 
 from database.typegg import db
+from utils.strings import LANGUAGES
 
 
 def race_insert(race):
@@ -50,6 +51,7 @@ async def get_races(
     min_pp: Optional[float] = 0,
     max_pp: Optional[float] = 99999,
     gamemode: Optional[str] = None,
+    language: Optional[str] = None,
     order_by: str = "timestamp",
     reverse: bool = False,
     limit: Optional[int] = None,
@@ -75,6 +77,7 @@ async def get_races(
                 order_by = "raw" + order_by.capitalize()
 
         gamemode = flags.get("gamemode")
+        language = flags.get("language")
 
     order = "DESC" if reverse else "ASC"
 
@@ -82,7 +85,7 @@ async def get_races(
     params = [user_id]
 
     if quote_id is not None:
-        conditions.append("quoteId = ?")
+        conditions.append("r.quoteId = ?")
         params.append(quote_id)
     if start_number is not None:
         conditions.append(f"raceNumber >= {start_number}")
@@ -102,13 +105,17 @@ async def get_races(
         conditions.append(f"gamemode = ?")
         params.append(gamemode)
         if gamemode == "multiplayer":
-            columns = (
-                "matchWpm as wpm, rawMatchWpm as rawWpm, "
-                "matchPp as pp, rawMatchPp as rawPp, "
-            ) + columns
+            columns = "matchWpm as wpm, rawMatchWpm as rawWpm, matchPp as pp, rawMatchPp as rawPp, " + columns
     if completion_type:
         conditions.append("completionType = ?")
         params.append(completion_type)
+
+    join_clause = ""
+    if language is not None and language in LANGUAGES:
+        join_clause = "JOIN quotes q ON q.quoteId = r.quoteId"
+        conditions.append("q.language = ?")
+        params.append(LANGUAGES.get(language))
+        columns = columns.replace("quoteId", "r.quoteId")
 
     where_clause = "WHERE " + " AND ".join(conditions)
 
@@ -119,7 +126,8 @@ async def get_races(
         lim = f"LIMIT {limit}" if limit else f"LIMIT {batch_size} OFFSET {offset}"
         batch = await db.fetch_async(f"""
             SELECT {columns}
-            FROM races
+            FROM races r
+            {join_clause}
             {where_clause}
             ORDER BY {order_by} {order}
             {lim}

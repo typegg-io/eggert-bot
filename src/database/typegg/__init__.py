@@ -55,6 +55,7 @@ db.run("""
         submittedByUsername TEXT NOT NULL,
         ranked INTEGER NOT NULL, -- boolean
         created TEXT NOT NULL, -- ISO 8601 string
+        language TEXT NOT NULL,
         FOREIGN KEY (sourceId) REFERENCES sources(sourceId)
     );
 """)
@@ -96,3 +97,4 @@ db.run("""
 """)
 
 db.run("CREATE INDEX IF NOT EXISTS idx_races_userId on races(userId)")
+db.run("CREATE INDEX IF NOT EXISTS idx_races_userId_quoteId on races(userId, quoteId)")
