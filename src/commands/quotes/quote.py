@@ -101,7 +101,7 @@ def build_personal_best_page(quote: dict, quote_races: list[dict], user_id: str)
     else:
         recent_rank = None
         for i, race in enumerate(quote_bests):
-            if race["pp"] > recent_race["pp"]:
+            if race["pp"] >= recent_race["pp"]:
                 recent_rank = i + 1
 
         page.description += (
@@ -231,7 +231,7 @@ async def run(ctx: commands.Context, profile: dict, quote: dict):
     is_ranked = quote["ranked"]
 
     quote_races = get_quote_races(user_id, quote_id)
-    show_buttons = ctx.user["userId"] == profile["userId"] and quote_races
+    show_buttons = quote_races and (ctx.user["userId"] == profile["userId"] or ctx.user["isAdmin"])
 
     if is_ranked:
         pb_page = build_personal_best_page(quote, quote_races, user_id)
