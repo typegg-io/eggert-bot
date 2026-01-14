@@ -1,10 +1,10 @@
+from discord import File
 from discord.ext import commands
 
 from commands.base import Command
 from database.typegg.quotes import get_quotes
 from database.typegg.users import get_quote_bests
 from graphs import pplength
-from utils.messages import Page, Message
 
 info = {
     "name": "pplength",
@@ -29,22 +29,13 @@ class PpLengthGraph(Command):
 async def run(ctx: commands.Context, profile: dict):
     quote_bests = get_quote_bests(profile["userId"])
     quotes = get_quotes()
-    username = profile["username"]
 
-    page = Page(
-        title="pp vs. Length Comparison",
-        render=lambda: pplength.render(
-            username,
-            quotes,
-            quote_bests,
-            ctx.user["theme"],
-        )
+    file_name = pplength.render(
+        f"pp vs. Quote Length - {profile["username"]}",
+        quotes,
+        quote_bests,
+        ctx.user["theme"],
     )
 
-    message = Message(
-        ctx,
-        page=page,
-        profile=profile,
-    )
-
-    await message.send()
+    file = File(file_name, filename=file_name)
+    await ctx.send(file=file)

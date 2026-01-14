@@ -3,7 +3,7 @@ from utils.strings import format_big_number
 
 
 def render(
-    username: str,
+    title: str,
     quotes: list[dict],
     quote_bests: list[dict],
     theme: dict,
@@ -33,7 +33,7 @@ def render(
     apply_log_ticks(ax, max_length)
     ax.xaxis.set_major_formatter(format_big_number)
 
-    ax.set_title(f"pp Per Quote Length - {username}")
+    ax.set_title(title)
     ax.set_xlabel("Quote Length")
     ax.set_ylabel("pp")
 
