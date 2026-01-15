@@ -257,8 +257,13 @@ def process_keystroke_data(
                 input_val_contributors.append(keystroke_id)
                 input_val_delays.append(list(pending_delays) if pending_delays else [])
             else:
+                # When inserting in the middle, merge existing delays at this position
+                # with pending_delays. This handles the case where DELETE added delays
+                # to a position, and now INSERT is typing a new character there.
+                existing_delays = input_val_delays[adj_i] if adj_i < len(input_val_delays) else []
+                merged_delays = list(pending_delays) + existing_delays
                 input_val_contributors.insert(adj_i, keystroke_id)
-                input_val_delays.insert(adj_i, list(pending_delays) if pending_delays else [])
+                input_val_delays.insert(adj_i, merged_delays)
             pending_delays.clear()
 
             # Always add to position_keystrokes at absolute_pos
