@@ -4,8 +4,8 @@ from api.leaders import get_leaders
 from commands.base import Command
 from database.typegg.quotes import get_top_submitters, get_quote_count
 from utils import strings
-from utils.messages import Message, paginate_data
-from utils.strings import get_argument, username_with_flag, rank, get_flag_title
+from utils.messages import Message, Page, paginate_data
+from utils.strings import get_argument, username_with_flag, rank, get_flag_title, LOADING
 
 categories = {
     # API leaderboards
@@ -112,6 +112,18 @@ def entry_formatter(data):
 
 async def run(ctx: commands.Context, category: dict):
     gamemode = ctx.flags.get("gamemode", "any")
+    title = f"{category["title"]} Leaderboard"
+
+    if category["sort"] not in ["wins", "level", "nWpm", "profileViews"]:
+        title += get_flag_title(ctx.flags)
+
+    skeleton_page = Page(
+        title=title,
+        description="\n".join(f"{rank(i + 1)} {LOADING}" for i in range(20)),
+    )
+    message = Message(ctx, page=skeleton_page)
+    initial_send = message.start()
+
     results = await get_leaders(
         sort=category["sort"],
         per_page=100,
@@ -130,22 +142,30 @@ async def run(ctx: commands.Context, category: dict):
         leaderboard[i] |= {"rank": i + 1, "category": category}
     pages = paginate_data(leaderboard, entry_formatter, page_count=5, per_page=20)
 
-    title = f"{category["title"]} Leaderboard"
-
-    if category["sort"] not in ["wins", "level", "nWpm", "profileViews"]:
-        title += get_flag_title(ctx.flags)
-
     footer = None
     if category["title"] == "quotes":
         quote_count = get_quote_count()
         footer = f"{quote_count:,} Quotes"
 
-    message = Message(ctx, title=title, pages=pages, footer=footer)
-    await message.send()
+    message.title = title
+    message.pages = pages
+    message.footer = footer
+
+    await initial_send
+    await message.edit()
 
 
 async def run_custom(ctx: commands.Context, category: dict):
     """Displays a custom leaderboard generated from the database."""
+    title = f"{category["title"]} Leaderboard"
+
+    skeleton_page = Page(
+        title=title,
+        description="\n".join(f"{rank(i + 1)} {LOADING}" for i in range(20)),
+    )
+    message = Message(ctx, page=skeleton_page)
+    initial_send = message.start()
+
     pages = []
 
     if category["title"] == "Quote Submissions":
@@ -155,7 +175,8 @@ async def run_custom(ctx: commands.Context, category: dict):
         formatter = lambda quote: f"{rank(quote["rank"])} {quote["submittedByUsername"]} - {quote["submissions"]:,}\n"
         pages = paginate_data(leaderboard, formatter, page_count=5, per_page=20)
 
-    title = f"{category["title"]} Leaderboard"
+    message.title = title
+    message.pages = pages
 
-    message = Message(ctx, title=title, pages=pages)
-    await message.send()
+    await initial_send
+    await message.edit()
