@@ -2,7 +2,7 @@ from discord.ext import commands
 
 from api.leaders import get_leaders
 from commands.base import Command
-from database.typegg.quotes import get_top_submitters, get_quote_count
+from database.typegg.quotes import get_top_submitters, get_ranked_quote_count
 from utils import strings
 from utils.messages import Message, Page, paginate_data
 from utils.strings import get_argument, username_with_flag, rank, get_flag_title, LOADING
@@ -51,7 +51,7 @@ categories = {
     },
     "quotes": {
         "sort": "quotesTyped",
-        "title": "Quotes Typed",
+        "title": "Ranked Quotes Typed",
         "formatter": lambda user: f"{user["stats"]["quotesTyped"]:,}"
     },
     "views": {
@@ -145,7 +145,7 @@ async def run(ctx: commands.Context, category: dict):
 
     footer = None
     if category["sort"] == "quotesTyped":
-        quote_count = get_quote_count()
+        quote_count = get_ranked_quote_count()
         footer = f"{quote_count:,} Quotes"
 
     message.title = title

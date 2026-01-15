@@ -109,7 +109,10 @@ def get_top_submitters():
     return top
 
 
-def get_quote_count():
-    quotes = db.fetch("SELECT COUNT(*) FROM quotes")
+def get_ranked_quote_count():
+    result = db.fetch_one("""
+        SELECT COUNT(*) AS total FROM quotes
+        WHERE ranked = 1
+    """)
 
-    return quotes["count"]
+    return result["total"]
