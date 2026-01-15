@@ -1,9 +1,7 @@
 """Keystroke processing for raw WPM calculation."""
 
-import re
 from dataclasses import dataclass, field
 from typing import List, Dict, Set, Optional, Union
-
 
 ATTRIBUTION_WINDOW = 7
 FAT_FINGER_THRESHOLD_MS = 7
@@ -84,10 +82,20 @@ class GraphDataPoint:
 
 
 @dataclass
+class Typo:
+    word_index: int
+    typo_index: int
+    word: str
+
+
+@dataclass
 class ProcessResult:
     keystrokesWpmGraphData: List[GraphDataPoint]
     rawCharacterTimes: List[float]
     wpmCharacterTimes: List[float]
+    typos: List[Typo]
+    keystrokeWpm: List[float]
+    keystrokeRawWpm: List[float]
     raw_wpm: float = 0.0
     wpm: float = 0.0
     accuracy: float = 0.0
@@ -178,6 +186,9 @@ def process_keystroke_data(
     penalties = 0
     corrective = 0
     destructive = 0
+
+    typos: List[Typo] = []
+    typo_flag = False
 
     prev_was_insert = False
     prev_insert_ks_id = -1
@@ -503,7 +514,21 @@ def process_keystroke_data(
             else:
                 correct_chars += 1
 
-        prev_has_typo = has_typo
+        # Typo tracking: record when transitioning from correct to incorrect state
+        # Only for insert-type actions (not deletes/backspaces)
+        is_insert_action = isinstance(action, (KeystrokeInsert, KeystrokeComposition)) or (
+            isinstance(action, KeystrokeReplace) and not action.redundant
+        )
+        if has_typo and not typo_flag and is_insert_action:
+            typo_flag = True
+            typo_index = total_chars_before_word + len(input_val) - 1
+            typos.append(Typo(
+                word_index=word_index,
+                typo_index=typo_index,
+                word=current_word.rstrip(),
+            ))
+        elif not has_typo and typo_flag:
+            typo_flag = False
 
         # Word completion
         while (current_word and
@@ -565,8 +590,8 @@ def process_keystroke_data(
                         typed_normalized = normalize_enter(typed_char).lower()
 
                         is_valid = (typed_normalized == expected_char or
-                                   typed_normalized == prev_expected or
-                                   typed_normalized == next_expected)
+                                    typed_normalized == prev_expected or
+                                    typed_normalized == next_expected)
 
                         if is_valid and pk.time_delta < min_time:
                             min_time = pk.time_delta
@@ -748,55 +773,27 @@ def process_keystroke_data(
     denominator = correct_chars + corrective + penalties + destructive
     accuracy = 100.0 * (correct_chars + corrective) / denominator if denominator > 0 else 0.0
 
+    keystroke_wpm = [point.wpm for point in keystrokes_wpm_graph_data]
+    keystroke_raw_wpm = [point.raw for point in keystrokes_wpm_graph_data]
+
     return ProcessResult(
         keystrokesWpmGraphData=keystrokes_wpm_graph_data,
         rawCharacterTimes=raw_character_times,
         wpmCharacterTimes=wpm_character_times,
+        typos=typos,
+        keystrokeWpm=keystroke_wpm,
+        keystrokeRawWpm=keystroke_raw_wpm,
         raw_wpm=raw_wpm,
         wpm=wpm,
         accuracy=accuracy
     )
 
 
-def get_keystroke_wpm_raw(raw_keystroke_data: dict, adjusted: bool = False) -> List[float]:
-    """Returns a list of WPM over keystrokes given keystroke data."""
-    from utils.keylogs import get_keystroke_wpm
+def get_keystroke_data(keystroke_data: list) -> ProcessResult:
+    """Decode and process raw keystroke data into WPM metrics, timing data, and typos."""
+    from utils.keystroke_codec import decode_keystroke_data
 
-    keystroke_data = KeystrokeData(
-        text=raw_keystroke_data["text"],
-        isStickyStart=raw_keystroke_data.get("isStickyStart", False),
-        keystrokes=[],
-    )
+    decoded_data = decode_keystroke_data(keystroke_data)
+    processed_data = process_keystroke_data(decoded_data)
 
-    for keystroke in raw_keystroke_data["keystrokes"]:
-        action_class = None
-        action = keystroke["action"]
-
-        if "i" in action:
-            action_class = KeystrokeInsert(
-                i=action["i"],
-                key=action["key"],
-            )
-        elif "rStart" in action:
-            action_class = KeystrokeReplace(
-                rStart=action["rStart"],
-                rEnd=action["rEnd"],
-                key=action.get("key", ""),
-            )
-        elif "dStart" in action:
-            action_class = KeystrokeDelete(
-                dStart=action["dStart"],
-                dEnd=action["dEnd"],
-            )
-
-        if action_class:
-            keystroke_data.keystrokes.append(Keystroke(
-                action=action_class,
-                time=keystroke["time"],
-                timeDelta=keystroke["timeDelta"],
-            ))
-
-    processed_data = process_keystroke_data(keystroke_data)
-    delays = processed_data.rawCharacterTimes
-
-    return get_keystroke_wpm(delays)
+    return processed_data

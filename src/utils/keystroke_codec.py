@@ -1,9 +1,6 @@
 """Keystroke codec decoder for compact format."""
 
-import json
-import re
-from typing import List, Tuple, Optional
-from dataclasses import dataclass, field
+from typing import Tuple
 
 from utils.keystrokes import (
     KeystrokeData, Keystroke, KeystrokeInsert, KeystrokeDelete,
@@ -101,9 +98,8 @@ def read_key_until_delimiter(runes: str, i: int) -> Tuple[str, int]:
     return runes[start:i], i
 
 
-def decode_keystroke_data(encoded: bytes) -> KeystrokeData:
+def decode_keystroke_data(raw: str) -> KeystrokeData:
     """Decode keystroke data from JSON (compact or legacy format)."""
-    raw = json.loads(encoded)
 
     # Legacy format (dict with text and keystrokes)
     if isinstance(raw, dict):

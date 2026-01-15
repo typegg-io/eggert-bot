@@ -11,7 +11,7 @@ from database.typegg.quotes import get_quote
 from database.typegg.users import get_quote_bests
 from graphs import race as race_graph
 from utils.errors import NoQuoteRaces, DailyQuoteChannel
-from utils.keylogs import get_keystroke_data
+from utils.keystrokes import get_keystroke_data
 from utils.messages import Page, Message, Field, usable_in
 from utils.strings import quote_display, discord_date, format_duration, GG_PLUS, GG_PLUS_LINK
 
@@ -92,9 +92,9 @@ async def run(ctx: commands.Context, profile: dict, race_number: int):
             ),
         ],
         render=lambda: race_graph.render(
-            keystroke_data["keystroke_wpm"],
-            keystroke_data["keystroke_wpm_raw"],
-            keystroke_data["typos"],
+            keystroke_data.keystrokeWpm,
+            keystroke_data.keystrokeRawWpm,
+            keystroke_data.typos,
             profile["username"],
             title,
             ctx.user["theme"],
