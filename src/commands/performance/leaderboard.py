@@ -2,7 +2,7 @@ from discord.ext import commands
 
 from api.leaders import get_leaders
 from commands.base import Command
-from database.typegg.quotes import get_top_submitters
+from database.typegg.quotes import get_top_submitters, get_quote_count
 from utils import strings
 from utils.messages import Message, paginate_data
 from utils.strings import get_argument, username_with_flag, rank, get_flag_title
@@ -135,7 +135,12 @@ async def run(ctx: commands.Context, category: dict):
     if category["sort"] not in ["wins", "level", "nWpm", "profileViews"]:
         title += get_flag_title(ctx.flags)
 
-    message = Message(ctx, title=title, pages=pages)
+    footer = None
+    if category["title"] == "quotes":
+        quote_count = get_quote_count()
+        footer = f"{quote_count:,} Quotes"
+
+    message = Message(ctx, title=title, pages=pages, footer=footer)
     await message.send()
 
 

@@ -107,3 +107,9 @@ def get_top_submitters():
     """)
 
     return top
+
+
+def get_quote_count():
+    quotes = db.fetch("SELECT COUNT(*) FROM quotes")
+
+    return quotes["count"]
