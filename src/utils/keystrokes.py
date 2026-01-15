@@ -172,13 +172,11 @@ def process_keystroke_data(
     penalties = 0
     corrective = 0
     destructive = 0
-    prev_has_typo = False
 
     prev_was_insert = False
     prev_insert_ks_id = -1
     prev_insert_key = ""
     prev_insert_pos = -1
-    prev_insert_time = 0
 
     # Tracking sequence: tracks valid positions when typing at wrong position
     tracking_sequence_pos = -1
@@ -292,7 +290,6 @@ def process_keystroke_data(
             prev_insert_ks_id = keystroke_id
             prev_insert_key = typed_char
             prev_insert_pos = absolute_pos
-            prev_insert_time = time
 
         elif isinstance(action, KeystrokeReplace):
             r_start = max(0, min(action.rStart, len(input_val)))
@@ -305,6 +302,9 @@ def process_keystroke_data(
                 # Redundant replace: add keystroke to delays BEFORE buffer update
                 if adj_start >= 0 and adj_start < len(input_val_delays):
                     input_val_delays[adj_start].append(keystroke_id)
+                else:
+                    # Position doesn't exist - add to pending delays
+                    pending_delays.append(keystroke_id)
                 destructive += 1
             else:
                 # Non-redundant: count corrective/destructive for deletion part
@@ -405,7 +405,6 @@ def process_keystroke_data(
                 prev_insert_ks_id = keystroke_id
                 prev_insert_key = typed_char
                 prev_insert_pos = absolute_pos
-                prev_insert_time = time
             else:
                 prev_was_insert = False
 
@@ -661,6 +660,43 @@ def process_keystroke_data(
             tracking_sequence_pos = -1
             current_word = words[word_index] if word_index < len(words) else ""
             total_chars_before_word = sum(len(w) for w in words[:word_index])
+
+    # === FIX FOR CASCADING SPACE KEYSTROKE BUG ===
+    # After all words are processed, there may be remaining unattributed keystrokes
+    # in input_val_contributors (e.g., a trailing space that cascaded from the previous word).
+    # We must attribute these to the running total so that sum(wpm_character_times) == last_timestamp.
+    if keystrokes_wpm_graph_data:
+        additional_time = 0.0
+
+        # attribute any remaining contributors
+        for contributor_id in input_val_contributors:
+            if contributor_id >= 0 and contributor_id not in global_used_actual_ids:
+                global_used_actual_ids.add(contributor_id)
+                additional_time += keystrokes[contributor_id].timeDelta
+
+        # attribute any remaining delays
+        for delay_ids in input_val_delays:
+            for delay_id in delay_ids:
+                if delay_id not in global_used_actual_ids:
+                    global_used_actual_ids.add(delay_id)
+                    additional_time += keystrokes[delay_id].timeDelta
+
+        # attribute any pending delays (from DELETEs that cleared the buffer without subsequent INSERTs)
+        for delay_id in pending_delays:
+            if delay_id not in global_used_actual_ids:
+                global_used_actual_ids.add(delay_id)
+                additional_time += keystrokes[delay_id].timeDelta
+
+        # add any remaining time to the running total and update last graph point.
+        # my attempt at a "best effort" fix in case the user messes with input so much we can no longer attribute correctly
+        if additional_time > 0 and wpm_character_times:
+            wpm_character_times[-1] += additional_time
+
+            last_point = keystrokes_wpm_graph_data[-1]
+            text_len = len(text) - 1
+            total_time = sum(wpm_character_times)
+            last_point.wpm = calculate_wpm(text_len, total_time)
+            last_point.time = total_time
 
     text_length = len(text) - 1
     total_raw_time = sum(raw_character_times)
