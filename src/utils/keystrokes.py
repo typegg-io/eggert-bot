@@ -334,28 +334,27 @@ def process_keystroke_data(
                 else:
                     destructive += 1
 
-            # Update buffer for both redundant and non-redundant
+                # Non-redundant: collect preserved IDs and modify arrays
+                adj_end = r_end + buffer_offset
+
+                preserved_ids: List[int] = []
+                for j in range(adj_start, min(adj_end, len(input_val_contributors))):
+                    if input_val_contributors[j] >= 0:
+                        preserved_ids.append(input_val_contributors[j])
+                    preserved_ids.extend(input_val_delays[j])
+
+                del input_val_contributors[adj_start:adj_end]
+                del input_val_delays[adj_start:adj_end]
+
+                while len(input_val_contributors) <= adj_start:
+                    input_val_contributors.append(-1)
+                    input_val_delays.append([])
+                input_val_contributors.insert(adj_start, keystroke_id)
+                input_val_delays.insert(adj_start, preserved_ids + list(pending_delays))
+                pending_delays.clear()
+
             if r_start <= r_end:
                 input_val = input_val[:r_start] + typed_char + input_val[r_end:]
-
-            adj_end = r_end + buffer_offset
-
-            # Collect preserved IDs from replaced positions
-            preserved_ids: List[int] = []
-            for j in range(adj_start, min(adj_end, len(input_val_contributors))):
-                if input_val_contributors[j] >= 0:
-                    preserved_ids.append(input_val_contributors[j])
-                preserved_ids.extend(input_val_delays[j])
-
-            del input_val_contributors[adj_start:adj_end]
-            del input_val_delays[adj_start:adj_end]
-
-            while len(input_val_contributors) <= adj_start:
-                input_val_contributors.append(-1)
-                input_val_delays.append([])
-            input_val_contributors.insert(adj_start, keystroke_id)
-            input_val_delays.insert(adj_start, preserved_ids + list(pending_delays))
-            pending_delays.clear()
 
             # Add to charPool/positionKeystrokes for ALL REPLACEs when buffer update succeeds
             if r_start <= r_end and typed_char:
