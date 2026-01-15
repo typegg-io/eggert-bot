@@ -45,6 +45,8 @@ OPTION_ALIASES = {
     "characters": ["chars"],
     "multiplayer": ["multi", "mp", "quickplay", "qp"],
     "unranked": ["ur"],
+    "playtime": ["pt"],
+    "submissions": ["qs"],
 }
 
 ALIAS_LOOKUP = {
