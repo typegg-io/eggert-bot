@@ -163,6 +163,10 @@ def process_keystroke_data(
     word_index = 0
     buffer_offset = 0
 
+    wpm_running_total = 0.0
+    raw_running_total = 0.0
+    total_chars_before_word = 0  # cache for chars before current word
+
     char_pool: Dict[str, List[CharPoolEntry]] = {}
     position_keystrokes: Dict[int, List[PositionKeystroke]] = {}
     post_correction_positions: Set[int] = set()
@@ -217,7 +221,7 @@ def process_keystroke_data(
         time_delta = keystroke.timeDelta
 
         current_word = words[word_index] if word_index < len(words) else ""
-        total_chars_before_word = sum(len(w) for w in words[:word_index])
+        # Use cached value instead of O(n) sum
 
         if isinstance(action, KeystrokeInsert):
             i = max(0, min(action.i, len(input_val)))
@@ -629,8 +633,11 @@ def process_keystroke_data(
             wpm_character_times.extend(actual_times_for_word)
 
             for i in range(chars_before, len(wpm_character_times)):
-                wpm_total_time = sum(wpm_character_times[:i + 1])
-                raw_total_time = sum(raw_character_times[:i + 1])
+                wpm_running_total += wpm_character_times[i]
+                raw_running_total += raw_character_times[i]
+
+                wpm_total_time = wpm_running_total
+                raw_total_time = raw_running_total
 
                 if is_multiplayer and reaction_time > 0:
                     wpm_total_time += reaction_time
@@ -655,11 +662,11 @@ def process_keystroke_data(
             input_val_contributors = input_val_contributors[len(current_word):]
             input_val_delays = input_val_delays[len(current_word):]
 
+            total_chars_before_word += len(current_word)
             word_index += 1
             # Reset tracking sequence for new word context
             tracking_sequence_pos = -1
             current_word = words[word_index] if word_index < len(words) else ""
-            total_chars_before_word = sum(len(w) for w in words[:word_index])
 
     # === FIX FOR CASCADING SPACE KEYSTROKE BUG ===
     # After all words are processed, there may be remaining unattributed keystrokes
@@ -691,15 +698,16 @@ def process_keystroke_data(
         # my attempt at a "best effort" fix in case the user messes with input so much we can no longer attribute correctly
         if additional_time > 0 and wpm_character_times:
             wpm_character_times[-1] += additional_time
+            wpm_running_total += additional_time  # Update running total too
 
             last_point = keystrokes_wpm_graph_data[-1]
             text_len = len(text) - 1
-            total_time = sum(wpm_character_times)
+            total_time = wpm_running_total
             last_point.wpm = calculate_wpm(text_len, total_time)
             last_point.time = total_time
 
     text_length = len(text) - 1
-    total_raw_time = sum(raw_character_times)
+    total_raw_time = raw_running_total
 
     last_timestamp = keystrokes[-1].time if keystrokes else 0
 
