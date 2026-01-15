@@ -87,7 +87,7 @@ async def run(ctx: commands.Context, profile: dict, race_number: int):
         pauseless_delays = get_pauseless_delays(raw_delays)
         pause_percent = 1 - (sum(pauseless_delays) / sum(raw_delays))
 
-        raw_players[i].update({"keystroke_wpm": keystroke_data["keystroke_wpm_raw"]})
+        raw_players[i].update({"keystroke_wpm": keystroke_data.keystrokeRawWpm})
 
         raw_description += (
             f"{rank(i + 1)} {bot} {username_with_flag(player, False)} - "
