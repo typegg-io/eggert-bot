@@ -8,7 +8,7 @@ from database.bot.recent_quotes import set_recent_quote
 from database.typegg.quotes import get_quote
 from graphs import daily as daily_graph
 from utils.dates import parse_date, format_date
-from utils.keylogs import get_keystroke_data
+from utils.keystrokes import get_keystroke_data
 from utils.messages import Page, Message, usable_in
 from utils.urls import race_url
 
@@ -43,7 +43,7 @@ async def run(ctx: commands.Context, daily_quote: dict):
 
     for i, score in enumerate(daily_quote["leaderboard"][:10]):
         keystroke_data = get_keystroke_data(score["keystrokeData"])
-        score["keystroke_wpm"] = keystroke_data["keystroke_wpm"]
+        score["keystroke_wpm"] = keystroke_data.keystrokeWpm
         score_list.append(score)
 
         if score["userId"] == ctx.user["userId"]:

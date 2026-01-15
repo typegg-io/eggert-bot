@@ -4,12 +4,13 @@ import numpy as np
 from matplotlib.axes import Axes
 
 from graphs.core import plt, apply_theme, generate_file_name, filter_palette
+from utils.keystrokes import Typo
 
 
 def render(
     keystroke_wpm: list[float],
     keystroke_wpm_raw: list[float],
-    typos: list[dict],
+    typos: list[Typo],
     username: str,
     title: str,
     theme: dict,
@@ -24,7 +25,7 @@ def render(
 
     word_counts = defaultdict(int)
     for typo in typos:
-        word_counts[typo["word_index"]] += 1
+        word_counts[typo.word_index] += 1
 
     typo_count = 0
     word_indexes = {}
@@ -37,9 +38,9 @@ def render(
         marker_size = 2
 
     for typo in typos:
-        word_index = typo["word_index"]
-        index = typo["typo_index"]
-        word = typo["word"]
+        word_index = typo.word_index
+        index = typo.typo_index
+        word = typo.word
         last_index = word_indexes.get(word_index, -1)
         if index <= last_index:
             continue

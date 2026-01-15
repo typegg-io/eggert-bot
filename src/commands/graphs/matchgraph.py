@@ -8,7 +8,7 @@ from commands.base import Command
 from commands.graphs.racegraph import run as run_racegraph
 from database.typegg.quotes import get_quote
 from graphs import match as match_graph
-from utils.keylogs import get_keystroke_data
+from utils.keystrokes import get_keystroke_data
 from utils.messages import Page, Message
 from utils.stats import get_pauseless_delays
 from utils.strings import quote_display, discord_date, rank, username_with_flag
@@ -67,7 +67,7 @@ async def run(ctx: commands.Context, profile: dict, race_number: int):
 
         keystroke_data = get_keystroke_data(player["keystrokeData"])
 
-        players[i].update({"keystroke_wpm": keystroke_data["keystroke_wpm"]})
+        players[i].update({"keystroke_wpm": keystroke_data.keystrokeWpm})
 
         description += (
             f"{rank(i + 1)} {bot} {username_with_flag(player, False)} - "
@@ -83,7 +83,7 @@ async def run(ctx: commands.Context, profile: dict, race_number: int):
 
         keystroke_data = get_keystroke_data(player["keystrokeData"])
         flow = player["matchWpm"] / player["rawMatchWpm"]
-        raw_delays = keystroke_data["raw_delays"]
+        raw_delays = keystroke_data.rawCharacterTimes
         pauseless_delays = get_pauseless_delays(raw_delays)
         pause_percent = 1 - (sum(pauseless_delays) / sum(raw_delays))
 

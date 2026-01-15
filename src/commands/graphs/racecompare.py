@@ -9,7 +9,7 @@ from database.typegg.races import get_quote_races
 from database.typegg.users import get_quote_bests
 from graphs import match
 from utils.errors import NoQuoteRaces, GeneralException
-from utils.keylogs import get_keystroke_data
+from utils.keystrokes import get_keystroke_data
 from utils.messages import Page, Message
 from utils.strings import quote_display, username_with_flag, discord_date
 
@@ -146,7 +146,7 @@ async def get_race_keystrokes(user_id: str, race_number: int) -> dict:
     """Fetch race with keystroke data and add keystroke_wpm."""
     race = await get_race(user_id, race_number, get_keystrokes=True)
     keystroke_data = get_keystroke_data(race["keystrokeData"])
-    race["keystroke_wpm"] = keystroke_data["keystroke_wpm"]
+    race["keystroke_wpm"] = keystroke_data.keystrokeWpm
     return race
 
 

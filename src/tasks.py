@@ -14,7 +14,7 @@ from utils import dates
 from utils.colors import DEFAULT_THEME
 from utils.dates import parse_date, format_date
 from utils.files import remove_file
-from utils.keylogs import get_keystroke_data
+from utils.keystrokes import get_keystroke_data
 from utils.logging import log, log_error
 from utils.strings import discord_date
 
@@ -59,7 +59,7 @@ async def daily_quote_results(bot: commands.Bot):
     for score in daily_quote["leaderboard"][:10]:
         race = await get_race(score["userId"], score["raceNumber"], get_keystrokes=True)
         keystroke_data = get_keystroke_data(race["keystrokeData"])
-        score["keystroke_wpm"] = keystroke_data["keystroke_wpm"]
+        score["keystroke_wpm"] = keystroke_data.keystrokeWpm
         score_list.append(score)
 
     file_name = daily_graph.render(
