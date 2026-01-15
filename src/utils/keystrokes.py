@@ -253,12 +253,12 @@ def process_keystroke_data(
             input_val = input_val[:i] + typed_char + input_val[i:]
 
             adj_i = i + buffer_offset
-            while len(input_val_contributors) <= adj_i:
-                input_val_contributors.append(-1)
-                input_val_delays.append([])
-
-            input_val_contributors.insert(adj_i, keystroke_id)
-            input_val_delays.insert(adj_i, list(pending_delays))
+            if adj_i >= len(input_val_contributors):
+                input_val_contributors.append(keystroke_id)
+                input_val_delays.append(list(pending_delays) if pending_delays else [])
+            else:
+                input_val_contributors.insert(adj_i, keystroke_id)
+                input_val_delays.insert(adj_i, list(pending_delays) if pending_delays else [])
             pending_delays.clear()
 
             # Always add to position_keystrokes at absolute_pos
