@@ -89,6 +89,7 @@ class ProcessResult:
     wpmCharacterTimes: List[float]
     raw_wpm: float = 0.0
     wpm: float = 0.0
+    accuracy: float = 0.0
 
 
 def normalize_enter(char: str) -> str:
@@ -166,6 +167,12 @@ def process_keystroke_data(
     position_keystrokes: Dict[int, List[PositionKeystroke]] = {}
     post_correction_positions: Set[int] = set()
     fat_finger_times: Dict[int, int] = {}
+
+    correct_chars = 0
+    penalties = 0
+    corrective = 0
+    destructive = 0
+    prev_has_typo = False
 
     prev_was_insert = False
     prev_insert_ks_id = -1
@@ -298,6 +305,28 @@ def process_keystroke_data(
                 # Redundant replace: add keystroke to delays BEFORE buffer update
                 if adj_start >= 0 and adj_start < len(input_val_delays):
                     input_val_delays[adj_start].append(keystroke_id)
+                destructive += 1
+            else:
+                # Non-redundant: count corrective/destructive for deletion part
+                for del_pos in range(r_start, r_end):
+                    if del_pos < len(input_val):
+                        deleted_char = input_val[del_pos]
+                        if del_pos < len(current_word):
+                            expected_char = current_word[del_pos]
+                            if deleted_char != expected_char:
+                                corrective += 1
+                            else:
+                                destructive += 1
+                        else:
+                            corrective += 1
+                # Count for insertion part
+                if r_start < len(current_word):
+                    if typed_char == current_word[r_start]:
+                        corrective += 1
+                    else:
+                        destructive += 1
+                else:
+                    destructive += 1
 
             # Update buffer for both redundant and non-redundant
             if r_start <= r_end:
@@ -387,6 +416,19 @@ def process_keystroke_data(
             if d_start > d_end:
                 d_start, d_end = d_end, d_start
 
+            # Count corrective/destructive for each deleted character
+            for del_pos in range(d_start, d_end):
+                if del_pos < len(input_val):
+                    deleted_char = input_val[del_pos]
+                    if del_pos < len(current_word):
+                        expected_char = current_word[del_pos]
+                        if deleted_char == expected_char:
+                            destructive += 1
+                        else:
+                            corrective += 1
+                    else:
+                        corrective += 1
+
             input_val = input_val[:d_start] + input_val[d_end:]
 
             adj_start = d_start + buffer_offset
@@ -437,6 +479,21 @@ def process_keystroke_data(
                     pending_delays.clear()
 
             prev_was_insert = False
+
+        # accuracy calc
+        has_typo = False
+        if current_word:
+            compare_len = min(len(input_val), len(current_word))
+            has_typo = input_val[:compare_len] != current_word[:compare_len]
+
+        has_key = isinstance(action, (KeystrokeInsert, KeystrokeReplace, KeystrokeComposition))
+        if has_key:
+            if has_typo:
+                penalties += 1
+            else:
+                correct_chars += 1
+
+        prev_has_typo = has_typo
 
         # Word completion
         while (current_word and
@@ -607,17 +664,22 @@ def process_keystroke_data(
 
     text_length = len(text) - 1
     total_raw_time = sum(raw_character_times)
-    total_wpm_time = sum(wpm_character_times)
+
+    last_timestamp = keystrokes[-1].time if keystrokes else 0
 
     raw_wpm = calculate_wpm(text_length, total_raw_time) if total_raw_time > 0 else 0.0
-    wpm = calculate_wpm(text_length, total_wpm_time) if total_wpm_time > 0 else 0.0
+    wpm = calculate_wpm(text_length, last_timestamp) if last_timestamp > 0 else 0.0
+
+    denominator = correct_chars + corrective + penalties + destructive
+    accuracy = 100.0 * (correct_chars + corrective) / denominator if denominator > 0 else 0.0
 
     return ProcessResult(
         keystrokesWpmGraphData=keystrokes_wpm_graph_data,
         rawCharacterTimes=raw_character_times,
         wpmCharacterTimes=wpm_character_times,
         raw_wpm=raw_wpm,
-        wpm=wpm
+        wpm=wpm,
+        accuracy=accuracy
     )
 
 

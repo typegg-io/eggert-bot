@@ -285,7 +285,7 @@ def decode_keystroke_data(encoded: bytes) -> KeystrokeData:
             while look_ahead < len(runes) and runes[look_ahead].isdigit():
                 look_ahead += 1
 
-            if look_ahead < len(runes) and runes[look_ahead] == ',':
+            if look_ahead > i and look_ahead < len(runes) and runes[look_ahead] == ',':
                 end_str = ""
                 while i < len(runes) and runes[i].isdigit():
                     end_str += runes[i]
