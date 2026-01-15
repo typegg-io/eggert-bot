@@ -215,13 +215,13 @@ def decode_keystroke_data(encoded: bytes) -> KeystrokeData:
                 i += 1
 
             steps = steps_str.split(',') if steps_str else []
-            delays = []
+            step_times = []
             if times_str:
-                delays = [0] + [int(t) for t in times_str.split(',') if t]
+                step_times = [0] + [int(t) for t in times_str.split(',') if t]
             elif steps:
-                delays = [0]
+                step_times = [0]
 
-            action = KeystrokeComposition(key=key_builder, steps=steps, delays=delays)
+            action = KeystrokeComposition(i=expected_next_pos, key=key_builder, steps=steps, stepTimes=step_times)
             input_val = insert_at(input_val, expected_next_pos, key_builder)
 
         elif action_code == '+':

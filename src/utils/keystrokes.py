@@ -32,9 +32,10 @@ class KeystrokeReplace:
 
 @dataclass
 class KeystrokeComposition:
+    i: int
     key: str
     steps: List[str] = field(default_factory=list)
-    delays: List[int] = field(default_factory=list)
+    stepTimes: List[int] = field(default_factory=list)
 
 
 KeystrokeAction = Union[KeystrokeInsert, KeystrokeDelete, KeystrokeReplace, KeystrokeComposition]
@@ -166,6 +167,7 @@ def process_keystroke_data(
     wpm_running_total = 0.0
     raw_running_total = 0.0
     total_chars_before_word = 0  # cache for chars before current word
+    first_char_ime_adjustment = 0.0
 
     char_pool: Dict[str, List[CharPoolEntry]] = {}
     position_keystrokes: Dict[int, List[PositionKeystroke]] = {}
@@ -463,22 +465,23 @@ def process_keystroke_data(
 
         elif isinstance(action, KeystrokeComposition):
             typed_chars = action.key
-            absolute_pos = get_absolute_position(len(input_val))
+            insert_pos = max(0, min(action.i, len(input_val)))
+            absolute_pos = get_absolute_position(insert_pos)
 
-            input_val += typed_chars
+            input_val = input_val[:insert_pos] + typed_chars + input_val[insert_pos:]
 
             for idx, char in enumerate(typed_chars):
                 pos = absolute_pos + idx
                 add_to_char_pool(char, keystroke_id, pos)
                 add_to_position_keystrokes(pos, keystroke_id, time_delta if idx == 0 else 0)
 
-                adj_i = len(input_val) - len(typed_chars) + idx + buffer_offset
+                adj_i = insert_pos + idx + buffer_offset
                 while len(input_val_contributors) <= adj_i:
                     input_val_contributors.append(-1)
                     input_val_delays.append([])
-                input_val_contributors[adj_i] = keystroke_id if idx == 0 else -1
+                input_val_contributors.insert(adj_i, keystroke_id if idx == 0 else -1)
+                input_val_delays.insert(adj_i, list(pending_delays) if idx == 0 else [])
                 if idx == 0:
-                    input_val_delays[adj_i] = list(pending_delays)
                     pending_delays.clear()
 
             prev_was_insert = False
@@ -621,6 +624,15 @@ def process_keystroke_data(
                     global_used_actual_ids.add(contributor_id)
                     actual_time += keystrokes[contributor_id].timeDelta
 
+                    # for first character in solo mode with IME, subtract first step time for adjusted wpm
+                    is_first_char_overall = len(wpm_character_times) == 0 and i == 0
+                    if is_first_char_overall and not is_multiplayer and actual_time > 0:
+                        action = keystrokes[contributor_id].action
+                        if isinstance(action, KeystrokeComposition) and len(action.stepTimes) > 1:
+                            ime_step_time = action.stepTimes[1]
+                            actual_time -= ime_step_time
+                            first_char_ime_adjustment = ime_step_time
+
                 for delay_id in delay_ids:
                     if delay_id not in global_used_actual_ids:
                         global_used_actual_ids.add(delay_id)
@@ -629,7 +641,18 @@ def process_keystroke_data(
                 actual_times_for_word.append(actual_time)
 
             raw_character_times.extend(raw_times_for_word)
-            chars_before = len(wpm_character_times) if wpm_character_times else 1
+
+            is_first_word = len(wpm_character_times) == 0
+            first_char_time_is_zero = len(actual_times_for_word) > 0 and actual_times_for_word[0] == 0.0
+
+            if is_first_word:
+                if not is_multiplayer and first_char_time_is_zero:
+                    chars_before = 1  # Solo with non-IME: skip first char
+                else:
+                    chars_before = 0  # Multiplayer OR IME: include first char
+            else:
+                chars_before = len(wpm_character_times)
+
             wpm_character_times.extend(actual_times_for_word)
 
             for i in range(chars_before, len(wpm_character_times)):
@@ -711,8 +734,12 @@ def process_keystroke_data(
 
     last_timestamp = keystrokes[-1].time if keystrokes else 0
 
+    total_time_for_wpm = last_timestamp
+    if not is_multiplayer:
+        total_time_for_wpm -= first_char_ime_adjustment
+
     raw_wpm = calculate_wpm(text_length, total_raw_time) if total_raw_time > 0 else 0.0
-    wpm = calculate_wpm(text_length, last_timestamp) if last_timestamp > 0 else 0.0
+    wpm = calculate_wpm(text_length, total_time_for_wpm) if total_time_for_wpm > 0 else 0.0
 
     denominator = correct_chars + corrective + penalties + destructive
     accuracy = 100.0 * (correct_chars + corrective) / denominator if denominator > 0 else 0.0
