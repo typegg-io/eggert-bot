@@ -146,7 +146,7 @@ async def run(ctx: commands.Context, category: dict):
     footer = None
     if category["sort"] == "quotesTyped":
         quote_count = get_ranked_quote_count()
-        footer = f"{quote_count:,} Quotes"
+        footer = f"{quote_count:,} Total Quotes"
 
     message.title = title
     message.pages = pages
