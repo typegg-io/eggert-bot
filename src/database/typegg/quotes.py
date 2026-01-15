@@ -95,3 +95,15 @@ async def reimport_quotes():
 
     add_sources(all_sources)
     add_quotes(all_quotes)
+
+
+def get_top_submitters():
+    top = db.fetch(f"""
+        SELECT submittedByUsername, COUNT(*) as submissions
+        FROM quotes
+        GROUP BY submittedByUsername
+        ORDER BY submissions DESC
+        LIMIT 100     
+    """)
+
+    return top

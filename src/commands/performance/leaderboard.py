@@ -2,11 +2,13 @@ from discord.ext import commands
 
 from api.leaders import get_leaders
 from commands.base import Command
+from database.typegg.quotes import get_top_submitters
 from utils import strings
 from utils.messages import Message, paginate_data
 from utils.strings import get_argument, username_with_flag, rank, get_flag_title
 
 categories = {
+    # API leaderboards
     "pp": {
         "sort": "totalPp",
         "title": "Total pp",
@@ -77,6 +79,11 @@ categories = {
         "title": "Characters Typed",
         "formatter": lambda user: f"{user["stats"]["charactersTyped"]:,}"
     },
+
+    # Custom leaderboards
+    "submissions": {
+        "title": "Quote Submissions"
+    }
 }
 info = {
     "name": "leaderboard",
@@ -91,7 +98,12 @@ class Leaderboard(Command):
     @commands.command(aliases=info["aliases"])
     async def leaderboard(self, ctx, category: str = "pp"):
         category = get_argument(categories.keys(), category)
-        await run(ctx, categories[category])
+        category_info = categories[category]
+
+        if not category_info.get("formatter"):
+            return await run_custom(ctx, category_info)
+
+        await run(ctx, category_info)
 
 
 def entry_formatter(data):
@@ -123,10 +135,22 @@ async def run(ctx: commands.Context, category: dict):
     if category["sort"] not in ["wins", "level", "nWpm", "profileViews"]:
         title += get_flag_title(ctx.flags)
 
-    message = Message(
-        ctx,
-        title=title,
-        pages=pages,
-    )
+    message = Message(ctx, title=title, pages=pages)
+    await message.send()
 
+
+async def run_custom(ctx: commands.Context, category: dict):
+    """Displays a custom leaderboard generated from the database."""
+    pages = []
+
+    if category["title"] == "Quote Submissions":
+        leaderboard = get_top_submitters()
+        for i in range(len(leaderboard)):
+            leaderboard[i] = dict(leaderboard[i]) | {"rank": i + 1}
+        formatter = lambda quote: f"{rank(quote["rank"])} {quote["submittedByUsername"]} - {quote["submissions"]:,}\n"
+        pages = paginate_data(leaderboard, formatter, page_count=5, per_page=20)
+
+    title = f"{category["title"]} Leaderboard"
+
+    message = Message(ctx, title=title, pages=pages)
     await message.send()
