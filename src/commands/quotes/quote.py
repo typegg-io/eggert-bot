@@ -83,6 +83,7 @@ def build_personal_best_page(quote: dict, quote_races: list[dict], user_id: str)
     elif recent_race == best_race:
         previous_best = max(quote_races[:-1], key=lambda x: x["pp"])
         quote_bests_without.append(previous_best)
+        quote_bests_without.sort(key=lambda x: -x["pp"])
         pp_gain = calculate_total_pp(quote_bests) - calculate_total_pp(quote_bests_without)
 
         pp_difference = best_race["pp"] - previous_best["pp"]
