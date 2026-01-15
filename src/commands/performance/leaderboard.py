@@ -122,6 +122,7 @@ async def run(ctx: commands.Context, category: dict):
         description="\n".join(f"{rank(i + 1)} {LOADING}" for i in range(20)),
     )
     message = Message(ctx, page=skeleton_page)
+    message.timeout = 60
     initial_send = message.start()
 
     results = await get_leaders(
@@ -143,12 +144,14 @@ async def run(ctx: commands.Context, category: dict):
     pages = paginate_data(leaderboard, entry_formatter, page_count=5, per_page=20)
 
     footer = None
-    if category["title"] == "quotes":
+    if category["sort"] == "quotesTyped":
         quote_count = get_quote_count()
         footer = f"{quote_count:,} Quotes"
 
     message.title = title
     message.pages = pages
+    message.page_count = len(pages)
+    message.paginated = True
     message.footer = footer
 
     await initial_send
@@ -164,6 +167,7 @@ async def run_custom(ctx: commands.Context, category: dict):
         description="\n".join(f"{rank(i + 1)} {LOADING}" for i in range(20)),
     )
     message = Message(ctx, page=skeleton_page)
+    message.timeout = 60
     initial_send = message.start()
 
     pages = []
@@ -177,6 +181,8 @@ async def run_custom(ctx: commands.Context, category: dict):
 
     message.title = title
     message.pages = pages
+    message.page_count = len(pages)
+    message.paginated = True
 
     await initial_send
     await message.edit()
