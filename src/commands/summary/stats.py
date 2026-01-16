@@ -3,6 +3,7 @@ from typing import Optional
 from discord.ext import commands
 
 from commands.base import Command
+from utils.colors import DEFAULT, PLUS
 from utils.dates import format_date, parse_date
 from utils.messages import Page, Message, Field
 from utils.strings import discord_date, format_duration, GG_PLUS
@@ -95,6 +96,7 @@ async def run(ctx: commands.Context, profile: dict):
         page=page,
         url=profile_url(profile["username"]),
         profile=profile,
+        color=PLUS if profile["isGgPlus"] else DEFAULT
     )
 
     return await message.send()
