@@ -10,7 +10,7 @@ from utils.messages import Message, Page
 
 info = {
     "name": "calculator",
-    "aliases": ["calc", "eval", "math"],
+    "aliases": ["cc", "eval", "math"],
     "description": "Evaluates a mathematical expression",
     "parameters": "[expression]",
 }

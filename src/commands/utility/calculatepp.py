@@ -10,7 +10,7 @@ from utils.urls import race_url
 
 info = {
     "name": "calculatepp",
-    "aliases": ["calculatewpm", "qc"],
+    "aliases": ["calculatewpm", "calc", "qc"],
     "description": "Calculate WPM or pp for a specific quote, given the opposite.",
     "parameters": "<quote_id> <value> [pp|wpm]",
     "plus": True,
