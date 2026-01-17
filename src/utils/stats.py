@@ -31,6 +31,7 @@ def calculate_ms(quote, wpm):
 
 def calculate_wpm(duration, chars_typed):
     """Returns the WPM value given duration in ms and number of characters typed."""
+    if duration == 0: return float("inf")
     return (12000 * chars_typed) / duration
 
 
