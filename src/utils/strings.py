@@ -43,7 +43,7 @@ OPTION_ALIASES = {
     "errorReactionTime": ["reaction", "react"],
     "errorRecoveryTime": ["recovery", "recover"],
     "characters": ["chars"],
-    "quickplay": ["qp", "multiplayer", "mp"],
+    "quickplay": ["qp", "multiplayer", "multi", "mp"],
     "unranked": ["ur"],
     "playtime": ["pt"],
     "submissions": ["qs"],
