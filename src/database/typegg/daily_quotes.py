@@ -51,8 +51,16 @@ def add_daily_results(day_number: int, results: list[dict]):
     """, [daily_result_insert(day_number, i + 1, result) for i, result in enumerate(results)])
 
 
-def get_daily_quote(date: str):
-    pass
+def update_daily_quote_id(quote_id: str):
+    db.run("""
+        INSERT OR REPLACE INTO daily_quote_id (id, quoteId)
+        VALUES (1, ?)
+    """, [quote_id])
+
+
+def get_daily_quote_id():
+    row = db.fetch_one("SELECT quoteId FROM daily_quote_id WHERE id = 1")
+    return row["quoteId"] if row else None
 
 
 def get_missing_days():
@@ -63,8 +71,10 @@ def get_missing_days():
 
     return missing_numbers
 
+
 def get_user_results(user_id: str):
     return db.fetch("SELECT * FROM daily_quote_results WHERE userId = ?", [user_id])
+
 
 def get_user_ranks(user_id: str):
     results = db.fetch("SELECT rank FROM daily_quote_results WHERE userId = ?", [user_id])

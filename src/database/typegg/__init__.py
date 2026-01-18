@@ -96,5 +96,12 @@ db.run("""
     )
 """)
 
+db.run("""
+    CREATE TABLE IF NOT EXISTS daily_quote_id (
+        id INTEGER PRIMARY KEY CHECK (id = 1),
+        quoteId TEXT NOT NULL
+    )
+""")
+
 db.run("CREATE INDEX IF NOT EXISTS idx_races_userId on races(userId)")
 db.run("CREATE INDEX IF NOT EXISTS idx_races_userId_quoteId on races(userId, quoteId)")

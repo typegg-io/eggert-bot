@@ -8,7 +8,7 @@ from api.users import get_profile, get_race
 from commands.daily.dailyleaderboard import display_daily_quote
 from config import DAILY_QUOTE_CHANNEL_ID, SITE_URL, TYPEGG_GUILD_ID, DAILY_QUOTE_ROLE_ID
 from database.bot.users import get_user
-from database.typegg.daily_quotes import add_daily_quote, add_daily_results, get_missing_days
+from database.typegg.daily_quotes import add_daily_quote, add_daily_results, get_missing_days, update_daily_quote_id
 from graphs import daily as daily_graph
 from utils import dates
 from utils.colors import DEFAULT_THEME
@@ -89,6 +89,7 @@ async def daily_quote_ping(bot: commands.Bot):
 
     date = parse_date("today")
     daily_quote = await get_daily_quote(date.strftime("%Y-%m-%d"))
+    update_daily_quote_id(daily_quote["quote"]["quoteId"])
 
     await display_daily_quote(
         channel,
