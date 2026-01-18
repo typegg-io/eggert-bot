@@ -41,10 +41,10 @@ async def run(ctx: commands.Context, profile: dict):
                 f"**Quotes:** {profile["stats"]["quotesTyped"]:,}\n"
                 f"**Races:** {profile["stats"]["races"]:,}\n"
                 f"**Solo:** {profile["stats"]["soloRaces"]:,} / "
-                f"**Multiplayer:** {profile["stats"]["multiplayerRaces"]:,}\n"
+                f"**Quickplay:** {profile["stats"]["quickplayRaces"]:,}\n"
                 f"**Wins:** {profile["stats"]["wins"]:,} "
-                f"({0 if profile["stats"]["multiplayerRaces"] == 0
-                else profile["stats"]["wins"] / profile["stats"]["multiplayerRaces"]:.2%} win rate)\n"
+                f"({0 if profile["stats"]["quickplayRaces"] == 0
+                else profile["stats"]["wins"] / profile["stats"]["quickplayRaces"]:.2%} win rate)\n"
                 f"**Characters Typed:** {profile["stats"]["charactersTyped"]:,.0f}\n"
                 f"**Level:** {profile["stats"]["level"]:,.2f} "
                 f"({profile["stats"]["experience"]:,.0f} XP)\n"

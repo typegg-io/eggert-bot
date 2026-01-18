@@ -10,7 +10,7 @@ from utils.messages import check_channel_permissions, welcome_message, command_m
 from utils.strings import get_argument, LANGUAGES
 from web_server.utils import assign_user_roles
 
-FLAGS = {"raw", "solo", "multiplayer", "unranked", "any"}
+FLAGS = {"raw", "solo", "quickplay", "lobby", "unranked", "any"}
 for language in LANGUAGES.keys():
     FLAGS.add(language)
 
@@ -83,7 +83,7 @@ def register_bot_checks(bot):
                 match flag:
                     case "raw":
                         flags["metric"] = flag
-                    case "solo" | "multiplayer":
+                    case "solo" | "quickplay" | "lobby":
                         flags["gamemode"] = flag
                     case "unranked" | "any":
                         flags["status"] = flag

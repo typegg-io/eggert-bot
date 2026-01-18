@@ -47,7 +47,7 @@ categories = {
     "wins": {
         "sort": "wins",
         "title": "Wins",
-        "formatter": lambda user: f"{user["stats"]["wins"]:,} ({user["stats"]["wins"] / user["stats"]["multiplayerRaces"]:.2%} win rate)"
+        "formatter": lambda user: f"{user["stats"]["wins"]:,} ({user["stats"]["wins"] / user["stats"]["quickplayRaces"]:.2%} win rate)"
     },
     "quotes": {
         "sort": "quotesTyped",
@@ -131,11 +131,11 @@ async def run(ctx: commands.Context, category: dict):
         gamemode=gamemode,
     )
 
-    if gamemode == "multiplayer" and category["sort"] == "races":
+    if gamemode == "quickplay" and category["sort"] == "races":
         category = {
             "sort": "races",
             "title": "Races",
-            "formatter": lambda user: f"{user["stats"]["multiplayerRaces"]:,}",
+            "formatter": lambda user: f"{user["stats"]["quickplayRaces"]:,}",
         }
 
     leaderboard = results["users"]

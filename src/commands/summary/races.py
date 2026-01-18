@@ -32,7 +32,7 @@ class Races(Command):
 
 def build_stat_fields(profile, race_list, flags={}, all_time=False):
     quote_list = get_quotes()
-    multiplayer = flags.get("gamemode") == "multiplayer"
+    multiplayer = flags.get("gamemode") == "quickplay"
 
     cumulative_keys = {
         "wpm", "rawWpm", "accuracy", "duration",
@@ -182,7 +182,7 @@ def build_stat_fields(profile, race_list, flags={}, all_time=False):
         content=(
             f"**Races:** {total_races:,}" +
             (f" / **DNFs:** {dnf_count:,}\n" if multiplayer else "\n") +
-            f"**Solo:** {solo_races:,} / **Multiplayer:** {(multiplayer_races - dnf_count):,}\n" +
+            f"**Solo:** {solo_races:,} / **Quickplay:** {(multiplayer_races - dnf_count):,}\n" +
             (f"**Wins:** {wins:,} ({wins / multiplayer_races:.2%} win rate)\n" if wins > 0 else "\n") +
             f"**Quotes:** {unique_quotes:,}" +
             (f" ({new_quotes:,} new)\n" if new_quotes > 0 and not all_time else "\n") +

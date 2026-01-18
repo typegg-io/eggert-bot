@@ -68,10 +68,10 @@ def get_quote_bests(
     if end_date is not None:
         conditions.append("timestamp < ?")
         params.append(end_date)
-    if gamemode is not None and gamemode in ["solo", "multiplayer"]:
+    if gamemode is not None and gamemode in ["solo", "quickplay", "lobby"]:
         conditions.append("gamemode = ?")
         params.append(gamemode)
-        if gamemode == "multiplayer":
+        if gamemode == "quickplay":
             columns = "matchWpm as wpm, rawMatchWpm as rawWpm, matchPp as pp, rawMatchPp as rawPp, " + columns
             if order_by in ["pp", "wpm"]:
                 aggregate_column = aggregate_column.replace(order_by, "match" + order_by.title())

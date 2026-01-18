@@ -61,7 +61,7 @@ class Histogram(Command):
 async def run(ctx: commands.Context, profile: dict, metric: str):
     user_id = profile["userId"]
     solo_quote_bests = get_quote_bests(user_id, columns=metrics.keys(), gamemode="solo")
-    multi_quote_bests = get_quote_bests(user_id, columns=metrics.keys(), gamemode="multiplayer")
+    multi_quote_bests = get_quote_bests(user_id, columns=metrics.keys(), gamemode="quickplay")
 
     def make_field(title: str, data: list[float], suffix: str):
         if suffix == "ms":
@@ -108,7 +108,7 @@ async def run(ctx: commands.Context, profile: dict, metric: str):
         if len(solo_values) > 0:
             fields.append(make_field("Solo", solo_values, suffix=metric_suffix))
         if len(multi_values) > 0:
-            fields.append(make_field("Multiplayer", multi_values, suffix=metric_suffix))
+            fields.append(make_field("Quickplay", multi_values, suffix=metric_suffix))
 
         pages.append(Page(
             title=f"{metric_title} Histogram",

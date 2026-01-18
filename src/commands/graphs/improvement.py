@@ -45,14 +45,14 @@ async def multiplayer_improvement(ctx: commands.Context, profile: dict, metric: 
     race_list = await get_races(
         profile["userId"],
         columns=["quoteId", metric, "timestamp", "completionType"],
-        gamemode="multiplayer",
+        gamemode="quickplay",
     )
 
     if not race_list:
         message = Message(
             ctx, page=Page(
                 title="No Races",
-                description=f"User `{profile["username"]}` has no multiplayer races",
+                description=f"User `{profile["username"]}` has no quickplay races",
                 footer="Use -simp to view solo improvement!",
                 color=ERROR,
             )
@@ -91,7 +91,7 @@ async def multiplayer_improvement(ctx: commands.Context, profile: dict, metric: 
 
     message = Message(
         ctx,
-        title=f"Multiplayer - {metric} Improvement",
+        title=f"Quickplay - {metric} Improvement",
         header=description,
         pages=[
             Page(

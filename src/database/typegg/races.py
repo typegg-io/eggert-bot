@@ -97,14 +97,14 @@ async def get_races(
     if end_date is not None:
         conditions.append("timestamp < ?")
         params.append(end_date)
-    if min_pp is not None and gamemode != "multiplayer":
+    if min_pp is not None and gamemode != "quickplay":
         conditions.append(f"pp > {min_pp}")
     if max_pp is not None:
         conditions.append(f"pp <= {max_pp}")
     if gamemode is not None:
         conditions.append(f"gamemode = ?")
         params.append(gamemode)
-        if gamemode == "multiplayer":
+        if gamemode == "quickplay":
             columns = "matchWpm as wpm, rawMatchWpm as rawWpm, matchPp as pp, rawMatchPp as rawPp, " + columns
     if completion_type:
         conditions.append("completionType = ?")
