@@ -2,11 +2,11 @@ from typing import Optional
 
 from discord.ext import commands
 
-from api.daily_quotes import get_daily_quote
 from api.users import get_race
 from commands.base import Command
 from config import DAILY_QUOTE_CHANNEL_ID
 from database.bot.recent_quotes import set_recent_quote
+from database.typegg.daily_quotes import get_daily_quote_id
 from database.typegg.quotes import get_quote
 from database.typegg.users import get_quote_bests
 from graphs import race as race_graph
@@ -48,8 +48,8 @@ async def run(ctx: commands.Context, profile: dict, race_number: int):
     quote = get_quote(race["quoteId"])
 
     if ctx.channel.id == DAILY_QUOTE_CHANNEL_ID:
-        daily_data = await get_daily_quote(results=1)
-        if race["quoteId"] != daily_data["quote"]["quoteId"]:
+        daily_quote_id = get_daily_quote_id()
+        if race["quoteId"] != daily_quote_id:
             raise DailyQuoteChannel
 
     keystroke_data = get_keystroke_data(race["keystrokeData"])
