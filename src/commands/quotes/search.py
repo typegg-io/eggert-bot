@@ -42,7 +42,12 @@ async def run(ctx: commands.Context, query: str):
 
     set_recent_quote(ctx.channel.id, quotes[0]["quoteId"])
     per_page = 5
-    entry_formatter = lambda quote: quote_display(quote, max_text_chars=150, display_status=True) + "\n"
+    entry_formatter = lambda quote: quote_display(
+        quote,
+        max_text_chars=150,
+        display_status=True,
+        text_highlight=query,
+    ) + "\n"
     pages = paginate_data(quotes, entry_formatter, 20, per_page)
     for i, page in enumerate(pages):
         page_start = i * per_page + 1

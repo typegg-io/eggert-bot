@@ -291,6 +291,7 @@ def quote_display(
     display_racers_users: bool = False,
     display_submitted_by: bool = False,
     display_text: bool = True,
+    text_highlight: str = None,
 ):
     """Format a quote dictionary into a rich display string for Discord embeds."""
     text = quote["text"]
@@ -319,9 +320,59 @@ def quote_display(
         )
 
     if display_text:
-        display_string += f"\"{truncate_clean(text, max_text_chars, max_text_lines)}\"\n"
+        if text_highlight:
+            display_string += f"\"{highlight_text(text, text_highlight)}\"\n"
+        else:
+            display_string += f"\"{truncate_clean(text, max_text_chars, max_text_lines)}\"\n"
 
     return display_string
+
+
+def highlight_text(text: str, text_highlight: str, max_chars: int = 120):
+    """Finds a query match in a text and highlights the matched section."""
+    query_length = len(text_highlight)
+    chars = max_chars - query_length
+    query_index = text.lower().find(text_highlight.lower())
+
+    if query_index == -1:
+        return text
+
+    start_index = query_index
+    end_index = query_index + query_length
+
+    # Expand context window outward from the match
+    while chars > 0 and end_index - start_index < len(text):
+        if start_index > 0:
+            start_index -= 1
+            chars -= 1
+        if end_index < len(text):
+            end_index += 1
+            chars -= 1
+
+    # Adjusting to word boundaries
+    while start_index > 0 and text[start_index] != " ":
+        start_index -= 1
+
+    if start_index > 0:
+        start_index += 1
+
+    while end_index < len(text) and text[end_index].isalnum():
+        end_index += 1
+
+    # Highlight the matched text
+    highlighted = ""
+
+    if start_index > 0:
+        highlighted += "..."
+
+    highlighted += text[start_index:query_index]
+    highlighted += f"\t{text[query_index:query_index + query_length]}\t"
+    highlighted += text[query_index + query_length:end_index]
+
+    if end_index < len(text):
+        highlighted += "..."
+
+    return escape_formatting(highlighted).replace("\t", "**")
 
 
 def get_segments(text: str):
