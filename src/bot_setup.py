@@ -18,6 +18,40 @@ users = get_user_ids()
 total_commands = sum(get_all_command_usage().values())
 
 
+def parse_flags(content: str) -> tuple[dict, str]:
+    """Parse flags from message content. Returns (flags dict, cleaned command)."""
+    invoke, raw_args = content.split()[0], content.split()[1:]
+
+    flags = {}
+    regular_args = []
+
+    for arg in raw_args:
+        if arg.startswith("-"):
+            flag = get_argument(FLAGS, arg.lstrip("-"), _raise=False)
+
+            if not flag:
+                regular_args.append(arg)
+                continue
+
+            match flag:
+                case "raw":
+                    flags["metric"] = flag
+                case "solo" | "quickplay" | "lobby":
+                    flags["gamemode"] = flag
+                case "unranked" | "any":
+                    flags["status"] = flag
+                case _:
+                    flags["language"] = flag
+        else:
+            regular_args.append(arg)
+
+    if flags.get("language"):
+        flags["status"] = "unranked"
+
+    cleaned_command = f"{invoke} " + " ".join(regular_args)
+    return flags, cleaned_command
+
+
 async def load_commands(bot):
     """Load all command cogs into the bot."""
     from commands.base import Command
@@ -66,39 +100,30 @@ def register_bot_checks(bot):
                     return await message.reply(content=welcome_message)
 
         # Parsing flags
-        content = message.content
-        invoke, raw_args = content.split()[0], content.split()[1:]
-
-        flags = {}
-        regular_args = []
-
-        for arg in raw_args:
-            if arg.startswith("-"):
-                flag = get_argument(FLAGS, arg.lstrip("-"), _raise=False)
-
-                if not flag:
-                    regular_args.append(arg)
-                    continue
-
-                match flag:
-                    case "raw":
-                        flags["metric"] = flag
-                    case "solo" | "quickplay" | "lobby":
-                        flags["gamemode"] = flag
-                    case "unranked" | "any":
-                        flags["status"] = flag
-                    case _:
-                        flags["language"] = flag
-            else:
-                regular_args.append(arg)
-
-        if flags.get("language"):
-            flags["status"] = "unranked"
-
+        flags, cleaned_command = parse_flags(message.content)
         message.flags = flags
-        message.content = f"{invoke} " + " ".join(regular_args)
+        message.content = cleaned_command
 
         await bot.process_commands(message)
+
+    @bot.event
+    async def on_message_edit(before: discord.Message, after: discord.Message):
+        """Re-process edited messages as commands."""
+        if before.content == after.content:
+            return
+
+        if not after.content.startswith(BOT_PREFIX) or after.author.bot:
+            return
+
+        age = (discord.utils.utcnow() - after.created_at).total_seconds()
+        if age > 20:
+            return
+
+        flags, cleaned_command = parse_flags(after.content)
+        after.flags = flags
+        after.content = cleaned_command
+
+        await bot.process_commands(after)
 
     @bot.event
     async def on_command_completion(ctx: commands.Context):
