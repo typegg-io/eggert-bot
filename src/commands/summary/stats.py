@@ -4,7 +4,7 @@ from discord.ext import commands
 
 from commands.base import Command
 from utils.colors import DEFAULT, PLUS
-from utils.dates import format_date, parse_date
+from utils.dates import format_date, parse_date, now
 from utils.messages import Page, Message, Field
 from utils.strings import discord_date, format_duration, GG_PLUS
 from utils.urls import profile_url
@@ -25,6 +25,10 @@ class Stats(Command):
 
 
 async def run(ctx: commands.Context, profile: dict):
+    join_date = parse_date(profile["joinDate"])
+    today = now()
+    is_anniversary = join_date.month == today.month and join_date.day == today.day
+
     fields = [
         Field(
             title="Performance",
@@ -63,7 +67,7 @@ async def run(ctx: commands.Context, profile: dict):
             title="About",
             content=(
                 f"**Last Seen:** {discord_date(profile["lastSeen"])}\n"
-                f"**Join Date:** {discord_date(profile["joinDate"])}\n"
+                f"**Join Date:** {discord_date(profile["joinDate"], "D")}{" :birthday:" if is_anniversary else ""}\n"
                 + (f"**Layout:** {profile["hardware"]["layout"]}\n" if profile["hardware"]["layout"] else "")
                 + (f"**Keyboard:** {profile["hardware"]["keyboard"]}\n" if profile["hardware"]["keyboard"] else "")
                 + (f"**Switches:** {profile["hardware"]["switches"]}\n" if profile["hardware"]["switches"] else "")
