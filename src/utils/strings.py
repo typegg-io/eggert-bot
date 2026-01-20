@@ -274,9 +274,10 @@ def username_with_flag(profile: dict, link_user: bool = True):
     gg_plus_display = GG_PLUS if profile.get("isGgPlus") else ""
 
     if link_user:
+        display_name = username
         if username.find("_") != username.rfind("_"):
-            username = f"`{username}`"
-        return f"{flag}[{username}]({profile_url(username)}) {gg_plus_display}"
+            display_name = username.replace("_", "ˍ")
+        return f"{flag}[{display_name}]({profile_url(username)}) {gg_plus_display}"
     else:
         return f"{flag}{escape_formatting(username)} {gg_plus_display}"
 
