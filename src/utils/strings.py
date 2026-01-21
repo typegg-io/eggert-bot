@@ -240,23 +240,50 @@ def escape_formatting(string, remove_backticks=True):
 
 def truncate_clean(text: str, max_chars: int, max_lines: int):
     """Truncate text to max chars/lines, avoiding mid-word cuts and escaping formatting."""
+    truncated, _ = truncate_text(text, max_chars, max_lines)
+    return escape_formatting(truncated, remove_backticks=False)
+
+
+def truncate_text(text: str, max_chars: int, max_lines: int) -> tuple[str, int]:
+    """
+    Truncate text to max chars/lines, avoiding mid-word cuts.
+    Returns (truncated_text, truncation_index) where truncation_index is where the cut happened.
+    """
+    was_truncated = False
+
     lines = text.splitlines()
     if len(lines) > max_lines:
         text = "\n".join(lines[:max_lines])
-        text = text.rstrip() + "..."
+        text = text.rstrip()
+        was_truncated = True
 
     if len(text) <= max_chars:
-        return escape_formatting(text, remove_backticks=False)
+        return text + "..." if was_truncated else text, len(text)
 
     if " " not in text:
-        return escape_formatting(text[:max_chars] + "...", remove_backticks=False)
+        return text[:max_chars] + "...", max_chars
 
     substring = text[:max_chars]
     while len(substring) > 1 and substring[-1].isalnum():
         substring = substring[:-1]
-    substring = substring.rstrip() + "..."
+    truncation_index = len(substring.rstrip())
 
-    return escape_formatting(substring, remove_backticks=False)
+    return substring.rstrip() + "...", truncation_index
+
+
+def clip_formatting(formatting: dict, max_index: int) -> dict:
+    """Clip formatting ranges to fit within max_index, discarding ranges that start after it."""
+    clipped = {}
+    for form, ranges in formatting.items():
+        clipped_ranges = []
+        for start, end in ranges:
+            if start >= max_index:
+                continue  # Range starts after truncation, discard
+            # Clip end to max_index if needed
+            clipped_ranges.append([start, min(end, max_index)])
+        if clipped_ranges:
+            clipped[form] = clipped_ranges
+    return clipped
 
 
 # User & Quote Displays
@@ -322,10 +349,108 @@ def quote_display(
     if display_text:
         if text_highlight:
             display_string += f"\"{highlight_text(text, text_highlight)}\"\n"
+        elif formatting := quote.get("formatting"):
+            truncated, truncation_index = truncate_text(text, max_text_chars, max_text_lines)
+            clipped = clip_formatting(formatting, truncation_index)
+            formatted = apply_rich_text(truncated, clipped) if clipped else truncated
+            display_string += f"\"{formatted}\"\n"
         else:
             display_string += f"\"{truncate_clean(text, max_text_chars, max_text_lines)}\"\n"
 
     return display_string
+
+
+EVENT_ORDER = [
+    ("open", "italic"),
+    ("open", "bold"),
+    ("open", "underline"),
+    ("close", "underline"),
+    ("close", "bold"),
+    ("close", "italic"),
+]
+EVENT_RANK = {pair: i for i, pair in enumerate(EVENT_ORDER)}
+
+
+def apply_rich_text(text: str, formatting: dict):
+    """
+    Adds Discord markdown to text given formatting indexes.
+    Validates proper nesting and handles bold/italic conflicts at boundaries.
+    """
+    tokens = {
+        "bold": "**",
+        "italic": "*",
+        "underline": "__",
+    }
+
+    # Build list of ranges sorted by start position
+    ordered = sorted(
+        ((form, r) for form, ranges in formatting.items() for r in ranges),
+        key=lambda x: x[1][0]
+    )
+
+    # Create events grouped by character index
+    groups = [[] for _ in range(len(text))]
+    valid_ids = set()
+    current_id = 1
+
+    for form, (start, end) in ordered:
+        groups[start].append({
+            "type": "open",
+            "format": form,
+            "index": start,
+            "id": current_id,
+        })
+        groups[end - 1].append({
+            "type": "close",
+            "format": form,
+            "index": end,
+            "id": current_id,
+        })
+        valid_ids.add(current_id)
+        current_id += 1
+
+    # Process events with stack-based validation
+    stack = []
+    invalid = False
+
+    for group in groups:
+        group.sort(key=lambda e: EVENT_RANK[(e["type"], e["format"])])
+
+        for event in group:
+            if event["type"] == "open":
+                stack.append(event)
+            else:
+                if stack and stack[-1]["format"] != event["format"]:
+                    invalid = True
+                if stack:
+                    stack.pop()
+
+            if invalid:
+                valid_ids.discard(event["id"])
+
+        if not stack and invalid:
+            invalid = False
+
+    # Check for bold/italic conflicts at same index
+    events = [e for group in groups for e in group if e["id"] in valid_ids]
+
+    for i in range(1, len(events)):
+        prev, curr = events[i - 1], events[i]
+        if prev["index"] == curr["index"] and prev["type"] != curr["type"]:
+            if prev["format"] == "bold" and curr["format"] == "italic":
+                valid_ids.discard(prev["id"])
+            elif prev["format"] == "italic" and curr["format"] == "bold":
+                valid_ids.discard(curr["id"])
+
+    # Apply valid tokens in reverse order
+    events = [e for group in groups for e in group if e["id"] in valid_ids]
+    events.reverse()
+
+    for event in events:
+        token = tokens[event["format"]]
+        text = text[:event["index"]] + token + text[event["index"]:]
+
+    return text
 
 
 def highlight_text(text: str, text_highlight: str, max_chars: int = 120):
