@@ -31,13 +31,17 @@ async def run(ctx: commands.Context, quote: dict):
     ) + "\n**Top 10**\n"
 
     leaderboard_string = ""
-    for i, score in enumerate(quote["leaderboard"]):
-        pp = f"{score["pp"]:,.0f} pp - " if quote["ranked"] else ""
-        leaderboard_string += (
-            f"{rank(i + 1)} {username_with_flag(score)} - "
-            f"{score["wpm"]:,.2f} WPM ({score["accuracy"]:.2%}) - {pp}"
-            f"{discord_date(score["timestamp"])}\n"
-        )
+
+    if not quote["leaderboard"]:
+        leaderboard_string = "No one has raced this quote."
+    else:
+        for i, score in enumerate(quote["leaderboard"]):
+            pp = f"{score["pp"]:,.0f} pp - " if quote["ranked"] else ""
+            leaderboard_string += (
+                f"{rank(i + 1)} {username_with_flag(score)} - "
+                f"{score["wpm"]:,.2f} WPM ({score["accuracy"]:.2%}) - {pp}"
+                f"{discord_date(score["timestamp"])}\n"
+            )
 
     page = Page(
         title=quote["quoteId"],
