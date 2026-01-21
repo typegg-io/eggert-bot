@@ -186,7 +186,7 @@ async def run(ctx: commands.Context, profile: dict, race_number: int):
         render=lambda: segment_graph.render(
             segments,
             title=f"WPM Segments - {profile["username"]} - Race #{race_number:,}",
-            x_label="Segments",
+            x_label="Segment",
             theme=ctx.user["theme"],
         ),
         button_name="Segments",
@@ -215,7 +215,7 @@ async def run(ctx: commands.Context, profile: dict, race_number: int):
         render=lambda: segment_graph.render(
             word_segments,
             title=f"Words - {profile["username"]} - Race #{race_number:,}",
-            x_label="Words",
+            x_label="Word",
             theme=ctx.user["theme"],
         ),
         button_name="Words",
