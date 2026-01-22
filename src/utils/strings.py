@@ -350,6 +350,9 @@ def quote_display(
         if text_highlight:
             display_string += f"\"{highlight_text(text, text_highlight)}\"\n"
         elif formatting := quote.get("formatting"):
+            formatting.pop("sections", None)
+            formatting.pop("indent", None)
+            formatting.pop("alignment", None)
             char_limit = max_text_chars
             while True:
                 truncated, truncation_index = truncate_text(text, char_limit, max_text_lines)
