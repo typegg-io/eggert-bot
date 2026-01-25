@@ -1,4 +1,3 @@
-from datetime import timezone
 from typing import Optional
 
 from dateutil.relativedelta import relativedelta
@@ -8,6 +7,7 @@ from api.quotes import get_quote
 from api.sources import get_source
 from api.users import get_races, get_profile
 from commands.base import Command
+from database.typegg.keystroke_data import add_keystroke_data
 from database.typegg.match_results import add_match_results
 from database.typegg.matches import add_matches
 from database.typegg.quotes import get_quotes, add_quote
@@ -131,6 +131,7 @@ async def run(
             per_page=1000,
             sort="timestamp",
             reverse=False,
+            get_keystrokes=True,
         )
         race_list = results["races"]
         race_list_no_dnf = []
@@ -192,6 +193,7 @@ async def run(
             await import_new_quotes(list(new_quote_ids))
 
         add_races(race_list_no_dnf)
+        add_keystroke_data(race_list_no_dnf)
         add_matches(match_list)
         add_match_results(match_result_list)
 

@@ -4,6 +4,7 @@ from discord.ext import commands
 
 from commands.account.download import run as download
 from commands.base import Command
+from database.typegg.keystroke_data import delete_keystroke_data
 from database.typegg.races import get_latest_race, delete_races
 from utils.colors import ERROR, WARNING
 from utils.logging import ADMIN_ALIASES
@@ -59,6 +60,8 @@ class ReDownload(Command):
                 return
 
             delete_races(user_id)
+            delete_keystroke_data(user_id)
+
             message = Message(ctx, Page(
                 title="Races Deleted",
                 description=f"Deleted all races for {escape_formatting(profile["username"])}"

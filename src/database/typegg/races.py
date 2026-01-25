@@ -1,3 +1,5 @@
+import json
+import zlib
 from typing import Optional
 
 from database.typegg import db
@@ -33,6 +35,21 @@ def add_races(races):
     """, [race_insert(race) for race in races])
 
 
+def decompress_keystroke_data(rows):
+    """Decompress keystroke data in race rows."""
+    result = []
+    for row in rows:
+        row_dict = dict(row)
+        keystroke_data = row_dict.get("keystrokeData")
+        compressed = row_dict.get("compressed")
+        if keystroke_data is not None and compressed == 1:
+            keystroke_data = zlib.decompress(keystroke_data)
+        del row_dict["compressed"]
+        row_dict["keystrokeData"] = json.loads(keystroke_data)
+        result.append(row_dict)
+    return result
+
+
 async def get_races(
     user_id: str,
     columns: list[str] = ["*"],
@@ -46,7 +63,9 @@ async def get_races(
     reverse: bool = False,
     limit: Optional[int] = None,
     flags: Flags = Flags(),
+    get_keystrokes: bool = False,
 ):
+    """Fetch races for a user with optional filters."""
     columns = ",".join(columns)
     table = "races"
 
@@ -68,7 +87,7 @@ async def get_races(
         min_pp = -1
 
     # WHERE clause
-    conditions = ["userId = ?"]
+    conditions = ["r.userId = ?"]
     params = [user_id]
 
     condition_map = {
@@ -96,12 +115,18 @@ async def get_races(
     order_clause = f"{order_by} {"DESC" if reverse else "ASC"}"
 
     # JOIN clause
-    join_clause = ""
+    join_clauses = []
     if flags.language:
-        join_clause = "JOIN quotes q ON q.quoteId = r.quoteId"
+        join_clauses.append("JOIN quotes q ON q.quoteId = r.quoteId")
         conditions.append("q.language = ?")
         params.append(flags.language.name)
         columns = columns.replace("quoteId", "r.quoteId")
+
+    if get_keystrokes:
+        join_clauses.append("LEFT JOIN keystroke_data k ON k.raceId = r.raceId")
+        columns += ", k.keystrokeData, k.compressed"
+
+    join_clause = " ".join(join_clauses)
 
     # Fetching in batches
     batch_size = 100_000
@@ -110,7 +135,7 @@ async def get_races(
 
     while True:
         limit_clause = f"LIMIT {limit}" if limit else f"LIMIT {batch_size} OFFSET {offset}"
-        batch = db.fetch(f"""
+        batch = await db.fetch_async(f"""
             SELECT {columns}
             FROM {table} r
             {join_clause}
@@ -125,6 +150,9 @@ async def get_races(
             break
 
         offset += batch_size
+
+    if get_keystrokes:
+        return decompress_keystroke_data(race_list)
 
     return race_list
 

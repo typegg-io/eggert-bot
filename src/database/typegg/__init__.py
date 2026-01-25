@@ -10,7 +10,7 @@ db.run("""
 db.run("""
     CREATE TABLE IF NOT EXISTS races (
         raceId TEXT PRIMARY KEY,
-        quoteId TEXT NOT NULL REFERENCES quotes(quoteId) ON UPDATE CASCADE,
+        quoteId TEXT NOT NULL REFERENCES quotes(quoteId) ON UPDATE CASCADE ON DELETE CASCADE,
         userId TEXT NOT NULL,
         matchId TEXT,
         raceNumber INTEGER,
@@ -31,6 +31,14 @@ db.run("CREATE INDEX IF NOT EXISTS idx_races_userId on races(userId)")
 db.run("CREATE INDEX IF NOT EXISTS idx_races_userId_quoteId on races(userId, quoteId)")
 
 db.run("""
+    CREATE TABLE IF NOT EXISTS keystroke_data (
+        raceId TEXT PRIMARY KEY REFERENCES races(raceId) ON DELETE CASCADE,
+        keystrokeData BLOB NOT NULL,
+        compressed INTEGER NOT NULL DEFAULT 0 -- boolean
+    )
+""")
+
+db.run("""
     CREATE TABLE IF NOT EXISTS sources (
         sourceId TEXT PRIMARY KEY,
         title TEXT NOT NULL,
@@ -44,7 +52,7 @@ db.run("""
 db.run("""
     CREATE TABLE IF NOT EXISTS quotes (
         quoteId TEXT PRIMARY KEY,
-        sourceId TEXT NOT NULL REFERENCES sources(sourceId) ON UPDATE CASCADE,
+        sourceId TEXT NOT NULL REFERENCES sources(sourceId) ON UPDATE CASCADE ON DELETE CASCADE,
         text TEXT NOT NULL,
         explicit INTEGER NOT NULL, -- boolean
         difficulty REAL NOT NULL,
@@ -58,7 +66,7 @@ db.run("""
 db.run("""
     CREATE TABLE IF NOT EXISTS daily_quotes (
         dayNumber INTEGER PRIMARY KEY,
-        quoteId TEXT NOT NULL REFERENCES quotes(quoteId) ON UPDATE CASCADE,
+        quoteId TEXT NOT NULL REFERENCES quotes(quoteId) ON UPDATE CASCADE ON DELETE CASCADE,
         startDate TEXT NOT NULL, -- ISO 8601 string
         endDate TEXT NOT NULL, -- ISO 8601 string
         races INTEGER NOT NULL,
@@ -68,10 +76,10 @@ db.run("""
 
 db.run("""
     CREATE TABLE IF NOT EXISTS daily_quote_results (
-        dayNumber INTEGER NOT NULL REFERENCES daily_quotes(dayNumber),
+        dayNumber INTEGER NOT NULL REFERENCES daily_quotes(dayNumber) ON DELETE CASCADE,
         rank INTEGER NOT NULL,
         raceId TEXT NOT NULL,
-        quoteId TEXT NOT NULL REFERENCES quotes(quoteId) ON UPDATE CASCADE,
+        quoteId TEXT NOT NULL REFERENCES quotes(quoteId) ON UPDATE CASCADE ON DELETE CASCADE,
         userId TEXT NOT NULL,
         username TEXT NOT NULL,
         country TEXT,
@@ -93,14 +101,14 @@ db.run("""
 db.run("""
     CREATE TABLE IF NOT EXISTS daily_quote_id (
         id INTEGER PRIMARY KEY CHECK (id = 1),
-        quoteId TEXT NOT NULL REFERENCES quotes(quoteId) ON UPDATE CASCADE
+        quoteId TEXT NOT NULL REFERENCES quotes(quoteId) ON UPDATE CASCADE ON DELETE CASCADE
     )
 """)
 
 db.run("""
     CREATE TABLE IF NOT EXISTS matches (
         matchId TEXT PRIMARY KEY,
-        quoteId TEXT NOT NULL REFERENCES quotes(quoteId) ON UPDATE CASCADE,
+        quoteId TEXT NOT NULL REFERENCES quotes(quoteId) ON UPDATE CASCADE ON DELETE CASCADE,
         startTimestamp TEXT NOT NULL, -- ISO 8601 string
         gamemode TEXT NOT NULL,
         players INTEGER NOT NULL
