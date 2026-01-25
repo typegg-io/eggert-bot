@@ -4,7 +4,7 @@ import numpy as np
 from discord.ext import commands
 
 from commands.base import Command
-from database.typegg.races import get_quote_races
+from database.typegg.races import get_races
 from database.typegg.users import get_quote_bests
 from graphs import improvement
 from utils.colors import SUCCESS
@@ -231,7 +231,7 @@ async def run(ctx: commands.Context, profile: dict, quote: dict):
     quote_id = quote["quoteId"]
     is_ranked = quote["ranked"]
 
-    quote_races = get_quote_races(user_id, quote_id)
+    quote_races = await get_races(user_id, quote_id=quote_id)
     show_buttons = quote_races and (ctx.user["userId"] == profile["userId"] or ctx.user["isAdmin"])
 
     if is_ranked:

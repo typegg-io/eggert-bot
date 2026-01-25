@@ -5,7 +5,7 @@ from discord.ext import commands
 
 from api.users import get_race
 from commands.base import Command
-from database.typegg.races import get_quote_races
+from database.typegg.races import get_races
 from database.typegg.users import get_quote_bests
 from graphs import match
 from utils.errors import NoQuoteRaces, GeneralException
@@ -93,7 +93,7 @@ async def run_self(ctx: commands.Context, quote: dict, profile: dict):
     """Compare a user's best and recent races on the same quote."""
     description = quote_display(quote, 1000, display_status=True) + "\n"
 
-    quote_races = get_quote_races(profile["userId"], quote_id=quote["quoteId"], order_by="timestamp")
+    quote_races = await get_races(profile["userId"], quote_id=quote["quoteId"], order_by="timestamp")
     if len(quote_races) < 2:
         raise GeneralException(
             "Not Enough Races",

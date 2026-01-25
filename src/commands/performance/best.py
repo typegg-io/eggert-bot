@@ -27,7 +27,7 @@ class Best(Command):
         metric = get_argument(metrics, metric)
 
         # GG+ exclusive
-        if metric == "pp" and ctx.flags.get("metric") == "raw" and not ctx.user["isGgPlus"]:
+        if metric == "pp" and ctx.flags.raw and not ctx.user["isGgPlus"]:
             raise NotSubscribed("raw pp stats")
 
         profile = await self.get_profile(ctx, username, races_required=True)
@@ -54,7 +54,7 @@ async def run(ctx: commands.Context, profile: dict, metric: str, reverse: bool =
         quote = dict(quotes[data["quoteId"]])
         quote["source"] = sources[quote["sourceId"]]
         pp_display = f"{data["pp"]:,.2f} pp - "
-        if flags.get("metric") == "raw" and not ctx.user["isGgPlus"]:
+        if flags.raw and not ctx.user["isGgPlus"]:
             pp_display = ""
         return quote_display(quote) + (
             f"{pp_display}{data["wpm"]:,.2f} WPM ({data["accuracy"]:.2%} Accuracy) - "

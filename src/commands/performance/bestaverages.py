@@ -31,17 +31,15 @@ class BestAverages(Command):
 
 
 async def run(ctx: commands.Context, profile: dict, n: int):
-    flags = ctx.flags
-
     if n < 1:
         raise NumberGreaterThan
 
+    ctx.flags.gamemode = ctx.flags.gamemode or "quickplay"
+
     race_list = await get_races(
-        profile["userId"],
+        user_id=profile["userId"],
         columns=["wpm", "raceNumber", "timestamp"],
-        start_date=None,
-        end_date=None,
-        flags=flags,
+        flags=ctx.flags,
     )
 
     if n > len(race_list):

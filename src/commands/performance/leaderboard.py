@@ -111,7 +111,7 @@ def entry_formatter(data):
 
 
 async def run(ctx: commands.Context, category: dict):
-    gamemode = ctx.flags.get("gamemode", "any")
+    gamemode = ctx.flags.gamemode or "any"
     title = f"{category["title"]} Leaderboard"
 
     if category["sort"] not in ["wins", "level", "nWpm", "profileViews"]:

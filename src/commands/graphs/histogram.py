@@ -60,8 +60,10 @@ class Histogram(Command):
 
 async def run(ctx: commands.Context, profile: dict, metric: str):
     user_id = profile["userId"]
-    solo_quote_bests = get_quote_bests(user_id, columns=metrics.keys(), gamemode="solo")
-    multi_quote_bests = get_quote_bests(user_id, columns=metrics.keys(), gamemode="quickplay")
+    ctx.flags.gamemode = "solo"
+    solo_quote_bests = get_quote_bests(user_id, columns=metrics.keys(), flags=ctx.flags)
+    ctx.flags.gamemode = "quickplay"
+    multi_quote_bests = get_quote_bests(user_id, columns=metrics.keys(), flags=ctx.flags)
 
     def make_field(title: str, data: list[float], suffix: str):
         if suffix == "ms":

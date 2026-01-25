@@ -42,10 +42,11 @@ class Improvement(Command):
 
 
 async def multiplayer_improvement(ctx: commands.Context, profile: dict, metric: str):
+    ctx.flags.gamemode = "quickplay"
     race_list = await get_races(
-        profile["userId"],
+        user_id=profile["userId"],
         columns=["quoteId", metric, "timestamp", "completionType"],
-        gamemode="quickplay",
+        flags=ctx.flags,
     )
 
     if not race_list:
@@ -110,11 +111,11 @@ async def multiplayer_improvement(ctx: commands.Context, profile: dict, metric: 
 
 
 async def solo_improvement(ctx: commands.Context, profile: dict, metric: str):
+    ctx.flags.gamemode = "solo"
     race_list = await get_races(
-        profile["userId"],
+        user_id=profile["userId"],
         columns=["quoteId", metric, "timestamp"],
-        min_pp=0.01,
-        gamemode="solo",
+        flags=ctx.flags,
     )
 
     if not race_list:

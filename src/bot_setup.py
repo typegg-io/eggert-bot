@@ -5,14 +5,11 @@ from config import BOT_PREFIX, STAGING, STATS_CHANNEL_ID, TYPEGG_GUILD_ID
 from database.bot.users import get_user, update_commands, get_user_ids, get_all_command_usage
 from utils.errors import UserBanned
 from utils.files import get_command_modules
+from utils.flags import FLAG_VALUES, Flags
 from utils.logging import get_log_message, log
 from utils.messages import check_channel_permissions, welcome_message, command_milestone
-from utils.strings import get_argument, LANGUAGES
+from utils.strings import get_argument
 from web_server.utils import assign_user_roles
-
-FLAGS = {"raw", "solo", "quickplay", "lobby", "unranked", "any"}
-for language in LANGUAGES.keys():
-    FLAGS.add(language)
 
 users = get_user_ids()
 total_commands = sum(get_all_command_usage().values())
@@ -22,31 +19,33 @@ def parse_flags(content: str) -> tuple[dict, str]:
     """Parse flags from message content. Returns (flags dict, cleaned command)."""
     invoke, raw_args = content.split()[0], content.split()[1:]
 
-    flags = {}
+    flags = Flags()
     regular_args = []
 
     for arg in raw_args:
         if arg.startswith("-"):
-            flag = get_argument(FLAGS, arg.lstrip("-"), _raise=False)
+            flag = get_argument(FLAG_VALUES, arg.lstrip("-"), _raise=False)
 
             if not flag:
                 regular_args.append(arg)
                 continue
 
             match flag:
+                case "pp" | "wpm":
+                    flags.metric = flag
                 case "raw":
-                    flags["metric"] = flag
+                    flags.raw = True
                 case "solo" | "quickplay" | "lobby":
-                    flags["gamemode"] = flag
-                case "unranked" | "any":
-                    flags["status"] = flag
+                    flags.gamemode = flag
+                case "ranked" | "unranked" | "any":
+                    flags.status = flag
                 case _:
-                    flags["language"] = flag
+                    flags.language = flag
         else:
             regular_args.append(arg)
 
-    if flags.get("language"):
-        flags["status"] = "unranked"
+    if flags.language:
+        flags.status = "unranked"
 
     cleaned_command = f"{invoke} " + " ".join(regular_args)
     return flags, cleaned_command

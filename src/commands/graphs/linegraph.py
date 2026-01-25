@@ -215,14 +215,14 @@ async def run(ctx: commands.Context, metric: str, profiles: list[dict]):
     for profile in profiles:
         columns = metrics[metric]["columns"].split(" ")
         columns.append("timestamp")
-        min_pp = 0.01 if metric in ["wpm", "quotes"] else 0
+        if metric in ["wpm", "quotes"]:
+            ctx.flags.status = "ranked"
 
         race_list = await get_races(
-            profile["userId"],
-            columns,
-            min_pp=min_pp,
+            user_id=profile["userId"],
+            columns=columns,
+            include_dnf=False,
             order_by="timestamp",
-            completion_type="finished",
             flags=ctx.flags,
         )
 

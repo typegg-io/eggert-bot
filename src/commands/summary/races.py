@@ -30,15 +30,14 @@ class Races(Command):
         await run(ctx, profile)
 
 
-def build_stat_fields(profile, race_list, flags={}, all_time=False):
+def build_stat_fields(profile, race_list, flags, all_time=False):
     quote_list = get_quotes()
-    multiplayer = flags.get("gamemode") == "quickplay"
+    quickplay = flags.gamemode == "quickplay"
 
-    cumulative_keys = {
-        "wpm", "rawWpm", "accuracy", "duration",
-        "errorReactionTime", "errorRecoveryTime",
+    cumulative_values = {
+        "wpm": [], "rawWpm": [], "accuracy": [], "duration": [],
+        "errorReactionTime": [], "errorRecoveryTime": [],
     }
-    cumulative_values = {key: 0 for key in cumulative_keys}
 
     total_races = 0
     solo_races = 0
@@ -64,15 +63,17 @@ def build_stat_fields(profile, race_list, flags={}, all_time=False):
     previous_race = None
 
     for race in race_list:
-        if race["completionType"] != "finished":
+        completion_type = race["completionType"] if quickplay else "finished"
+        if completion_type != "finished":
             dnf_count += 1
-            if not multiplayer:
-                continue
+            cumulative_values["wpm"].append(0)
+            cumulative_values["rawWpm"].append(0)
+            continue
 
         total_races += 1
 
-        for key in cumulative_keys:
-            cumulative_values[key] += race[key]
+        for key in cumulative_values:
+            cumulative_values[key].append(race[key])
 
         quote_length = calculate_quote_length(race["wpm"], race["duration"])
 
@@ -83,11 +84,11 @@ def build_stat_fields(profile, race_list, flags={}, all_time=False):
         raw_duration = calculate_duration(race["rawWpm"], quote_length - 1)
         correction_duration += race["duration"] - raw_duration
 
-        if race["gamemode"] == "solo":
+        if race["matchId"] is None:
             solo_races += 1
         else:
             multiplayer_races += 1
-            if race["placement"] == 1:
+            if quickplay and race["placement"] == 1:
                 wins += 1
 
         if race["pp"] > best["pp"]["pp"]:
@@ -103,9 +104,6 @@ def build_stat_fields(profile, race_list, flags={}, all_time=False):
         words_typed += len(words)
         chars_typed += quote_length
 
-        if race["raceNumber"] is None:
-            continue
-
         if previous_race is not None:
             break_time = (
                 parse_date(race["timestamp"]).timestamp() -
@@ -120,8 +118,8 @@ def build_stat_fields(profile, race_list, flags={}, all_time=False):
 
         previous_race = race
 
-    for key in cumulative_keys:
-        cumulative_values[key] /= total_races
+    for key in cumulative_values:
+        cumulative_values[key] = sum(cumulative_values[key]) / len(cumulative_values[key])
 
     total_duration /= 1000
 
@@ -130,7 +128,7 @@ def build_stat_fields(profile, race_list, flags={}, all_time=False):
     end_date = parse_date(race_list[-1]["timestamp"]) + relativedelta(microseconds=1000)
 
     quote_bests = get_quote_bests(
-        profile["userId"],
+        user_id=profile["userId"],
         end_date=end_date,
         flags=flags,
     )
@@ -138,7 +136,7 @@ def build_stat_fields(profile, race_list, flags={}, all_time=False):
 
     min_timestamp = race_list[0]["timestamp"]
     old_quote_bests = get_quote_bests(
-        profile["userId"],
+        user_id=profile["userId"],
         end_date=min_timestamp,
         flags=flags,
     )
@@ -175,15 +173,14 @@ def build_stat_fields(profile, race_list, flags={}, all_time=False):
     start_time = parse_date(start_date).timestamp()
     end_time = parse_date(end_date).timestamp()
     timespan = end_time - start_time
-    total_races -= dnf_count
 
     fields.append(Field(
         title="Activity",
         content=(
             f"**Races:** {total_races:,}" +
-            (f" / **DNFs:** {dnf_count:,}\n" if multiplayer else "\n") +
-            f"**Solo:** {solo_races:,} / **Quickplay:** {(multiplayer_races - dnf_count):,}\n" +
-            (f"**Wins:** {wins:,} ({wins / multiplayer_races:.2%} win rate)\n" if wins > 0 else "\n") +
+            (f" / **DNFs:** {dnf_count:,}\n" if quickplay else "\n") +
+            f"**Solo:** {solo_races:,} / **Quickplay:** {multiplayer_races :,}\n" +
+            (f"**Wins:** {wins:,} ({wins / (multiplayer_races + dnf_count):.2%} win rate)\n" if wins > 0 else "") +
             f"**Quotes:** {unique_quotes:,}" +
             (f" ({new_quotes:,} new)\n" if new_quotes > 0 and not all_time else "\n") +
             f"**Quote Repeats:** {total_races / unique_quotes:,.2f}\n"
@@ -217,10 +214,11 @@ async def run(
     period: str = None,
 ):
     flags = ctx.flags
+    flags.status = flags.status or "ranked"
     start_date, end_date = get_start_end_dates(date, period)
 
     race_list = await get_races(
-        profile["userId"],
+        user_id=profile["userId"],
         start_date=start_date,
         end_date=end_date,
         flags=flags,
@@ -239,12 +237,11 @@ async def run(
         description = "No races completed"
 
     title = "Race Stats"
-    status = flags.get("status", "ranked")
 
-    if status in ["ranked", "unranked"]:
-        title = f"{status.title()} {title}"
+    if flags.status in ["ranked", "unranked"]:
+        title = f"{flags.status.title()} {title}"
 
-    flags.pop("status", None)
+    flags.status = None
     title += get_flag_title(flags)
 
     if start_date:

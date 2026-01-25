@@ -5,6 +5,7 @@ from dateutil.relativedelta import relativedelta
 
 from config import SITE_URL
 from utils.errors import InvalidArgument, InvalidNumber
+from utils.flags import Flags, LANGUAGES
 from utils.urls import race_url, profile_url
 
 # Constants
@@ -55,24 +56,6 @@ ALIAS_LOOKUP = {
     for alias in [original, *aliases]
 }
 
-LANGUAGES = {
-    "en": "English",
-    "es": "Spanish",
-    "fr": "French",
-    "de": "German",
-    "it": "Italian",
-    "pt": "Portuguese",
-    "nl": "Dutch",
-    "ru": "Russian",
-    "ja": "Japanese",
-    "zh": "Chinese (Simplified)",
-    "ko": "Korean",
-    "tr": "Turkish",
-    "no": "Norwegian",
-    "id": "Indonesian",
-    "la": "Latin",
-}
-
 
 # Argument & Parameter Parsing
 
@@ -100,17 +83,17 @@ def get_key_by_alias(alias_dict, alias):
     return None
 
 
-def get_flag_title(flags):
+def get_flag_title(flags: Flags):
     """Build a parenthetical title string from command flags (e.g., '(Raw, Solo)')."""
     flag_titles = []
-    if flags.get("metric"):
+    if flags.raw:
         flag_titles.append("Raw")
-    if flags.get("gamemode"):
-        flag_titles.append(flags["gamemode"].title())
-    if flags.get("status"):
-        flag_titles.append(flags["status"].title())
-    if flags.get("language"):
-        flag_titles.append(LANGUAGES.get(flags["language"]))
+    if flags.gamemode:
+        flag_titles.append(flags.gamemode.title())
+    if flags.status:
+        flag_titles.append(flags.status.title())
+    if flags.language:
+        flag_titles.append(LANGUAGES.get(flags.language))
 
     if not flag_titles:
         return ""
