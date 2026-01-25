@@ -1,6 +1,7 @@
 import copy
 from typing import Optional
 
+from dateutil import parser
 from discord.ext import commands
 
 from commands.base import Command
@@ -11,6 +12,7 @@ from graphs import segments as segment_graph
 from utils.errors import NoQuoteRaces
 from utils.keystrokes import get_keystroke_data, calculate_wpm, get_keystroke_wpm
 from utils.messages import Page, Message
+from utils.strings import format_duration
 from utils.strings import get_segments, quote_display
 
 info = {
@@ -37,6 +39,7 @@ async def run(ctx: commands.Context, profile: dict, quote: dict):
     if not quote_races:
         raise NoQuoteRaces(profile["username"])
 
+    pp_ratio = quote_races[0]["pp"] / quote_races[0]["wpm"]
     text_segments = get_segments(quote["text"])
     sum_of_best_segments = []
 
@@ -51,26 +54,56 @@ async def run(ctx: commands.Context, profile: dict, quote: dict):
 
         if not sum_of_best_segments:
             sum_of_best_segments = copy.deepcopy(segments)
+            for segment in sum_of_best_segments:
+                segment["raceNumber"] = race.get("raceNumber")
+                segment["timestamp"] = race.get("timestamp")
             continue
 
         for i, segment in enumerate(segments):
             if segment["wpm"] > sum_of_best_segments[i]["wpm"] and segment["text"] == text_segments[i]:
                 sum_of_best_segments[i] = copy.deepcopy(segment)
+                sum_of_best_segments[i]["raceNumber"] = race.get("raceNumber")
+                sum_of_best_segments[i]["timestamp"] = race.get("timestamp")
 
     delays = [delay for segment in sum_of_best_segments for delay in segment["delays"]]
     sum_of_best_wpm = calculate_wpm(len(quote["text"]) - 1, sum(delays))
+    sum_of_best_pp = sum_of_best_wpm * pp_ratio
     sum_of_best_keystroke_wpm = get_keystroke_wpm(delays)
+
+    unique_races = set()
+    timestamps = []
+    for segment in sum_of_best_segments:
+        race_num = segment.get("raceNumber")
+        timestamp = segment.get("timestamp")
+        if race_num:
+            unique_races.add(race_num)
+        if timestamp:
+            timestamps.append(parser.parse(timestamp))
+
+    unique_race_count = len(unique_races)
+    if len(timestamps) > 1:
+        time_span = (max(timestamps) - min(timestamps)).total_seconds()
+        time_span_display = format_duration(time_span)
+    else:
+        time_span_display = "0s"
+
+    stats_description = (
+        f"**Score:** {sum_of_best_pp:,.2f} pp\n"
+        f"**Speed:** {sum_of_best_wpm:,.2f} WPM\n"
+        f"**Unique Races:** {unique_race_count:,}\n"
+        f"**Timespan:** {time_span_display}\n"
+    )
 
     segments_description = (
         f"{quote_display(quote, display_status=True, display_text=False)}\n"
-        f"**Speed:** {sum_of_best_wpm:,.2f} WPM\n\n"
+        f"{stats_description}\n"
         "**WPM - Segment**\n"
     )
-    segments_description += "\n".join(format_segment(s) for s in sum_of_best_segments)
+    segments_description += "\n".join(format_segment(s, show_race=True) for s in sum_of_best_segments)
 
     race_graph_description = (
         f"{quote_display(quote, display_status=True)}\n"
-        f"**Speed:** {sum_of_best_wpm:,.2f} WPM\n\n"
+        f"{stats_description}"
     )
 
     segment_page = Page(

@@ -40,14 +40,29 @@ class Segments(Command):
         await run(ctx, profile, race_number)
 
 
-def format_segment(segment: dict) -> str:
+def format_segment(segment: dict, show_race: bool = False) -> str:
     """Format a segment with WPM and text, showing raw WPM as tooltip if higher."""
     text = segment["text"]
     if len(text) > 100:
         text = f"{text[:100]}..."
 
     wpm, raw_wpm = segment["wpm"], segment["raw_wpm"]
-    if raw_wpm > wpm:
+    race_num = segment.get("raceNumber")
+    timestamp = segment.get("timestamp")
+
+    # Build tooltip text
+    if show_race and race_num:
+        if timestamp:
+            from dateutil import parser
+            from utils.dates import format_date
+
+            date = parser.parse(timestamp)
+            formatted_date = format_date(date)
+            tooltip = f"Race #{race_num:,}\n{formatted_date}"
+        else:
+            tooltip = f"Race #{race_num}"
+        wpm_text = f"**[{wpm:,.2f}](http://a \"{tooltip}\")**"
+    elif raw_wpm > wpm:
         wpm_text = f"**[{wpm:,.2f}](http://a \"{raw_wpm:,.2f} Raw\")**"
     else:
         wpm_text = f"**{wpm:,.2f}**"
