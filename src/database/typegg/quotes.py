@@ -116,3 +116,41 @@ def get_ranked_quote_count():
     """)
 
     return result["total"]
+
+
+def update_quote(quote_id: str, updates: dict):
+    """Update a quote's fields. Only updates provided fields."""
+    if not updates:
+        return False
+
+    fields = [
+        "quoteId", "text", "explicit", "difficulty", "submittedByUsername",
+        "ranked", "created", "language", "sourceId",
+    ]
+    sets = []
+    params = []
+
+    for column in fields:
+        if column in updates:
+            sets.append(f"{column} = ?")
+            params.append(updates[column])
+
+    if not sets:
+        return False
+
+    params.append(quote_id)
+    db.run(f"""
+        UPDATE quotes
+        SET {", ".join(sets)}
+        WHERE quoteId = ?
+    """, params)
+
+    return True
+
+
+def delete_quote(quote_id: str):
+    """
+    Delete a quote by ID.
+    Cascades to delete races and keystroke_data via ON DELETE CASCADE.
+    """
+    db.run("DELETE FROM quotes WHERE quoteId = ?", [quote_id])

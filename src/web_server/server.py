@@ -9,6 +9,8 @@ from config import SOURCE_DIR, ROOT_DIR, TYPEGG_GUILD_ID
 from utils.logging import log
 from web_server.middleware import error_middleware, security_headers_middleware
 from web_server.routes.compare import compare_page
+from web_server.routes.quotes import create_quote, patch_quote, remove_quote
+from web_server.routes.sources import create_source, patch_source, remove_source
 from web_server.routes.update_gg_plus import update_gg_plus
 from web_server.routes.update_nwpm_role import update_nwpm_role
 from web_server.routes.verify import verify_user
@@ -36,6 +38,16 @@ class WebServer(commands.Cog):
         self.app.router.add_post("/update-nwpm-role", partial(update_nwpm_role, self))
         self.app.router.add_post("/update-gg-plus", partial(update_gg_plus, self))
         self.app.router.add_get("/compare/{username1}/vs/{username2}", compare_page)
+
+        # Quote routes
+        self.app.router.add_post("/quotes", create_quote)
+        self.app.router.add_patch("/quotes/{quoteId}", patch_quote)
+        self.app.router.add_delete("/quotes/{quoteId}", remove_quote)
+
+        # Source routes
+        self.app.router.add_post("/sources", create_source)
+        self.app.router.add_patch("/sources/{sourceId}", patch_source)
+        self.app.router.add_delete("/sources/{sourceId}", remove_source)
 
         # Static files
         self.app.router.add_static("/static", path=str(SOURCE_DIR / "web_server" / "static"), name="static")
