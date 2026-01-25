@@ -1,3 +1,4 @@
+from datetime import timezone
 from typing import Optional
 
 from dateutil.relativedelta import relativedelta
@@ -7,13 +8,16 @@ from api.quotes import get_quote
 from api.sources import get_source
 from api.users import get_races, get_profile
 from commands.base import Command
+from database.typegg.match_results import add_match_results
+from database.typegg.matches import add_matches
 from database.typegg.quotes import get_quotes, add_quote
 from database.typegg.races import add_races, get_latest_race
 from database.typegg.sources import get_sources, add_source
 from database.typegg.users import get_user, create_user
-from utils.dates import string_to_date, date_to_string, epoch
+from utils.dates import string_to_date, date_to_string, epoch, parse_date
 from utils.logging import log
 from utils.messages import Page, Message
+from utils.stats import calculate_duration
 from utils.strings import escape_formatting, LOADING
 
 info = {
@@ -129,11 +133,15 @@ async def run(
             reverse=False,
         )
         race_list = results["races"]
+        race_list_no_dnf = []
 
         if not race_list:
             break
 
         log(f"Fetched races {race_list[0]["raceNumber"] or "DNF"} - {race_list[-1]["raceNumber"] or "DNF"}")
+
+        match_list = []
+        match_result_list = []
 
         for race in race_list:
             quote_id = race["quoteId"]
@@ -142,27 +150,27 @@ async def run(
                 new_quote_ids.add(quote_id)
                 quote_ids.add(quote_id)
 
+            if race["completionType"] == "finished":
+                race_list_no_dnf.append(race)
+
             match = race.get("match")
 
             if match:
+                race["matchId"] = match["matchId"]
                 players = match["players"]
-                player = next((
-                    player for player in players
-                    if player.get("username") == profile.get("username")
-                ), None)
-                race["matchWpm"] = player["matchWpm"]
-                race["rawMatchWpm"] = player["rawMatchWpm"]
-                race["matchPp"] = player["matchPp"]
-                race["rawMatchPp"] = race.get("rawPp", 0) * (race["matchWpm"] / (race["wpm"] or 1))
-                race["players"] = len(players)
-                race["placement"] = player["placement"]
-            else:
-                race["matchWpm"] = None
-                race["rawMatchWpm"] = None
-                race["matchPp"] = None
-                race["rawMatchPp"] = None
-                race["players"] = 1
-                race["placement"] = 1
+                match["players"] = len(players)
+                match["gamemode"] = race["gamemode"]
+                match["quoteId"] = quote_id
+                match_list.append(match)
+
+                for player in players:
+                    player["matchId"] = match["matchId"]
+                    player["rawMatchPp"] = player.get("rawPp", 0) * (player["matchWpm"] / (player["wpm"] or 1))
+                    start_timestamp = match["startTime"]
+                    duration = calculate_duration(player["matchWpm"], player["charactersTyped"])
+                    end_timestamp = parse_date(start_timestamp) + relativedelta(microseconds=duration * 1000)
+                    player["timestamp"] = date_to_string(end_timestamp)
+                    match_result_list.append(player)
 
         if new_quote_ids:
             new_quote_count = len(new_quote_ids)
@@ -183,7 +191,9 @@ async def run(
 
             await import_new_quotes(list(new_quote_ids))
 
-        add_races(race_list)
+        add_races(race_list_no_dnf)
+        add_matches(match_list)
+        add_match_results(match_result_list)
 
         start_date = string_to_date(race_list[-1]["timestamp"]) + relativedelta(microseconds=1000)
 

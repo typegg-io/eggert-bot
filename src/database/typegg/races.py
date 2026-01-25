@@ -1,7 +1,7 @@
 from typing import Optional
 
 from database.typegg import db
-from utils.strings import LANGUAGES
+from utils.flags import Flags
 
 
 def race_insert(race):
@@ -10,25 +10,18 @@ def race_insert(race):
         race["raceId"],
         race["quoteId"],
         race["userId"],
+        race.get("matchId"),
         race["raceNumber"],
         race["pp"],
         race.get("rawPp", 0),
-        race["matchPp"],
-        race["rawMatchPp"],
         race["wpm"],
         race["rawWpm"],
-        race["matchWpm"],
-        race["rawMatchWpm"],
         race["duration"],
         race["accuracy"],
         race["errorReactionTime"],
         race["errorRecoveryTime"],
         race["timestamp"] + ".000Z" if "Z" not in race["timestamp"] else race["timestamp"],
         race["stickyStart"],
-        race["gamemode"],
-        race["placement"],
-        race["players"],
-        race["completionType"],
     )
 
 
@@ -36,7 +29,7 @@ def add_races(races):
     """Batch insert user races."""
     db.run_many(f"""
         INSERT OR IGNORE INTO races
-        VALUES ({",".join(["?"] * 22)})
+        VALUES ({",".join(["?"] * 15)})
     """, [race_insert(race) for race in races])
 
 
@@ -46,118 +39,94 @@ async def get_races(
     quote_id: str = None,
     start_date: Optional[str] = None,
     end_date: Optional[str] = None,
-    start_number: Optional[int] = None,
-    end_number: Optional[int] = None,
     min_pp: Optional[float] = 0,
     max_pp: Optional[float] = 99999,
-    gamemode: Optional[str] = None,
-    language: Optional[str] = None,
+    include_dnf: Optional[bool] = True,
     order_by: str = "timestamp",
     reverse: bool = False,
     limit: Optional[int] = None,
-    completion_type: Optional[str] = None,
-    flags: dict = {},
+    flags: Flags = Flags(),
 ):
-    """Fetch races for a user with optional filters."""
     columns = ",".join(columns)
+    table = "races"
 
-    if flags:
-        status = flags.get("status", "ranked")
+    # Applying flag filters
+    if flags.status != "ranked":
+        min_pp = -1
+        if flags.status == "unranked":
+            max_pp = 0
 
-        if status != "ranked":
-            min_pp = -1
-            if status == "unranked":
-                max_pp = 0
+    if flags.raw:
+        columns = "rawWpm as wpm, rawPp as pp, " + columns
+        if order_by in ["pp", "wpm"]:
+            order_by = "raw" + order_by.title()
 
-        metric = flags.get("metric")
+    multiplayer = flags.gamemode in ["quickplay", "lobby"]
 
-        if metric == "raw":
-            columns = "rawWpm as wpm, rawPp as pp, " + columns
-            if order_by in ["pp", "wpm"]:
-                order_by = "raw" + order_by.capitalize()
+    if multiplayer:
+        table = "multiplayer_races"
+        min_pp = -1
 
-        gamemode = flags.get("gamemode")
-        language = flags.get("language")
-
-    order = "DESC" if reverse else "ASC"
-
+    # WHERE clause
     conditions = ["userId = ?"]
     params = [user_id]
 
-    if quote_id is not None:
-        conditions.append("r.quoteId = ?")
-        params.append(quote_id)
-    if start_number is not None:
-        conditions.append(f"raceNumber >= {start_number}")
-    if end_number is not None:
-        conditions.append(f"raceNumber <= {end_number}")
-    if start_date is not None:
-        conditions.append("timestamp >= ?")
-        params.append(start_date)
-    if end_date is not None:
-        conditions.append("timestamp < ?")
-        params.append(end_date)
-    if min_pp is not None and gamemode != "quickplay":
-        conditions.append(f"pp > {min_pp}")
-    if max_pp is not None:
-        conditions.append(f"pp <= {max_pp}")
-    if gamemode is not None:
-        conditions.append(f"gamemode = ?")
-        params.append(gamemode)
-        if gamemode == "quickplay":
-            columns = "matchWpm as wpm, rawMatchWpm as rawWpm, matchPp as pp, rawMatchPp as rawPp, " + columns
-    if completion_type:
-        conditions.append("completionType = ?")
-        params.append(completion_type)
+    condition_map = {
+        quote_id: "r.quoteId = ?",
+        start_date: "timestamp >= ?",
+        end_date: "timestamp < ?",
+        min_pp: "pp > ?",
+        max_pp: "pp <= ?",
+    }
 
-    join_clause = ""
-    if language is not None and language in LANGUAGES:
-        join_clause = "JOIN quotes q ON q.quoteId = r.quoteId"
-        conditions.append("q.language = ?")
-        params.append(LANGUAGES.get(language))
-        columns = columns.replace("quoteId", "r.quoteId")
+    for param, condition in condition_map.items():
+        if param is not None:
+            conditions.append(condition)
+            params.append(param)
+
+    if flags.gamemode == "solo":
+        conditions.append("matchId IS NULL")
+
+    if multiplayer and not include_dnf:
+        conditions.append("completionType NOT IN ('dnf', 'quit')")
 
     where_clause = "WHERE " + " AND ".join(conditions)
 
+    # ORDER clause
+    order_clause = f"{order_by} {"DESC" if reverse else "ASC"}"
+
+    # JOIN clause
+    join_clause = ""
+    if flags.language:
+        join_clause = "JOIN quotes q ON q.quoteId = r.quoteId"
+        conditions.append("q.language = ?")
+        params.append(flags.language.name)
+        columns = columns.replace("quoteId", "r.quoteId")
+
+    # Fetching in batches
+    batch_size = 100_000
+    offset = 0
     race_list = []
-    batch_size, offset = 100_000, 0
 
     while True:
-        lim = f"LIMIT {limit}" if limit else f"LIMIT {batch_size} OFFSET {offset}"
-        batch = await db.fetch_async(f"""
+        limit_clause = f"LIMIT {limit}" if limit else f"LIMIT {batch_size} OFFSET {offset}"
+        batch = db.fetch(f"""
             SELECT {columns}
-            FROM races r
+            FROM {table} r
             {join_clause}
             {where_clause}
-            ORDER BY {order_by} {order}
-            {lim}
+            ORDER BY {order_clause}
+            {limit_clause}
         """, params)
+
         race_list.extend(batch)
 
         if limit or not batch:
             break
+
         offset += batch_size
 
     return race_list
-
-
-def get_quote_races(
-    user_id: str,
-    quote_id: str,
-    order_by: str = "timestamp",
-    reverse: bool = False,
-):
-    """Returns a list of all a user's races for a specific quote."""
-    order = "DESC" if reverse else "ASC"
-
-    results = db.fetch(f"""
-        SELECT * FROM races
-        WHERE userId = ?
-        AND quoteId = ?
-        ORDER BY {order_by} {order}
-    """, [user_id, quote_id])
-
-    return results
 
 
 def get_latest_race(user_id: str):

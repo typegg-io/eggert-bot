@@ -1,8 +1,8 @@
 from typing import Optional
 
 from database.typegg import db
+from utils.flags import Flags
 from utils.logging import log
-from utils.strings import LANGUAGES
 
 
 def create_user(user_id: str):
@@ -20,81 +20,83 @@ def get_quote_bests(
     start_date: Optional[str] = None,
     end_date: Optional[str] = None,
     order_by: Optional[str] = "pp",
-    gamemode: Optional[str] = None,
-    language: Optional[str] = None,
     reverse: Optional[bool] = True,
     limit: Optional[int] = None,
     as_dictionary: Optional[bool] = False,
-    flags: Optional[dict] = {},
+    flags: Flags = Flags(),
 ):
     """Returns quote bests for a user, with available filters."""
-
-    columns = ",".join(columns)
     min_pp = 0
     max_pp = 99999
+    columns = ",".join(columns)
+    table = "races"
 
-    if flags:
-        status = flags.get("status", "ranked")
+    # Applying flag filters
+    if flags.status != "ranked":
+        min_pp = -1
+        if flags.status == "unranked":
+            max_pp = 0
 
-        if status != "ranked":
-            min_pp = -1
-            if status == "unranked":
-                max_pp = 0
-                order_by = "wpm"
+    if flags.raw:
+        columns = "rawWpm as wpm, rawPp as pp, " + columns
+        if order_by in ["pp", "wpm"]:
+            order_by = "raw" + order_by.title()
 
-        metric = flags.get("metric")
+    multiplayer = flags.gamemode in ["quickplay", "lobby"]
 
-        if metric == "raw":
-            columns = "rawWpm as wpm, rawPp as pp, " + columns
-            if order_by in ["pp", "wpm"]:
-                order_by = "raw" + order_by.capitalize()
+    if multiplayer:
+        table = "multiplayer_races"
+        min_pp = -1
 
-        gamemode = flags.get("gamemode")
-        language = flags.get("language")
-
-    aggregate_column = f"MAX({order_by}) AS {order_by}"
-    order = "DESC" if reverse else "ASC"
-    limit = f"LIMIT {limit}" if limit else ""
-
+    # WHERE clause
     conditions = ["userId = ?"]
     params = [user_id]
 
-    if quote_id is not None:
-        conditions.append("r.quoteId = ?")
-        params.append(quote_id)
-    if start_date is not None:
-        conditions.append("timestamp >= ?")
-        params.append(start_date)
-    if end_date is not None:
-        conditions.append("timestamp < ?")
-        params.append(end_date)
-    if gamemode is not None and gamemode in ["solo", "quickplay", "lobby"]:
-        conditions.append("gamemode = ?")
-        params.append(gamemode)
-        if gamemode == "quickplay":
-            columns = "matchWpm as wpm, rawMatchWpm as rawWpm, matchPp as pp, rawMatchPp as rawPp, " + columns
-            if order_by in ["pp", "wpm"]:
-                aggregate_column = aggregate_column.replace(order_by, "match" + order_by.title())
+    condition_map = {
+        quote_id: "r.quoteId = ?",
+        start_date: "timestamp >= ?",
+        end_date: "timestamp < ?",
+        min_pp: "pp > ?",
+        max_pp: "pp <= ?",
+    }
 
-    join_clause = ""
-    if language is not None and language in LANGUAGES:
-        join_clause = "JOIN quotes q ON q.quoteId = r.quoteId"
-        conditions.append("q.language = ?")
-        params.append(LANGUAGES.get(language))
-        columns = columns.replace("quoteId", "r.quoteId")
+    for param, condition in condition_map.items():
+        if param is not None:
+            conditions.append(condition)
+            params.append(param)
+
+    if flags.gamemode == "solo":
+        conditions.append("matchId IS NULL")
+
+    if multiplayer:
+        conditions.append("completionType NOT IN ('dnf', 'quit')")
 
     where_clause = "WHERE " + " AND ".join(conditions)
 
+    # ORDER clause
+    order_clause = "DESC" if reverse else "ASC"
+
+    # JOIN clause
+    join_clause = ""
+    if flags.language:
+        join_clause = "JOIN quotes q ON q.quoteId = r.quoteId"
+        conditions.append("q.language = ?")
+        params.append(flags.language.name)
+        columns = columns.replace("quoteId", "r.quoteId")
+
+    aggregate_column = f"MAX({order_by}) AS {order_by}"
+    limit_clause = f"LIMIT {limit}" if limit else ""
+
     results = db.fetch(f"""
         SELECT {aggregate_column}, {columns}
-        FROM races r
+        FROM {table} r
         {join_clause}
         {where_clause}
         AND pp > {min_pp}
         AND pp <= {max_pp}
         GROUP BY r.quoteId
-        ORDER BY {order_by} {order}
-        {limit}
+        ORDER BY {order_by} {order_clause}
+        {limit_clause}
     """, params)
 
     if as_dictionary:

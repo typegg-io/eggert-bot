@@ -10,29 +10,25 @@ db.run("""
 db.run("""
     CREATE TABLE IF NOT EXISTS races (
         raceId TEXT PRIMARY KEY,
-        quoteId TEXT NOT NULL,
+        quoteId TEXT NOT NULL REFERENCES quotes(quoteId) ON UPDATE CASCADE,
         userId TEXT NOT NULL,
+        matchId TEXT,
         raceNumber INTEGER,
         pp REAL NOT NULL,
         rawPp REAL NOT NULL,
-        matchPp REAL,
-        rawMatchPp REAL,
         wpm REAL NOT NULL,
         rawWpm REAL NOT NULL,
-        matchWpm REAL,
-        rawMatchWpm REAl,
         duration REAL NOT NULL,
         accuracy REAL NOT NULL,
         errorReactionTime REAL NOT NULL,
         errorRecoveryTime REAL NOT NULL,
         timestamp TEXT NOT NULL, -- ISO 8601 string
-        stickyStart INTEGER, -- boolean
-        gamemode TEXT NOT NULL,
-        placement INTEGER NOT NULL,
-        players INTEGER NOT NULL,
-        completionType TEXT NOT NULL
+        stickyStart INTEGER -- boolean
     );
 """)
+
+db.run("CREATE INDEX IF NOT EXISTS idx_races_userId on races(userId)")
+db.run("CREATE INDEX IF NOT EXISTS idx_races_userId_quoteId on races(userId, quoteId)")
 
 db.run("""
     CREATE TABLE IF NOT EXISTS sources (
@@ -48,35 +44,34 @@ db.run("""
 db.run("""
     CREATE TABLE IF NOT EXISTS quotes (
         quoteId TEXT PRIMARY KEY,
-        sourceId TEXT NOT NULL,
+        sourceId TEXT NOT NULL REFERENCES sources(sourceId) ON UPDATE CASCADE,
         text TEXT NOT NULL,
         explicit INTEGER NOT NULL, -- boolean
         difficulty REAL NOT NULL,
         submittedByUsername TEXT NOT NULL,
         ranked INTEGER NOT NULL, -- boolean
         created TEXT NOT NULL, -- ISO 8601 string
-        language TEXT NOT NULL,
-        FOREIGN KEY (sourceId) REFERENCES sources(sourceId)
+        language TEXT NOT NULL
     );
 """)
 
 db.run("""
     CREATE TABLE IF NOT EXISTS daily_quotes (
         dayNumber INTEGER PRIMARY KEY,
+        quoteId TEXT NOT NULL REFERENCES quotes(quoteId) ON UPDATE CASCADE,
         startDate TEXT NOT NULL, -- ISO 8601 string
         endDate TEXT NOT NULL, -- ISO 8601 string
         races INTEGER NOT NULL,
-        uniqueUsers INTEGER NOT NULL,
-        quoteId TEXT NOT NULL
+        uniqueUsers INTEGER NOT NULL
     )
 """)
 
 db.run("""
     CREATE TABLE IF NOT EXISTS daily_quote_results (
-        dayNumber INTEGER NOT NULL,
+        dayNumber INTEGER NOT NULL REFERENCES daily_quotes(dayNumber),
         rank INTEGER NOT NULL,
         raceId TEXT NOT NULL,
-        quoteId TEXT NOT NULL,
+        quoteId TEXT NOT NULL REFERENCES quotes(quoteId) ON UPDATE CASCADE,
         userId TEXT NOT NULL,
         username TEXT NOT NULL,
         country TEXT,
@@ -91,17 +86,75 @@ db.run("""
         errorRecoveryTime REAL NOT NULL,
         timestamp TEXT NOT NULL, -- ISO 8601 string
         stickyStart INTEGER NOT NULL, -- boolean
-        gamemode TEXT NOT NULL,
-        FOREIGN KEY(dayNumber) REFERENCES daily_quotes(dayNumber)
+        gamemode TEXT NOT NULL
     )
 """)
 
 db.run("""
     CREATE TABLE IF NOT EXISTS daily_quote_id (
         id INTEGER PRIMARY KEY CHECK (id = 1),
-        quoteId TEXT NOT NULL
+        quoteId TEXT NOT NULL REFERENCES quotes(quoteId) ON UPDATE CASCADE
     )
 """)
 
-db.run("CREATE INDEX IF NOT EXISTS idx_races_userId on races(userId)")
-db.run("CREATE INDEX IF NOT EXISTS idx_races_userId_quoteId on races(userId, quoteId)")
+db.run("""
+    CREATE TABLE IF NOT EXISTS matches (
+        matchId TEXT PRIMARY KEY,
+        quoteId TEXT NOT NULL REFERENCES quotes(quoteId) ON UPDATE CASCADE,
+        startTimestamp TEXT NOT NULL, -- ISO 8601 string
+        gamemode TEXT NOT NULL,
+        players INTEGER NOT NULL
+    )
+""")
+
+db.run("""
+    CREATE TABLE IF NOT EXISTS match_results (
+        resultId INTEGER PRIMARY KEY,
+        matchId TEXT NOT NULL,
+        userId TEXT,
+        botId TEXT,
+        username TEXT,
+        raceNumber INTEGER,
+        matchWpm REAL,
+        rawMatchWpm REAL,
+        matchPp REAL,
+        rawMatchPp REAL,
+        startTime INTEGER,
+        accuracy REAL,
+        placement INTEGER,
+        completionType TEXT,
+        timestamp TEXT -- ISO 8601 string
+    )
+""")
+
+db.run("""
+    CREATE UNIQUE INDEX IF NOT EXISTS idx_match_results_matchId_userId 
+    ON match_results(matchId, userId)
+""")
+
+db.run("""
+    CREATE VIEW IF NOT EXISTS multiplayer_races AS
+    SELECT
+        mr.matchId,
+        mr.userId,
+        m.quoteId,
+        mr.raceNumber,
+        r.raceId,
+        r.duration,
+        r.accuracy,
+        r.errorReactionTime,
+        r.errorRecoveryTime,
+        r.stickyStart,
+        mr.matchWpm as wpm,
+        mr.rawMatchWpm as rawWpm,
+        mr.matchPp as pp,
+        mr.rawMatchPp as rawPp,
+        mr.completionType,
+        mr.timestamp,
+        mr.placement,
+        m.gamemode,
+        m.players
+    FROM match_results mr
+    LEFT JOIN races r ON r.matchId = mr.matchId AND r.userId = mr.userId
+    JOIN matches m ON m.matchId = mr.matchId
+""")

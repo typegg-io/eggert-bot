@@ -11,11 +11,11 @@ def add_daily_quote(daily_quote: dict):
         VALUES ({",".join(["?"] * 6)})
     """, [
         daily_quote["dayNumber"],
+        daily_quote["quote"]["quoteId"],
         daily_quote["startDate"],
         daily_quote["endDate"],
         daily_quote["races"],
         daily_quote["uniqueUsers"],
-        daily_quote["quote"]["quoteId"],
     ])
 
 
