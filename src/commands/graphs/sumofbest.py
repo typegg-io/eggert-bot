@@ -24,7 +24,7 @@ info = {
 class SumOfBest(Command):
     @commands.command(aliases=info["aliases"])
     async def sumofbest(self, ctx, quote_id: Optional[str], username: Optional[str] = "me"):
-        await self.check_gg_plus(ctx)
+        self.check_gg_plus(ctx)
         profile = await self.get_profile(ctx, username, races_required=True)
         await self.import_user(ctx, profile)
         quote = await self.get_quote(ctx, quote_id, user_id=profile["userId"])
