@@ -56,10 +56,12 @@ db.run("""
         text TEXT NOT NULL,
         explicit INTEGER NOT NULL, -- boolean
         difficulty REAL NOT NULL,
+        complexity REAL NOT NULL,
         submittedByUsername TEXT NOT NULL,
         ranked INTEGER NOT NULL, -- boolean
         created TEXT NOT NULL, -- ISO 8601 string
-        language TEXT NOT NULL
+        language TEXT NOT NULL,
+        formatting TEXT -- JSON
     );
 """)
 

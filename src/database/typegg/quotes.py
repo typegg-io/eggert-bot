@@ -1,3 +1,5 @@
+import json
+
 from api.quotes import get_all_quotes
 from api.sources import get_all_sources
 from database.typegg import db
@@ -8,16 +10,22 @@ from utils.logging import log
 
 def quote_insert(quote):
     """Return a quote tuple for parameterized inserting."""
+    formatting = quote.get("formatting")
+    if formatting is not None and not isinstance(formatting, str):
+        formatting = json.dumps(formatting)
+
     return (
         quote["quoteId"],
         quote["source"]["sourceId"],
         quote["text"],
         quote["explicit"],
         quote["difficulty"],
+        quote.get("complexity", 0.0),
         quote["submittedByUsername"],
         quote["ranked"],
         quote["created"],
         quote["language"],
+        formatting,
     )
 
 
@@ -25,14 +33,14 @@ def add_quotes(quotes):
     """Batch insert quotes."""
     db.run_many(f"""
         INSERT OR IGNORE INTO quotes
-        VALUES ({",".join(["?"] * 9)})
+        VALUES ({",".join(["?"] * 11)})
     """, [quote_insert(quote) for quote in quotes])
 
 
 def add_quote(quote):
     db.run(f"""
         INSERT OR IGNORE INTO quotes
-        VALUES ({",".join(["?"] * 9)})
+        VALUES ({",".join(["?"] * 11)})
     """, quote_insert(quote))
 
 
@@ -79,6 +87,12 @@ def get_quote(quote_id: str):
     source = get_source(quote["sourceId"])
     quote["source"] = source
 
+    if quote.get("formatting"):
+        try:
+            quote["formatting"] = json.loads(quote["formatting"])
+        except (json.JSONDecodeError, TypeError):
+            pass
+
     return quote
 
 
@@ -124,16 +138,19 @@ def update_quote(quote_id: str, updates: dict):
         return False
 
     fields = [
-        "quoteId", "text", "explicit", "difficulty", "submittedByUsername",
-        "ranked", "created", "language", "sourceId",
+        "quoteId", "text", "explicit", "difficulty", "complexity", "submittedByUsername",
+        "ranked", "created", "language", "sourceId", "formatting",
     ]
     sets = []
     params = []
 
     for column in fields:
         if column in updates:
+            value = updates[column]
+            if column == "formatting" and value is not None and not isinstance(value, str):
+                value = json.dumps(value)
             sets.append(f"{column} = ?")
-            params.append(updates[column])
+            params.append(value)
 
     if not sets:
         return False
