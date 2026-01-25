@@ -76,6 +76,7 @@ def build_segments(parts: list[str], delays: list, raw_delays: list) -> list[dic
             "text": text,
             "wpm": calculate_wpm(sum(segment_delays), char_count),
             "raw_wpm": calculate_wpm(sum(raw_segment_delays), char_count),
+            "delays": segment_delays,
         })
         char_index += length
 

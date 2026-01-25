@@ -793,3 +793,23 @@ def get_keystroke_data(keystroke_data: list) -> ProcessResult:
     processed_data = process_keystroke_data(decoded_data)
 
     return processed_data
+
+
+def get_keystroke_wpm(delays: list[int], adjusted: bool = True):
+    """
+    Returns a list of WPM over keystrokes given a list of ms delays.
+    adjusted = True will always eliminate the first delay.
+    """
+    keystroke_wpm = []
+    duration = 0
+
+    if delays[0] == 0 or adjusted:
+        delays = delays[1:]
+        keystroke_wpm = [float("inf")]
+
+    for i, delay in enumerate(delays):
+        duration += delay
+        wpm = 12000 * (i + 1) / duration if duration else float("inf")
+        keystroke_wpm.append(wpm)
+
+    return keystroke_wpm
