@@ -192,8 +192,13 @@ async def run(
 
             await import_new_quotes(list(new_quote_ids))
 
+        keystroke_races = [
+            race for race in race_list
+            if race.get("keystrokedata")
+        ]
+
         add_races(race_list_no_dnf)
-        add_keystroke_data(race_list_no_dnf)
+        add_keystroke_data(keystroke_races)
         add_matches(match_list)
         add_match_results(match_result_list)
 
