@@ -46,7 +46,6 @@ def get_quote_bests(
 
     if multiplayer:
         table = "multiplayer_races"
-        min_pp = -1
 
     # WHERE clause
     conditions = ["userId = ?"]

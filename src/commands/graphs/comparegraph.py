@@ -27,6 +27,7 @@ class CompareGraph(Command):
         username2 = "me"
         diff_range = None
         metric = None
+        ctx.flags.status = ctx.flags.status or "ranked"
 
         remaining_args = list(args)
         if remaining_args:

@@ -60,6 +60,7 @@ class Histogram(Command):
 
 async def run(ctx: commands.Context, profile: dict, metric: str):
     user_id = profile["userId"]
+    ctx.flags.status = ctx.flags.status or "ranked"
     ctx.flags.gamemode = "solo"
     solo_quote_bests = get_quote_bests(user_id, columns=metrics.keys(), flags=ctx.flags)
     ctx.flags.gamemode = "quickplay"

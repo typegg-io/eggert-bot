@@ -35,6 +35,7 @@ async def run(ctx: commands.Context, profile: dict, n: int):
         raise NumberGreaterThan
 
     ctx.flags.gamemode = ctx.flags.gamemode or "quickplay"
+    ctx.flags.status = ctx.flags.status or "ranked"
 
     race_list = await get_races(
         user_id=profile["userId"],

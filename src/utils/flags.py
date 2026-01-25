@@ -54,7 +54,7 @@ class Flags: # IF status == unranked, metric = wpm
     metric: Optional[str] = "pp"
     raw: Optional[bool] = False
     gamemode: Optional[str] = None
-    status: Optional[str] = "ranked"
+    status: Optional[str] = None
     language: Optional[Union[str, Language]] = None
 
     def __post_init__(self):
