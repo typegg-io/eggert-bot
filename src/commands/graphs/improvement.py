@@ -35,6 +35,8 @@ class Improvement(Command):
         profile = await self.get_profile(ctx, username, races_required=True)
         await self.import_user(ctx, profile)
 
+        ctx.flags.status = ctx.flags.status or "ranked"
+
         if solo:
             await solo_improvement(ctx, profile, metric)
         else:
