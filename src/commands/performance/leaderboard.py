@@ -107,7 +107,8 @@ class Leaderboard(Command):
 
 
 def entry_formatter(data):
-    return f"{rank(data["rank"])} {username_with_flag(data)} - {data["category"]["formatter"](data)}\n"
+    bold = "**" if data["highlight"] else ""
+    return f"{bold}{rank(data["rank"])} {username_with_flag(data)} - {data["category"]["formatter"](data)}{bold}\n"
 
 
 async def run(ctx: commands.Context, category: dict):
@@ -140,7 +141,11 @@ async def run(ctx: commands.Context, category: dict):
 
     leaderboard = results["users"]
     for i in range(len(leaderboard)):
-        leaderboard[i] |= {"rank": i + 1, "category": category}
+        leaderboard[i] |= {
+            "rank": i + 1,
+            "category": category,
+            "highlight": leaderboard[i]["userId"] == ctx.user["userId"],
+        }
     pages = paginate_data(leaderboard, entry_formatter, page_count=5, per_page=20)
 
     footer = None
