@@ -4,6 +4,7 @@ from discord.ext import commands
 
 from commands.base import Command
 from utils.colors import ERROR
+from utils.errors import MissingArguments
 
 info = {
     "name": "define",
@@ -16,6 +17,9 @@ info = {
 class Define(Command):
     @commands.command(aliases=info["aliases"])
     async def define(self, ctx, *words: str):
+        if not words:
+            raise MissingArguments
+
         word = words[0]
 
         try:
