@@ -17,7 +17,7 @@ def quote_insert(quote):
 
     return (
         quote["quoteId"],
-        quote["source"]["sourceId"],
+        quote.get("source") and quote.get("source").get("sourceId") or quote.get("sourceId"),
         quote["text"],
         quote["explicit"],
         quote["difficulty"],
