@@ -1,4 +1,5 @@
 import json
+from json import JSONDecodeError
 
 from api.quotes import get_all_quotes
 from api.sources import get_all_sources
@@ -67,10 +68,20 @@ def get_quotes(
         {where_clause}
     """, params)
 
-    if as_dictionary:
-        return {quote["quoteId"]: quote for quote in results}
+    parsed = []
+    for quote in results:
+        quote = dict(quote)
+        if quote["formatting"]:
+            try:
+                quote["formatting"] = json.loads(quote["formatting"])
+            except JSONDecodeError:
+                pass
+        parsed.append(quote)
 
-    return results
+    if as_dictionary:
+        return {quote["quoteId"]: quote for quote in parsed}
+
+    return parsed
 
 
 def get_quote(quote_id: str):
