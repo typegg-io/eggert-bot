@@ -108,7 +108,7 @@ class Leaderboard(Command):
 
 def entry_formatter(data):
     bold = "**" if data["highlight"] else ""
-    return f"{bold}{rank(data["rank"])} {username_with_flag(data)} - {data["category"]["formatter"](data)}{bold}\n"
+    return f"{rank(data["rank"])} {bold}{username_with_flag(data)} - {data["category"]["formatter"](data)}{bold}\n"
 
 
 async def run(ctx: commands.Context, category: dict):
