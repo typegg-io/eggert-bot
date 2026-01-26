@@ -13,7 +13,7 @@ from database.bot.users import update_warning
 from database.typegg.daily_quotes import get_daily_quote_id
 from database.typegg.quotes import get_quote
 from database.typegg.races import get_latest_race
-from utils.errors import MissingUsername, NoRaces, NotSubscribed
+from utils.errors import MissingUsername, NoRaces, NotSubscribed, InvalidNumber
 from utils.messages import privacy_warning, command_milestone
 from utils.strings import parse_number
 
@@ -122,7 +122,10 @@ class Command(commands.Cog):
         if race_number is None:
             race_number = total_races
         else:
-            race_number = parse_number(race_number)
+            try:
+                race_number = parse_number(race_number)
+            except ValueError:
+                raise InvalidNumber
             if race_number < 1:
                 race_number = total_races + race_number
 
