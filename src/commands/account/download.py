@@ -194,7 +194,7 @@ async def run(
 
         keystroke_races = [
             race for race in race_list_no_dnf
-            if race.get("keystrokedata")
+            if race.get("keystrokeData")
         ]
 
         add_races(race_list_no_dnf)
