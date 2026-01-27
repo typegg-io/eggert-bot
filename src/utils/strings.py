@@ -389,12 +389,14 @@ def apply_rich_text(text: str, formatting: dict[str, list[tuple[int, int]]]):
     final = []
 
     for start, end, forms in segments:
+        segment_text = escape_formatting(text[start:end], remove_backticks=False)
+
         if not forms:
-            final.append(text[start:end])
+            final.append(segment_text)
             continue
 
         token_string = "".join(tokens[f] for f in order if f in forms)
-        final.append(ZWSP + token_string + text[start:end] + token_string[::-1])
+        final.append(ZWSP + token_string + segment_text + token_string[::-1])
 
     return "".join(final)
 
