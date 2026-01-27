@@ -1,4 +1,4 @@
-from typing import List, Optional
+from typing import List
 
 from discord.ext import commands
 from numpy import average
@@ -25,11 +25,15 @@ info = {
 
 class Top250(Command):
     @commands.command(aliases=info["aliases"])
-    async def top250(self, ctx, username: Optional[str] = "me", *other_users: str):
-        other_users = other_users[:max_users_shown - 1]
-        usernames = set(other_users)
-        usernames.add(username)
-        profiles = [await self.get_profile(ctx, username, races_required=True) for username in usernames]
+    async def top250(self, ctx, *other_users: str):
+        other_users = list(dict.fromkeys(other_users))
+        usernames = other_users[:max_users_shown] or [ctx.user["userId"]]
+        profiles = []
+
+        for username in usernames:
+            profile = await self.get_profile(ctx, username, races_required=True)
+            profiles.append(profile)
+            await self.import_user(ctx, profile)
 
         await run(ctx, profiles)
 
