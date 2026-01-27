@@ -470,26 +470,42 @@ def get_segments(text: str):
 
         # For all segments except the last
         if i < len(segments) - 1:
-            # Find the nearest space forward from the current end position
+            # Find the nearest separator (space or newline) forward from the current end position
             forward_space = text.find(' ', end)
-            # Find the nearest space backward from the current end position
-            backward_space = text.rfind(' ', 0, end)
+            forward_newline = text.find("\n", end)
 
-            # If we found both spaces, choose the closest one
-            if forward_space != -1 and backward_space != -1:
+            # Take the closest forward separator
+            if forward_space != -1 and forward_newline != -1:
+                forward_sep = min(forward_space, forward_newline)
+            elif forward_space != -1:
+                forward_sep = forward_space
+            elif forward_newline != -1:
+                forward_sep = forward_newline
+            else:
+                forward_sep = -1
+
+            # Find the nearest separator (space or newline) backward from the current end position
+            backward_space = text.rfind(' ', 0, end)
+            backward_newline = text.rfind("\n", 0, end)
+
+            # Take the closest backward separator
+            backward_sep = max(backward_space, backward_newline)
+
+            # If we found both forward and backward separators, choose the closest one
+            if forward_sep != -1 and backward_sep != -1:
                 # Calculate distances
-                forward_dist = forward_space - end
-                backward_dist = end - backward_space
+                forward_dist = forward_sep - end
+                backward_dist = end - backward_sep
 
                 if forward_dist <= backward_dist:
-                    new_end = forward_space
+                    new_end = forward_sep
                 else:
-                    new_end = backward_space
-            elif forward_space != -1:  # Only forward space found
-                new_end = forward_space
-            elif backward_space != -1:  # Only backward space found
-                new_end = backward_space
-            else:  # No spaces found
+                    new_end = backward_sep
+            elif forward_sep != -1:  # Only forward separator found
+                new_end = forward_sep
+            elif backward_sep != -1:  # Only backward separator found
+                new_end = backward_sep
+            else:  # No separators found
                 new_end = end
 
             # Ensure segments don't overlap and maintain order
