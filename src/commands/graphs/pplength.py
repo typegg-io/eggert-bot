@@ -5,6 +5,7 @@ from commands.base import Command
 from database.typegg.quotes import get_quotes
 from database.typegg.users import get_quote_bests
 from graphs import pplength
+from utils.flags import Flags
 
 info = {
     "name": "pplength",
@@ -27,7 +28,7 @@ class PpLengthGraph(Command):
 
 
 async def run(ctx: commands.Context, profile: dict):
-    quote_bests = get_quote_bests(profile["userId"])
+    quote_bests = get_quote_bests(profile["userId"], flags=Flags(status="ranked"))
     quotes = get_quotes()
 
     file_name = pplength.render(
