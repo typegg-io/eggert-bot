@@ -106,8 +106,11 @@ async def get_races(
     if flags.gamemode == "solo":
         conditions.append("matchId IS NULL")
 
-    if multiplayer and not include_dnf:
-        conditions.append("completionType NOT IN ('dnf', 'quit')")
+    if multiplayer:
+        conditions.append("gamemode = ?")
+        params.append(flags.gamemode)
+        if not include_dnf:
+            conditions.append("completionType NOT IN ('dnf', 'quit')")
 
     where_clause = "WHERE " + " AND ".join(conditions)
 

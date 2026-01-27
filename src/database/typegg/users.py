@@ -69,6 +69,8 @@ def get_quote_bests(
 
     if multiplayer:
         conditions.append("completionType NOT IN ('dnf', 'quit')")
+        conditions.append("gamemode = ?")
+        params.append(flags.gamemode)
 
     where_clause = "WHERE " + " AND ".join(conditions)
 
