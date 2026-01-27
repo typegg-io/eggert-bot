@@ -138,9 +138,11 @@ db.run("""
 """)
 
 db.run("""
-    CREATE UNIQUE INDEX IF NOT EXISTS idx_match_results_matchId_userId 
+    CREATE UNIQUE INDEX IF NOT EXISTS idx_match_results_matchId_userId
     ON match_results(matchId, userId)
 """)
+
+db.run("CREATE INDEX IF NOT EXISTS idx_races_matchId_userId ON races(matchId, userId);")
 
 db.run("""
     CREATE VIEW IF NOT EXISTS multiplayer_races AS
