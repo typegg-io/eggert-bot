@@ -108,7 +108,7 @@ async def run_self(ctx: commands.Context, quote: dict, profile: dict):
     if recent_race["raceId"] == best_race["raceId"]:
         old_best = dict(sorted_by_wpm[-2])
         description += format_race(profile, best_race, "New Best")
-        description += format_race(profile, old_best, "Old Best")
+        description += format_race(profile, old_best, "Previous Best")
         race_numbers = [recent_race["raceNumber"], old_best["raceNumber"]]
         race_data = [recent_race, old_best]
 
