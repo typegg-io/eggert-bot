@@ -113,7 +113,7 @@ async def run(ctx: commands.Context, profile: dict, quote: dict):
         render=lambda: segment_graph.render(
             sum_of_best_segments,
             title=f"WPM Segments - {profile["username"]} (Sum of Best)",
-            x_label="Words",
+            x_label="Segments",
             theme=ctx.user["theme"],
         ),
         button_name="Segments",
