@@ -17,7 +17,7 @@ from utils.strings import get_segments, quote_display
 
 info = {
     "name": "sumofbest",
-    "aliases": ["sob"],
+    "aliases": ["sob", ":sob:", "😭"],
     "description": "Displays your Sum of Best WPM segments merged to a single graph",
     "parameters": "[quote_id] [username]",
     "plus": True,
