@@ -361,3 +361,10 @@ class MessageTooLong(CommandError):
         title="Message Too Long",
         description="The maximum number of characters\nfor a message has been exceeded"
     )
+
+
+class InvalidKeystrokeData(CommandError):
+    embed = Embed(
+        title="Invalid Keystroke Data",
+        description="The format of this keystroke data is invalid",
+    )

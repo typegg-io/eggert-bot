@@ -9,7 +9,7 @@ from commands.graphs.segments import build_segments, format_segment
 from database.typegg.races import get_races
 from graphs import match as match_graph
 from graphs import segments as segment_graph
-from utils.errors import NoQuoteRaces
+from utils.errors import NoQuoteRaces, InvalidKeystrokeData
 from utils.keystrokes import get_keystroke_data, calculate_wpm, get_keystroke_wpm
 from utils.messages import Page, Message
 from utils.strings import format_duration
@@ -45,7 +45,10 @@ async def run(ctx: commands.Context, profile: dict, quote: dict):
     sum_of_best_segments = []
 
     for race in quote_races:
-        keystroke_data = get_keystroke_data(race["keystrokeData"])
+        try:
+            keystroke_data = get_keystroke_data(race["keystrokeData"])
+        except InvalidKeystrokeData:
+            continue
 
         segments = build_segments(
             text_segments,

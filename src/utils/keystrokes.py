@@ -3,6 +3,8 @@
 from dataclasses import dataclass, field
 from typing import List, Dict, Set, Optional, Union
 
+from utils.errors import InvalidKeystrokeData
+
 ATTRIBUTION_WINDOW = 7
 FAT_FINGER_THRESHOLD_MS = 7
 TRANSPOSITION_THRESHOLD_MS = 7
@@ -771,6 +773,9 @@ def process_keystroke_data(
 
     keystroke_wpm = [point.wpm for point in keystrokes_wpm_graph_data]
     keystroke_raw_wpm = [point.raw for point in keystrokes_wpm_graph_data]
+
+    if not (len(wpm_character_times) == len(raw_character_times) == len(text)):
+        raise InvalidKeystrokeData
 
     return ProcessResult(
         keystrokesWpmGraphData=keystrokes_wpm_graph_data,
