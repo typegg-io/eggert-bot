@@ -162,6 +162,9 @@ def process_keystroke_data(
     is_multiplayer: bool = False,
     reaction_time: float = 0
 ) -> ProcessResult:
+    if not keystroke_data.text:
+        raise InvalidKeystrokeData
+
     keystrokes = keystroke_data.keystrokes
     text = keystroke_data.text.replace('\r\n', '\n')
     words = split_words(text)

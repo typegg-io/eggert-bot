@@ -8,6 +8,7 @@ from commands.base import Command
 from commands.graphs.racegraph import run as run_racegraph
 from database.typegg.quotes import get_quote
 from graphs import match as match_graph
+from utils.errors import InvalidKeystrokeData
 from utils.keystrokes import get_keystroke_data
 from utils.messages import Page, Message
 from utils.stats import get_pauseless_delays
@@ -64,15 +65,17 @@ async def run(ctx: commands.Context, profile: dict, race_number: int):
             themed_line = i
 
         bot = ":robot:" if player["botId"] else ""
-
-        keystroke_data = get_keystroke_data(player["keystrokeData"])
+        try:
+            keystroke_data = get_keystroke_data(player["keystrokeData"])
+        except InvalidKeystrokeData:
+            continue
 
         players[i].update({"keystroke_wpm": keystroke_data.keystrokeWpm})
 
         description += (
             f"{rank(i + 1)} {bot} {username_with_flag(player, False)} - "
             f"{player["matchWpm"]:,.2f} WPM ({player["accuracy"]:.2%} Acc, "
-            f"{player["startTime"]:,.0f}ms start)\n"
+            f"{player["startTime"]:,.0f}ms Start)\n"
         )
 
     for i, player in enumerate(raw_players):
@@ -80,8 +83,10 @@ async def run(ctx: commands.Context, profile: dict, race_number: int):
             raw_themed_line = i
 
         bot = ":robot:" if player["botId"] else ""
-
-        keystroke_data = get_keystroke_data(player["keystrokeData"])
+        try:
+            keystroke_data = get_keystroke_data(player["keystrokeData"])
+        except InvalidKeystrokeData:
+            continue
         flow = player["matchWpm"] / player["rawMatchWpm"]
         raw_delays = keystroke_data.rawCharacterTimes
         pauseless_delays = get_pauseless_delays(raw_delays)
@@ -94,6 +99,9 @@ async def run(ctx: commands.Context, profile: dict, race_number: int):
             f"{player["rawMatchWpm"]:,.2f} WPM ({flow:.2%} Flow, "
             f"{pause_percent:.2%} Pause)\n"
         )
+
+    players = [player for player in players if player.get("keystroke_wpm")]
+    raw_players = [player for player in raw_players if player.get("keystroke_wpm")]
 
     title = f"Match Graph - Race #{race_number:,}"
 
