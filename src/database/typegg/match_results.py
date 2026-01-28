@@ -24,9 +24,60 @@ def match_result_insert(match_player):
 def add_match_results(match_players):
     """Batch insert match players."""
     db.run_many(f"""
-        INSERT OR IGNORE INTO match_results (
-            matchId, userId, botId, username, raceNumber, matchWpm, rawMatchWpm,
-            matchPp, rawMatchPp, startTime, accuracy, placement, completionType, timestamp
-        )
+        INSERT OR IGNORE INTO match_results
         VALUES ({",".join(["?"] * 14)})
     """, [match_result_insert(player) for player in match_players])
+
+
+def get_encounter_stats(user_id: str, opponent_id: str = None, gamemode: str = None):
+    """Get all opponents a user has faced in multiplayer matches with head-to-head stats."""
+    conditions = ["userId = ?"]
+    params = [user_id]
+
+    if opponent_id:
+        conditions.append("opponentId = ?")
+        params.append(opponent_id)
+
+    if gamemode:
+        conditions.append("gamemode = ?")
+        params.append(gamemode)
+
+    where_clause = "WHERE " + " AND ".join(conditions)
+
+    results = db.fetch(f"""
+        SELECT
+            matchId,
+            opponentUsername,
+            isBot,
+            COUNT(*) as totalEncounters,
+            SUM(CASE WHEN userPlacement < opponentPlacement THEN 1 ELSE 0 END) as wins,
+            SUM(CASE WHEN userPlacement > opponentPlacement THEN 1 ELSE 0 END) as losses,
+            MAX(timestamp) AS lastEncounter
+        FROM encounters
+        {where_clause}
+        GROUP BY opponentId, opponentUsername
+        ORDER BY totalEncounters DESC
+    """, params)
+
+    return results
+
+
+def get_match_stats(user_id: str, gamemode: str = None):
+    conditions = ["userId = ?", "completionType = 'finished'"]
+    params = [user_id]
+
+    if gamemode:
+        conditions.append("gamemode = ?")
+        params.append(gamemode)
+
+    where_clause = "WHERE " + " AND ".join(conditions)
+
+    results = db.fetch_one(f"""
+        SELECT
+            COUNT(DISTINCT matchId) AS totalMatches,
+            COUNT(DISTINCT CASE WHEN userPlacement = 1 THEN matchId END) AS matchWins
+        FROM encounters
+        {where_clause}
+    """, params)
+
+    return results

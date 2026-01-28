@@ -119,7 +119,6 @@ db.run("""
 
 db.run("""
     CREATE TABLE IF NOT EXISTS match_results (
-        resultId INTEGER PRIMARY KEY,
         matchId TEXT NOT NULL,
         userId TEXT,
         botId TEXT,
@@ -137,12 +136,8 @@ db.run("""
     )
 """)
 
-db.run("""
-    CREATE UNIQUE INDEX IF NOT EXISTS idx_match_results_matchId_userId
-    ON match_results(matchId, userId)
-""")
-
-db.run("CREATE INDEX IF NOT EXISTS idx_races_matchId_userId ON races(matchId, userId);")
+db.run("""CREATE UNIQUE INDEX IF NOT EXISTS idx_match_results_matchId_userId ON match_results(matchId, userId)""")
+db.run("CREATE INDEX IF NOT EXISTS idx_races_matchId_userId ON races(matchId, userId)")
 
 db.run("""
     CREATE VIEW IF NOT EXISTS multiplayer_races AS
@@ -169,4 +164,25 @@ db.run("""
     FROM match_results mr
     LEFT JOIN races r ON r.matchId = mr.matchId AND r.userId = mr.userId
     JOIN matches m ON m.matchId = mr.matchId
+""")
+
+db.run("""
+    CREATE VIEW IF NOT EXISTS encounters AS
+    SELECT
+        mr.matchId,
+        mr.userId AS userId,
+        opp.userId AS opponentId,
+        opp.username AS opponentUsername,
+        mr.placement AS userPlacement,
+        opp.placement AS opponentPlacement,
+        opp.botId IS NOT '' AS isBot,
+        mr.timestamp AS timestamp,
+        mr.completionType AS completionType,
+        m.gamemode
+    FROM match_results mr
+    JOIN match_results opp
+    ON opp.matchId = mr.matchId
+    AND opp.userId != mr.userId
+    JOIN matches m
+    ON m.matchId = mr.matchId
 """)
