@@ -171,14 +171,21 @@ db.run("""
     SELECT
         mr.matchId,
         mr.userId AS userId,
+        mr.placement AS userPlacement,
+        mr.matchWpm as userWpm,
+        mr.rawMatchWpm as userRawWpm,
+        mr.accuracy as userAccuracy,
         opp.userId AS opponentId,
         opp.username AS opponentUsername,
-        mr.placement AS userPlacement,
         opp.placement AS opponentPlacement,
+        opp.matchWpm as opponentWpm,
+        opp.rawMatchWpm as opponentRawWpm,
+        opp.accuracy as opponentAccuracy,
         opp.botId IS NOT '' AS isBot,
         mr.timestamp AS timestamp,
         mr.completionType AS completionType,
-        m.gamemode
+        m.gamemode,
+        m.quoteId
     FROM match_results mr
     JOIN match_results opp
     ON opp.matchId = mr.matchId

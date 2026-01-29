@@ -29,14 +29,10 @@ def add_match_results(match_players):
     """, [match_result_insert(player) for player in match_players])
 
 
-def get_encounter_stats(user_id: str, opponent_id: str = None, gamemode: str = None):
+def get_encounter_stats(user_id: str, gamemode: str = None):
     """Get all opponents a user has faced in multiplayer matches with head-to-head stats."""
     conditions = ["userId = ?"]
     params = [user_id]
-
-    if opponent_id:
-        conditions.append("opponentId = ?")
-        params.append(opponent_id)
 
     if gamemode:
         conditions.append("gamemode = ?")
@@ -81,3 +77,23 @@ def get_match_stats(user_id: str, gamemode: str = None):
     """, params)
 
     return results
+
+
+def get_opponent_encounters(user_id: str, opponent_id: str, gamemode: str = None):
+    """Get all encounters between two users."""
+    conditions = ["userId = ?", "opponentId = ?"]
+    params = [user_id, opponent_id]
+
+    if gamemode:
+        conditions.append("AND m.gamemode = ?")
+        params.append(gamemode)
+
+    where_clause = "WHERE " + " AND ".join(conditions)
+
+    matches = db.fetch(f"""
+        SELECT * FROM encounters
+        {where_clause}
+        ORDER BY timestamp ASC
+    """, params)
+
+    return matches

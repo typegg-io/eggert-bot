@@ -51,19 +51,20 @@ def decompress_keystroke_data(rows):
 
 
 async def get_races(
-    user_id: str,
-    columns: list[str] = ["*"],
-    quote_id: str = None,
+    user_id: Optional[str] = None,
+    columns: Optional[list[str]] = ["*"],
+    quote_id: Optional[str] = None,
     start_date: Optional[str] = None,
     end_date: Optional[str] = None,
     min_pp: Optional[float] = 0,
     max_pp: Optional[float] = 99999,
+    match_id: Optional[str] = None,
     include_dnf: Optional[bool] = True,
-    order_by: str = "timestamp",
-    reverse: bool = False,
+    order_by: Optional[str] = "timestamp",
+    reverse: Optional[bool] = False,
     limit: Optional[int] = None,
-    flags: Flags = Flags(),
-    get_keystrokes: bool = False,
+    flags: Optional[Flags] = Flags(),
+    get_keystrokes: Optional[bool] = False,
 ):
     """Fetch races for a user with optional filters."""
     columns = ",".join(columns)
@@ -87,15 +88,17 @@ async def get_races(
         min_pp = -1
 
     # WHERE clause
-    conditions = ["r.userId = ?"]
-    params = [user_id]
+    conditions = []
+    params = []
 
     condition_map = {
+        user_id: "r.userId = ?",
         quote_id: "r.quoteId = ?",
         start_date: "timestamp >= ?",
         end_date: "timestamp < ?",
         min_pp: "pp > ?",
         max_pp: "pp <= ?",
+        match_id: "matchId = ?",
     }
 
     for param, condition in condition_map.items():
