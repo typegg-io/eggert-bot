@@ -119,12 +119,12 @@ async def run_head_to_head(ctx: commands.Context, profile1: dict, profile2: dict
     stat_keys = ["wpm", "rawWpm", "accuracy", "placement"]
     default_stats = {
         "wpm": 0, "rawWpm": 0, "accuracy": 0, "placement": 0, "wins": 0,
-        "bestStreak": 0, "currentStreak": 0, "biggestWin": encounters[0],
+        "bestStreak": 0, "currentStreak": 0, "biggestWin": None,
     }
 
     profile1["enStats"] = default_stats | {}
     profile2["enStats"] = default_stats | {}
-    closest_race = encounters[0]
+    closest_race = None
 
     for match in encounters:
         p1 = profile1["enStats"]
@@ -157,13 +157,13 @@ async def run_head_to_head(ctx: commands.Context, profile1: dict, profile2: dict
         if match["userDnf"] or match["opponentDnf"]:
             continue
 
-        if wpm_delta > (p1["biggestWin"]["userWpm"] - p1["biggestWin"]["opponentWpm"]):
+        if p1["biggestWin"] is None or wpm_delta > (p1["biggestWin"]["userWpm"] - p1["biggestWin"]["opponentWpm"]):
             p1["biggestWin"] = match
 
-        if -wpm_delta > (p2["biggestWin"]["opponentWpm"] - p2["biggestWin"]["userWpm"]):
+        if p2["biggestWin"] is None or -wpm_delta > (p2["biggestWin"]["opponentWpm"] - p2["biggestWin"]["userWpm"]):
             p2["biggestWin"] = match
 
-        if abs(wpm_delta) < abs(closest_race["userWpm"] - closest_race["opponentWpm"]):
+        if closest_race is None or abs(wpm_delta) < abs(closest_race["userWpm"] - closest_race["opponentWpm"]):
             closest_race = match
 
     for profile in [profile1, profile2]:
@@ -180,26 +180,29 @@ async def run_head_to_head(ctx: commands.Context, profile1: dict, profile2: dict
         stats = profile["enStats"]
         biggest = stats["biggestWin"]
 
-        is_p1 = profile["userId"] == profile1["userId"]
-        user_wpm = biggest["userWpm"] if is_p1 else biggest["opponentWpm"]
-        opp_wpm = biggest["opponentWpm"] if is_p1 else biggest["userWpm"]
-        delta = user_wpm - opp_wpm
+        content = (
+            f"**Average Speed:** {stats["wpm"]:,.2f} WPM\n"
+            f"**Raw Speed:** {stats["rawWpm"]:,.2f} WPM\n"
+            f"**Accuracy:** {stats["accuracy"]:.2%}\n"
+            f"**Average Placement:** {stats["placement"]:,.2f}\n"
+            f"**Wins:** {stats["wins"]:,} "
+            f"({stats["wins"] / total_encounters:.2%} Win Rate)\n"
+            f"**Best Win Streak:** {stats["bestStreak"]}\n"
+        )
 
-        label = "Biggest Win" if delta > 0 else "Closest Loss"
-        sign = "+" if delta > 0 else ""
+        if biggest is not None:
+            is_p1 = profile["userId"] == profile1["userId"]
+            user_wpm = biggest["userWpm"] if is_p1 else biggest["opponentWpm"]
+            opp_wpm = biggest["opponentWpm"] if is_p1 else biggest["userWpm"]
+            delta = user_wpm - opp_wpm
+
+            label = "Biggest Win" if delta > 0 else "Closest Loss"
+            sign = "+" if delta > 0 else ""
+            content += f"**{label}:** {sign}{delta:,.2f} WPM\n"
 
         return Field(
             title=username_with_flag(profile, link_user=False),
-            content=(
-                f"**Average Speed:** {stats["wpm"]:,.2f} WPM\n"
-                f"**Raw Speed:** {stats["rawWpm"]:,.2f} WPM\n"
-                f"**Accuracy:** {stats["accuracy"]:.2%}\n"
-                f"**Average Placement:** {stats["placement"]:,.2f}\n"
-                f"**Wins:** {stats["wins"]:,} "
-                f"({stats["wins"] / total_encounters:.2%} Win Rate)\n"
-                f"**Best Win Streak:** {stats["bestStreak"]}\n"
-                f"**{label}:** {sign}{delta:,.2f} WPM\n"
-            ),
+            content=content,
             inline=True,
         )
 
@@ -265,6 +268,10 @@ async def run_head_to_head(ctx: commands.Context, profile1: dict, profile2: dict
     # Biggest Wins
     for i, profile in enumerate((profile1, profile2)):
         biggest = profile["enStats"]["biggestWin"]
+
+        if biggest is None:
+            continue
+
         delta = (
             biggest["userWpm"] - biggest["opponentWpm"]
             if i == 0
@@ -293,25 +300,26 @@ async def run_head_to_head(ctx: commands.Context, profile1: dict, profile2: dict
         ))
 
     # Closest race
-    close_delta = abs(closest_race["userWpm"] - closest_race["opponentWpm"])
-    close_race_data = await load_race_data(closest_race)
-    close_quote = get_quote(closest_race["quoteId"])
-    themed_line = 0 if close_race_data[0]["userId"] == profile1["userId"] else 1
+    if closest_race is not None:
+        close_delta = abs(closest_race["userWpm"] - closest_race["opponentWpm"])
+        close_race_data = await load_race_data(closest_race)
+        close_quote = get_quote(closest_race["quoteId"])
+        themed_line = 0 if close_race_data[0]["userId"] == profile1["userId"] else 1
 
-    pages.append(Page(
-        title=f"Closest Race (+{close_delta:,.2f} WPM)",
-        description=build_race_description(close_race_data, close_quote),
-        button_name="Closest Race",
-        render=lambda: match_graph.render(
-            race_data=close_race_data,
-            title=(
-                f"Match Graph - {profile1["username"]} - "
-                f"Race #{close_race_data[0]["raceNumber"]:,}"
+        pages.append(Page(
+            title=f"Closest Race (+{close_delta:,.2f} WPM)",
+            description=build_race_description(close_race_data, close_quote),
+            button_name="Closest Race",
+            render=lambda: match_graph.render(
+                race_data=close_race_data,
+                title=(
+                    f"Match Graph - {profile1["username"]} - "
+                    f"Race #{close_race_data[0]["raceNumber"]:,}"
+                ),
+                theme=ctx.user['theme'],
+                themed_line=themed_line,
             ),
-            theme=ctx.user['theme'],
-            themed_line=themed_line,
-        ),
-    ))
+        ))
 
     message = Message(ctx, pages=pages)
     await message.send()
