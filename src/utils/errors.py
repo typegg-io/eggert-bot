@@ -3,7 +3,7 @@ from dataclasses import dataclass
 from discord import Embed
 from discord.ext.commands import CommandError, CheckFailure
 
-from config import BOT_PREFIX as prefix
+from config import BOT_PREFIX as prefix, EIKO
 from utils.colors import WARNING, PLUS
 
 
@@ -366,5 +366,8 @@ class MessageTooLong(CommandError):
 class InvalidKeystrokeData(CommandError):
     embed = Embed(
         title="Invalid Keystroke Data",
-        description="The format of this keystroke data is invalid",
+        description=(
+            "The format of this keystroke data is corrupt.\n"
+            f"If this replay happened very recently, contact <@{EIKO}>!"
+        ),
     )
