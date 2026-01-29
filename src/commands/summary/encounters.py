@@ -96,7 +96,8 @@ async def run(ctx: commands.Context, profile: dict):
 async def run_head_to_head(ctx: commands.Context, profile1: dict, profile2: dict):
     gamemode = ctx.flags.gamemode
     encounters = get_opponent_encounters(profile1["userId"], profile2["userId"], gamemode=gamemode)
-    encounters_no_dnf = [en for en in encounters if not en["userDnf"] and not en["opponentDnf"]]
+    p1_no_dnf = [en for en in encounters if not en["userDnf"]]
+    p2_no_dnf = [en for en in encounters if not en["opponentDnf"]]
 
     if not encounters:
         raise GeneralException(
@@ -168,7 +169,10 @@ async def run_head_to_head(ctx: commands.Context, profile1: dict, profile2: dict
     for profile in [profile1, profile2]:
         for key in stat_keys:
             if key == "accuracy":
-                profile["enStats"][key] /= len(encounters_no_dnf)
+                if profile["userId"] == profile1["userId"]:
+                    profile["enStats"][key] /= len(p1_no_dnf)
+                else:
+                    profile["enStats"][key] /= len(p2_no_dnf)
             else:
                 profile["enStats"][key] /= total_encounters
 
