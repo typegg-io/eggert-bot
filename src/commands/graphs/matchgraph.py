@@ -66,7 +66,7 @@ async def run(ctx: commands.Context, profile: dict, race_number: int):
 
         bot = ":robot:" if player["botId"] else ""
         try:
-            keystroke_data = get_keystroke_data(player["keystrokeData"])
+            keystroke_data = get_keystroke_data(player["keystrokeData"], True, player["startTime"])
         except InvalidKeystrokeData:
             continue
 
@@ -84,7 +84,7 @@ async def run(ctx: commands.Context, profile: dict, race_number: int):
 
         bot = ":robot:" if player["botId"] else ""
         try:
-            keystroke_data = get_keystroke_data(player["keystrokeData"])
+            keystroke_data = get_keystroke_data(player["keystrokeData"], True, player["startTime"])
         except InvalidKeystrokeData:
             continue
         flow = player["matchWpm"] / player["rawMatchWpm"]

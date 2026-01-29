@@ -797,12 +797,16 @@ def process_keystroke_data(
     )
 
 
-def get_keystroke_data(keystroke_data: list) -> ProcessResult:
+def get_keystroke_data(
+    keystroke_data: list,
+    is_multiplayer: bool = False,
+    start_time: float = 0,
+) -> ProcessResult:
     """Decode and process raw keystroke data into WPM metrics, timing data, and typos."""
     from utils.keystroke_codec import decode_keystroke_data
 
     decoded_data = decode_keystroke_data(keystroke_data)
-    processed_data = process_keystroke_data(decoded_data)
+    processed_data = process_keystroke_data(decoded_data, is_multiplayer, start_time)
 
     return processed_data
 
