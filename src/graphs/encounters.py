@@ -25,16 +25,19 @@ def render(
     if len(x) > 1:
         window = max(5, len(x) // 20)
 
-        r1_avg = moving_average(p1_wpm, window)
-        r2_avg = moving_average(p2_wpm, window)
+        p1_avg = moving_average(p1_wpm, window)
+        p2_avg = moving_average(p2_wpm, window)
 
-        x_avg = range(window, len(x) + 1)
+        if len(p1_avg) == len(p1_wpm):
+            x_avg = x
+        else:
+            x_avg = range(window, len(x) + 1)
 
-        ax.plot(x_avg, r2_avg, color=theme["graph_background"], linewidth=4)
-        ax.plot(x_avg, r2_avg, color="#55ACEE", linewidth=1.5)
+        ax.plot(x_avg, p2_avg, color=theme["graph_background"], linewidth=4)
+        ax.plot(x_avg, p2_avg, color="#55ACEE", linewidth=1.5)
 
-        ax.plot(x_avg, r1_avg, color=theme["graph_background"], linewidth=4)
-        ax.plot(x_avg, r1_avg, color="#DD2E44", linewidth=1.5)
+        ax.plot(x_avg, p1_avg, color=theme["graph_background"], linewidth=4)
+        ax.plot(x_avg, p1_avg, color="#DD2E44", linewidth=1.5)
 
     ax.set_xlabel("Encounter #")
     ax.set_ylabel("WPM")
