@@ -31,7 +31,7 @@ def add_match_results(match_players):
 
 def get_encounter_stats(user_id: str, gamemode: str = None):
     """Get all opponents a user has faced in multiplayer matches with head-to-head stats."""
-    conditions = ["userId = ?"]
+    conditions = ["userId = ?", "opponentUsername != ''"]
     params = [user_id]
 
     if gamemode:
