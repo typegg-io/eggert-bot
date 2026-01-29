@@ -96,6 +96,7 @@ async def run(ctx: commands.Context, profile: dict):
 async def run_head_to_head(ctx: commands.Context, profile1: dict, profile2: dict):
     gamemode = ctx.flags.gamemode
     encounters = get_opponent_encounters(profile1["userId"], profile2["userId"], gamemode=gamemode)
+    encounters_no_dnf = [en for en in encounters if not en["userDnf"] and not en["opponentDnf"]]
 
     if not encounters:
         raise GeneralException(
@@ -152,6 +153,9 @@ async def run_head_to_head(ctx: commands.Context, profile1: dict, profile2: dict
 
         wpm_delta = match["userWpm"] - match["opponentWpm"]
 
+        if match["userDnf"] or match["opponentDnf"]:
+            continue
+
         if wpm_delta > (p1["biggestWin"]["userWpm"] - p1["biggestWin"]["opponentWpm"]):
             p1["biggestWin"] = match
 
@@ -163,7 +167,10 @@ async def run_head_to_head(ctx: commands.Context, profile1: dict, profile2: dict
 
     for profile in [profile1, profile2]:
         for key in stat_keys:
-            profile["enStats"][key] /= total_encounters
+            if key == "accuracy":
+                profile["enStats"][key] /= len(encounters_no_dnf)
+            else:
+                profile["enStats"][key] /= total_encounters
 
     def build_field(profile: dict):
         stats = profile["enStats"]
@@ -248,7 +255,6 @@ async def run_head_to_head(ctx: commands.Context, profile1: dict, profile2: dict
                 theme=ctx.user["theme"],
             ),
             button_name="Stats",
-            footer="* Not including DNFs"
         )
     ]
 

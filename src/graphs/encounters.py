@@ -40,6 +40,10 @@ def render(
     ax.set_ylabel("WPM")
     ax.set_title(title)
 
+    non_zeroes = [val for val in p1_wpm + p2_wpm if val > 0]
+    if non_zeroes:
+        ax.set_ylim(bottom=min(non_zeroes) * 0.95)
+
     apply_theme(ax, theme, themed_line=99)
 
     file = generate_file_name("encounters")
