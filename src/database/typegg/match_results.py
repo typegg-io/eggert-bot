@@ -59,7 +59,7 @@ def get_encounter_stats(user_id: str, gamemode: str = None):
 
 
 def get_match_stats(user_id: str, gamemode: str = None):
-    conditions = ["userId = ?", "completionType = 'finished'"]
+    conditions = ["userId = ?"]
     params = [user_id]
 
     if gamemode:
@@ -80,8 +80,11 @@ def get_match_stats(user_id: str, gamemode: str = None):
 
 
 def get_opponent_encounters(user_id: str, opponent_id: str, gamemode: str = None):
-    """Get all encounters between two users."""
-    conditions = ["userId = ?", "opponentId = ?"]
+    """Get all finished encounters between two users."""
+    conditions = [
+        "userId = ?", "opponentId = ?",
+        "NOT userDnf", "NOT opponentDnf"
+    ]
     params = [user_id, opponent_id]
 
     if gamemode:

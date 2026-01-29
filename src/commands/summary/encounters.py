@@ -6,11 +6,11 @@ from commands.base import Command
 from database.typegg.match_results import get_encounter_stats, get_match_stats, get_opponent_encounters
 from database.typegg.quotes import get_quote
 from database.typegg.races import get_races
-from graphs import match as match_graph
+from graphs import match as match_graph, encounters as encounters_graph
 from utils.errors import GeneralException
 from utils.keystrokes import get_keystroke_data
 from utils.messages import Page, Message, Field
-from utils.strings import get_flag_title, discord_date, username_with_flag, quote_display
+from utils.strings import get_flag_title, discord_date, username_with_flag, quote_display, rank
 
 info = {
     "name": "encounters",
@@ -99,30 +99,83 @@ async def run_head_to_head(ctx: commands.Context, profile1: dict, profile2: dict
 
     if not encounters:
         raise GeneralException(
-            "No Encounters",
-            f"No {gamemode or "multiplayer"} encounters found \n"
-            f"between `{profile1["username"]}` and `{profile2["username"]}`"
+            "No Encounters", (
+                f"No {gamemode or "multiplayer"} encounters found \n"
+                f"between `{profile1["username"]}` and `{profile2["username"]}`"
+            )
         )
 
     total_encounters = len(encounters)
+
     description = (
         f"**Total Encounters:** {total_encounters}\n"
         f"**First Encounter:** {discord_date(encounters[0]["timestamp"], "R")}\n"
-        f"**Lastest Encounter:** {discord_date(encounters[-1]["timestamp"], "R")}\n"
+        f"**Latest Encounter:** {discord_date(encounters[-1]["timestamp"], "R")}\n"
     )
 
-    def build_field(profile):
-        stats = profile["enStats"]
+    # Building stats
+    stat_keys = ["wpm", "rawWpm", "accuracy", "placement"]
+    default_stats = {
+        "wpm": 0, "rawWpm": 0, "accuracy": 0, "placement": 0, "wins": 0,
+        "bestStreak": 0, "currentStreak": 0, "biggestWin": encounters[0],
+    }
 
-        biggest_win = stats["biggestWin"]
-        if profile["userId"] == profile1["userId"]:
-            wpm_delta = biggest_win["userWpm"] - biggest_win["opponentWpm"]
-        else:
-            wpm_delta = biggest_win["opponentWpm"] - biggest_win["userWpm"]
-        if wpm_delta > 0:
-            biggest_win_str = f"**Biggest Win:** +{wpm_delta:,.2f} WPM"
-        else:
-            biggest_win_str = f"**Closest Loss:** {wpm_delta:,.2f} WPM"
+    profile1["enStats"] = default_stats | {}
+    profile2["enStats"] = default_stats | {}
+    closest_race = encounters[0]
+
+    for match in encounters:
+        p1 = profile1["enStats"]
+        p2 = profile2["enStats"]
+
+        p1["wpm"] += match["userWpm"]
+        p1["rawWpm"] += match["userRawWpm"]
+        p1["accuracy"] += match["userAccuracy"]
+        p1["placement"] += match["userPlacement"]
+
+        p2["wpm"] += match["opponentWpm"]
+        p2["rawWpm"] += match["opponentRawWpm"]
+        p2["accuracy"] += match["opponentAccuracy"]
+        p2["placement"] += match["opponentPlacement"]
+
+        winner, loser = profile1, profile2
+        if match["opponentPlacement"] < match["userPlacement"]:
+            winner, loser = loser, winner
+
+        winner["enStats"]["wins"] += 1
+        winner["enStats"]["currentStreak"] += 1
+        winner["enStats"]["bestStreak"] = max(
+            winner["enStats"]["currentStreak"],
+            winner["enStats"]["bestStreak"]
+        )
+        loser["enStats"]["currentStreak"] = 0
+
+        wpm_delta = match["userWpm"] - match["opponentWpm"]
+
+        if wpm_delta > (p1["biggestWin"]["userWpm"] - p1["biggestWin"]["opponentWpm"]):
+            p1["biggestWin"] = match
+
+        if -wpm_delta > (p2["biggestWin"]["opponentWpm"] - p2["biggestWin"]["userWpm"]):
+            p2["biggestWin"] = match
+
+        if abs(wpm_delta) < abs(closest_race["userWpm"] - closest_race["opponentWpm"]):
+            closest_race = match
+
+    for profile in [profile1, profile2]:
+        for key in stat_keys:
+            profile["enStats"][key] /= total_encounters
+
+    def build_field(profile: dict):
+        stats = profile["enStats"]
+        biggest = stats["biggestWin"]
+
+        is_p1 = profile["userId"] == profile1["userId"]
+        user_wpm = biggest["userWpm"] if is_p1 else biggest["opponentWpm"]
+        opp_wpm = biggest["opponentWpm"] if is_p1 else biggest["userWpm"]
+        delta = user_wpm - opp_wpm
+
+        label = "Biggest Win" if delta > 0 else "Closest Loss"
+        sign = "+" if delta > 0 else ""
 
         return Field(
             title=username_with_flag(profile, link_user=False),
@@ -134,106 +187,41 @@ async def run_head_to_head(ctx: commands.Context, profile1: dict, profile2: dict
                 f"**Wins:** {stats["wins"]:,} "
                 f"({stats["wins"] / total_encounters:.2%} Win Rate)\n"
                 f"**Best Win Streak:** {stats["bestStreak"]}\n"
-                f"{biggest_win_str}\n"
+                f"**{label}:** {sign}{delta:,.2f} WPM\n"
             ),
             inline=True,
         )
 
-    closest_race = encounters[0]
-    profile1["enStats"] = {
-        "wpm": 0, "rawWpm": 0, "accuracy": 0, "placement": 0, "wins": 0,
-        "bestStreak": 0, "currentStreak": 0, "biggestWin": encounters[0],
-    }
-    profile2["enStats"] = {
-        "wpm": 0, "rawWpm": 0, "accuracy": 0, "placement": 0, "wins": 0,
-        "bestStreak": 0, "currentStreak": 0, "biggestWin": encounters[0],
-    }
+    async def load_race_data(match: dict):
+        races = await get_races(match_id=match["matchId"], get_keystrokes=True)
 
-    for en in encounters:
-        stats1 = profile1["enStats"]
-        stats2 = profile2["enStats"]
+        race_data = []
+        for profile, prefix in [
+            (profile1, "user"),
+            (profile2, "opponent"),
+        ]:
+            race = next(r for r in races if r["userId"] == profile["userId"])
+            start_time = match[prefix + "StartTime"]
+            ks = get_keystroke_data(race["keystrokeData"], True, start_time)
 
-        stats1["wpm"] += en["userWpm"]
-        stats1["rawWpm"] += en["userRawWpm"]
-        stats1["accuracy"] += en["userAccuracy"]
-        stats1["placement"] += en["userPlacement"]
+            race |= {
+                "keystroke_wpm": ks.keystrokeWpm,
+                "username": profile["username"],
+                "displayName": username_with_flag(profile, link_user=False),
+                "startTime": start_time,
+                "wpm": match[prefix + "Wpm"],
+            }
+            race_data.append(race)
 
-        stats2["wpm"] += en["opponentWpm"]
-        stats2["rawWpm"] += en["opponentRawWpm"]
-        stats2["accuracy"] += en["opponentAccuracy"]
-        stats2["placement"] += en["opponentPlacement"]
+        return race_data
 
-        wpm_delta = en["userWpm"] - en["opponentWpm"]
-
-        biggest_win1 = stats1["biggestWin"]
-        if wpm_delta > biggest_win1["userWpm"] - biggest_win1["opponentWpm"]:
-            stats1["biggestWin"] = en
-
-        biggest_win2 = stats2["biggestWin"]
-        if -wpm_delta > biggest_win2["opponentWpm"] - biggest_win2["userWpm"]:
-            stats2["biggestWin"] = en
-
-        if abs(wpm_delta) < abs(closest_race["userWpm"] - closest_race["opponentWpm"]):
-            closest_race = en
-
-        winner, loser = profile1, profile2
-        if en["opponentPlacement"] < en["userPlacement"]:
-            winner, loser = loser, winner
-
-        winner["enStats"]["wins"] += 1
-        winner["enStats"]["currentStreak"] += 1
-        winner["enStats"]["bestStreak"] = max(
-            winner["enStats"]["currentStreak"],
-            winner["enStats"]["bestStreak"]
+    def build_race_description(race_data: list, quote: dict):
+        race_data.sort(key=lambda r: -r["wpm"])
+        rankings = "".join(
+            f"{rank(i + 1)} {r["displayName"]} - {r["wpm"]:,.2f} WPM "
+            f"({r["accuracy"]:.2%} Acc, {r["startTime"]:,.0f}ms Start)\n"
+            for i, r in enumerate(race_data)
         )
-        loser["enStats"]["currentStreak"] = 0
-
-    for key in ["wpm", "rawWpm", "accuracy", "placement"]:
-        for profile in [profile1, profile2]:
-            profile["enStats"][key] /= total_encounters
-
-    pages = [Page(
-        title="Multiplayer Encounters",
-        description=description,
-        fields=[
-            build_field(profile1),
-            build_field(profile2),
-        ],
-        button_name="Stats",
-    )]
-
-    async def build_race_data(match_data):
-        races = await get_races(match_id=match_data["matchId"], get_keystrokes=True)
-
-        race1 = next(race for race in races if race["userId"] == profile1["userId"])
-        keystroke_data = get_keystroke_data(race1["keystrokeData"])
-        race1 |= {
-            "keystroke_wpm": keystroke_data.keystrokeWpm,
-            "username": profile1["username"],
-            "startTime": keystroke_data.wpmCharacterTimes[0],
-            "wpm": match_data["userWpm"],
-        }
-
-        race2 = next(race for race in races if race["userId"] == profile2["userId"])
-        keystroke_data = get_keystroke_data(race2["keystrokeData"])
-        race2 |= {
-            "keystroke_wpm": keystroke_data.keystrokeWpm,
-            "username": profile2["username"],
-            "startTime": keystroke_data.wpmCharacterTimes[0],
-            "wpm": match_data["opponentWpm"],
-        }
-
-        return [race1, race2]
-
-    def build_race_description(race_data, quote):
-        race_data.sort(key=lambda x: -x["wpm"])
-        rankings = ""
-
-        for i, race in enumerate(race_data):
-            rankings += (
-                f"{i + 1}. **{race["username"]}** - {race["wpm"]:,.2f} WPM "
-                f"({race["accuracy"]:.2%} Acc, {race["startTime"]:,.0f}ms Start)\n"
-            )
 
         return (
             f"Completed {discord_date(race_data[0]["timestamp"], "R")}\n\n"
@@ -242,66 +230,78 @@ async def run_head_to_head(ctx: commands.Context, profile1: dict, profile2: dict
             f"{rankings}"
         )
 
-    biggest_win1 = profile1["enStats"]["biggestWin"]
-    wpm_delta1 = biggest_win1["userWpm"] - biggest_win1["opponentWpm"]
-    race_data1 = await build_race_data(biggest_win1)
-    quote1 = get_quote(biggest_win1["quoteId"])
-
-    if wpm_delta1 > 0:
-        pages.append(Page(
-            title=f"Biggest Win - {profile1['username']} (+{wpm_delta1:,.2f} WPM)",
-            description=build_race_description(race_data1, quote1),
-            button_name="Biggest Win (p1)",
-            render=lambda: match_graph.render(
-                race_data=race_data1,
+    # Pages
+    pages = [
+        Page(
+            title="Multiplayer Encounters",
+            description=description,
+            fields=[
+                build_field(profile1),
+                build_field(profile2),
+            ],
+            render=lambda: encounters_graph.render(
+                encounters,
                 title=(
-                    f"Match Graph - {profile1["username"]} - "
-                    f"Race #{race_data1[0]["raceNumber"]:,}"
+                    "Multiplayer Encounters\n"
+                    f"{profile1["username"]} vs. {profile2["username"]}"
                 ),
                 theme=ctx.user["theme"],
-                themed_line=0,
-            )
-        ))
+            ),
+            button_name="Stats",
+            footer="* Not including DNFs"
+        )
+    ]
 
-    biggest_win2 = profile2["enStats"]["biggestWin"]
-    wpm_delta2 = biggest_win2["opponentWpm"] - biggest_win2["userWpm"]
-    race_data2 = await build_race_data(biggest_win2)
-    quote2 = get_quote(biggest_win2["quoteId"])
+    # Biggest Wins
+    for i, profile in enumerate((profile1, profile2)):
+        biggest = profile["enStats"]["biggestWin"]
+        delta = (
+            biggest["userWpm"] - biggest["opponentWpm"]
+            if i == 0
+            else biggest["opponentWpm"] - biggest["userWpm"]
+        )
 
-    if wpm_delta2 > 0:
+        if delta <= 0:
+            continue
+
+        race_data = await load_race_data(biggest)
+        quote = get_quote(biggest["quoteId"])
+
         pages.append(Page(
-            title=f"Biggest Win - {profile2['username']} (+{wpm_delta2:,.2f} WPM)",
-            description=build_race_description(race_data2, quote2),
-            button_name="Biggest Win (p2)",
-            render=lambda: match_graph.render(
-                race_data=race_data2,
+            title=f"Biggest Win - {profile["username"]} (+{delta:,.2f} WPM)",
+            description=build_race_description(race_data, quote),
+            button_name=f"Biggest Win (p{i + 1})",
+            render=lambda id=i, rd=race_data: match_graph.render(
+                race_data=rd,
                 title=(
                     f"Match Graph - {profile1["username"]} - "
-                    f"Race #{race_data2[1]["raceNumber"]:,}"
+                    f"Race #{rd[id]["raceNumber"]:,}"
                 ),
                 theme=ctx.user["theme"],
-                themed_line=1,
-            )
+                themed_line=id,
+            ),
         ))
 
-    wpm_delta_close = abs(closest_race["userWpm"] - closest_race["opponentWpm"])
-    race_data_close = await build_race_data(closest_race)
-    quote_close = get_quote(closest_race["quoteId"])
+    # Closest race
+    close_delta = abs(closest_race["userWpm"] - closest_race["opponentWpm"])
+    close_race_data = await load_race_data(closest_race)
+    close_quote = get_quote(closest_race["quoteId"])
+    themed_line = 0 if close_race_data[0]["userId"] == profile1["userId"] else 1
 
     pages.append(Page(
-        title=f"Closest Race (+{wpm_delta_close:,.2f} WPM)",
-        description=build_race_description(race_data_close, quote_close),
+        title=f"Closest Race (+{close_delta:,.2f} WPM)",
+        description=build_race_description(close_race_data, close_quote),
         button_name="Closest Race",
         render=lambda: match_graph.render(
-            race_data=race_data_close,
+            race_data=close_race_data,
             title=(
                 f"Match Graph - {profile1["username"]} - "
-                f"Race #{race_data_close[1 if wpm_delta_close < 0 else 0]["raceNumber"]:,}"
+                f"Race #{close_race_data[0]["raceNumber"]:,}"
             ),
-            theme=ctx.user["theme"],
-            themed_line=1,
-        )
+            theme=ctx.user['theme'],
+            themed_line=themed_line,
+        ),
     ))
 
     message = Message(ctx, pages=pages)
-    return await message.send()
+    await message.send()
