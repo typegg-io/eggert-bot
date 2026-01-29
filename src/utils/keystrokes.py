@@ -219,7 +219,8 @@ def process_keystroke_data(
     pending_delays: List[int] = []
 
     def get_absolute_position(relative_position: int) -> int:
-        return total_chars_before_word + relative_position
+        chars_before = sum(len(w) for w in words[:word_index])
+        return chars_before + relative_position
 
     def add_to_char_pool(char: str, ks_id: int, typed_at_pos: int):
         normalized = normalize_enter(char).lower()
@@ -458,17 +459,20 @@ def process_keystroke_data(
             adj_start = d_start + buffer_offset
             adj_end = d_end + buffer_offset
 
-            preserved_ids: List[int] = [keystroke_id]
+            preserved_ids: List[int] = []
             for j in range(adj_start, min(adj_end, len(input_val_contributors))):
                 if input_val_contributors[j] >= 0:
                     preserved_ids.append(input_val_contributors[j])
+                preserved_ids.extend(input_val_delays[j])
 
             del input_val_contributors[adj_start:adj_end]
             del input_val_delays[adj_start:adj_end]
 
             if adj_start < len(input_val_delays):
-                input_val_delays[adj_start] = input_val_delays[adj_start] + preserved_ids
+                input_val_delays[adj_start].append(keystroke_id)
+                input_val_delays[adj_start].extend(preserved_ids)
             else:
+                pending_delays.append(keystroke_id)
                 pending_delays.extend(preserved_ids)
 
             tail_pos = total_chars_before_word + d_start
@@ -713,7 +717,7 @@ def process_keystroke_data(
             input_val = input_val[len(current_word):]
             buffer_offset = 0
             input_val_contributors = input_val_contributors[len(current_word):]
-            input_val_delays = [list(d) for d in input_val_delays[len(current_word):]]
+            input_val_delays = input_val_delays[len(current_word):]
 
             total_chars_before_word += len(current_word)
             word_index += 1
