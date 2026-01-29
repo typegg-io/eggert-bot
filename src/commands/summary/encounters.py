@@ -262,6 +262,7 @@ async def run_head_to_head(ctx: commands.Context, profile1: dict, profile2: dict
                 theme=ctx.user["theme"],
             ),
             button_name="Stats",
+            footer=f"🔴 {profile1["username"]} | 🔵 {profile2["username"]}"
         )
     ]
 
