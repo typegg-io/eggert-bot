@@ -32,7 +32,7 @@ class Races(Command):
 
 def build_stat_fields(profile, race_list, flags, all_time=False):
     quote_list = get_quotes()
-    quickplay = flags.gamemode == "quickplay"
+    multiplayer = flags.gamemode in ["quickplay", "lobby"]
 
     cumulative_values = {
         "wpm": [], "rawWpm": [], "accuracy": [], "duration": [],
@@ -63,7 +63,7 @@ def build_stat_fields(profile, race_list, flags, all_time=False):
     previous_race = None
 
     for race in race_list:
-        completion_type = race["completionType"] if quickplay else "finished"
+        completion_type = race["completionType"] if multiplayer else "finished"
         if completion_type != "finished":
             dnf_count += 1
             cumulative_values["wpm"].append(0)
@@ -88,7 +88,7 @@ def build_stat_fields(profile, race_list, flags, all_time=False):
             solo_races += 1
         else:
             multiplayer_races += 1
-            if quickplay and race["placement"] == 1:
+            if multiplayer and race["placement"] == 1:
                 wins += 1
 
         if race["pp"] > best["pp"]["pp"]:
@@ -178,7 +178,7 @@ def build_stat_fields(profile, race_list, flags, all_time=False):
         title="Activity",
         content=(
             f"**Races:** {total_races:,}" +
-            (f" / **DNFs:** {dnf_count:,}\n" if quickplay else "\n") +
+            (f" / **DNFs:** {dnf_count:,}\n" if multiplayer else "\n") +
             f"**Solo:** {solo_races:,} / **Quickplay:** {multiplayer_races :,}\n" +
             (f"**Wins:** {wins:,} ({wins / (multiplayer_races + dnf_count):.2%} win rate)\n" if wins > 0 else "") +
             f"**Quotes:** {unique_quotes:,}" +
