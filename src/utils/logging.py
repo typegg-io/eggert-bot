@@ -55,7 +55,22 @@ def get_log_message(message):
     linked_account = f" ({user_id})" if user_id else ""
     content = message.content
 
-    return f"{message_link} {mention}{linked_account}: `{content}`"
+    flag_parts = []
+    if hasattr(message, "flags"):
+        if message.flags.metric and message.flags.metric != "pp":
+            flag_parts.append(f"-{message.flags.metric}")
+        if message.flags.raw:
+            flag_parts.append("-raw")
+        if message.flags.gamemode:
+            flag_parts.append(f"-{message.flags.gamemode}")
+        if message.flags.status:
+            flag_parts.append(f"-{message.flags.status}")
+        if message.flags.language:
+            flag_parts.append(f"-{message.flags.language}")
+
+    flags_str = " " + " ".join(flag_parts) if flag_parts else ""
+
+    return f"{message_link} {mention}{linked_account}: `{content}{flags_str}`"
 
 
 # Logging Functions
