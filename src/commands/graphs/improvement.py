@@ -101,16 +101,14 @@ async def multiplayer_improvement(ctx: commands.Context, profile: dict, metric: 
             quits_in_average += 1
 
     dnf_indices = []
-    saw_dnf = False
+    dnf = False
 
     for race in race_list:
         if race["completionType"] == "finished":
-            dnf_indices.append(saw_dnf)
-            saw_dnf = False
+            dnf_indices.append(dnf)
+            dnf = False
         else:
-            saw_dnf = True
-
-    dnf_indices = np.asarray(dnf_indices)
+            dnf = True
 
     if metric == "wpm":
         metric = "WPM"
@@ -128,8 +126,10 @@ async def multiplayer_improvement(ctx: commands.Context, profile: dict, metric: 
         ),
         Field(
             title=f"Average of {window}",
-            content=f"– Recent: {last_average:,.2f} WPM | Best: {best_average:,.2f} WPM\n"
-                    f"– Completion: {window / (window + quits_in_average):.2%}",
+            content=(
+                f"– Recent: {last_average:,.2f} WPM | Best: {best_average:,.2f} WPM\n"
+                f"– Completion: {window / (window + quits_in_average):.2%}"
+            ),
         ),
     ]
 
