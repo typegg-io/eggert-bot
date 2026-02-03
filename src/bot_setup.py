@@ -87,8 +87,13 @@ def register_bot_checks(bot):
         if not message.content.startswith(BOT_PREFIX) or message.author.bot:
             return
 
+        # Parsing flags
+        flags, cleaned_command = parse_flags(message.content)
+        message.flags = flags
+        message.content = cleaned_command
+
         # Logging
-        if not STAGING:
+        if not STAGING or True:
             log_message = get_log_message(message)
             log(log_message)
 
@@ -97,11 +102,6 @@ def register_bot_checks(bot):
                 users.append(message.author.id)
                 if not message.content.startswith(("-link", "-verify")):
                     return await message.reply(content=welcome_message)
-
-        # Parsing flags
-        flags, cleaned_command = parse_flags(message.content)
-        message.flags = flags
-        message.content = cleaned_command
 
         await bot.process_commands(message)
 
