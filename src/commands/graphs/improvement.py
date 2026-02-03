@@ -5,11 +5,12 @@ from discord.ext import commands
 
 from commands.base import Command
 from config import BOT_PREFIX
+from database.typegg.quotes import get_quotes
 from database.typegg.races import get_races
 from graphs import improvement
 from utils.colors import ERROR
 from utils.dates import parse_date
-from utils.messages import Page, Message
+from utils.messages import Page, Message, Field
 from utils.strings import get_argument
 
 metrics = ["pp", "wpm"]
@@ -43,6 +44,10 @@ class Improvement(Command):
             await multiplayer_improvement(ctx, profile, metric)
 
 
+def get_window_size(n: int, min_n: int = 25, max_n: int = 500):
+    return int(min(max_n, max(min_n, np.sqrt(n) * 5)))
+
+
 async def multiplayer_improvement(ctx: commands.Context, profile: dict, metric: str):
     ctx.flags.gamemode = "quickplay"
     race_list = await get_races(
@@ -63,34 +68,70 @@ async def multiplayer_improvement(ctx: commands.Context, profile: dict, metric: 
 
         return await message.send()
 
-    values, dates = zip(*[(race[metric], race["timestamp"]) for race in race_list])
-    dnf_count = len([race for race in race_list if race["completionType"] != "finished"])
-    best_average = max(np.convolve(values, np.ones(25) / 25, mode="valid"))
+    quote_list = get_quotes()
+
+    values, dates, difficulties = zip(*[
+        (race[metric], race["timestamp"], quote_list[race["quoteId"]]["difficulty"])
+        for race in race_list
+        if race["completionType"] == "finished"
+    ])
+
+    moving_25 = np.convolve(values, np.ones(25) / 25, mode="valid")
+    best_25 = max(moving_25)
+    last_25 = moving_25[-1]
+
+    moving_100 = np.convolve(values, np.ones(100) / 100, mode="valid")
+    best_100 = max(moving_100)
+    last_100 = moving_100[-1]
+
+    window = get_window_size(len(values))
+    moving_average = np.convolve(values, np.ones(window) / window, mode="valid")
+    best_average = max(moving_average)
+    last_average = moving_average[-1]
+
+    finishes_covered = window
+    quits_in_average = 0
+
+    for race in reversed(race_list):
+        if race["completionType"] == "finished":
+            finishes_covered -= 1
+            if finishes_covered == 0:
+                break
+        else:
+            quits_in_average += 1
+
+    dnf_indices = []
+    saw_dnf = False
+
+    for race in race_list:
+        if race["completionType"] == "finished":
+            dnf_indices.append(saw_dnf)
+            saw_dnf = False
+        else:
+            saw_dnf = True
+
+    dnf_indices = np.asarray(dnf_indices)
 
     if metric == "wpm":
         metric = "WPM"
 
-    description = (
-        f"**Races:** {len(values) - dnf_count:,} / "
-        f"**DNFs:** {dnf_count:,}\n"
-        f"**Average:** {np.mean(values):,.2f} {metric}\n"
-        f"**Best:** {max(values):,.2f} {metric}\n"
-    )
+    description = f"**Races:** {len(values):,}\n"
 
-    if len(values) >= 25:
-        description += (
-            f"**Last 25 Average:** {np.mean(values[-25:]):,.2f} {metric}\n"
-            f"**Best 25 Average:** {best_average:,.2f} {metric}\n"
-        )
-
-    def render(dates=None):
-        return lambda: improvement.render(
-            values=values,
-            metric=metric,
-            theme=ctx.user["theme"],
-            dates=dates,
-            window_size=25,
-        )
+    fields = [
+        Field(
+            title="Average of 25",
+            content=f"– Recent: {last_25:,.2f} WPM | Best: {best_25:,.2f} WPM",
+        ),
+        Field(
+            title="Average of 100",
+            content=f"– Recent: {last_100:,.2f} WPM | Best: {best_100:,.2f} WPM",
+        ),
+        Field(
+            title=f"Average of {window}",
+            content=f"– Recent: {last_average:,.2f} WPM | Best: {best_average:,.2f} WPM\n"
+                    f"– Completion: {window / (window + quits_in_average):.2%}",
+        ),
+    ]
 
     message = Message(
         ctx,
@@ -98,12 +139,28 @@ async def multiplayer_improvement(ctx: commands.Context, profile: dict, metric: 
         header=description,
         pages=[
             Page(
+                fields=fields,
                 button_name="Over Races",
-                render=render(),
+                render=lambda: improvement.render_over_races(
+                    values=values,
+                    difficulties=difficulties,
+                    metric=metric,
+                    theme=ctx.user["theme"],
+                    window_size=window,
+                    dnf_indices=dnf_indices,
+                ),
             ),
             Page(
+                fields=fields,
                 button_name="Over Time",
-                render=render(dates)
+                render=lambda: improvement.render_over_time(
+                    values=values,
+                    metric=metric,
+                    theme=ctx.user["theme"],
+                    dates=dates,
+                    window_size=window,
+                    dnf_indices=dnf_indices,
+                ),
             ),
         ],
         profile=profile,
@@ -140,7 +197,12 @@ async def solo_improvement(ctx: commands.Context, profile: dict, metric: str):
             pb_dict[quote_id] = race
             pbs.append(race)
     pbs.sort(key=lambda r: parse_date(r["timestamp"]).timestamp())
-    values, dates = zip(*[(race[metric], race["timestamp"]) for race in pbs])
+
+    quote_list = get_quotes()
+    values, dates, quote_ids = zip(*[(race[metric], race["timestamp"], race["quoteId"]) for race in pbs])
+    difficulties = [quote_list[qid]["difficulty"] for qid in quote_ids]
+
+    window = get_window_size(len(values))
 
     if metric == "wpm":
         metric = "WPM"
@@ -151,14 +213,6 @@ async def solo_improvement(ctx: commands.Context, profile: dict, metric: str):
         f"**Best:** {max(values):,.2f} {metric}\n"
     )
 
-    def render(dates=None):
-        return lambda: improvement.render(
-            values=values,
-            metric=metric,
-            theme=ctx.user["theme"],
-            dates=dates,
-        )
-
     message = Message(
         ctx,
         title=f"Solo PBs - {metric} Improvement",
@@ -166,11 +220,23 @@ async def solo_improvement(ctx: commands.Context, profile: dict, metric: str):
         pages=[
             Page(
                 button_name="Over Races",
-                render=render(),
+                render=lambda: improvement.render_over_races(
+                    values=values,
+                    difficulties=difficulties,
+                    metric=metric,
+                    theme=ctx.user["theme"],
+                    window_size=window,
+                ),
             ),
             Page(
                 button_name="Over Time",
-                render=render(dates)
+                render=lambda: improvement.render_over_time(
+                    values=values,
+                    metric=metric,
+                    theme=ctx.user["theme"],
+                    dates=dates,
+                    window_size=window,
+                )
             )
         ],
         profile=profile,
