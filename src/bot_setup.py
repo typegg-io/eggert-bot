@@ -93,7 +93,7 @@ def register_bot_checks(bot):
         message.content = cleaned_command
 
         # Logging
-        if not STAGING or True:
+        if not STAGING:
             log_message = get_log_message(message)
             log(log_message)
 
