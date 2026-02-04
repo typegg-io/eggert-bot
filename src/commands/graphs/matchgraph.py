@@ -65,40 +65,49 @@ async def run(ctx: commands.Context, profile: dict, race_number: int):
             themed_line = i
 
         bot = ":robot:" if player["botId"] else ""
-        try:
-            keystroke_data = get_keystroke_data(player["keystrokeData"], True, player["startTime"])
-        except InvalidKeystrokeData:
-            continue
 
-        players[i].update({"keystroke_wpm": keystroke_data.keystrokeWpm})
+        if player.get("keystrokeData"):
+            try:
+                keystroke_data = get_keystroke_data(player["keystrokeData"], True, player["startTime"])
+            except InvalidKeystrokeData:
+                continue
 
-        description += (
-            f"{rank(i + 1)} {bot} {username_with_flag(player, False)} - "
-            f"{player["matchWpm"]:,.2f} WPM ({player["accuracy"]:.2%} Acc, "
-            f"{player["startTime"]:,.0f}ms Start)\n"
-        )
+            players[i].update({"keystroke_wpm": keystroke_data.keystrokeWpm})
+
+            description += (
+                f"{rank(i + 1)} {bot} {username_with_flag(player, False)} - "
+                f"{player["matchWpm"]:,.2f} WPM ({player["accuracy"]:.2%} Acc, "
+                f"{player["startTime"]:,.0f}ms Start)\n"
+            )
+        else:
+            description += f":x: {bot} {username_with_flag(player, False)} - DNF"
 
     for i, player in enumerate(raw_players):
         if player["userId"] == ctx.user["userId"]:
             raw_themed_line = i
 
         bot = ":robot:" if player["botId"] else ""
-        try:
-            keystroke_data = get_keystroke_data(player["keystrokeData"], True, player["startTime"])
-        except InvalidKeystrokeData:
-            continue
-        flow = player["matchWpm"] / player["rawMatchWpm"]
-        raw_delays = keystroke_data.rawCharacterTimes
-        pauseless_delays = get_pauseless_delays(raw_delays)
-        pause_percent = 1 - (sum(pauseless_delays) / sum(raw_delays))
 
-        raw_players[i].update({"keystroke_wpm": keystroke_data.keystrokeRawWpm})
+        if player.get("keystrokeData"):
+            try:
+                keystroke_data = get_keystroke_data(player["keystrokeData"], True, player["startTime"])
+            except InvalidKeystrokeData:
+                continue
 
-        raw_description += (
-            f"{rank(i + 1)} {bot} {username_with_flag(player, False)} - "
-            f"{player["rawMatchWpm"]:,.2f} WPM ({flow:.2%} Flow, "
-            f"{pause_percent:.2%} Pause)\n"
-        )
+            flow = player["matchWpm"] / player["rawMatchWpm"]
+            raw_delays = keystroke_data.rawCharacterTimes
+            pauseless_delays = get_pauseless_delays(raw_delays)
+            pause_percent = 1 - (sum(pauseless_delays) / sum(raw_delays))
+
+            raw_players[i].update({"keystroke_wpm": keystroke_data.keystrokeRawWpm})
+
+            raw_description += (
+                f"{rank(i + 1)} {bot} {username_with_flag(player, False)} - "
+                f"{player["rawMatchWpm"]:,.2f} WPM ({flow:.2%} Flow, "
+                f"{pause_percent:.2%} Pause)\n"
+            )
+        else:
+            raw_description += f":x: {bot} {username_with_flag(player, False)} - DNF"
 
     players = [player for player in players if player.get("keystroke_wpm")]
     raw_players = [player for player in raw_players if player.get("keystroke_wpm")]
