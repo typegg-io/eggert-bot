@@ -110,14 +110,20 @@ async def run_self(ctx: commands.Context, quote: dict, profile: dict):
         description += format_race(profile, best_race, "New Best")
         description += format_race(profile, old_best, "Previous Best")
         race_numbers = [recent_race["raceNumber"], old_best["raceNumber"]]
-        race_data = [recent_race, old_best]
+        race_data = [
+            recent_race | {"username": "New Best"},
+            old_best | {"username": "Previous Best"},
+        ]
 
     # Not a PB
     else:
         description += format_race(profile, best_race, "Best")
         description += format_race(profile, recent_race, "Recent")
         race_numbers = [best_race["raceNumber"], recent_race["raceNumber"]]
-        race_data = [best_race, recent_race]
+        race_data = [
+            best_race | {"username": "Best"},
+            recent_race | {"username": "Recent"},
+        ]
 
     # Fetch keystroke data in parallel
     races_with_keystrokes = await asyncio.gather(*[
@@ -126,8 +132,8 @@ async def run_self(ctx: commands.Context, quote: dict, profile: dict):
     ])
 
     for i, race in enumerate(races_with_keystrokes):
+        del race["username"]
         race_data[i].update(race)
-        race_data[i]["username"] = profile["username"]
 
     title = f"Quote Best Comparison - {quote['quoteId']}"
     page = create_comparison_page(
