@@ -1,10 +1,11 @@
 from typing import Optional
 
+import numpy as np
 from discord.ext import commands
 
 from commands.base import Command
 from database.typegg.match_results import get_encounter_stats, get_match_stats, get_opponent_encounters
-from database.typegg.quotes import get_quote
+from database.typegg.quotes import get_quote, get_quotes
 from database.typegg.races import get_races
 from graphs import match as match_graph, encounters as encounters_graph
 from utils.errors import GeneralException
@@ -96,6 +97,8 @@ async def run(ctx: commands.Context, profile: dict):
 async def run_head_to_head(ctx: commands.Context, profile1: dict, profile2: dict):
     gamemode = ctx.flags.gamemode
     encounters = get_opponent_encounters(profile1["userId"], profile2["userId"], gamemode=gamemode)
+    quote_list = get_quotes()
+    difficulties = [quote_list[en["quoteId"]]["difficulty"] for en in encounters]
     p1_no_dnf = [en for en in encounters if not en["userDnf"]]
     p2_no_dnf = [en for en in encounters if not en["opponentDnf"]]
 
@@ -113,6 +116,7 @@ async def run_head_to_head(ctx: commands.Context, profile1: dict, profile2: dict
         f"**Total Encounters:** {total_encounters}\n"
         f"**First Encounter:** {discord_date(encounters[0]["timestamp"], "R")}\n"
         f"**Latest Encounter:** {discord_date(encounters[-1]["timestamp"], "R")}\n"
+        f"**Average Difficulty:** {np.mean(difficulties):,.2f}★\n"
     )
 
     # Building stats
@@ -166,15 +170,18 @@ async def run_head_to_head(ctx: commands.Context, profile1: dict, profile2: dict
         if closest_race is None or abs(wpm_delta) < abs(closest_race["userWpm"] - closest_race["opponentWpm"]):
             closest_race = match
 
+    profile1["enStats"]["completion"] = len(p1_no_dnf) / total_encounters
+    profile2["enStats"]["completion"] = len(p2_no_dnf) / total_encounters
+
     for profile in [profile1, profile2]:
         for key in stat_keys:
-            if key == "accuracy":
+            if key == "placement" and False:
+                profile["enStats"][key] /= total_encounters
+            else:
                 if profile["userId"] == profile1["userId"]:
                     profile["enStats"][key] /= len(p1_no_dnf)
                 else:
                     profile["enStats"][key] /= len(p2_no_dnf)
-            else:
-                profile["enStats"][key] /= total_encounters
 
     def build_field(profile: dict):
         stats = profile["enStats"]
@@ -184,6 +191,7 @@ async def run_head_to_head(ctx: commands.Context, profile1: dict, profile2: dict
             f"**Average Speed:** {stats["wpm"]:,.2f} WPM\n"
             f"**Raw Speed:** {stats["rawWpm"]:,.2f} WPM\n"
             f"**Accuracy:** {stats["accuracy"]:.2%}\n"
+            f"**Completion:** {stats["completion"]:.0%}\n"
             f"**Average Placement:** {stats["placement"]:,.2f}\n"
             f"**Wins:** {stats["wins"]:,} "
             f"({stats["wins"] / total_encounters:.2%} Win Rate)\n"
@@ -255,6 +263,7 @@ async def run_head_to_head(ctx: commands.Context, profile1: dict, profile2: dict
             ],
             render=lambda: encounters_graph.render(
                 encounters,
+                difficulties,
                 title=(
                     "Multiplayer Encounters\n"
                     f"{profile1["username"]} vs. {profile2["username"]}"
@@ -262,7 +271,7 @@ async def run_head_to_head(ctx: commands.Context, profile1: dict, profile2: dict
                 theme=ctx.user["theme"],
             ),
             button_name="Stats",
-            footer=f"🔴 {profile1["username"]} | 🔵 {profile2["username"]}"
+            footer=f"🔵 {profile1["username"]} | 🟣 {profile2["username"]} | ⚫ Difficulty | 🔴 DNF"
         )
     ]
 
