@@ -97,3 +97,8 @@ def get_opponent_encounters(user_id: str, opponent_id: str, gamemode: str = None
     """, params)
 
     return matches
+
+
+def delete_match_results(user_id: str):
+    """Deletes all of a user's match results."""
+    db.run("DELETE FROM match_results WHERE userId = ?", [user_id])

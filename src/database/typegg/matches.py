@@ -18,3 +18,14 @@ def add_matches(match_players):
         INSERT OR IGNORE INTO matches
         VALUES ({",".join(["?"] * 5)})
     """, [match_insert(player) for player in match_players])
+
+
+def delete_matches(user_id: str):
+    """Deletes all of a user's matches."""
+    db.run("""
+        DELETE FROM matches
+        WHERE matchId IN (
+            SELECT matchId FROM match_results
+            WHERE userId = ?
+        )
+    """, [user_id])
