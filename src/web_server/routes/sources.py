@@ -3,7 +3,7 @@ from json import JSONDecodeError
 from aiohttp import web
 
 from database.typegg.sources import add_source, get_source, update_source, delete_source
-from utils.logging import log
+from utils.logging import log_server
 from web_server.utils import validate_authorization, error_response
 
 
@@ -32,7 +32,7 @@ async def create_source(request: web.Request):
 
     try:
         add_source(data)
-        log(f"Created source {source_id}")
+        log_server(f"Created source {source_id}")
         return web.json_response({
             "success": True,
             "message": f"Source {source_id} created successfully.",
@@ -64,7 +64,7 @@ async def patch_source(request: web.Request):
 
     try:
         update_source(source_id, data)
-        log(f"Updated source {source_id}")
+        log_server(f"Updated source {source_id}")
         return web.json_response({
             "success": True,
             "message": f"Source {source_id} updated successfully.",
@@ -88,7 +88,7 @@ async def remove_source(request: web.Request):
 
     try:
         delete_source(source_id)
-        log(f"Deleted source {source_id}")
+        log_server(f"Deleted source {source_id}")
         return web.json_response({
             "success": True,
             "message": f"Source {source_id} deleted successfully.",

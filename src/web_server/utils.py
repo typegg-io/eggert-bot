@@ -6,14 +6,14 @@ from aiohttp import web
 
 from api.core import API_URL
 from config import SECRET, VERIFIED_ROLE_NAME
-from utils.logging import log
+from utils.logging import log_server
 
 
 # Request Utilities
 
 def error_response(message: str, status: int = 500):
     """Create a JSON error response."""
-    log(f"Error response ({status}): {message}")
+    log_server(f"Error response ({status}): {message}")
     return web.json_response({"error": message}, status=status)
 
 
@@ -51,7 +51,7 @@ async def update_nwpm_role(cog, guild: discord.Guild, discord_id: int, nwpm: flo
 
     role_name = get_nwpm_role_name(nwpm)
     if not role_name:
-        log(f"No nWPM role needed for nwpm={nwpm}")
+        log_server(f"No nWPM role needed for nwpm={nwpm}")
         return
 
     new_role = discord.utils.get(guild.roles, name=role_name)
@@ -70,7 +70,7 @@ async def update_nwpm_role(cog, guild: discord.Guild, discord_id: int, nwpm: flo
     ]
 
     if len(current_roles) == 1 and current_roles[0] == new_role:
-        log(f"Member {member.name} already has correct nWPM role '{role_name}'")
+        log_server(f"Member {member.name} already has correct nWPM role '{role_name}'")
         return
 
     try:
@@ -79,7 +79,7 @@ async def update_nwpm_role(cog, guild: discord.Guild, discord_id: int, nwpm: flo
             await asyncio.sleep(0.5)
 
         await member.add_roles(new_role, reason="Assigning nWPM role")
-        log(f"Assigned {role_name} role to {member.name}")
+        log_server(f"Assigned {role_name} role to {member.name}")
         await asyncio.sleep(1)
     except (discord.Forbidden, discord.HTTPException) as e:
         raise RuntimeError(f"Failed to update nWPM role for {member.name}: {e}")
@@ -101,7 +101,7 @@ async def assign_user_roles(cog, guild: discord.Guild, discord_id: int, user_id:
 
     try:
         await member.add_roles(verified_role)
-        log(f"Assigned '{VERIFIED_ROLE_NAME}' role to {member.name}")
+        log_server(f"Assigned '{VERIFIED_ROLE_NAME}' role to {member.name}")
     except (discord.Forbidden, discord.HTTPException) as e:
         raise RuntimeError(f"Failed to assign verification role: {e}")
 
@@ -118,7 +118,7 @@ async def assign_user_roles(cog, guild: discord.Guild, discord_id: int, user_id:
             if nwpm is not None:
                 await update_nwpm_role(cog, guild, discord_id, nwpm)
             else:
-                log(f"No nWPM data available for user {user_id}")
+                log_server(f"No nWPM data available for user {user_id}")
 
             # Get GG+ status
             is_gg_plus = profile_data.get("isGgPlus", False)
@@ -127,7 +127,7 @@ async def assign_user_roles(cog, guild: discord.Guild, discord_id: int, user_id:
             update_gg_plus_status(user_id, is_gg_plus)
             if is_gg_plus:
                 update_theme(discord_id, GG_PLUS_THEME)
-            log(f"Updated GG+ status in database for user {user_id}: {is_gg_plus}")
+            log_server(f"Updated GG+ status in database for user {user_id}: {is_gg_plus}")
 
             # Assign GG+ role if applicable
             if is_gg_plus:
@@ -137,6 +137,6 @@ async def assign_user_roles(cog, guild: discord.Guild, discord_id: int, user_id:
 
                 try:
                     await member.add_roles(gg_plus_role)
-                    log(f"Assigned GG+ role to {member.name}")
+                    log_server(f"Assigned GG+ role to {member.name}")
                 except (discord.Forbidden, discord.HTTPException) as e:
                     raise RuntimeError(f"Failed to assign GG+ role to {member.name}: {e}")

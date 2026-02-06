@@ -4,7 +4,7 @@ import traceback
 
 import requests
 
-from config import STAGING, MESSAGE_WEBHOOK, ERROR_WEBHOOK
+from config import STAGING, MESSAGE_WEBHOOK, ERROR_WEBHOOK, WEB_SERVER_WEBHOOK
 from database.bot.users import get_user
 
 # Constants
@@ -94,6 +94,14 @@ def log(message, file=None):
         return print(message)
 
     send_log(MESSAGE_WEBHOOK, message, file)
+
+
+def log_server(message, file=None):
+    """Log a web server message to the console (staging) or dedicated webhook (production)."""
+    if STAGING:
+        return print(message)
+
+    send_log(WEB_SERVER_WEBHOOK, message, file)
 
 
 def log_error(command_message, error):

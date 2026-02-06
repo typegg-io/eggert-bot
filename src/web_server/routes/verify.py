@@ -7,7 +7,7 @@ from discord import Embed, Forbidden
 from config import SECRET, TYPEGG_GUILD_ID
 from database.bot.users import link_user
 from utils.colors import SUCCESS
-from utils.logging import log
+from utils.logging import log_server
 from web_server.utils import assign_user_roles, error_response
 
 
@@ -45,7 +45,7 @@ async def verify_user(cog, request: web.Request):
 
     # Link user in database
     link_user(discord_id, user_id)
-    log(f"Linked user {discord_id} to user ID {user_id}")
+    log_server(f"Linked user {discord_id} to user ID {user_id}")
 
     # Assign all roles (verified, nWPM, GG+) and update database
     try:
@@ -61,7 +61,7 @@ async def verify_user(cog, request: web.Request):
             description="Successfully verified your account.",
             color=SUCCESS,
         ))
-        log(f"Sent verification success message to {user.name}")
+        log_server(f"Sent verification success message to {user.name}")
     except Forbidden:
         pass
 

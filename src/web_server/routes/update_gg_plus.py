@@ -5,7 +5,7 @@ from aiohttp import web
 
 from database.bot.users import update_gg_plus_status, get_discord_id, update_theme
 from utils.colors import GG_PLUS_THEME, DEFAULT_THEME
-from utils.logging import log
+from utils.logging import log_server
 from web_server.utils import validate_authorization, error_response
 
 
@@ -49,7 +49,7 @@ async def update_gg_plus(cog, request: web.Request):
         update_theme(discord_id, DEFAULT_THEME)
 
     status_text = "subscribed to" if is_gg_plus else "unsubscribed from"
-    log(f"User {user_id} (<@{discord_id}>) {status_text} GG+")
+    log_server(f"User {user_id} (<@{discord_id}>) {status_text} GG+")
 
     # Update GG+ role
     guild = cog.guild
@@ -63,7 +63,7 @@ async def update_gg_plus(cog, request: web.Request):
         else:
             await member.remove_roles(role, reason="Removing GG+ role")
 
-        log(f"Updated GG+ role for {member.name}")
+        log_server(f"Updated GG+ role for {member.name}")
 
     return web.json_response({
         "success": True,

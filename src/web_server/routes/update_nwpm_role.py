@@ -4,7 +4,7 @@ import discord
 from aiohttp import web
 
 from database.bot.users import get_discord_id
-from utils.logging import log
+from utils.logging import log_server
 from web_server.utils import validate_authorization, error_response, get_nwpm_role_name
 
 
@@ -44,6 +44,6 @@ async def update_nwpm_role(cog, request: web.Request):
     await member.remove_roles(*current_roles, reason="Updating nWPM role")
     await member.add_roles(new_role, reason="Assigning nWPM role")
 
-    log(f"Assigned {role_name} role to {member.name}")
+    log_server(f"Assigned {role_name} role to {member.name}")
 
     return web.json_response({"success": True, "message": "Updated user's nWPM role successfully."})

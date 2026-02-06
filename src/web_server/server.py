@@ -6,7 +6,7 @@ from aiohttp import web
 from discord.ext import commands
 
 from config import SOURCE_DIR, ROOT_DIR, TYPEGG_GUILD_ID
-from utils.logging import log
+from utils.logging import log_server
 from web_server.middleware import error_middleware, security_headers_middleware
 from web_server.routes.compare import compare_page
 from web_server.routes.quotes import create_quote, patch_quote, remove_quote
@@ -68,14 +68,14 @@ class WebServer(commands.Cog):
         self.site = web.TCPSite(self.runner, host="0.0.0.0", port=8888)
         await self.site.start()
 
-        log("Web server started on port 8888")
+        log_server("Web server started on port 8888")
 
     async def stop_web_server(self):
         """Stop the web server."""
         if self.runner:
             await self.runner.cleanup()
 
-        log("Web server stopped")
+        log_server("Web server stopped")
 
 
 async def setup(bot):

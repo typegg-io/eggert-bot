@@ -3,7 +3,7 @@ from json import JSONDecodeError
 from aiohttp import web
 
 from database.typegg.quotes import add_quote, get_quote, update_quote, delete_quote
-from utils.logging import log
+from utils.logging import log_server
 from web_server.utils import validate_authorization, error_response
 
 
@@ -29,7 +29,7 @@ async def create_quote(request: web.Request):
 
     try:
         add_quote(data)
-        log(f"Created quote {quote_id}")
+        log_server(f"Created quote {quote_id}")
         return web.json_response({
             "success": True,
             "message": f"Quote {quote_id} created successfully.",
@@ -61,7 +61,7 @@ async def patch_quote(request: web.Request):
 
     try:
         update_quote(quote_id, data)
-        log(f"Updated quote {quote_id}")
+        log_server(f"Updated quote {quote_id}")
         return web.json_response({
             "success": True,
             "message": f"Quote {quote_id} updated successfully.",
@@ -85,7 +85,7 @@ async def remove_quote(request: web.Request):
 
     try:
         delete_quote(quote_id)
-        log(f"Deleted quote {quote_id}")
+        log_server(f"Deleted quote {quote_id}")
         return web.json_response({
             "success": True,
             "message": f"Quote {quote_id} deleted successfully.",

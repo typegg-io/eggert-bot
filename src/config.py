@@ -14,6 +14,7 @@ SECRET = os.getenv("SECRET", "")
 # === Webhooks ===
 MESSAGE_WEBHOOK = os.getenv("MESSAGE_WEBHOOK")
 ERROR_WEBHOOK = os.getenv("ERROR_WEBHOOK")
+WEB_SERVER_WEBHOOK = os.getenv("WEB_SERVER_WEBHOOK")
 CHATBOT_WEBHOOK_URL = os.getenv("CHATBOT_WEBHOOK_URL")
 
 # === Bot configuration ===
