@@ -1,12 +1,8 @@
-import asyncio
 from json import JSONDecodeError
 
 from aiohttp import web
 
-from commands.account.download import run as download
-from database.typegg.match_results import delete_match_results
 from database.typegg.quotes import add_quote, get_quote, update_quote, delete_quote
-from database.typegg.races import delete_races
 from utils.logging import log_server
 from web_server.utils import validate_authorization, error_response
 
@@ -65,24 +61,13 @@ async def patch_quote(request: web.Request):
         return error_response(f"Quote {quote_id} not found.", 404)
 
     try:
-        reimport_users = update_quote(quote_id, data)
+        await update_quote(quote_id, data)
 
         log_server(f"Updated quote {quote_id}")
-        response_data = {
+        return web.json_response({
             "success": True,
             "message": f"Quote {quote_id} updated successfully.",
-        }
-
-        if reimport_users:
-            async def reimport_background():
-                for user_id in reimport_users:
-                    delete_races(user_id)
-                    delete_match_results(user_id)
-                    await download(user_id=user_id)
-
-            asyncio.create_task(reimport_background())
-
-        return web.json_response(response_data)
+        })
     except Exception as e:
         return error_response(f"Failed to update quote: {e}", 500)
 

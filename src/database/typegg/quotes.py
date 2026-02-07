@@ -143,15 +143,13 @@ def get_ranked_quote_count():
     return result["total"]
 
 
-def update_quote(quote_id: str, updates: dict):
+async def update_quote(quote_id: str, updates: dict):
     """
     Update a quote's fields. Only updates provided fields.
     Returns a list of userIds that need reimporting, if ranked changed.
     """
     if not updates:
-        return []
-
-    reimport_users = []
+        return
 
     if "ranked" in updates:
         current_quote = db.fetch_one("SELECT ranked FROM quotes WHERE quoteId = ?", [quote_id])
@@ -168,13 +166,27 @@ def update_quote(quote_id: str, updates: dict):
                         WHERE quoteId = ?
                     """, [quote_id])
                     log_server(f"Quote {quote_id} unranked: Zeroed out pp values")
-                elif new_ranked == 1:  # Unranked -> Ranked: Gather users to reimport
-                    affected_users = db.fetch("""
-                        SELECT DISTINCT userId FROM races
-                        WHERE quoteId = ?
+                elif new_ranked == 1:  # Unranked -> Ranked: Calculate pp from sample
+                    from api.users import get_race
+
+                    sample = db.fetch_one("""
+                        SELECT userId, raceNumber, wpm
+                        FROM races
+                        WHERE quoteId = ? AND wpm > 0
+                        LIMIT 1
                     """, [quote_id])
-                    reimport_users = [row["userId"] for row in affected_users]
-                    log_server(f"Quote {quote_id} ranked: reimporting {len(reimport_users)} users")
+
+                    if sample:
+                        race_data = await get_race(sample["userId"], sample["raceNumber"])
+                        pp_ratio = race_data["pp"] / race_data["wpm"]
+
+                        db.run("""
+                            UPDATE races
+                            SET pp = wpm * ?, rawPp = rawWpm * ?
+                            WHERE quoteId = ?
+                        """, [pp_ratio, pp_ratio, quote_id])
+
+                        log_server(f"Quote {quote_id} ranked: Updated PP values using ratio {pp_ratio:.4f}")
 
     fields = [
         "quoteId", "sourceId", "text", "explicit", "difficulty", "complexity",
@@ -192,7 +204,7 @@ def update_quote(quote_id: str, updates: dict):
             params.append(value)
 
     if not sets:
-        return reimport_users
+        return
 
     params.append(quote_id)
     db.run(f"""
@@ -200,8 +212,6 @@ def update_quote(quote_id: str, updates: dict):
         SET {", ".join(sets)}
         WHERE quoteId = ?
     """, params)
-
-    return reimport_users
 
 
 def delete_quote(quote_id: str):
