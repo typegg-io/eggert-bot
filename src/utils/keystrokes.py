@@ -219,8 +219,7 @@ def process_keystroke_data(
     pending_delays: List[int] = []
 
     def get_absolute_position(relative_position: int) -> int:
-        chars_before = sum(len(w) for w in words[:word_index])
-        return chars_before + relative_position
+        return total_chars_before_word + relative_position
 
     def add_to_char_pool(char: str, ks_id: int, typed_at_pos: int):
         normalized = normalize_enter(char).lower()
@@ -237,6 +236,10 @@ def process_keystroke_data(
         action = keystroke.action
         time = keystroke.time
         time_delta = keystroke.timeDelta
+
+        # Safety check: detect corrupt data where word never completes and buffer grows unbounded
+        if len(input_val_contributors) > 500:
+            raise InvalidKeystrokeData
 
         current_word = words[word_index] if word_index < len(words) else ""
         # Use cached value instead of O(n) sum
@@ -370,8 +373,8 @@ def process_keystroke_data(
                 while len(input_val_contributors) <= adj_start:
                     input_val_contributors.append(-1)
                     input_val_delays.append([])
-                input_val_contributors.insert(adj_start, keystroke_id)
-                input_val_delays.insert(adj_start, preserved_ids + list(pending_delays))
+                input_val_contributors[adj_start:adj_end] = [keystroke_id]
+                input_val_delays[adj_start:adj_end] = [preserved_ids + list(pending_delays)]
                 pending_delays.clear()
 
             if r_start <= r_end:
