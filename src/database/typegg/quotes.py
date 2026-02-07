@@ -6,7 +6,7 @@ from api.sources import get_all_sources
 from database.typegg import db
 from database.typegg.sources import get_source
 from utils.errors import UnknownQuote
-from utils.logging import log
+from utils.logging import log, log_server
 
 
 def quote_insert(quote):
@@ -144,13 +144,41 @@ def get_ranked_quote_count():
 
 
 def update_quote(quote_id: str, updates: dict):
-    """Update a quote's fields. Only updates provided fields."""
+    """
+    Update a quote's fields. Only updates provided fields.
+    Returns a list of userIds that need reimporting, if ranked changed.
+    """
     if not updates:
-        return False
+        return []
+
+    reimport_users = []
+
+    if "ranked" in updates:
+        current_quote = db.fetch_one("SELECT ranked FROM quotes WHERE quoteId = ?", [quote_id])
+
+        if current_quote:
+            old_ranked = current_quote["ranked"]
+            new_ranked = updates["ranked"]
+
+            if old_ranked != new_ranked:
+                if new_ranked == 0:  # Ranked -> Unranked: Zero out pp values
+                    db.run("""
+                        UPDATE races
+                        SET pp = 0, rawPp = 0
+                        WHERE quoteId = ?
+                    """, [quote_id])
+                    log_server(f"Quote {quote_id} unranked: Zeroed out pp values")
+                elif new_ranked == 1:  # Unranked -> Ranked: Gather users to reimport
+                    affected_users = db.fetch("""
+                        SELECT DISTINCT userId FROM races
+                        WHERE quoteId = ?
+                    """, [quote_id])
+                    reimport_users = [row["userId"] for row in affected_users]
+                    log_server(f"Quote {quote_id} ranked: reimporting {len(reimport_users)} users")
 
     fields = [
-        "quoteId", "text", "explicit", "difficulty", "complexity", "submittedByUsername",
-        "ranked", "created", "language", "sourceId", "formatting",
+        "quoteId", "sourceId", "text", "explicit", "difficulty", "complexity",
+        "submittedByUsername", "ranked", "created", "language", "formatting",
     ]
     sets = []
     params = []
@@ -164,7 +192,7 @@ def update_quote(quote_id: str, updates: dict):
             params.append(value)
 
     if not sets:
-        return False
+        return reimport_users
 
     params.append(quote_id)
     db.run(f"""
@@ -173,7 +201,7 @@ def update_quote(quote_id: str, updates: dict):
         WHERE quoteId = ?
     """, params)
 
-    return True
+    return reimport_users
 
 
 def delete_quote(quote_id: str):
