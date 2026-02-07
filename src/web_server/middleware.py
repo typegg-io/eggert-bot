@@ -1,4 +1,4 @@
-import json
+from pprint import pprint
 
 import aiohttp_jinja2
 from aiohttp import web
@@ -19,7 +19,7 @@ async def request_logging_middleware(request, handler):
             text = body.get("text")
             if text and len(text) > 1000:
                 body["text"] = text[:1000] + "..."
-            log_message += f" | `Body:`\n```{json.dumps(body, indent=2)}```"
+            log_message += f" | `Body:`\n```{pprint(body, width=120)}```"
         except Exception:
             pass
 
