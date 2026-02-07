@@ -99,8 +99,8 @@ async def run_head_to_head(ctx: commands.Context, profile1: dict, profile2: dict
     encounters = get_opponent_encounters(profile1["userId"], profile2["userId"], gamemode=gamemode)
     quote_list = get_quotes()
     difficulties = [quote_list[en["quoteId"]]["difficulty"] for en in encounters]
-    p1_no_dnf = [en for en in encounters if not en["userDnf"]]
-    p2_no_dnf = [en for en in encounters if not en["opponentDnf"]]
+    p1_finish_count = len([en for en in encounters if not en["userDnf"]])
+    p2_finish_count = len([en for en in encounters if not en["opponentDnf"]])
 
     if not encounters:
         raise GeneralException(
@@ -170,18 +170,20 @@ async def run_head_to_head(ctx: commands.Context, profile1: dict, profile2: dict
         if closest_race is None or abs(wpm_delta) < abs(closest_race["userWpm"] - closest_race["opponentWpm"]):
             closest_race = match
 
-    profile1["enStats"]["completion"] = len(p1_no_dnf) / total_encounters
-    profile2["enStats"]["completion"] = len(p2_no_dnf) / total_encounters
+    profile1["enStats"]["completion"] = p1_finish_count / total_encounters
+    profile2["enStats"]["completion"] = p2_finish_count / total_encounters
 
-    for profile in [profile1, profile2]:
+    profiles = (
+        (profile1, p1_finish_count),
+        (profile2, p2_finish_count),
+    )
+
+    for profile, finish_count in profiles:
         for key in stat_keys:
-            if key == "placement" and False:
-                profile["enStats"][key] /= total_encounters
-            else:
-                if profile["userId"] == profile1["userId"]:
-                    profile["enStats"][key] /= len(p1_no_dnf)
-                else:
-                    profile["enStats"][key] /= len(p2_no_dnf)
+            divisor = total_encounters if key == "placement" else finish_count
+            profile["enStats"][key] = (
+                0 if divisor == 0 else profile["enStats"][key] / divisor
+            )
 
     def build_field(profile: dict):
         stats = profile["enStats"]
