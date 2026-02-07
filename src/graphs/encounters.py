@@ -45,12 +45,12 @@ def render(
     diff_x_avg = range(window, len(x) + 1) if len(diff_avg) < len(x) else x
 
     def plot_colored_path(ax, x_vals, y_vals, raw_wpm, base_color, zorder):
-        """Create a line that turns red during DNFs."""
+        """Create a line that becomes marked during DNFs."""
         points = np.array([x_vals, y_vals]).T.reshape(-1, 1, 2)
         segments = np.concatenate([points[:-1], points[1:]], axis=1)
 
         colors = [
-            "red" if raw_wpm[i + 1] == 0 else base_color
+            theme["crosses"] if raw_wpm[i + 1] == 0 else base_color
             for i in range(len(x_vals) - 1)
         ]
 

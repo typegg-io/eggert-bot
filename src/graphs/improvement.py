@@ -53,7 +53,7 @@ def render_over_time(
         dnf_mask = dnf_indices[window_size - 1:]
         dnf_x = np.asarray(x_points)[dnf_mask]
         dnf_y = moving_average[dnf_mask]
-        ax.scatter(dnf_x, dnf_y, color="red", s=1, zorder=999, label="_")
+        ax.scatter(dnf_x, dnf_y, color=theme["crosses"], s=1, zorder=999, label="_")
 
     ax.set_xlabel(f"Date")
     ax.set_ylabel(metric)
@@ -113,7 +113,7 @@ def render_over_races(
         dnf_mask = dnf_indices[window_size - 1:]
         dnf_x = np.asarray(x_points)[dnf_mask]
         dnf_y = moving_average[dnf_mask]
-        ax.scatter(dnf_x, dnf_y, color="red", s=1, zorder=999, label="_")
+        ax.scatter(dnf_x, dnf_y, color=theme["crosses"], s=1, zorder=999, label="_")
 
     ax.set_ylabel(metric)
     ax.set_xlabel(f"Races")

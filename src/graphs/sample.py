@@ -11,6 +11,10 @@ def render(theme: dict):
     ax = plt.subplots()[1]
     ax.plot(x, y, label="Data")
     ax.plot(x2, y2, label="Raw Speed", color=theme["raw_speed"], zorder=10)
+    ax.plot(
+        80, 85, label="Cross Marker", marker="x",
+        markersize=9, markeredgewidth=2, color=theme["crosses"], zorder=999
+    )
     plt.grid()
 
     ax.set_title("Sample Graph")

@@ -16,6 +16,7 @@ DEFAULT_THEME = {
     "raw_speed": "#FFB600",
     "title": "#FFFFFF",
     "text": "#FFFFFF",
+    "crosses": "#FF0000",
 }
 
 LIGHT_THEME = {
@@ -29,6 +30,7 @@ LIGHT_THEME = {
     "raw_speed": "#FFB600",
     "title": "#000000",
     "text": "#000000",
+    "crosses": "#FF0000",
 }
 
 DARK_THEME = {
@@ -42,6 +44,7 @@ DARK_THEME = {
     "raw_speed": "#FFB600",
     "title": "#FFFFFF",
     "text": "#FFFFFF",
+    "crosses": "#FF0000",
 }
 
 GG_PLUS_THEME = {
@@ -55,4 +58,5 @@ GG_PLUS_THEME = {
     "raw_speed": "#FFB600",
     "title": "#FFD4F0",
     "text": "#FFD4F0",
+    "crosses": "#FF0000",
 }

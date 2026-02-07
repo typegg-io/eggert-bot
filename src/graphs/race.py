@@ -57,13 +57,13 @@ def render(
                     label += f" (x{word_counts[word_index]})"
 
         ax.plot(
-            index, wpm, marker="x", color="red", zorder=777,
+            index, wpm, marker="x", color=theme["crosses"], zorder=777,
             markersize=marker_size, markeredgewidth=1.5, label=label
         )
 
     if typo_count > max_legend_typos:
         ax.plot(
-            [], [], marker="x", color="red", markersize=marker_size,
+            [], [], marker="x", color=theme["crosses"], markersize=marker_size,
             markeredgewidth=1.5, label=f"{typo_count - max_legend_typos} more typos..."
         )
 
