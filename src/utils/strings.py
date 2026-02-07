@@ -124,10 +124,13 @@ def parse_number(value):
     """Parse a string into int or float, supporting commas and K/M suffixes."""
     s = str(value).strip().replace(",", "").lower()
 
-    if s.endswith("k"):
-        return round(float(s[:-1]) * 1_000)
-    if s.endswith("m"):
-        return round(float(s[:-1]) * 1_000_000)
+    try:
+        if s.endswith("k"):
+            return round(float(s[:-1]) * 1_000)
+        if s.endswith("m"):
+            return round(float(s[:-1]) * 1_000_000)
+    except ValueError:
+        raise InvalidNumber
 
     for caster in (int, float):
         try:
