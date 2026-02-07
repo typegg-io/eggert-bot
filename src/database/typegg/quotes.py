@@ -21,7 +21,7 @@ def quote_insert(quote):
         quote["text"],
         quote["explicit"],
         quote["difficulty"],
-        quote.get("complexity", 0.0),
+        quote["complexity"],
         quote["submittedByUsername"],
         quote["ranked"],
         quote["created"],

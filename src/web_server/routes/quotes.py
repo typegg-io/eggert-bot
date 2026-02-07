@@ -20,7 +20,7 @@ async def create_quote(request: web.Request):
 
     required_fields = [
         "quoteId", "sourceId", "text", "explicit", "difficulty", "complexity",
-        "submittedByUsername", "ranked", "created", "language", "formatting",
+        "submittedByUsername", "ranked", "created", "language",
     ]
     for field in required_fields:
         if field not in data:
