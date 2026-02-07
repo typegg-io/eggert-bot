@@ -1,10 +1,9 @@
-from pprint import pformat
-
 import aiohttp_jinja2
 from aiohttp import web
 
 from utils.errors import ProfileNotFound
 from utils.logging import log_error, log_server
+from utils.strings import compact_pretty_print
 
 
 @web.middleware
@@ -28,7 +27,7 @@ async def request_logging_middleware(request, handler):
             text = body.get("text")
             if text and len(text) > 1000:
                 body["text"] = text[:1000] + "..."
-            log_message += f" | `Body:`\n```{pformat(body, width=120)}```"
+            log_message += f" | `Body:`\n```{compact_pretty_print(body)}```"
         except Exception:
             pass
 

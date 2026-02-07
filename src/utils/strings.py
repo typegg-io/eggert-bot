@@ -1,3 +1,4 @@
+import json
 from typing import Optional
 
 from dateutil import parser
@@ -534,3 +535,18 @@ def get_segments(text: str):
         text_segments.pop()
 
     return text_segments
+
+
+def compact_pretty_print(data):
+    """Returns a JSON string with top-level keys on new lines and nested values compacted."""
+    lines = ["{"]
+    sorted_items = sorted(data.items())
+    num_items = len(sorted_items)
+
+    for i, (key, value) in enumerate(sorted_items):
+        value_str = json.dumps(value, separators=(', ', ': '))
+        comma = "," if i < num_items - 1 else ""
+        lines.append(f' "{key}": {value_str}{comma}')
+
+    lines.append("}")
+    return "\n".join(lines)
