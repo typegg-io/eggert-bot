@@ -18,14 +18,12 @@ async def create_source(request: web.Request):
     except JSONDecodeError:
         return error_response("Invalid JSON data.", 400)
 
-    source_id = data.get("sourceId")
-    if not source_id:
-        return error_response("Missing required field: sourceId.", 400)
-
-    required_fields = ["title", "author", "type", "thumbnailUrl", "publicationYear"]
+    required_fields = ["sourceId", "title", "author", "type", "thumbnailUrl", "publicationYear"]
     for field in required_fields:
         if field not in data:
-            return error_response(f"Missing required field: {field}.", 400)
+            return error_response(f"Missing required field: {field}", 400)
+
+    source_id = data["sourceId"]
 
     if get_source(source_id):
         return error_response(f"Source {source_id} already exists.", 409)

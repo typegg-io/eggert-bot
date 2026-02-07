@@ -18,14 +18,15 @@ async def create_quote(request: web.Request):
     except JSONDecodeError:
         return error_response("Invalid JSON data.", 400)
 
-    quote_id = data.get("quoteId")
-    if not quote_id:
-        return error_response("Missing required field: quoteId.", 400)
-
-    required_fields = ["text", "language"]
+    required_fields = [
+        "quoteId", "sourceId", "text", "explicit", "difficulty", "complexity",
+        "submittedByUsername", "ranked", "created", "language",  "formatting",
+    ]
     for field in required_fields:
         if field not in data:
             return error_response(f"Missing required field: {field}.", 400)
+
+    quote_id = data["quoteId"]
 
     try:
         add_quote(data)
