@@ -46,7 +46,7 @@ async def run(ctx: commands.Context, profile: dict):
         return await message.send()
 
     total_days = (dates.now() - START_DATE).days + 1
-    total_days = min(total_days, (dates.now() - dates.parse_date(profile["joinDate"])).days + 1)
+    total_days = min(total_days, (dates.now() - dates.parse_date(profile["joinDate"])).days + 2)
 
     pp, wpm, positions = zip(*[(race["pp"], race["wpm"], race["rank"]) for race in results])
 
