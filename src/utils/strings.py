@@ -5,7 +5,7 @@ from dateutil.relativedelta import relativedelta
 
 from config import SITE_URL
 from utils.errors import InvalidArgument, InvalidNumber
-from utils.flags import Flags, LANGUAGES
+from utils.flags import Flags
 from utils.urls import race_url, profile_url
 
 # Constants
@@ -93,7 +93,7 @@ def get_flag_title(flags: Flags):
     if flags.status:
         flag_titles.append(flags.status.title())
     if flags.language:
-        flag_titles.append(LANGUAGES.get(flags.language))
+        flag_titles.append(flags.language.name)
 
     if not flag_titles:
         return ""

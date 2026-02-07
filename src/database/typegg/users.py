@@ -72,8 +72,6 @@ def get_quote_bests(
         conditions.append("gamemode = ?")
         params.append(flags.gamemode)
 
-    where_clause = "WHERE " + " AND ".join(conditions)
-
     # ORDER clause
     order_clause = "DESC" if reverse else "ASC"
 
@@ -85,6 +83,7 @@ def get_quote_bests(
         params.append(flags.language.name)
         columns = columns.replace("quoteId", "r.quoteId")
 
+    where_clause = "WHERE " + " AND ".join(conditions)
     aggregate_column = f"MAX({order_by}) AS {order_by}"
     limit_clause = f"LIMIT {limit}" if limit else ""
 

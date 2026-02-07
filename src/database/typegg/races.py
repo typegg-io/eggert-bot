@@ -115,8 +115,6 @@ async def get_races(
         if not include_dnf:
             conditions.append("completionType NOT IN ('dnf', 'quit')")
 
-    where_clause = "WHERE " + " AND ".join(conditions)
-
     # ORDER clause
     order_clause = f"{order_by} {"DESC" if reverse else "ASC"}"
 
@@ -133,6 +131,7 @@ async def get_races(
         columns += ", k.keystrokeData, k.compressed"
 
     join_clause = " ".join(join_clauses)
+    where_clause = "WHERE " + " AND ".join(conditions)
 
     # Fetching in batches
     batch_size = 100_000

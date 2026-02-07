@@ -5,7 +5,7 @@ from config import BOT_PREFIX, STAGING, STATS_CHANNEL_ID, TYPEGG_GUILD_ID
 from database.bot.users import get_user, update_commands, get_user_ids, get_all_command_usage
 from utils.errors import UserBanned
 from utils.files import get_command_modules
-from utils.flags import FLAG_VALUES, Flags
+from utils.flags import FLAG_VALUES, Flags, Language
 from utils.logging import get_log_message, log
 from utils.messages import check_channel_permissions, welcome_message, command_milestone
 from utils.strings import get_argument
@@ -40,7 +40,7 @@ def parse_flags(content: str) -> tuple[dict, str]:
                 case "ranked" | "unranked" | "any":
                     flags.status = flag
                 case _:
-                    flags.language = flag
+                    flags.language = Language(flag)
         else:
             regular_args.append(arg)
 
