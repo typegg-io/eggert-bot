@@ -1,8 +1,31 @@
+import json
+
 import aiohttp_jinja2
 from aiohttp import web
 
 from utils.errors import ProfileNotFound
-from utils.logging import log_error
+from utils.logging import log_error, log_server
+
+
+@web.middleware
+async def request_logging_middleware(request, handler):
+    """Log all incoming requests."""
+    ip = request.remote or "unknown"
+    log_message = f"`{request.method} {request.path}` | `IP: {ip}`"
+
+    if request.method in ("POST", "PATCH", "PUT"):
+        try:
+            body = await request.json()
+            text = body.get("text")
+            if text and len(text) > 1000:
+                body["text"] = text[:1000] + "..."
+            log_message += f" | `Body:`\n```{json.dumps(body, indent=2)}```"
+        except Exception:
+            pass
+
+    log_server(log_message)
+
+    return await handler(request)
 
 
 @web.middleware

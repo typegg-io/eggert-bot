@@ -7,7 +7,7 @@ from discord.ext import commands
 
 from config import SOURCE_DIR, ROOT_DIR, TYPEGG_GUILD_ID
 from utils.logging import log_server
-from web_server.middleware import error_middleware, security_headers_middleware
+from web_server.middleware import error_middleware, security_headers_middleware, request_logging_middleware
 from web_server.routes.compare import compare_page
 from web_server.routes.quotes import create_quote, patch_quote, remove_quote
 from web_server.routes.sources import create_source, patch_source, remove_source
@@ -21,7 +21,7 @@ class WebServer(commands.Cog):
 
     def __init__(self, bot):
         self.bot = bot
-        self.app = web.Application(middlewares=[error_middleware, security_headers_middleware])
+        self.app = web.Application(middlewares=[request_logging_middleware, error_middleware, security_headers_middleware])
         self.runner = None
         self.site = None
 
