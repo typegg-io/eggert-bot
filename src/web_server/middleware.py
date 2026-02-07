@@ -10,7 +10,16 @@ from utils.logging import log_error, log_server
 @web.middleware
 async def request_logging_middleware(request, handler):
     """Log all incoming requests."""
-    ip = request.remote or "unknown"
+    if request.path.startswith(("/static/", "/assets/")):
+        return await handler(request)
+
+    ip = (
+        request.headers.get("X-Forwarded-For", "").split(",")[0].strip()
+        or request.headers.get("X-Real-IP")
+        or request.remote
+        or "unknown"
+    )
+
     log_message = f"`{request.method} {request.path}` | `IP: {ip}`"
 
     if request.method in ("POST", "PATCH", "PUT"):
