@@ -186,7 +186,7 @@ async def update_quote(quote_id: str, updates: dict):
                             WHERE quoteId = ?
                         """, [pp_ratio, pp_ratio, quote_id])
 
-                        log_server(f"Quote {quote_id} ranked: Updated PP values using ratio {pp_ratio:.4f}")
+                        log_server(f"Quote {quote_id} ranked: Updated pp values using ratio {pp_ratio:.4f}")
 
     fields = [
         "quoteId", "sourceId", "text", "explicit", "difficulty", "complexity",
