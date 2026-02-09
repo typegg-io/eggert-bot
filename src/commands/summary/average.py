@@ -11,7 +11,7 @@ from utils.strings import get_flag_title, format_duration
 
 info = {
     "name": "average",
-    "aliases": ["a", "rsa", "rawsa"],
+    "aliases": ["avg", "a", "rsa", "rawsa"],
     "description": "Displays the average stats of a user's last n races\n"
                    "`n` defaults to 25",
     "parameters": "[user_id] [n]",
