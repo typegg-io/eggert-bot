@@ -3,6 +3,7 @@ from typing import Optional
 from discord.ext import commands
 
 from commands.base import Command
+from database.typegg.quotes import get_quotes
 from database.typegg.races import get_races
 from utils.messages import Message, paginate_data
 from utils.strings import discord_date, get_flag_title
@@ -36,21 +37,26 @@ async def run(ctx: commands.Context, profile: dict):
         reverse=True,
         flags=ctx.flags,
         only_historical_pbs=only_historical_pbs,
+        limit=100,
     )
 
-    def formatter(race):
-        desc = f"[{race["quoteId"]}](https://typegg.io/solo/{race["quoteId"]}) - "
+    quote_list = get_quotes()
 
+    def formatter(race):
         if race["wpm"] == 0:
-            desc += "DNF - "
+            desc = "DNF - "
         else:
-            desc += (
-                (f"{race["pp"]:,.2f} pp - " if race["pp"] > 0 else "") +
+            desc = (
                 f"{race["wpm"]:,.2f} WPM - "
-                f"{race["accuracy"]:.2%} - "
+                f"{race["accuracy"]:.2%} - " +
+                (f"{race["pp"]:,.2f} pp - " if race["pp"] > 0 else "")
             )
 
-        desc += f"{discord_date(race["timestamp"])}\n"
+        desc += (
+            f"{quote_list[race["quoteId"]]["difficulty"]:.2f}★ - "
+            f"{discord_date(race["timestamp"])} - "
+            f"[<:quote:1470361772132143277>](https://typegg.io/solo/{race["quoteId"]})\n"
+        )
 
         return desc
 
