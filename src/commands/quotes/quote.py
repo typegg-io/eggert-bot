@@ -18,15 +18,13 @@ info = {
     "aliases": ["q", "pb", "qh", "qg"],
     "description": "Displays a user's stats about a specific text",
     "parameters": "[username] [quote_id]",
+    "privacy": True,
 }
 
 
 class Quote(Command):
     @commands.command(aliases=info["aliases"])
     async def quote(self, ctx, username: Optional[str] = "me", *, quote_id: Optional[str] = None):
-        if not ctx.user["isPrivacyWarned"]:
-            await self.send_privacy_warning(ctx)
-
         profile = await self.get_profile(ctx, username, races_required=True)
         await self.import_user(ctx, profile)
         quote = await self.get_quote(ctx, quote_id, profile["userId"])

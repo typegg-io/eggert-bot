@@ -154,6 +154,9 @@ async def help_command(ctx: commands.Context, command_name: str):
         color=ctx.user["theme"]["embed"],
     )
 
+    if command.get("privacy"):
+        page.footer = "⚠️ This command exposes hidden races (non-quote bests)"
+
     message = Message(
         ctx=ctx,
         page=page,
