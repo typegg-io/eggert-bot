@@ -45,7 +45,8 @@ class Improvement(Command):
 
 
 def get_window_size(n: int, min_n: int = 25, max_n: int = 500):
-    return int(min(max_n, max(min_n, np.sqrt(n) * 5)))
+    window_size = int(min(max_n, max(min_n, np.sqrt(n) * 5)))
+    return window_size if window_size < n else 1
 
 
 async def multiplayer_improvement(ctx: commands.Context, profile: dict, metric: str):
@@ -115,23 +116,27 @@ async def multiplayer_improvement(ctx: commands.Context, profile: dict, metric: 
 
     description = f"**Races:** {len(values):,}\n"
 
-    fields = [
-        Field(
+    fields = []
+
+    if window > 25:
+        fields.append(Field(
             title="Average of 25",
             content=f"– Recent: {last_25:,.2f} WPM | Best: {best_25:,.2f} WPM",
-        ),
-        Field(
+        ))
+
+    if window > 100:
+        fields.append(Field(
             title="Average of 100",
             content=f"– Recent: {last_100:,.2f} WPM | Best: {best_100:,.2f} WPM",
+        ))
+
+    fields.append(Field(
+        title=f"Average of {window}",
+        content=(
+            f"– Recent: {last_average:,.2f} WPM | Best: {best_average:,.2f} WPM\n"
+            f"– Completion: {window / (window + quits_in_average):.2%}"
         ),
-        Field(
-            title=f"Average of {window}",
-            content=(
-                f"– Recent: {last_average:,.2f} WPM | Best: {best_average:,.2f} WPM\n"
-                f"– Completion: {window / (window + quits_in_average):.2%}"
-            ),
-        ),
-    ]
+    ))
 
     message = Message(
         ctx,
