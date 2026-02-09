@@ -5,6 +5,7 @@ from discord.ext import commands
 from commands.base import Command
 from database.typegg.quotes import get_quotes
 from database.typegg.races import get_races
+from utils.errors import NumberGreaterThan
 from utils.messages import Message, Field, Page
 from utils.strings import get_flag_title, format_duration
 
@@ -27,6 +28,10 @@ class Average(Command):
 
 
 async def run(ctx: commands.Context, profile: dict, n: int):
+
+    if n < 1:
+        raise NumberGreaterThan
+
     race_list = await get_races(
         profile["userId"],
         reverse=True,
