@@ -20,7 +20,7 @@ info = {
 class Stats(Command):
     @commands.command(aliases=info["aliases"])
     async def stats(self, ctx, username: Optional[str] = "me"):
-        profile = await self.get_profile(ctx, username)
+        profile = await self.get_profile(ctx, username, races_required=False)
         await run(ctx, profile)
 
 

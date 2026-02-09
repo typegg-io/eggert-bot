@@ -45,7 +45,7 @@ class Command(commands.Cog):
 
         return username1, username2
 
-    async def get_profile(self, ctx: commands.Context, username: str, races_required: Optional[bool] = False):
+    async def get_profile(self, ctx: commands.Context, username: str, races_required: Optional[bool] = True):
         """Fetch a user's profile, raising exceptions if missing."""
         username = self.get_username(ctx, username)
         if username is None:
