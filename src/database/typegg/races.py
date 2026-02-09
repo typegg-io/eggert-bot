@@ -65,6 +65,7 @@ async def get_races(
     limit: Optional[int] = None,
     flags: Optional[Flags] = Flags(),
     get_keystrokes: Optional[bool] = False,
+    only_historical_pbs: Optional[bool] = False,
 ):
     """Fetch races for a user with optional filters."""
     columns = ",".join(columns)
@@ -138,23 +139,46 @@ async def get_races(
     offset = 0
     race_list = []
 
-    while True:
-        limit_clause = f"LIMIT {limit}" if limit else f"LIMIT {batch_size} OFFSET {offset}"
+    if only_historical_pbs:
+        limit_clause = f"LIMIT {limit}" if limit else ""
         batch = await db.fetch_async(f"""
-            SELECT {columns}
-            FROM {table} r
-            {join_clause}
-            {where_clause}
+            SELECT *
+            FROM (
+                SELECT
+                    {columns},
+                    MAX(wpm) OVER (
+                        PARTITION BY r.quoteId
+                        ORDER BY timestamp
+                        ROWS BETWEEN UNBOUNDED PRECEDING AND 1 PRECEDING
+                    ) as prev_best_wpm
+                FROM {table} r
+                {join_clause}
+                {where_clause}
+            ) subquery
+            WHERE wpm > COALESCE(prev_best_wpm, 0)
             ORDER BY {order_clause}
             {limit_clause}
         """, params)
-
         race_list.extend(batch)
+    else:
+        # Normal batched fetching
+        while True:
+            limit_clause = f"LIMIT {limit}" if limit else f"LIMIT {batch_size} OFFSET {offset}"
+            batch = await db.fetch_async(f"""
+                SELECT {columns}
+                FROM {table} r
+                {join_clause}
+                {where_clause}
+                ORDER BY {order_clause}
+                {limit_clause}
+            """, params)
 
-        if limit or not batch:
-            break
+            race_list.extend(batch)
 
-        offset += batch_size
+            if limit or not batch:
+                break
+
+            offset += batch_size
 
     if get_keystrokes:
         return decompress_keystroke_data(race_list)
