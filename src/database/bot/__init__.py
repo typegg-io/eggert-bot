@@ -30,3 +30,13 @@ db.run("""
         lastReset REAL
     )
 """)
+
+db.run("""
+    CREATE TABLE IF NOT EXISTS art (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        title TEXT NOT NULL UNIQUE,
+        image_url TEXT NOT NULL,
+        author_id TEXT NOT NULL, -- Discord ID
+        timestamp INTEGER NOT NULL
+    )
+""")

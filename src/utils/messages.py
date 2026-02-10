@@ -45,6 +45,7 @@ class Page:
         fields (list[Field]): A list of Field objects to display in the embed.
         footer (str): Optional footer text.
         color (int): Optional color for the embed.
+        image_url (str): Optional image URL for the embed.
         button_name (str): Name used for the page-switching button.
         render (Callable): Function to render an image/file for the page.
         default (bool): Whether this is the default page to show initially.
@@ -54,6 +55,7 @@ class Page:
     fields: list = field(default_factory=list)
     footer: str = None
     color: int = None
+    image_url: str = None
     button_name: str = None
     render: Callable = None
     default: bool = False
@@ -142,6 +144,8 @@ class Message(View):
             if page.fields:
                 for field in page.fields:
                     embed.add_field(name=field.title, value=field.content, inline=field.inline)
+            if page.image_url:
+                embed.set_image(url=page.image_url)
             if footer:
                 self.update_footer(embed, footer)
             if self.footer_icon:
