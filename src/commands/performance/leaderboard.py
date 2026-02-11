@@ -220,7 +220,7 @@ async def run_custom(ctx: commands.Context, category: dict, args: tuple = ()):
 
         def qo_formatter(entry):
             bold = "**" if entry["highlight"] else ""
-            return f"{rank(entry["rank"])} {bold}{entry["username"]} - {entry["count"]:,} quotes{bold}\n"
+            return f"{rank(entry["rank"])} {bold}{entry["username"]} - {entry["count"]:,}{bold}\n"
 
         pages = paginate_data(leaderboard, qo_formatter, page_count=5, per_page=20)
 
