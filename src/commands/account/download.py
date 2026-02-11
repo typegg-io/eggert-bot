@@ -76,7 +76,7 @@ async def run(
 
     user_entry = get_user(user_id)
     if not user_entry:
-        create_user(user_id)
+        create_user(profile)
 
     total_races = await get_total_races(user_id)
     latest_race = get_latest_race(user_id)

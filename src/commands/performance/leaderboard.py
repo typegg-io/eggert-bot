@@ -3,9 +3,11 @@ from discord.ext import commands
 from api.leaders import get_leaders
 from commands.base import Command
 from database.typegg.quotes import get_top_submitters, get_ranked_quote_count
+from database.typegg.users import get_quotes_over_leaderboard, get_user_lookup
 from utils import strings
+from utils.errors import GeneralException
 from utils.messages import Message, Page, paginate_data
-from utils.strings import get_argument, username_with_flag, rank, get_flag_title, LOADING
+from utils.strings import get_argument, username_with_flag, rank, get_flag_title, LOADING, parse_number
 
 categories = {
     # API leaderboards
@@ -83,25 +85,29 @@ categories = {
     # Custom leaderboards
     "submissions": {
         "title": "Quote Submissions"
+    },
+    "quotesover": {
+        "title": "Quotes Over",
     }
 }
 info = {
     "name": "leaderboard",
     "aliases": ["lb"],
     "description": "Displays the top 100 users for a given category\n"
-                   f"Category can be: {", ".join("`" + c + "`" for c in categories)}",
-    "parameters": "<category>",
+                   f"Category can be: {", ".join("`" + c + "`" for c in categories)}\n"
+                   "For `qo` (Quotes Over): `-lb qo <threshold> [metric]`",
+    "parameters": "<category> [args]",
 }
 
 
 class Leaderboard(Command):
     @commands.command(aliases=info["aliases"])
-    async def leaderboard(self, ctx, category: str = "pp"):
+    async def leaderboard(self, ctx, category: str = "pp", *args):
         category = get_argument(categories.keys(), category)
         category_info = categories[category]
 
         if not category_info.get("formatter"):
-            return await run_custom(ctx, category_info)
+            return await run_custom(ctx, category_info, args)
 
         await run(ctx, category_info)
 
@@ -163,8 +169,11 @@ async def run(ctx: commands.Context, category: dict):
     await message.edit()
 
 
-async def run_custom(ctx: commands.Context, category: dict):
+async def run_custom(ctx: commands.Context, category: dict, args: tuple = ()):
     """Displays a custom leaderboard generated from the database."""
+    if category["title"] == "Quotes Over" and not args:
+        raise GeneralException("Missing threshold", "Usage: `-lb qo <threshold> [metric]`")
+
     title = f"{category["title"]} Leaderboard"
 
     skeleton_page = Page(
@@ -184,10 +193,41 @@ async def run_custom(ctx: commands.Context, category: dict):
         formatter = lambda quote: f"{rank(quote["rank"])} {quote["submittedByUsername"]} - {quote["submissions"]:,}\n"
         pages = paginate_data(leaderboard, formatter, page_count=5, per_page=20)
 
+    elif category["title"] == "Quotes Over":
+        threshold = parse_number(args[0])
+        metric = get_argument(["pp", "wpm"], args[1] if len(args) > 1 else "wpm")
+        ctx.flags.status = ctx.flags.status or "ranked"
+
+        leaderboard_data = get_quotes_over_leaderboard(
+            threshold=threshold,
+            metric=metric,
+            limit=100,
+            flags=ctx.flags
+        )
+        user_lookup = get_user_lookup()
+
+        leaderboard = []
+        for i, entry in enumerate(leaderboard_data):
+            leaderboard.append({
+                "rank": i + 1,
+                "username": user_lookup[entry["userId"]]["username"],
+                "count": entry["count"],
+                "highlight": entry["userId"] == ctx.user["userId"],
+            })
+
+        if metric == "wpm": metric = "WPM"
+        title = f"Quotes Over {threshold:,} {metric} Leaderboard" + get_flag_title(ctx.flags)
+
+        def qo_formatter(entry):
+            bold = "**" if entry["highlight"] else ""
+            return f"{rank(entry["rank"])} {bold}{entry["username"]} - {entry["count"]:,} quotes{bold}\n"
+
+        pages = paginate_data(leaderboard, qo_formatter, page_count=5, per_page=20)
+
+    await initial_send
+
     message.title = title
     message.pages = pages
     message.page_count = len(pages)
-    message.paginated = True
 
-    await initial_send
     await message.edit()

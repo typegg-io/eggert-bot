@@ -49,6 +49,7 @@ OPTION_ALIASES = {
     "unranked": ["ur"],
     "playtime": ["pt"],
     "submissions": ["qs"],
+    "quotesover": ["qo"],
 }
 
 ALIAS_LOOKUP = {

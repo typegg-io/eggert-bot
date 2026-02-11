@@ -5,12 +5,27 @@ from utils.flags import Flags
 from utils.logging import log
 
 
-def create_user(user_id: str):
-    db.run("INSERT INTO users VALUES (?, date('now'))", [user_id])
+def create_user(profile: dict):
+    db.run("""
+        INSERT INTO users
+        VALUES (?, date('now'), ?, ?)
+    """, [profile["userId"], profile["username"], profile["country"]])
 
 
 def get_user(user_id: str):
     return db.fetch_one("SELECT * FROM users WHERE userId = ?", [user_id])
+
+
+def get_user_lookup():
+    user_list = db.fetch("SELECT userId, username, country FROM users")
+    user_dict = {
+        user["userId"]: {
+            "username": user["username"],
+            "country": user["country"],
+        } for user in user_list
+    }
+
+    return user_dict
 
 
 def get_quote_bests(
@@ -146,3 +161,73 @@ def get_running_maximum_by_length(user_id: str):
         WHERE wpm = running_max_wpm
         ORDER BY length;
     """, [user_id])
+
+
+def get_quotes_over_leaderboard(threshold: int, metric: str = "wpm", limit: int = 100, flags: Flags = Flags()):
+    """Returns users with the most quotes over a threshold."""
+    min_pp = 0
+    max_pp = 99999
+    table = "races"
+
+    # Applying flag filters
+    if flags.status != "ranked":
+        min_pp = -1
+        if flags.status == "unranked":
+            max_pp = 0
+
+    if flags.raw:
+        if metric == "wpm":
+            metric = "rawWpm"
+        elif metric == "pp":
+            metric = "rawPp"
+
+    multiplayer = flags.gamemode in ["quickplay", "lobby"]
+
+    if multiplayer:
+        table = "multiplayer_races"
+
+    # WHERE clause
+    conditions = []
+    params = []
+
+    conditions.append("pp > ?")
+    params.append(min_pp)
+
+    conditions.append("pp <= ?")
+    params.append(max_pp)
+
+    if flags.gamemode == "solo":
+        conditions.append("matchId IS NULL")
+
+    if multiplayer:
+        conditions.append("completionType NOT IN ('dnf', 'quit')")
+        conditions.append("gamemode = ?")
+        params.append(flags.gamemode)
+
+    # JOIN clause
+    join_clause = ""
+    if flags.language:
+        join_clause = "JOIN quotes q ON q.quoteId = r.quoteId"
+        conditions.append("q.language = ?")
+        params.append(flags.language.name)
+
+    where_clause = " AND ".join(conditions) if conditions else "1=1"
+
+    params.append(threshold)
+
+    query = f"""
+        SELECT userId, COUNT(*) as count
+        FROM (
+            SELECT userId, quoteId, MAX({metric}) as best_value
+            FROM {table} r
+            {join_clause}
+            WHERE {where_clause}
+            GROUP BY userId, quoteId
+        ) as quote_bests
+        WHERE best_value >= ?
+        GROUP BY userId
+        ORDER BY count DESC
+        LIMIT {limit}
+    """
+
+    return db.fetch(query, params)

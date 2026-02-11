@@ -3,7 +3,9 @@ from database.typegg import db
 db.run("""
     CREATE TABLE IF NOT EXISTS users (
         userId TEXT PRIMARY KEY,
-        lastAccessed INTEGER NOT NULL -- unix timestamp
+        lastAccessed INTEGER NOT NULL, -- unix timestamp
+        username TEXT, -- Assuming this doesn't change
+        country TEXT -- Assuming this doesn't change
     )
 """)
 
