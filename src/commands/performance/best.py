@@ -14,7 +14,7 @@ from utils.strings import get_argument, quote_display, get_flag_title
 metrics = ["pp", "wpm"]
 info = {
     "name": "best",
-    "aliases": ["top", "b"],
+    "aliases": ["b"],
     "description": "Displays a user's top 100 quotes\n"
                    "\\- `metric` defaults to pp",
     "parameters": "[username] [pp|wpm]",
