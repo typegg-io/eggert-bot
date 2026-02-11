@@ -59,11 +59,13 @@ async def run(ctx: commands.Context, profile: dict, threshold: int, metric: str)
     if metric == "wpm":
         metric = "WPM"
 
-    description = (
-        f"**Quotes Over:** {over_count:,} of {len(quote_bests):,}\n"
-        f"**Best:** {best_value:,.2f} {metric}\n"
-        f"**Average:** {avg_value:,.2f} {metric}\n"
-    )
+    description = f"**Quotes Over:** {over_count:,} of {len(quote_bests):,}\n"
+
+    if over_count > 0:
+        description += (
+            f"**Best:** {best_value:,.2f} {metric}\n"
+            f"**Average:** {avg_value:,.2f} {metric}\n"
+        )
 
     if over_count > 0:
         description += f"**Average Difficulty:** {avg_difficulty:.2f}★\n"
