@@ -3,12 +3,12 @@ from discord.ext import commands
 
 from config import BOT_PREFIX, STAGING, STATS_CHANNEL_ID, TYPEGG_GUILD_ID
 from database.bot.users import get_user, update_commands, get_user_ids, get_all_command_usage
-from utils.errors import UserBanned
+from utils.errors import UserBanned, InvalidNumber
 from utils.files import get_command_modules
 from utils.flags import FLAG_VALUES, Flags, Language
 from utils.logging import get_log_message, log
 from utils.messages import check_channel_permissions, welcome_message, command_milestone
-from utils.strings import get_argument
+from utils.strings import get_argument, parse_number
 from web_server.utils import assign_user_roles
 
 users = get_user_ids()
@@ -24,6 +24,13 @@ def parse_flags(content: str) -> tuple[dict, str]:
 
     for arg in raw_args:
         if arg.startswith("-"):
+            try:
+                number = parse_number(arg.lstrip("-"))
+                flags.number = number
+                continue
+            except InvalidNumber:
+                pass
+
             flag = get_argument(FLAG_VALUES, arg.lstrip("-"), _raise=False)
 
             if not flag:

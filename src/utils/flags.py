@@ -56,6 +56,7 @@ class Flags: # IF status == unranked, metric = wpm
     gamemode: Optional[str] = None
     status: Optional[str] = None
     language: Optional[Union[str, Language]] = None
+    number: Optional[int] = None
 
     def __post_init__(self):
         if isinstance(self.language, str):
