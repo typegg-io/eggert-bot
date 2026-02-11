@@ -210,7 +210,7 @@ def get_line_colormap(ax: Axes, line_index: int, colormap_name: str):
     ax.lines[line_index].remove()
     points = np.array([x, y]).T.reshape(-1, 1, 2)
     segments = np.concatenate([points[:-1], points[1:]], axis=1)
-    lc = LineCollection(segments, cmap=cmap, zorder=50, linewidth=1.5)
+    lc = LineCollection(segments, cmap=cmap, zorder=50, linewidth=line.get_linewidth())
     lc.set_array(np.linspace(0, 1, len(x)))
     ax.add_collection(lc)
 
