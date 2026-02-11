@@ -247,3 +247,34 @@ def get_discord_id(user_id: str):
         return None
 
     return result["discordId"]
+
+
+def migrate_command_name(old_name: str, new_name: str):
+    """Migrate command usage data from an old command name to a new one."""
+    all_users = db.fetch("SELECT discordId, commands FROM users")
+    affected_count = 0
+
+    for user in all_users:
+        commands_data = json.loads(user["commands"])
+        counts = commands_data.get("counts", {})
+
+        # Check if old command name exists
+        if old_name in counts:
+            old_count = counts.pop(old_name)
+
+            # If new name already exists, merge the counts
+            if new_name in counts:
+                counts[new_name] += old_count
+            else:
+                counts[new_name] = old_count
+
+            # Update the database
+            db.run("""
+                UPDATE users
+                SET commands = ?
+                WHERE discordId = ?
+            """, [json.dumps(commands_data), user["discordId"]])
+
+            affected_count += 1
+
+    return affected_count
