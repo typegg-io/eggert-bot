@@ -1,6 +1,9 @@
 from typing import Optional
 
 from database.typegg import db
+from database.typegg.keystroke_data import delete_keystroke_data
+from database.typegg.match_results import delete_match_results
+from database.typegg.matches import delete_matches
 from utils.flags import Flags
 from utils.logging import log
 
@@ -139,6 +142,9 @@ async def reimport_users():
             continue
         delete_races(user_id)
         delete_user(user_id)
+        delete_keystroke_data(user_id)
+        delete_matches(user_id)
+        delete_match_results(user_id)
 
         await download(user_id=user_id)
 
