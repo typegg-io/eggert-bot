@@ -208,9 +208,11 @@ async def run_custom(ctx: commands.Context, category: dict, args: tuple = ()):
 
         leaderboard = []
         for i, entry in enumerate(leaderboard_data):
+            user = user_lookup[entry["userId"]]
             leaderboard.append({
                 "rank": i + 1,
-                "username": user_lookup[entry["userId"]]["username"],
+                "username": user["username"],
+                "country": user["country"],
                 "count": entry["count"],
                 "highlight": entry["userId"] == ctx.user["userId"],
             })
@@ -220,7 +222,7 @@ async def run_custom(ctx: commands.Context, category: dict, args: tuple = ()):
 
         def qo_formatter(entry):
             bold = "**" if entry["highlight"] else ""
-            return f"{rank(entry["rank"])} {bold}{entry["username"]} - {entry["count"]:,}{bold}\n"
+            return f"{rank(entry["rank"])} {bold}{username_with_flag(entry)} - {entry["count"]:,}{bold}\n"
 
         pages = paginate_data(leaderboard, qo_formatter, page_count=5, per_page=20)
 
