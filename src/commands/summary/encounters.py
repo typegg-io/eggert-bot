@@ -13,32 +13,68 @@ from utils.keystrokes import get_keystroke_data
 from utils.messages import Page, Message, Field
 from utils.strings import get_flag_title, discord_date, username_with_flag, quote_display, rank
 
+sorts = ["wins", "losses", "winrate", "wpm", "-winrate", "-wpm"]
 info = {
     "name": "encounters",
     "aliases": ["en"],
     "description": "Displays a list of opponents faced in multiplayer matches\n"
-                   "Enter a second username for head-to-head analysis",
-    "parameters": "[username] [username2]",
+                   "Enter a second username for head-to-head analysis\n"
+                   "Sort options: `wins`, `losses`, `winrate`, `wpm`,\n`-winrate` (lowest), `-wpm` (biggest diff)",
+    "parameters": "[username] [username2/sort]",
 }
 
 
 class Encounters(Command):
     @commands.command(aliases=info["aliases"])
     async def encounters(self, ctx, username: Optional[str] = "me", username2: Optional[str] = None):
+        sort = None
         profile = await self.get_profile(ctx, username)
         await self.import_user(ctx, profile)
 
         if username2:
-            profile2 = await self.get_profile(ctx, username2)
-            await self.import_user(ctx, profile2)
-            await run_head_to_head(ctx, profile, profile2)
-        else:
-            await run(ctx, profile)
+            if username2 not in sorts:
+                profile2 = await self.get_profile(ctx, username2)
+                await self.import_user(ctx, profile2)
+                return await run_head_to_head(ctx, profile, profile2)
+            else:
+                sort = username2
+
+        if ctx.flags.metric == "wpm":
+            sort = "-wpm"
+
+        await run(ctx, profile, sort)
 
 
-async def run(ctx: commands.Context, profile: dict):
+async def run(ctx: commands.Context, profile: dict, sort: str):
     gamemode = ctx.flags.gamemode
     encounters = get_encounter_stats(profile["userId"], gamemode=gamemode)
+
+    total_encounters = sum(en["totalEncounters"] for en in encounters)
+    min_threshold = 2 if total_encounters < 500 else 10
+
+    match sort:
+        case "wins" | "losses":
+            encounters.sort(key=lambda x: -x[sort])
+        case "winrate":
+            encounters = [en for en in encounters if en["totalEncounters"] >= min_threshold]
+            encounters.sort(key=lambda x: -(x["wins"] / (x["wins"] + x["losses"])))
+        case "-winrate":
+            encounters = [en for en in encounters if en["totalEncounters"] >= min_threshold]
+            encounters.sort(key=lambda x: x["wins"] / (x["wins"] + x["losses"]))
+        case "wpm":
+            encounters = [
+                en for en in encounters
+                if en["userWpm"] and en["opponentWpm"] and
+                   en["totalEncounters"] >= min_threshold
+            ]
+            encounters.sort(key=lambda x: abs(x["userWpm"] - x["opponentWpm"]))
+        case "-wpm":
+            encounters = [
+                en for en in encounters
+                if en["userWpm"] and en["opponentWpm"] and
+                   en["totalEncounters"] >= min_threshold
+            ]
+            encounters.sort(key=lambda x: -abs(x["userWpm"] - x["opponentWpm"]))
 
     if not encounters:
         raise GeneralException(
@@ -68,21 +104,47 @@ async def run(ctx: commands.Context, profile: dict):
         f"**Most Faced Users**\n"
     )
 
+    sort_labels = {
+        "wins": "Most Wins Against",
+        "losses": "Most Losses Against",
+        "winrate": "Highest Win Rate",
+        "-winrate": "Lowest Win Rate",
+        "wpm": "Closest Average WPM",
+        "-wpm": "Farthest Average WPM",
+    }
+
+    description = description.replace(
+        "**Most Faced Users**\n",
+        f"**{sort_labels.get(sort)}**\n"
+    )
+
     for i, en in enumerate(user_encounters[:10]):
         opponent = en["opponentUsername"]
         count = en["totalEncounters"]
         wins = en["wins"]
         losses = en["losses"]
-        win_rate = wins / count
+        win_rate = wins / (wins + losses)
+        if not en["userWpm"] or not en["opponentWpm"]:
+            average = "n/a"
+        else:
+            wpm_diff = en["userWpm"] - en["opponentWpm"]
+            plus = "+" if wpm_diff >= 0 else ""
+            average = f"{plus}{wpm_diff:,.2f} WPM"
 
         description += (
-            f"{i + 1}. **{opponent}** - {count:,} matches "
-            f"({wins:,}W—{losses:,}L, {win_rate:.2%})\n"
+            f"{i + 1}. **{opponent}** - {count:,}x | "
+            f"{wins:,}W—{losses:,}L, {win_rate:.2%} | "
+            f"{average}\n"
         )
+
+    footer = None
+    if sort in ["winrate", "-winrate", "wpm", "-wpm"] and min_threshold == 10:
+        footer = f"Minimum {min_threshold} encounters required"
 
     page = Page(
         title="Multiplayer Encounters" + get_flag_title(ctx.flags),
         description=description,
+        footer=footer,
     )
 
     message = Message(

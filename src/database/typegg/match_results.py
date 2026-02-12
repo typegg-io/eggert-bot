@@ -48,6 +48,8 @@ def get_encounter_stats(user_id: str, gamemode: str = None):
             COUNT(*) as totalEncounters,
             SUM(CASE WHEN userPlacement < opponentPlacement THEN 1 ELSE 0 END) as wins,
             SUM(CASE WHEN userPlacement > opponentPlacement THEN 1 ELSE 0 END) as losses,
+            AVG(CASE WHEN NOT userDnf THEN userWpm END) as userWpm,
+            AVG(CASE WHEN NOT opponentDnf THEN opponentWpm END) as opponentWpm,
             MAX(timestamp) AS lastEncounter
         FROM encounters
         {where_clause}
