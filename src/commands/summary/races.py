@@ -119,7 +119,10 @@ def build_stat_fields(profile, race_list, flags, all_time=False):
         previous_race = race
 
     for key in cumulative_values:
-        cumulative_values[key] = sum(cumulative_values[key]) / len(cumulative_values[key])
+        if len(cumulative_values[key]) > 0:
+            cumulative_values[key] = sum(cumulative_values[key]) / len(cumulative_values[key])
+        else:
+            cumulative_values[key] = 0
 
     total_duration /= 1000
 
