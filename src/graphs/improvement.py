@@ -18,8 +18,6 @@ def render_over_time(
     fig, ax = plt.subplots()
     values = np.asarray(values)
 
-    best_index, best = max(enumerate(values), key=lambda x: x[1])
-
     downsample_factor = max(len(values) // 100000, 1)
     downsampled_indices = np.arange(0, len(values), downsample_factor)
     downsampled_values = values[downsampled_indices]
@@ -33,7 +31,6 @@ def render_over_time(
     timestamps = np.asarray(get_timestamp_list(dates))
     downsampled_indices = [timestamps[d] for d in downsampled_indices]
     x_points = [timestamps[r] for r in x_points]
-    ax.scatter(timestamps[best_index], best, color="#53D76A", marker=".", zorder=10)
     apply_date_ticks(ax, timestamps)
 
     bg_color = hex2color(theme["graph_background"])
@@ -61,6 +58,11 @@ def render_over_time(
 
     if window_size > 1:
         title += f"\nMoving Average of {window_size} Races"
+
+    ax.set_ylim(
+        top=np.percentile(downsampled_values, 95) * 1.05,
+        bottom=np.percentile(downsampled_values, 1) * 1.05,
+    )
 
     ax.set_title(title)
     ax.grid()
