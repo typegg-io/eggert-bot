@@ -208,7 +208,10 @@ async def run_custom(ctx: commands.Context, category: dict, args: tuple = ()):
 
         leaderboard = []
         for i, entry in enumerate(leaderboard_data):
-            user = user_lookup[entry["userId"]]
+            user = user_lookup.get(entry["userId"], {
+                "username": entry["userId"],
+                "country": None,
+            })
             leaderboard.append({
                 "rank": i + 1,
                 "username": user["username"],
