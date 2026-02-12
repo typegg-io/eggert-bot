@@ -11,7 +11,7 @@ from database.typegg.users import get_quote_bests
 from utils.dates import count_unique_dates, parse_date, get_start_end_dates
 from utils.errors import NoRacesFiltered
 from utils.messages import Page, Message, Field
-from utils.stats import calculate_quote_length, calculate_duration, calculate_quote_bests, calculate_total_pp
+from utils.stats import calculate_quote_length, calculate_quote_bests, calculate_total_pp
 from utils.strings import format_duration, discord_date, get_flag_title, date_range_display
 
 info = {
@@ -48,6 +48,7 @@ def build_stat_fields(profile, race_list, flags, all_time=False):
     total_duration = 0
     words_typed = 0
     chars_typed = 0
+    difficulty = 0
 
     longest_break = {
         "start_race": next(
@@ -102,6 +103,7 @@ def build_stat_fields(profile, race_list, flags, all_time=False):
         words = quote["text"].split()
         words_typed += len(words)
         chars_typed += quote_length
+        difficulty += quote["difficulty"]
 
         if previous_race is not None:
             break_time = (
@@ -150,7 +152,7 @@ def build_stat_fields(profile, race_list, flags, all_time=False):
             content=(
                 f"**Total:** {period_total_pp:,.0f} pp\n"
                 f"**Effective Gain:** +{total_pp - old_total_pp:,.2f} pp\n"
-                f"**Best Score:** {best["pp"]["pp"]:,} pp (Race #{best["pp"]["raceNumber"]:,})"
+                f"**Best Score:** {best["pp"]["pp"]:,} pp (Race #{best["pp"]["raceNumber"]:,})\n"
             )
         ),
         Field(
@@ -183,7 +185,7 @@ def build_stat_fields(profile, race_list, flags, all_time=False):
             (f" / **DNFs:** {dnf_count:,}\n" if multiplayer else "\n") +
             f"**Solo:** {solo_races:,} / **Quickplay:** {multiplayer_races :,}\n" +
             (f"**Wins:** {wins:,} ({wins / (multiplayer_races + dnf_count):.2%} win rate)\n" if wins > 0 else "") +
-            f"**Quotes:** {unique_quotes:,}" +
+            f"**Quotes:** {unique_quotes:,} ({difficulty / total_races:.2f}★ Average)" +
             (f" ({new_quotes:,} new)\n" if new_quotes > 0 and not all_time else "\n") +
             f"**Quote Repeats:** {total_races / unique_quotes:,.2f}\n"
             f"**Words Typed:** {words_typed:,}\n"
