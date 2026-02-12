@@ -73,7 +73,10 @@ def build_stat_fields(profile, race_list, flags, all_time=False):
         total_races += 1
 
         for key in cumulative_values:
-            cumulative_values[key].append(race[key])
+            if "error" in key:
+                cumulative_values[key].append(min(race[key], 2000))
+            else:
+                cumulative_values[key].append(race[key])
 
         quote_length = calculate_quote_length(race["wpm"], race["duration"])
 
@@ -162,8 +165,8 @@ def build_stat_fields(profile, race_list, flags, all_time=False):
                 f"**Raw Speed:** {cumulative_values["rawWpm"]:,.2f} WPM "
                 f"({abs(correction_duration / (cumulative_values["duration"] * total_races)):.2%} Correction)\n"
                 f"**Top Speed:** {best["wpm"]["wpm"]:,.2f} WPM (Race #{best["wpm"]["raceNumber"]:,})\n"
-                f"**Error Reaction:** {cumulative_values["errorReactionTime"]:.0f}ms / "
-                f"**Error Recovery:** {cumulative_values["errorRecoveryTime"]:.0f}ms"
+                f"**Error Reaction:** {cumulative_values["errorReactionTime"]:,.0f}ms / "
+                f"**Error Recovery:** {cumulative_values["errorRecoveryTime"]:,.0f}ms"
             )
         )
     ]
