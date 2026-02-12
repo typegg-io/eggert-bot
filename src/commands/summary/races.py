@@ -46,7 +46,6 @@ def build_stat_fields(profile, race_list, flags, all_time=False):
     wins = 0
     best = {"pp": race_list[0], "wpm": race_list[0]}
     total_duration = 0
-    correction_duration = 0
     words_typed = 0
     chars_typed = 0
 
@@ -83,9 +82,6 @@ def build_stat_fields(profile, race_list, flags, all_time=False):
         if race["rawWpm"] == 0:  # temporary catch for invalid raw speeds
             race = dict(race)
             race["rawWpm"] = race["wpm"]
-
-        raw_duration = calculate_duration(race["rawWpm"], quote_length - 1)
-        correction_duration += race["duration"] - raw_duration
 
         if race["matchId"] is None:
             solo_races += 1
@@ -163,7 +159,7 @@ def build_stat_fields(profile, race_list, flags, all_time=False):
                 f"**Average Speed:** {cumulative_values["wpm"]:,.2f} WPM "
                 f"({cumulative_values["accuracy"]:.2%} Accuracy)\n"
                 f"**Raw Speed:** {cumulative_values["rawWpm"]:,.2f} WPM "
-                f"({abs(correction_duration / (cumulative_values["duration"] * total_races)):.2%} Correction)\n"
+                f"({cumulative_values["wpm"] / cumulative_values["rawWpm"]:.2%} Flow)\n"
                 f"**Top Speed:** {best["wpm"]["wpm"]:,.2f} WPM (Race #{best["wpm"]["raceNumber"]:,})\n"
                 f"**Error Reaction:** {cumulative_values["errorReactionTime"]:,.0f}ms / "
                 f"**Error Recovery:** {cumulative_values["errorRecoveryTime"]:,.0f}ms"
