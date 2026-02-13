@@ -160,6 +160,15 @@ def update_gg_plus_status(user_id: str, is_gg_plus: bool):
     """, [1 if is_gg_plus else 0, user_id])
 
 
+def update_timezone(discord_id: str, timezone: str):
+    """Update a user's timezone."""
+    db.run("""
+        UPDATE users
+        SET timezone = ?
+        WHERE discordId = ?
+    """, [timezone, discord_id])
+
+
 def link_user(discord_id: str, user_id: str):
     """Creates a link between a Discord ID and a User ID."""
     db.run("""

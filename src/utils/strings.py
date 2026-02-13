@@ -180,10 +180,12 @@ def discord_date(date_string: str, style: Optional[str] = "R"):
     return f"<t:{timestamp}:{style}>"
 
 
-def date_range_display(start, end):
+def date_range_display(start, end, tz):
     """Format a date range into a readable string, omitting redundant year/month info."""
     from utils.dates import format_date
 
+    start = start.astimezone(tz)
+    end = end.astimezone(tz)
     end -= relativedelta(microseconds=1)
 
     start_year, end_year = start.year, end.year

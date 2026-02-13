@@ -219,7 +219,7 @@ async def run(
 ):
     flags = ctx.flags
     flags.status = flags.status or "ranked"
-    start_date, end_date = get_start_end_dates(date, period)
+    start_date, end_date = get_start_end_dates(date, period, ctx.user["timezone"])
 
     race_list = await get_races(
         user_id=profile["userId"],
@@ -249,7 +249,7 @@ async def run(
     title += get_flag_title(flags)
 
     if start_date:
-        title += "\n" + date_range_display(start_date, end_date)
+        title += "\n" + date_range_display(start_date, end_date, ctx.user["timezone"])
 
     page = Page(
         title=title,

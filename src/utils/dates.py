@@ -1,4 +1,5 @@
 from datetime import datetime, timezone, timedelta
+from zoneinfo import ZoneInfo
 
 from dateutil import parser
 from dateutil.relativedelta import relativedelta
@@ -73,40 +74,41 @@ def get_timestamp_list(date_list):
 # Date Flooring Functions
 
 def floor_day(date):
-    """Round a datetime down to the start of the day (00:00:00 UTC)."""
-    return date.replace(hour=0, minute=0, second=0, microsecond=0, tzinfo=timezone.utc)
+    """Round a datetime down to the start of the day."""
+    return date.replace(hour=0, minute=0, second=0, microsecond=0)
 
 
 def floor_week(date):
-    """Round a datetime down to the start of the week (Monday 00:00:00 UTC)."""
-    return ((date - relativedelta(days=date.weekday()))
-            .replace(hour=0, minute=0, second=0, microsecond=0, tzinfo=timezone.utc))
+    """Round a datetime down to the start of the week (Monday)."""
+    return (date - relativedelta(days=date.weekday())).replace(hour=0, minute=0, second=0, microsecond=0)
 
 
 def floor_month(date):
-    """Round a datetime down to the start of the month (1st day 00:00:00 UTC)."""
-    return date.replace(day=1, hour=0, minute=0, second=0, microsecond=0, tzinfo=timezone.utc)
+    """Round a datetime down to the start of the month."""
+    return date.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
 
 
 def floor_year(date):
-    """Round a datetime down to the start of the year (January 1st 00:00:00 UTC)."""
-    return date.replace(month=1, day=1, hour=0, minute=0, second=0, microsecond=0, tzinfo=timezone.utc)
+    """Round a datetime down to the start of the year."""
+    return date.replace(month=1, day=1, hour=0, minute=0, second=0, microsecond=0)
 
 
 # Date Range Utilities
 
-def get_start_end_dates(date: datetime, period: str):
+def get_start_end_dates(date: datetime, period: str, tz: ZoneInfo):
     """Calculate start and end dates for a given period (day, week, month, or year)."""
     periods = {
         "day": (floor_day, relativedelta(days=1)),
         "week": (floor_week, relativedelta(weeks=1)),
         "month": (floor_month, relativedelta(months=1)),
-        "year": (floor_year, relativedelta(years=1))
+        "year": (floor_year, relativedelta(years=1)),
     }
 
     if period in periods:
         floor_function, relative_delta = periods[period]
-        start = floor_function(date)
+        local_date = date.astimezone(tz)
+        start_local = floor_function(local_date)
+        start = start_local.astimezone(timezone.utc).replace(tzinfo=timezone.utc)
         end = start + relative_delta
 
         return start, end

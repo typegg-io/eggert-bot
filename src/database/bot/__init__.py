@@ -12,7 +12,8 @@ db.run("""
         isBanned INTEGER DEFAULT 0,
         isAdmin INTEGER DEFAULT 0,
         isPrivacyWarned INTEGER DEFAULT 0,
-        isGgPlus INTEFER DEFAULT 0
+        isGgPlus INTEFER DEFAULT 0,
+        timezone DEFAULT "UTC"
     )
 """)
 

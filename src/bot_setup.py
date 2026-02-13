@@ -1,3 +1,5 @@
+from zoneinfo import ZoneInfo
+
 import discord
 from discord.ext import commands
 
@@ -83,6 +85,7 @@ def register_bot_checks(bot):
         if not hasattr(ctx, "user"):
             ctx.user = get_user(str(ctx.author.id))
             ctx.user["theme"]["isGgPlus"] = ctx.user["isGgPlus"]
+            ctx.user["timezone"] = ZoneInfo(ctx.user["timezone"])
         if ctx.user["isBanned"]:
             raise UserBanned("Banned user attempted to use a command")
         return True
