@@ -1,12 +1,13 @@
 import asyncio
+import random
 
-from discord import Embed, Forbidden, File
+from discord import Embed, Forbidden, File, Game
 from discord.ext import commands, tasks
 
 from api.daily_quotes import get_daily_quote
 from api.users import get_profile, get_race
 from commands.daily.dailyleaderboard import display_daily_quote
-from config import DAILY_QUOTE_CHANNEL_ID, SITE_URL, TYPEGG_GUILD_ID, DAILY_QUOTE_ROLE_ID
+from config import DAILY_QUOTE_CHANNEL_ID, SITE_URL, TYPEGG_GUILD_ID, DAILY_QUOTE_ROLE_ID, SOURCE_DIR
 from database.bot.users import get_user
 from database.typegg.daily_quotes import add_daily_quote, add_daily_results, get_missing_days, update_daily_quote_id
 from graphs import daily as daily_graph
@@ -17,6 +18,30 @@ from utils.files import remove_file
 from utils.keystrokes import get_keystroke_data
 from utils.logging import log, log_error
 from utils.strings import discord_date
+
+STATUSES_FILE = SOURCE_DIR / "data" / "statuses.txt"
+SEASONAL_STATUSES = {
+    (1, 1): "New year, New egg 🥚",
+    (2, 14): "Happy Valeggtine's Day 💝",
+    (10, 31): "Happy Hallowegg 🎃",
+    (12, 25): "Merry Eggmas 🎄",
+}
+
+
+def get_daily_status(today):
+    """Return a seasonal status near a holiday, otherwise a random one from statuses.txt."""
+    for (month, day), text in SEASONAL_STATUSES.items():
+        try:
+            holiday = today.replace(month=month, day=day)
+        except ValueError:
+            continue
+        if today == holiday:
+            return Game(text)
+
+    with open(STATUSES_FILE) as f:
+        statuses = [line.strip() for line in f if line.strip()]
+    if statuses:
+        return Game(random.choice(statuses))
 
 
 class BackgroundTasks(commands.Cog):
@@ -33,6 +58,9 @@ class BackgroundTasks(commands.Cog):
 
         if now.hour == 20 and now.minute == 0:
             await daily_quote_reminder(self.bot)
+
+        elif now.hour == 0 and now.minute == 0:
+            await self.bot.change_presence(activity=get_daily_status(now))
 
         elif now.hour == 0 and now.minute == 5:
             await daily_quote_results(self.bot)
