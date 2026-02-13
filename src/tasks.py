@@ -28,8 +28,8 @@ SEASONAL_STATUSES = {
 }
 
 
-def get_daily_status(today):
-    """Return a seasonal status near a holiday, otherwise a random one from statuses.txt."""
+def get_status(today):
+    """Return a random status message, seasonal during holidays."""
     for (month, day), text in SEASONAL_STATUSES.items():
         try:
             holiday = today.replace(month=month, day=day)
@@ -48,9 +48,15 @@ class BackgroundTasks(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         self.tasks_loop.start()
+        self.status_loop.start()
 
     def cog_unload(self):
         self.tasks_loop.cancel()
+
+    @tasks.loop(count=1)
+    async def status_loop(self):
+        await self.bot.wait_until_ready()
+        await self.bot.change_presence(activity=get_status(dates.now()))
 
     @tasks.loop(minutes=1)
     async def tasks_loop(self):
@@ -60,7 +66,7 @@ class BackgroundTasks(commands.Cog):
             await daily_quote_reminder(self.bot)
 
         elif now.hour == 0 and now.minute == 0:
-            await self.bot.change_presence(activity=get_daily_status(now))
+            await self.bot.change_presence(activity=get_status(now))
 
         elif now.hour == 0 and now.minute == 5:
             await daily_quote_results(self.bot)
