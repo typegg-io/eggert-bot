@@ -28,6 +28,7 @@ def add_user(discord_id: str):
         "isAdmin": 0,
         "isPrivacyWarned": 0,
         "isGgPlus": 0,
+        "timezone": "UTC",
     }
     user_values = user.values()
 
