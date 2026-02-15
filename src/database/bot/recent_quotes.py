@@ -1,3 +1,4 @@
+from config import STATS_CHANNEL_ID
 from database.bot import db
 
 
@@ -8,6 +9,9 @@ def get_recent_quote(channel_id: str):
         FROM recent_quotes
         WHERE channelId = ?
     """, [channel_id])
+
+    if not quote_id:
+        return get_recent_quote(STATS_CHANNEL_ID)
 
     return quote_id[0]
 
