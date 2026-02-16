@@ -15,6 +15,7 @@ class CommandName(Command):
     @commands.command(aliases=info["aliases"])
     async def commandname(self, ctx, username: Optional[str] = "me"):
         profile = await self.get_profile(ctx, username)
+        await self.import_user(ctx, profile)
 
         await run(ctx, profile)
 
