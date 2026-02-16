@@ -1,4 +1,5 @@
 import json
+import math
 from typing import Optional
 
 from dateutil import parser
@@ -152,12 +153,15 @@ def rank(number):
 
 # Date & Time Formatting
 
-def format_duration(seconds, round_seconds=True):
+def format_duration(seconds, round_seconds=True, show_seconds=True):
     """Format seconds into human-readable duration (e.g., '2d 3h 15m 42s')."""
-    if round_seconds:
+    if not show_seconds:
+        seconds = math.floor(seconds / 60) * 60
+    elif round_seconds:
         seconds = round(seconds)
+
     if seconds == 0:
-        return "0s"
+        return "0s" if show_seconds else "0m"
 
     m, s = divmod(seconds, 60)
     h, m = divmod(m, 60)
@@ -166,9 +170,13 @@ def format_duration(seconds, round_seconds=True):
     days = f"{d:,.0f}d " * (d != 0)
     hours = f"{h:,.0f}h " * (h != 0)
     minutes = f"{m:,.0f}m " * (m != 0)
-    seconds = f"{round(s, 0 if round_seconds else 3)}s " * (s != 0)
 
-    return f"{days}{hours}{minutes}{seconds}"[:-1]
+    if show_seconds:
+        seconds_str = f"{round(s, 0 if round_seconds else 3)}s " * (s != 0)
+    else:
+        seconds_str = ""
+
+    return f"{days}{hours}{minutes}{seconds_str}".strip()
 
 
 def discord_date(date_string: str, style: Optional[str] = "R"):

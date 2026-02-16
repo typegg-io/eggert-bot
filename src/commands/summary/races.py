@@ -12,7 +12,7 @@ from utils.dates import count_unique_dates, parse_date, get_start_end_dates
 from utils.errors import NoRacesFiltered
 from utils.messages import Page, Message, Field
 from utils.stats import calculate_quote_length, calculate_quote_bests, calculate_total_pp
-from utils.strings import format_duration, discord_date, get_flag_title, date_range_display
+from utils.strings import format_duration, get_flag_title, date_range_display
 
 info = {
     "name": "races",
@@ -40,8 +40,6 @@ def build_stat_fields(profile, race_list, flags, all_time=False):
     }
 
     total_races = 0
-    solo_races = 0
-    multiplayer_races = 0
     dnf_count = 0
     wins = 0
     best = {"pp": race_list[0], "wpm": race_list[0]}
@@ -50,17 +48,8 @@ def build_stat_fields(profile, race_list, flags, all_time=False):
     chars_typed = 0
     difficulty = 0
 
-    longest_break = {
-        "start_race": next(
-            (race for race in race_list if race["raceNumber"] is not None), None
-        ),
-        "duration": 0
-    }
-
-    if not longest_break["start_race"]:
+    if not next((race for race in race_list if race["raceNumber"] is not None), None):
         raise NoRacesFiltered(profile["username"])
-
-    previous_race = None
 
     for race in race_list:
         completion_type = race["completionType"] if multiplayer else "finished"
@@ -84,12 +73,8 @@ def build_stat_fields(profile, race_list, flags, all_time=False):
             race = dict(race)
             race["rawWpm"] = race["wpm"]
 
-        if race["matchId"] is None:
-            solo_races += 1
-        else:
-            multiplayer_races += 1
-            if multiplayer and race["placement"] == 1:
-                wins += 1
+        if multiplayer and race["placement"] == 1:
+            wins += 1
 
         if race["pp"] > best["pp"]["pp"]:
             best["pp"] = race
@@ -105,20 +90,6 @@ def build_stat_fields(profile, race_list, flags, all_time=False):
         chars_typed += quote_length
         difficulty += quote["difficulty"]
 
-        if previous_race is not None:
-            break_time = (
-                parse_date(race["timestamp"]).timestamp() -
-                parse_date(previous_race["timestamp"]).timestamp()
-            )
-
-            if break_time > longest_break["duration"]:
-                longest_break.update({
-                    "start_race": previous_race,
-                    "duration": break_time,
-                })
-
-        previous_race = race
-
     for key in cumulative_values:
         if len(cumulative_values[key]) > 0:
             cumulative_values[key] = sum(cumulative_values[key]) / len(cumulative_values[key])
@@ -126,6 +97,8 @@ def build_stat_fields(profile, race_list, flags, all_time=False):
             cumulative_values[key] = 0
 
     total_duration /= 1000
+    completion_rate = total_races / (total_races + dnf_count)
+    win_rate = wins / (total_races + dnf_count)
 
     period_quote_bests = calculate_quote_bests(race_list)
     period_total_pp = calculate_total_pp(period_quote_bests)
@@ -145,25 +118,27 @@ def build_stat_fields(profile, race_list, flags, all_time=False):
         flags=flags,
     )
     old_total_pp = calculate_total_pp(old_quote_bests)
+    pp_gain = total_pp - old_total_pp
+    show_gain = 0 < pp_gain < period_total_pp
 
     fields = [
         Field(
-            title="Performance",
+            title=":trophy: Performance",
             content=(
-                f"**Total:** {period_total_pp:,.0f} pp\n"
-                f"**Effective Gain:** +{total_pp - old_total_pp:,.2f} pp\n"
+                f"**Total:** {period_total_pp:,.0f} pp " +
+                (f"(+{total_pp - old_total_pp:,.2f} gain)\n" if show_gain else "\n") +
                 f"**Best Score:** {best["pp"]["pp"]:,} pp (Race #{best["pp"]["raceNumber"]:,})\n"
             )
         ),
         Field(
-            title="Speed",
+            title=":stopwatch: Speed",
             content=(
                 f"**Average Speed:** {cumulative_values["wpm"]:,.2f} WPM "
                 f"({cumulative_values["accuracy"]:.2%} Accuracy)\n"
                 f"**Raw Speed:** {cumulative_values["rawWpm"]:,.2f} WPM "
                 f"({cumulative_values["wpm"] / cumulative_values["rawWpm"]:.2%} Flow)\n"
                 f"**Top Speed:** {best["wpm"]["wpm"]:,.2f} WPM (Race #{best["wpm"]["raceNumber"]:,})\n"
-                f"**Error Reaction:** {cumulative_values["errorReactionTime"]:,.0f}ms / "
+                f"**Error Reaction:** {cumulative_values["errorReactionTime"]:,.0f}ms | "
                 f"**Error Recovery:** {cumulative_values["errorRecoveryTime"]:,.0f}ms"
             )
         )
@@ -179,29 +154,31 @@ def build_stat_fields(profile, race_list, flags, all_time=False):
     timespan = end_time - start_time
 
     fields.append(Field(
-        title="Activity",
+        title=":bar_chart: Activity",
         content=(
-            f"**Races:** {total_races:,}" +
-            (f" / **DNFs:** {dnf_count:,}\n" if multiplayer else "\n") +
-            f"**Solo:** {solo_races:,} / **Quickplay:** {multiplayer_races :,}\n" +
-            (f"**Wins:** {wins:,} ({wins / (multiplayer_races + dnf_count):.2%} win rate)\n" if wins > 0 else "") +
-            f"**Quotes:** {unique_quotes:,} ({difficulty / total_races:.2f}★ Average)" +
+            f"**Races:** {total_races:,}" + (
+            f" ({completion_rate:.0%} completion)\n"
+            f"**Wins:** {wins:,} ({win_rate:.2%} win rate)\n" if multiplayer else "\n"
+        ) + f"**Chars:** {chars_typed:,} | **Words:** {words_typed:,}\n"
+            f"**Play Time:** {format_duration(total_duration, show_seconds=False)}\n"
+            f"**Timespan:** {format_duration(timespan, show_seconds=False)}\n"
+        )
+    ))
+
+    fields.append(Field(
+        title="<:quote:1470361772132143277> Quotes",
+        content=(
+            f"**Total:** {unique_quotes:,}" +
             (f" ({new_quotes:,} new)\n" if new_quotes > 0 and not all_time else "\n") +
-            f"**Quote Repeats:** {total_races / unique_quotes:,.2f}\n"
-            f"**Words Typed:** {words_typed:,}\n"
-            f"**Characters Typed:** {chars_typed:,}\n"
-            f"**Completion Play Time:** {format_duration(total_duration)}\n"
-            f"**Timespan:** {format_duration(timespan)} "
-            f"({discord_date(start_time, "d")} - {discord_date(end_time, "d")})\n"
-            f"**Longest Break:** {format_duration(longest_break["duration"])} "
-            f"(Starting on #{longest_break["start_race"]["raceNumber"]:,})\n"
+            f"**Difficulty:** {difficulty / total_races:.2f}★\n"
+            f"**Repeats:** {total_races / unique_quotes:,.2f}\n"
         )
     ))
 
     unique_days = count_unique_dates(start_date, end_date)
     if unique_days > 1:
         fields.append(Field(
-            title=f"Daily Average (Over {unique_days:,} days)",
+            title=f":calendar_spiral: Daily Average (Over {unique_days:,} days)",
             content=(
                 f"**Races:** {total_races / unique_days:.2f}\n"
                 f"**Play Time:** {format_duration(total_duration / unique_days)}"
