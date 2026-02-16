@@ -1,5 +1,3 @@
-from typing import Optional
-
 from discord.ext import commands
 
 from commands.base import Command
@@ -19,14 +17,7 @@ info = {
 
 class LongestAverage(Command):
     @commands.command(aliases=info["aliases"])
-    async def longestaverage(self, ctx, username: Optional[str] = "me", wpm: Optional[str] = None):
-        if wpm is None:
-            try:
-                parse_number(username)
-                wpm, username = username, "me"
-            except (ValueError, TypeError):
-                return await ctx.send("Please provide a WPM threshold.")
-
+    async def longestaverage(self, ctx, username: str, wpm: str):
         profile = await self.get_profile(ctx, username)
         await self.import_user(ctx, profile)
 
