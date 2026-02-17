@@ -87,7 +87,7 @@ def get_opponent_encounters(user_id: str, opponent_id: str, gamemode: str = None
     params = [user_id, opponent_id]
 
     if gamemode:
-        conditions.append("AND m.gamemode = ?")
+        conditions.append("gamemode = ?")
         params.append(gamemode)
 
     where_clause = "WHERE " + " AND ".join(conditions)
