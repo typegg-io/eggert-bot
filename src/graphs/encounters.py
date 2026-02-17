@@ -18,7 +18,12 @@ def moving_average(y, window=20):
     counts = np.convolve(mask.astype(float), kernel, mode="same")
 
     with np.errstate(divide="ignore", invalid="ignore"):
-        average = sums / counts
+        average = np.where(counts > 0, sums / counts, np.nan)
+
+    nans = np.isnan(average)
+    if nans.any() and not nans.all():
+        x = np.arange(len(average))
+        average[nans] = np.interp(x[nans], x[~nans], average[~nans])
 
     return average
 
