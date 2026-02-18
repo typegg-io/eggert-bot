@@ -72,6 +72,19 @@ def get_missing_days():
     return missing_numbers
 
 
+def get_daily_rank_leaderboard(max_rank: int, exact: bool = False, limit: int = 100):
+    """Count how many times each user finished within (or exactly at) max_rank on a daily quote."""
+    operator = "=" if exact else "<="
+    return db.fetch(f"""
+        SELECT userId, username, country, COUNT(*) as count
+        FROM daily_quote_results
+        WHERE rank {operator} ?
+        GROUP BY userId
+        ORDER BY count DESC
+        LIMIT ?
+    """, [max_rank, limit])
+
+
 def get_user_results(user_id: str):
     return db.fetch("SELECT * FROM daily_quote_results WHERE userId = ?", [user_id])
 

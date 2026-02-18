@@ -2,6 +2,7 @@ from discord.ext import commands
 
 from api.leaders import get_leaders
 from commands.base import Command
+from database.typegg.daily_quotes import get_daily_rank_leaderboard
 from database.typegg.quotes import get_top_submitters, get_ranked_quote_count
 from database.typegg.users import get_quotes_over_leaderboard, get_user_lookup
 from utils import strings
@@ -84,18 +85,30 @@ categories = {
 
     # Custom leaderboards
     "submissions": {
-        "title": "Quote Submissions"
+        "title": "Quote Submissions",
     },
     "quotesover": {
         "title": "Quotes Over",
-    }
+    },
+    "dailywins": {
+        "title": "Daily Quote Wins",
+        "max_rank": 1,
+    },
+    "dailyseconds": {
+        "title": "Daily Quote Seconds",
+        "max_rank": 2,
+        "exact": True,
+    },
+    "dailytoptens": {
+        "title": "Daily Quote Top 10s",
+        "max_rank": 10,
+    },
 }
 info = {
     "name": "leaderboard",
     "aliases": ["lb"],
     "description": "Displays the top 100 users for a given category\n"
-                   f"Category can be: {", ".join("`" + c + "`" for c in categories)}\n"
-                   "For `qo` (Quotes Over): `-lb qo <threshold> [metric]`",
+                   f"Category can be: {", ".join("`" + c + "`" for c in categories)}\n",
     "parameters": "<category> [args]",
 }
 
@@ -228,6 +241,27 @@ async def run_custom(ctx: commands.Context, category: dict, args: tuple = ()):
             return f"{rank(entry["rank"])} {bold}{username_with_flag(entry)} - {entry["count"]:,}{bold}\n"
 
         pages = paginate_data(leaderboard, qo_formatter, page_count=5, per_page=20)
+
+    elif "max_rank" in category:
+        leaderboard_data = get_daily_rank_leaderboard(category["max_rank"], exact=category.get("exact", False))
+
+        leaderboard = [
+            {
+                "rank": i + 1,
+                "username": entry["username"],
+                "country": entry["country"],
+                "count": entry["count"],
+                "highlight": entry["userId"] == ctx.user["userId"],
+            }
+            for i, entry in enumerate(leaderboard_data)
+        ]
+
+        def daily_formatter(entry):
+            bold = "**" if entry["highlight"] else ""
+            return f"{rank(entry["rank"])} {bold}{username_with_flag(entry)} - {entry["count"]:,}{bold}\n"
+
+        pages = paginate_data(leaderboard, daily_formatter, page_count=5, per_page=20)
+        title = f"{category["title"]} Leaderboard"
 
     await initial_send
 
