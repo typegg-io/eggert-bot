@@ -38,6 +38,7 @@ class Best(Command):
 async def run(ctx: commands.Context, profile: dict, metric: str, reverse: bool = True):
     flags = ctx.flags
     flags.status = flags.status or "ranked"
+    metric = flags.metric or metric
     quotes = get_quotes()
     sources = get_sources()
     quote_bests = get_quote_bests(
