@@ -17,7 +17,7 @@ from database.typegg.users import get_user, create_user
 from utils.dates import string_to_date, date_to_string, epoch, parse_date
 from utils.logging import log
 from utils.messages import Page, Message
-from utils.stats import calculate_duration
+from utils.stats import calculate_duration, calculate_wpm
 from utils.strings import escape_formatting, LOADING
 
 info = {
@@ -171,6 +171,17 @@ async def run(
                     duration = calculate_duration(player["matchWpm"], player["charactersTyped"])
                     end_timestamp = parse_date(start_timestamp) + relativedelta(microseconds=duration * 1000)
                     player["timestamp"] = date_to_string(end_timestamp)
+
+                    if player["userId"] == user_id and race["duration"] > 0:  # temporary fix for invalid match data
+                        chars = race["wpm"] * race["duration"] / 12000
+                        match_wpm = calculate_wpm(race["duration"] + player["startTime"], chars + 1)
+                        match_pp = (match_wpm / race["wpm"]) * race["pp"]
+
+                        if match_wpm > 0 and abs(player["matchWpm"] - match_wpm) > 10:
+                            player["matchWpm"] = match_wpm
+                        if match_pp > 0 and abs(player["matchPp"] - match_pp) > 10:
+                            player["matchPp"] = match_pp
+
                     match_result_list.append(player)
 
         if new_quote_ids:
