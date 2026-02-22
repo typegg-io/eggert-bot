@@ -186,17 +186,22 @@ async def display_art(ctx: commands.Context, art: dict):
 
 
 async def delete_art_command(ctx: commands.Context, title: str):
-    """Delete a piece of art (admins only)."""
-    if ctx.author.id not in ADMIN_ALIASES.keys():
-        raise GeneralException(
-            "Permission Denied",
-            "Only admins can delete art."
-        )
+    """Delete a piece of art (admins or the original artist)."""
+    art = art_db.get_art_by_title(title)
 
-    if not art_db.art_exists(title):
+    if not art:
         raise GeneralException(
             "Art Not Found",
-            f"No art found with this title."
+            "No art found with this title."
+        )
+
+    is_admin = ctx.author.id in ADMIN_ALIASES.keys()
+    is_author = str(ctx.author.id) == art["author_id"]
+
+    if not is_admin and not is_author:
+        raise GeneralException(
+            "Permission Denied",
+            "You can only delete your own art."
         )
 
     art_db.delete_art(title)
