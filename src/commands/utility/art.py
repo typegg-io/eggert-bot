@@ -1,3 +1,4 @@
+import re
 from difflib import get_close_matches
 from typing import Optional
 
@@ -5,6 +6,7 @@ from discord.ext import commands
 
 from commands.base import Command
 from database.bot import art as art_db
+from database.bot.users import get_user
 from utils.errors import GeneralException, MissingArguments
 from utils.logging import ADMIN_ALIASES
 from utils.messages import Page, Message, paginate_data
@@ -46,6 +48,8 @@ class Art(Command):
             if len(parts) < 2:
                 raise MissingArguments
             await delete_art_command(ctx, parts[1])
+        elif user := get_user(re.sub(r"<@!?(\d+)>", r"\1", subcommand), auto_insert=False):
+            await list_art(ctx, author_id=user["discordId"])
         else:
             await show_art_by_title(ctx, args)
 
@@ -128,30 +132,38 @@ async def show_art_by_title(ctx: commands.Context, title: str):
     await display_art(ctx, art)
 
 
-async def list_art(ctx: commands.Context):
-    """Display a list of all art in the gallery."""
-    all_art = art_db.get_all_art()
+async def list_art(ctx: commands.Context, author_id: str = None):
+    """Display a list of all art in the gallery, optionally filtered by author."""
+    if author_id:
+        all_art = art_db.get_art_by_author(author_id)
+        header = f"**By:** <@{author_id}>\n"
+        empty = f"<@{author_id}> hasn't submitted any art yet!"
+
+        def formatter(art):
+            return f"**{art["title"]}** - {discord_date(art["timestamp"], "D")}\n"
+    else:
+        all_art = art_db.get_all_art()
+        header = ""
+        empty = "No art has been submitted yet!"
+
+        def formatter(art):
+            return (
+                f"**{art["title"]}** | "
+                f"By: <@{art["author_id"]}> - "
+                f"{discord_date(art["timestamp"], "D")}\n"
+            )
 
     if not all_art:
-        page = Page(
-            title="Art Gallery",
-            description="No art has been submitted yet!",
-        )
+        page = Page(title="Art Gallery", description=empty)
         message = Message(ctx, page=page)
         return await message.send()
-
-    def formatter(art):
-        return (
-            f"**{art["title"]}** | "
-            f"By: <@{art["author_id"]}> - "
-            f"{discord_date(art["timestamp"], "D")}\n"
-        )
 
     pages = paginate_data(all_art, formatter, page_count=999, per_page=20)
 
     message = Message(
         ctx,
         title="Art Gallery",
+        header=header,
         pages=pages,
         footer="Use -art <title> to view a specific piece"
     )

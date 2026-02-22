@@ -32,6 +32,17 @@ def get_all_art():
     return [dict(row) for row in results]
 
 
+def get_art_by_author(author_id: str):
+    """Get all art submitted by a specific author."""
+    results = db.fetch("""
+        SELECT * FROM art
+        WHERE author_id = ?
+        ORDER BY timestamp DESC
+    """, [author_id])
+
+    return [dict(row) for row in results]
+
+
 def get_random_art():
     """Get a random piece of art."""
     result = db.fetch_one("""
