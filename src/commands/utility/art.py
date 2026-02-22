@@ -1,4 +1,5 @@
 import re
+import shlex
 from difflib import get_close_matches
 from typing import Optional
 
@@ -24,9 +25,10 @@ info = {
         "`-art <@user | id>` - View art by a specific artist\n"
         "`-art add <title>` - Submit new art (attach an image)\n"
         "`-art update <title>` - Replace your art's image (attach a new image)\n"
+        "`-art rename \"old title\" \"new title\"` - Rename your art\n"
         "`-art delete <title>` - Delete your own art"
     ),
-    "parameters": "[title | add <title> | update <title> | delete <title> | list | @user]",
+    "parameters": "[title | add <title> | update <title> | rename \"old\" \"new\" | delete <title> | list | @user]",
 }
 
 
@@ -54,6 +56,10 @@ class Art(Command):
             if len(parts) < 2:
                 raise MissingArguments
             await update_art_command(ctx, parts[1])
+        elif subcommand == "rename":
+            if len(parts) < 2:
+                raise MissingArguments
+            await rename_art_command(ctx, parts[1])
         elif user := get_user(re.sub(r"<@!?(\d+)>", r"\1", subcommand), auto_insert=False):
             await list_art(ctx, author_id=user["discordId"])
         else:
@@ -185,6 +191,42 @@ async def display_art(ctx: commands.Context, art: dict):
             f"**Submitted:** {discord_date(art["timestamp"], "D")}"
         ),
         image_url=art["image_url"],
+    )
+
+    message = Message(ctx, page=page)
+    await message.send()
+
+
+async def rename_art_command(ctx: commands.Context, args: str):
+    """Rename an existing piece of art (admins or the original artist)."""
+    try:
+        tokens = shlex.split(args)
+    except ValueError:
+        raise GeneralException("Invalid Arguments", 'Usage: `-art rename "old title" "new title"`')
+
+    if len(tokens) < 2:
+        raise GeneralException("Invalid Arguments", 'Usage: `-art rename "old title" "new title"`')
+
+    old_title, new_title = tokens[0], tokens[1]
+    art = art_db.get_art_by_title(old_title)
+
+    if not art:
+        raise GeneralException("Art Not Found", "No art found with that title.")
+
+    is_admin = ctx.author.id in ADMIN_ALIASES.keys()
+    is_author = str(ctx.author.id) == art["author_id"]
+
+    if not is_admin and not is_author:
+        raise GeneralException("Permission Denied", "You can only rename your own art.")
+
+    if art_db.get_art_by_title(new_title):
+        raise GeneralException("Title Already Exists", "Please choose a different title.")
+
+    art_db.rename_art(old_title, new_title)
+
+    page = Page(
+        title="Art Renamed",
+        description=f"**{art['title']}** has been renamed to **{new_title}**.",
     )
 
     message = Message(ctx, page=page)

@@ -54,6 +54,14 @@ def get_random_art():
     return dict(result) if result else None
 
 
+def rename_art(old_title: str, new_title: str):
+    """Rename an existing piece of art."""
+    db.run("""
+        UPDATE art SET title = ?
+        WHERE title = ? COLLATE NOCASE
+    """, [new_title, old_title])
+
+
 def update_art(title: str, image_url: str):
     """Update the image URL of an existing piece of art."""
     db.run("""
