@@ -48,6 +48,10 @@ class Art(Command):
             if len(parts) < 2:
                 raise MissingArguments
             await delete_art_command(ctx, parts[1])
+        elif subcommand == "update":
+            if len(parts) < 2:
+                raise MissingArguments
+            await update_art_command(ctx, parts[1])
         elif user := get_user(re.sub(r"<@!?(\d+)>", r"\1", subcommand), auto_insert=False):
             await list_art(ctx, author_id=user["discordId"])
         else:
@@ -179,6 +183,42 @@ async def display_art(ctx: commands.Context, art: dict):
             f"**Submitted:** {discord_date(art["timestamp"], "D")}"
         ),
         image_url=art["image_url"],
+    )
+
+    message = Message(ctx, page=page)
+    await message.send()
+
+
+async def update_art_command(ctx: commands.Context, title: str):
+    """Replace the image of an existing piece of art (admins or the original artist)."""
+    if not ctx.message.attachments:
+        raise GeneralException(
+            "No Image Attached",
+            "Please attach a new image to your message."
+        )
+
+    art = art_db.get_art_by_title(title)
+
+    if not art:
+        raise GeneralException(
+            "Art Not Found",
+            "No art found with this title."
+        )
+
+    is_admin = ctx.author.id in ADMIN_ALIASES.keys()
+    is_author = str(ctx.author.id) == art["author_id"]
+
+    if not is_admin and not is_author:
+        raise GeneralException(
+            "Permission Denied",
+            "You can only update your own art."
+        )
+
+    art_db.update_art(title, ctx.message.attachments[0].url)
+
+    page = Page(
+        title="Art Updated",
+        description=f"**{art["title"]}** has been updated.",
     )
 
     message = Message(ctx, page=page)
