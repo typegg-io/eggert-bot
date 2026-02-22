@@ -13,10 +13,10 @@ def add_art(title: str, image_url: str, author_discord_id: str):
 
 
 def get_art_by_title(title: str):
-    """Get a specific piece of art by exact title."""
+    """Get a specific piece of art by title (case-insensitive)."""
     result = db.fetch_one("""
         SELECT * FROM art
-        WHERE title = ?
+        WHERE title = ? COLLATE NOCASE
     """, [title])
 
     return dict(result) if result else None
