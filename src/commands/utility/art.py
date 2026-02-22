@@ -19,12 +19,14 @@ info = {
         "View and submit community art!\n\n"
         "**Usage:**\n"
         "`-art` - View a random piece of art\n"
-        "`-art add <title>` - Submit new art (attach an image)\n"
         "`-art <title>` - View specific art by title\n"
         "`-art list` - View all submitted art\n"
-        "`-art delete <title>` - Delete art (admin only)"
+        "`-art <@user | id>` - View art by a specific artist\n"
+        "`-art add <title>` - Submit new art (attach an image)\n"
+        "`-art update <title>` - Replace your art's image (attach a new image)\n"
+        "`-art delete <title>` - Delete your own art"
     ),
-    "parameters": "[title | add <title> | list | delete <title>]",
+    "parameters": "[title | add <title> | update <title> | delete <title> | list | @user]",
 }
 
 
