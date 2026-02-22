@@ -134,7 +134,7 @@ def build_stat_fields(profile, race_list, flags, all_time=False):
             content=(
                 f"**Total:** {period_total_pp:,.0f} pp " +
                 (f"(+{total_pp - old_total_pp:,.2f} gain)\n" if show_gain else "\n") +
-                f"**Best Score:** {best["pp"]["pp"]:,} pp (Race #{best["pp"]["raceNumber"]:,})\n"
+                f"**Best Score:** {best["pp"]["pp"]:,.2f} pp (Race #{best["pp"]["raceNumber"]:,})\n"
             )
         ),
         Field(
