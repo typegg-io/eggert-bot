@@ -4,10 +4,8 @@ from discord.ext import commands
 
 from commands.account.download import run as download
 from commands.base import Command
-from database.typegg.keystroke_data import delete_keystroke_data
-from database.typegg.match_results import delete_match_results
-from database.typegg.matches import delete_matches
-from database.typegg.races import get_latest_race, delete_races
+from database.typegg.races import get_latest_race
+from database.typegg.users import delete_user_data
 from utils.colors import ERROR, WARNING
 from utils.logging import ADMIN_ALIASES
 from utils.messages import Page, Message
@@ -61,10 +59,7 @@ class ReDownload(Command):
             if not await self.await_confirmation(ctx):
                 return
 
-            delete_races(user_id)
-            delete_keystroke_data(user_id)
-            delete_matches(user_id)
-            delete_match_results(user_id)
+            delete_user_data(user_id)
 
             message = Message(ctx, Page(
                 title="Races Deleted",

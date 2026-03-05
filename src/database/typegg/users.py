@@ -1,9 +1,6 @@
 from typing import Optional
 
 from database.typegg import db
-from database.typegg.keystroke_data import delete_keystroke_data
-from database.typegg.match_results import delete_match_results
-from database.typegg.matches import delete_matches
 from utils.flags import Flags
 from utils.logging import log
 
@@ -127,8 +124,17 @@ def delete_user(user_id: str):
     db.run("DELETE FROM users WHERE userId = ?", [user_id])
 
 
+def delete_user_data(user_id: str):
+    """Delete all data associated with a user, recomputing affected leaderboards."""
+    from database.typegg.quote_leaderboards import remove_user_from_leaderboards
+    from database.typegg.match_results import delete_match_results
+
+    remove_user_from_leaderboards(user_id)
+    delete_match_results(user_id)
+    delete_user(user_id)
+
+
 async def reimport_users():
-    from database.typegg.races import delete_races
     from commands.account.download import run as download
     from api.users import get_profile
 
@@ -140,12 +146,7 @@ async def reimport_users():
         except Exception as e:
             log(f"Failed to migrate user {user_id}: {e.__class__.__name__}")
             continue
-        delete_races(user_id)
-        delete_user(user_id)
-        delete_keystroke_data(user_id)
-        delete_matches(user_id)
-        delete_match_results(user_id)
-
+        delete_user_data(user_id)
         await download(user_id=user_id)
 
 

@@ -4,11 +4,7 @@ from discord.ext import commands
 
 from commands.base import Command
 from commands.checks import is_bot_admin
-from database.typegg.keystroke_data import delete_keystroke_data
-from database.typegg.match_results import delete_match_results
-from database.typegg.matches import delete_matches
-from database.typegg.races import delete_races
-from database.typegg.users import delete_user
+from database.typegg.users import delete_user_data
 from utils.colors import WARNING
 from utils.errors import ProfileNotFound
 from utils.messages import Page, Message
@@ -54,11 +50,7 @@ class DeleteUser(Command):
 
 
 async def run(ctx: commands.Context, profile: dict):
-    delete_user(profile["userId"])
-    delete_races(profile["userId"])
-    delete_keystroke_data(profile["userId"])
-    delete_matches(profile["userId"])
-    delete_match_results(profile["userId"])
+    delete_user_data(profile["userId"])
 
     message = Message(ctx, Page(
         title="User Deleted",
