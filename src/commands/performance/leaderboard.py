@@ -184,10 +184,15 @@ async def run(ctx: commands.Context, category: dict):
 
 async def run_custom(ctx: commands.Context, category: dict, args: tuple = ()):
     """Displays a custom leaderboard generated from the database."""
-    if category["title"] == "Quotes Over" and not args:
-        raise GeneralException("Missing threshold", "Usage: `-lb qo <threshold> [metric]`")
-
     title = f"{category["title"]} Leaderboard"
+
+    if category["title"] == "Quotes Over":
+        if not args:
+            raise GeneralException("Missing threshold", "Usage: `-lb qo <threshold> [metric]`")
+
+        threshold = parse_number(args[0])
+        metric = get_argument(["pp", "wpm"], args[1] if len(args) > 1 else "wpm")
+        title = f"Quotes Over {threshold:,} {"WPM" if metric == "wpm" else "pp"} Leaderboard" + get_flag_title(ctx.flags)
 
     skeleton_page = Page(
         title=title,
@@ -207,8 +212,6 @@ async def run_custom(ctx: commands.Context, category: dict, args: tuple = ()):
         pages = paginate_data(leaderboard, formatter, page_count=5, per_page=20)
 
     elif category["title"] == "Quotes Over":
-        threshold = parse_number(args[0])
-        metric = get_argument(["pp", "wpm"], args[1] if len(args) > 1 else "wpm")
         ctx.flags.status = ctx.flags.status or "ranked"
 
         leaderboard_data = get_quotes_over_leaderboard(
@@ -217,6 +220,15 @@ async def run_custom(ctx: commands.Context, category: dict, args: tuple = ()):
             limit=100,
             flags=ctx.flags
         )
+
+        if not leaderboard_data:
+            await initial_send
+
+            message.title = title
+            message.pages = [Page(description="No users above this threshold.", )]
+
+            return await message.edit()
+
         user_lookup = get_user_lookup()
 
         leaderboard = []
@@ -232,9 +244,6 @@ async def run_custom(ctx: commands.Context, category: dict, args: tuple = ()):
                 "count": entry["count"],
                 "highlight": entry["userId"] == ctx.user["userId"],
             })
-
-        if metric == "wpm": metric = "WPM"
-        title = f"Quotes Over {threshold:,} {metric} Leaderboard" + get_flag_title(ctx.flags)
 
         def qo_formatter(entry):
             bold = "**" if entry["highlight"] else ""
@@ -261,7 +270,6 @@ async def run_custom(ctx: commands.Context, category: dict, args: tuple = ()):
             return f"{rank(entry["rank"])} {bold}{username_with_flag(entry)} - {entry["count"]:,}{bold}\n"
 
         pages = paginate_data(leaderboard, daily_formatter, page_count=5, per_page=20)
-        title = f"{category["title"]} Leaderboard"
 
     await initial_send
 
