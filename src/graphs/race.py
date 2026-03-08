@@ -46,7 +46,7 @@ def render(
             continue
 
         word_indexes[word_index] = index
-        wpm = keystroke_wpm[max(0, index - 1)]
+        wpm = keystroke_wpm[min(max(0, index - 1), quote_length - 1)]
 
         label = None
         if last_index == -1:
