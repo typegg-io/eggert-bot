@@ -444,7 +444,8 @@ def highlight_text(text: str, text_highlight: str, max_chars: int = 120):
     if start_index > 0:
         start_index += 1
 
-    while end_index < len(text) and text[end_index].isalnum():
+    boundary_limit = end_index + 20
+    while end_index < len(text) and end_index < boundary_limit and text[end_index].isalnum():
         end_index += 1
 
     # Highlight the matched text
