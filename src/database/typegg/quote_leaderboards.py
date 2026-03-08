@@ -25,9 +25,9 @@ def update_quote_leaderboards(quote_ids: list[str]):
         SELECT quoteId, rn, userId
         FROM (
             SELECT quoteId, userId,
-                   ROW_NUMBER() OVER (PARTITION BY quoteId ORDER BY MAX(pp) DESC, MIN(timestamp) ASC) AS rn
+                   ROW_NUMBER() OVER (PARTITION BY quoteId ORDER BY MAX(pp) DESC, MAX(wpm) DESC, MIN(timestamp) ASC) AS rn
             FROM races
-            WHERE pp > 0 AND quoteId IN ({placeholders})
+            WHERE quoteId IN ({placeholders})
             GROUP BY userId, quoteId
         )
         WHERE rn <= 10
