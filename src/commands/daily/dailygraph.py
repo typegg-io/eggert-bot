@@ -8,6 +8,7 @@ from database.bot.recent_quotes import set_recent_quote
 from database.typegg.quotes import get_quote
 from graphs import daily as daily_graph
 from utils.dates import parse_date, format_date
+from utils.errors import GeneralException
 from utils.keystrokes import get_keystroke_data
 from utils.messages import Page, Message, usable_in
 from utils.urls import race_url
@@ -40,6 +41,12 @@ async def run(ctx: commands.Context, daily_quote: dict):
     set_recent_quote(ctx.channel.id, quote["quoteId"])
     score_list = []
     themed_line = 0
+
+    if daily_quote.get("leaderboard") is None:
+        raise GeneralException(
+            "No Results",
+            "No daily scores to display"
+        )
 
     for i, score in enumerate(daily_quote["leaderboard"][:10]):
         keystroke_data = get_keystroke_data(score["keystrokeData"])
