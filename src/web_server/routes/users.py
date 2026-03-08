@@ -1,28 +1,34 @@
+import asyncio
+
 from aiohttp import web
 
 from commands.account.download import run as download
 from database.typegg.users import delete_user_data
-from utils.logging import log_server
+from utils.logging import log_server, log_error
 from web_server.utils import validate_authorization, error_response
 
 
 async def import_user(request: web.Request):
-    """Import a user's latest races (POST /users/{userId}/import)."""
+    """Import a user's latest races in the background (POST /users/{userId}/import)."""
     auth_error = validate_authorization(request)
     if auth_error:
         return auth_error
 
     user_id = request.match_info.get("userId")
 
-    try:
-        await download(user_id=user_id)
-        log_server(f"Imported races for user {user_id}")
-        return web.json_response({
-            "success": True,
-            "message": f"Imported races for user {user_id}.",
-        })
-    except Exception as e:
-        return error_response(f"Failed to import races: {e}", 500)
+    async def run_import():
+        try:
+            await download(user_id=user_id)
+            log_server(f"Imported races for user {user_id}")
+        except Exception as e:
+            log_error("Background import failed", e)
+
+    asyncio.ensure_future(run_import())
+
+    return web.json_response({
+        "success": True,
+        "message": f"Import started for user {user_id}.",
+    }, status=202)
 
 
 async def delete_user(request: web.Request):
