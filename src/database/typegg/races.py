@@ -42,10 +42,11 @@ def decompress_keystroke_data(rows):
         row_dict = dict(row)
         keystroke_data = row_dict.get("keystrokeData")
         compressed = row_dict.get("compressed")
-        if keystroke_data is not None and compressed == 1:
-            keystroke_data = zlib.decompress(keystroke_data)
+        if keystroke_data is not None:
+            if compressed == 1:
+                keystroke_data = zlib.decompress(keystroke_data)
+            row_dict["keystrokeData"] = json.loads(keystroke_data)
         del row_dict["compressed"]
-        row_dict["keystrokeData"] = json.loads(keystroke_data)
         result.append(row_dict)
     return result
 
