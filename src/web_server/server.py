@@ -13,6 +13,7 @@ from web_server.routes.quotes import create_quote, patch_quote, remove_quote
 from web_server.routes.sources import create_source, patch_source, remove_source
 from web_server.routes.update_gg_plus import update_gg_plus
 from web_server.routes.update_nwpm_role import update_nwpm_role
+from web_server.routes.users import import_user, delete_user
 from web_server.routes.verify import verify_user
 
 
@@ -37,6 +38,8 @@ class WebServer(commands.Cog):
         self.app.router.add_post("/verify", partial(verify_user, self))
         self.app.router.add_post("/update-nwpm-role", partial(update_nwpm_role, self))
         self.app.router.add_post("/update-gg-plus", partial(update_gg_plus, self))
+        self.app.router.add_post("/users/{userId}/import", import_user)
+        self.app.router.add_delete("/users/{userId}", delete_user)
         self.app.router.add_get("/compare/{username1}/vs/{username2}", compare_page)
 
         # Quote routes
