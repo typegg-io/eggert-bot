@@ -31,6 +31,7 @@ db.run("""
 
 db.run("CREATE INDEX IF NOT EXISTS idx_races_userId on races(userId)")
 db.run("CREATE INDEX IF NOT EXISTS idx_races_userId_quoteId on races(userId, quoteId)")
+db.run("CREATE INDEX IF NOT EXISTS idx_races_quoteId_pp ON races(quoteId, pp DESC)")
 
 db.run("""
     CREATE TABLE IF NOT EXISTS keystroke_data (
@@ -139,6 +140,15 @@ db.run("""
 """)
 
 db.run("""CREATE UNIQUE INDEX IF NOT EXISTS idx_match_results_matchId_userId ON match_results(matchId, userId)""")
+
+db.run("""
+    CREATE TABLE IF NOT EXISTS quote_leaderboards (
+        quoteId TEXT NOT NULL REFERENCES quotes(quoteId) ON UPDATE CASCADE ON DELETE CASCADE,
+        rank INTEGER NOT NULL,
+        userId TEXT NOT NULL,
+        PRIMARY KEY (quoteId, rank)
+    )
+""")
 db.run("CREATE INDEX IF NOT EXISTS idx_races_matchId_userId ON races(matchId, userId)")
 
 db.run("""
