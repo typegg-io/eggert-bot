@@ -19,19 +19,21 @@ def update_quote_leaderboards(quote_ids: list[str]):
 
     placeholders = ",".join("?" * len(quote_ids))
 
-    db.run(f"DELETE FROM quote_leaderboards WHERE quoteId IN ({placeholders})", quote_ids)
-    db.run(f"""
-        INSERT INTO quote_leaderboards (quoteId, rank, userId)
-        SELECT quoteId, rn, userId
-        FROM (
-            SELECT quoteId, userId,
-                   ROW_NUMBER() OVER (PARTITION BY quoteId ORDER BY MAX(pp) DESC, MAX(wpm) DESC, MIN(timestamp) ASC) AS rn
-            FROM races
-            WHERE quoteId IN ({placeholders})
-            GROUP BY userId, quoteId
-        )
-        WHERE rn <= 10
-    """, quote_ids * 2)
+    db.run_transaction([
+        (f"DELETE FROM quote_leaderboards WHERE quoteId IN ({placeholders})", quote_ids),
+        (f"""
+            INSERT INTO quote_leaderboards (quoteId, rank, userId)
+            SELECT quoteId, rn, userId
+            FROM (
+                SELECT quoteId, userId,
+                       ROW_NUMBER() OVER (PARTITION BY quoteId ORDER BY MAX(pp) DESC, MAX(wpm) DESC, MIN(timestamp) ASC) AS rn
+                FROM races
+                WHERE quoteId IN ({placeholders})
+                GROUP BY userId, quoteId
+            )
+            WHERE rn <= 10
+        """, quote_ids),
+    ])
 
 
 def remove_user_from_leaderboards(user_id: str):

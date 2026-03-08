@@ -73,6 +73,20 @@ def run_many(query, data):
         cursor.close()
 
 
+def run_transaction(statements: list[tuple]):
+    """Execute multiple write queries atomically in a single transaction."""
+    cursor = writer.cursor()
+    try:
+        for query, params in statements:
+            cursor.execute(query, params)
+        writer.commit()
+    except Exception:
+        writer.rollback()
+        raise
+    finally:
+        cursor.close()
+
+
 def get_row_count(table):
     """Return the total number of rows from a given table."""
     return fetch_one(f"SELECT COUNT(*) FROM {table}")[0]
