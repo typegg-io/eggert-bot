@@ -34,6 +34,8 @@ def get_quote_bests(
     quote_id: Optional[str] = None,
     start_date: Optional[str] = None,
     end_date: Optional[str] = None,
+    min_wpm: Optional[float] = None,
+    max_wpm: Optional[float] = None,
     order_by: Optional[str] = "pp",
     reverse: Optional[bool] = True,
     limit: Optional[int] = None,
@@ -102,6 +104,15 @@ def get_quote_bests(
     aggregate_column = f"MAX({order_by}) AS {order_by}"
     limit_clause = f"LIMIT {limit}" if limit else ""
 
+    having_conditions = []
+    if min_wpm is not None:
+        having_conditions.append("MAX(wpm) >= ?")
+        params.append(min_wpm)
+    if max_wpm is not None:
+        having_conditions.append("MAX(wpm) < ?")
+        params.append(max_wpm)
+    having_clause = "HAVING " + " AND ".join(having_conditions) if having_conditions else ""
+
     results = db.fetch(f"""
         SELECT {aggregate_column}, {columns}
         FROM {table} r
@@ -110,6 +121,7 @@ def get_quote_bests(
         AND pp > {min_pp}
         AND pp <= {max_pp}
         GROUP BY r.quoteId
+        {having_clause}
         ORDER BY {order_by} {order_clause}
         {limit_clause}
     """, params)
