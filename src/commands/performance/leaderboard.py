@@ -1,6 +1,6 @@
 from discord.ext import commands
 
-from api.leaders import get_leaders
+from api.leaders import get_leaders, get_multiplayer_leaders
 from commands.base import Command
 from database.typegg.daily_quotes import get_daily_rank_leaderboard
 from database.typegg.quotes import get_top_submitters, get_ranked_quote_count
@@ -83,6 +83,13 @@ categories = {
         "formatter": lambda user: f"{user["stats"]["charactersTyped"]:,}"
     },
 
+    # Multiplayer leaderboards
+    "quickplay": {
+        "title": "Quickplay",
+        "multiplayer": True,
+        "formatter": lambda user: f"{user["average"]:,.2f} WPM ({user["difficulty"]:.2f}★)",
+    },
+
     # Custom leaderboards
     "submissions": {
         "title": "Quote Submissions",
@@ -118,6 +125,9 @@ class Leaderboard(Command):
     async def leaderboard(self, ctx, category: str = "pp", *args):
         category = get_argument(categories.keys(), category)
         category_info = categories[category]
+
+        if category_info.get("multiplayer"):
+            return await run_multiplayer(ctx, category_info)
 
         if not category_info.get("formatter"):
             return await run_custom(ctx, category_info, args)
@@ -276,5 +286,45 @@ async def run_custom(ctx: commands.Context, category: dict, args: tuple = ()):
     message.title = title
     message.pages = pages
     message.page_count = len(pages)
+
+    await message.edit()
+
+
+async def run_multiplayer(ctx: commands.Context, category: dict):
+    title = f"{category["title"]} Leaderboard"
+    skeleton_page = Page(
+        title=title,
+        description="\n".join(f"{rank(i + 1)} {LOADING}" for i in range(20)),
+    )
+    message = Message(ctx, page=skeleton_page)
+    message.timeout = 60
+    initial_send = message.start()
+
+    results = await get_multiplayer_leaders()
+    leaderboard = [
+        {
+            "rank": item["rank"],
+            "username": item["username"],
+            "country": item.get("country_code"),
+            "userId": item["user_id"],
+            "average": item["best_wpm_avg"],
+            "difficulty": item["best_difficulty_avg"],
+            "highlight": item["user_id"] == ctx.user["userId"],
+        }
+        for item in results["items"]
+    ]
+
+    def mp_formatter(user):
+        bold = "**" if user["highlight"] else ""
+        return f"{rank(user["rank"])} {bold}{username_with_flag(user)} - {category["formatter"](user)}{bold}\n"
+
+    pages = paginate_data(leaderboard, mp_formatter, page_count=5, per_page=20)
+
+    await initial_send
+
+    message.title = title
+    message.pages = pages
+    message.page_count = len(pages)
+    message.paginated = True
 
     await message.edit()

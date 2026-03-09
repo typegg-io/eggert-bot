@@ -24,3 +24,15 @@ async def get_leaders(
             "perPage": per_page,
         },
     )
+
+
+async def get_multiplayer_leaders(
+    metric: str = "wpm",
+    page: int = 1,
+    per_page: int = 100,
+) -> Dict[str, Any]:
+    """Temporary internal API."""
+    return await request(
+        url=f"{API_URL}/leaderboard/multiplayer/{metric}",
+        params={"page": page, "perPage": per_page},
+    )
