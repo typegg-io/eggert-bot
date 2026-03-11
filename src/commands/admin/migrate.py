@@ -2,6 +2,7 @@ from discord.ext import commands
 
 from commands.base import Command
 from commands.checks import is_bot_admin
+from config import KEEGAN
 from database.typegg.quotes import reimport_quotes
 from database.typegg.users import reimport_users
 from utils.errors import MissingArguments, InvalidArgument
@@ -47,5 +48,6 @@ class Migrate(Command):
                     ", ".join([f"`{category}`" for category in category_list])
                 ),
             ),
+            content=f"<@{KEEGAN}>",
         )
         await message.send()
