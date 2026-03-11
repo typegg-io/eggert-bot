@@ -27,6 +27,8 @@ info = {
     "parameters": "[username]",
 }
 
+_active_imports: set[str] = set()
+
 
 class Download(Command):
     @commands.command(aliases=info["aliases"])
@@ -72,6 +74,10 @@ async def run(
         profile = await get_profile(user_id)
 
     user_id = profile["userId"]
+
+    if user_id in _active_imports:
+        return
+    _active_imports.add(user_id)
     formatted_username = escape_formatting(profile["username"])
 
     user_entry = get_user(user_id)
@@ -112,11 +118,13 @@ async def run(
         if races_left < 1:
             page.title = "Import Request"
             page.description = status_message
+            _active_imports.discard(user_id)
             return await message.send()
 
         initial_send = message.start()
 
     if races_left < 1:
+        _active_imports.discard(user_id)
         return
 
     quote_ids = set(get_quotes().keys())
@@ -226,6 +234,8 @@ async def run(
         page.title = "New Quotes Import"
         page.description = "Finished adding new quotes"
         await message.edit()
+
+    _active_imports.discard(user_id)
 
 
 async def get_total_races(user_id):

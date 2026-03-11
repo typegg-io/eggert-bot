@@ -4,7 +4,7 @@ from commands.base import Command
 from commands.checks import is_bot_admin
 from database.typegg.quotes import reimport_quotes
 from database.typegg.users import reimport_users
-from utils.errors import MigrationActive, MissingArguments, InvalidArgument
+from utils.errors import MissingArguments, InvalidArgument
 from utils.messages import Page, Message
 
 categories = ["users", "quotes"]
@@ -27,13 +27,8 @@ class Migrate(Command):
             if category not in categories:
                 raise InvalidArgument(categories)
 
-        self.bot.add_check(migration_active)
-
         message = Message(
-            ctx, Page(
-                title="Migration Started",
-                description="Commands will be unavailable during this time",
-            ),
+            ctx, Page(title="Migration Started"),
         )
         await message.send()
 
@@ -44,7 +39,6 @@ class Migrate(Command):
                 case "quotes":
                     await reimport_quotes()
 
-        self.bot.remove_check(migration_active)
         message = Message(
             ctx, Page(
                 title="Migration Complete",
@@ -55,7 +49,3 @@ class Migrate(Command):
             ),
         )
         await message.send()
-
-
-def migration_active(ctx):
-    raise MigrationActive
