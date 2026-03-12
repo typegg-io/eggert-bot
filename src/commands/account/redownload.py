@@ -49,17 +49,18 @@ class ReDownload(Command):
                 ))
                 return await message.send()
 
-            message = Message(ctx, Page(
-                title="Are You Sure?",
-                description=f"Please type \"confirm\" to proceed with the re-import",
-                color=WARNING,
-            ))
-            await message.send()
+            if not is_admin:
+                message = Message(ctx, Page(
+                    title="Are You Sure?",
+                    description=f"Please type \"confirm\" to proceed with the re-import",
+                    color=WARNING,
+                ))
+                await message.send()
 
-            if not await self.await_confirmation(ctx):
-                return
+                if not await self.await_confirmation(ctx):
+                    return
 
-            delete_user_data(user_id)
+                delete_user_data(user_id)
 
             message = Message(ctx, Page(
                 title="Races Deleted",
