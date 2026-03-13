@@ -101,6 +101,7 @@ def top_10_longest_averages(values, threshold):
 
 async def run(ctx: commands.Context, profile: dict, wpm: float):
     ctx.flags.gamemode = ctx.flags.gamemode or "quickplay"
+    ctx.flags.status = ctx.flags.status or "ranked"
     race_list = await get_races(
         user_id=profile["userId"],
         flags=ctx.flags,
