@@ -438,7 +438,7 @@ def highlight_text(text: str, text_highlight: str, max_chars: int = 120):
             chars -= 1
 
     # Adjusting to word boundaries
-    while start_index > 0 and text[start_index] != " ":
+    while start_index > 0 and text[start_index] != " " and text[start_index] != "\n":
         start_index -= 1
 
     if start_index > 0:
