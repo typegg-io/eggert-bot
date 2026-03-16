@@ -83,28 +83,30 @@ async def display_daily_quote(
             f"{discord_date(score["timestamp"])}{bold}\n"
         )
 
+    pages = [Page()]
+    jump_page = None
     if show_leaderboard and leaderboard:
         for i in range(len(leaderboard)):
             leaderboard[i] = {"index": i, "score": leaderboard[i]}
 
         quote_description += "\n**Leaderboard**"
-        description = ""
-        for i, score in enumerate(leaderboard[:10]):
-            description += format_row(score)
 
         user_score = next((
             row for row in leaderboard
-            if hasattr(ctx, "user") and row["score"]["userId"] == ctx.user["userId"]), {}
-        )
+            if hasattr(ctx, "user") and row["score"]["userId"] == ctx.user["userId"]
+        ), None)
 
-        if user_score and user_score["index"] > 9:
-            description += f"\n{format_row(user_score)}"
-
-    pages = [Page()]
-    if show_leaderboard and leaderboard:
         if paginate:
             pages = paginate_data(leaderboard, format_row, page_count=10, per_page=10)
-        pages[0].description = description
+            if user_score:
+                jump_page = user_score["index"] // 10
+                user_row = format_row(user_score)
+                for i, page in enumerate(pages):
+                    if i != jump_page:
+                        page.description += f"\n{user_row}"
+        else:
+            description = "".join(format_row(s) for s in leaderboard[:10])
+            pages[0].description = description
 
     message = Message(
         ctx,
@@ -118,6 +120,7 @@ async def display_daily_quote(
         thumbnail=quote["source"]["thumbnailUrl"],
         content=f"<@&{DAILY_QUOTE_ROLE_ID}>" if mention else "",
         color=color or ctx.user["theme"]["embed"],
+        jump_page=jump_page,
     )
 
     await message.send()

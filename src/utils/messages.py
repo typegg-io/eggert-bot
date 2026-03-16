@@ -99,6 +99,7 @@ class Message(View):
         profile: dict = None,
         show_avatar: bool = True,
         thumbnail: str = None,
+        jump_page: int = None,
     ):
         self.ctx = ctx
         self.pages = pages or []
@@ -120,6 +121,7 @@ class Message(View):
         self.profile = profile
         self.show_avatar = show_avatar
         self.thumbnail = thumbnail
+        self.jump_page = jump_page
 
         self.embeds = []
         self.cache = {}
@@ -192,10 +194,10 @@ class Message(View):
         embed.set_footer(text=footer_text + text)
 
     def update_navigation_buttons(self):
-        self.children[0].disabled = self.page_index == 0
-        self.children[1].disabled = self.page_index == 0
-        self.children[2].disabled = self.page_index == self.page_count - 1
-        self.children[3].disabled = self.page_index == self.page_count - 1
+        self.first_button.disabled = self.page_index == 0
+        self.previous_button.disabled = self.page_index == 0
+        self.next_button.disabled = self.page_index == self.page_count - 1
+        self.last_button.disabled = self.page_index == self.page_count - 1
 
     def add_navigation_buttons(self):
         """Adds pagination buttons to the embed."""
@@ -211,6 +213,10 @@ class Message(View):
 
         self.add_item(self.first_button)
         self.add_item(self.previous_button)
+        if self.jump_page is not None:
+            self.jump_button = DiscordButton(label="👤", style=ButtonStyle.secondary)
+            self.jump_button.callback = self.jump
+            self.add_item(self.jump_button)
         self.add_item(self.next_button)
         self.add_item(self.last_button)
 
@@ -237,6 +243,14 @@ class Message(View):
             self.page_index = self.page_count - 1
             self.update_navigation_buttons()
             await self.update_embed(interaction)
+
+    async def jump(self, interaction):
+        if self.page_index != self.jump_page:
+            self.page_index = self.jump_page
+            self.update_navigation_buttons()
+            await self.update_embed(interaction)
+        else:
+            await interaction.response.defer()
 
     def add_buttons(self):
         """Adds buttons with custom names (non-paginated layout)."""
