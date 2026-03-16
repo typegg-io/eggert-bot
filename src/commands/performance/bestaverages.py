@@ -123,7 +123,7 @@ async def run(ctx: commands.Context, profile: dict, n: int):
             desc += (
                 f"{quote_list[race["quoteId"]]["difficulty"]:.2f}★ - "
                 f"{discord_date(race["timestamp"])} - "
-                f"[<:quote:1470361772132143277>](https://typegg.io/solo/{race["quoteId"]})\n"
+                f"[<:quote_link:1483237184482836540>](https://typegg.io/solo/{race["quoteId"]})\n"
             )
 
             race_descriptions += desc
