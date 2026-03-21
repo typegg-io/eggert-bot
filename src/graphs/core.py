@@ -14,8 +14,11 @@ from matplotlib.colors import LinearSegmentedColormap, to_rgb
 from matplotlib.legend_handler import HandlerLine2D, HandlerLineCollection
 from matplotlib.offsetbox import OffsetImage, AnnotationBbox
 
-from config import ROOT_DIR
+from config import ROOT_DIR, STAGING
 from utils import dates
+
+if STAGING:
+    matplotlib.use("Agg")
 
 ASSETS_DIR = ROOT_DIR / "assets"
 FONT_PATH = ASSETS_DIR / "fonts" / "DMSans-Medium.ttf"
