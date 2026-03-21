@@ -5,7 +5,7 @@ from discord.ext import commands
 
 from config import DAILY_QUOTE_CHANNEL_ID
 from utils.colors import ERROR
-from utils.errors import UserBanned, MissingUsername, DailyQuoteChannel, MissingArguments, UnknownCommand, UnexpectedError, CommandOnCooldown, DiscordUserNotFound, MessageTooLong
+from utils.errors import UserBanned, MissingUsername, DailyQuoteChannel, MissingArguments, UnknownCommand, UnexpectedError, CommandOnCooldown, DiscordUserNotFound, MessageTooLong, DiscordServerError as DiscordServerErrorEmbed
 from utils.logging import get_log_message, log_error
 from utils.messages import check_channel_permissions
 
@@ -39,6 +39,9 @@ class ErrorHandler(commands.Cog):
 
         if isinstance(error, commands.UserNotFound):
             return await send_error(ctx, DiscordUserNotFound.embed)
+
+        if isinstance(error, discord.DiscordServerError):
+            return await send_error(ctx, DiscordServerErrorEmbed.embed)
 
         if isinstance(error, discord.HTTPException):
             if error.code == 50035 and "Must be 2000 or fewer in length" in str(error):

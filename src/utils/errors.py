@@ -363,6 +363,16 @@ class MessageTooLong(CommandError):
     )
 
 
+class DiscordServerError(CommandError):
+    embed = Embed(
+        title="Discord Server Error",
+        description=(
+            "Failed to connect to Discord servers\n"
+            "Please try again"
+        ),
+    )
+
+
 class InvalidKeystrokeData(CommandError):
     embed = Embed(
         title="Invalid Keystroke Data",
