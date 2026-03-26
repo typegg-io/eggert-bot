@@ -216,7 +216,7 @@ async def run(ctx: commands.Context, metric: str, profiles: list[dict]):
         columns = metrics[metric]["columns"].split(" ")
         columns.append("timestamp")
         if metric in ["wpm", "quotes"]:
-            ctx.flags.status = "ranked"
+            ctx.flags.status = ctx.flags.status or "ranked"
 
         race_list = await get_races(
             user_id=profile["userId"],
