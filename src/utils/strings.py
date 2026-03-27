@@ -51,6 +51,7 @@ OPTION_ALIASES = {
     "playtime": ["pt"],
     "submissions": ["qs"],
     "quotesover": ["qo"],
+    "level": ["experience", "xp"],
 }
 
 ALIAS_LOOKUP = {
