@@ -9,7 +9,7 @@ from utils.dates import parse_date
 
 info = {
     "name": "week",
-    "aliases": ["w", "yesterweek", "yw"],
+    "aliases": ["w", "yesterweek", "yw", "lw"],
     "description": "Displays race information for a given user and week\n"
                    "Date defaults to today",
     "parameters": "[username] [date]",
@@ -21,7 +21,7 @@ class Week(Command):
     async def week(self, ctx, username: Optional[str] = "me", *date_args: str):
         date = parse_date("".join(date_args))
 
-        if ctx.invoked_with in ["yesterweek", "yw"]:
+        if ctx.invoked_with in ["yesterweek", "yw", "lw"]:
             date -= relativedelta(weeks=1)
 
         profile = await self.get_profile(ctx, username, races_required=True)

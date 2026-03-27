@@ -9,7 +9,7 @@ from utils.dates import parse_date
 
 info = {
     "name": "year",
-    "aliases": ["y", "yesteryear", "yy"],
+    "aliases": ["y", "yesteryear", "yy", "ly"],
     "description": "Displays race information for a given user and year\n"
                    "Date defaults to today",
     "parameters": "[username] [date]",
@@ -21,7 +21,7 @@ class Year(Command):
     async def year(self, ctx, username: Optional[str] = "me", *date_args: str):
         date = parse_date("".join(date_args))
 
-        if ctx.invoked_with in ["yesteryear", "yy"]:
+        if ctx.invoked_with in ["yesteryear", "yy", "ly"]:
             date -= relativedelta(years=1)
 
         profile = await self.get_profile(ctx, username, races_required=True)

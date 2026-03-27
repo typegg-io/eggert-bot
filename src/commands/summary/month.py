@@ -9,7 +9,7 @@ from utils.dates import parse_date
 
 info = {
     "name": "month",
-    "aliases": ["m", "yestermonth", "ym"],
+    "aliases": ["m", "yestermonth", "ym", "lm"],
     "description": "Displays race information for a given user and month\n"
                    "Date defaults to today",
     "parameters": "[username] [date]",
@@ -21,7 +21,7 @@ class Month(Command):
     async def month(self, ctx, username: Optional[str] = "me", *date_args: str):
         date = parse_date("".join(date_args))
 
-        if ctx.invoked_with in ["yestermonth", "ym"]:
+        if ctx.invoked_with in ["yestermonth", "ym", "lm"]:
             date -= relativedelta(months=1)
 
         profile = await self.get_profile(ctx, username, races_required=True)
