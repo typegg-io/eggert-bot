@@ -13,7 +13,7 @@ from database.bot.users import update_warning
 from database.typegg.daily_quotes import get_daily_quote_id
 from database.typegg.quotes import get_quote
 from database.typegg.races import get_latest_race
-from utils.errors import MissingUsername, NoRaces, NotSubscribed, InvalidNumber
+from utils.errors import MissingUsername, NoRaces, NotSubscribed, InvalidNumber, NoRacesFiltered
 from utils.messages import privacy_warning, command_milestone
 from utils.strings import parse_number
 
@@ -52,8 +52,14 @@ class Command(commands.Cog):
             raise MissingUsername
 
         profile = await get_profile(username)
-        if races_required and profile["stats"]["races"] == 0:
-            raise NoRaces(username)
+
+        if races_required:
+            if ctx.flags.gamemode == "quickplay":
+                if profile["stats"]["quickplayRaces"] == 0:
+                    raise NoRacesFiltered(username)
+            else:
+                if profile["stats"]["races"] == 0:
+                    raise NoRaces(username)
 
         return profile
 
