@@ -1,9 +1,11 @@
+import asyncio
 from zoneinfo import ZoneInfo
 
+import aiohttp
 import discord
 from discord.ext import commands
 
-from config import BOT_PREFIX, STAGING, STATS_CHANNEL_ID, TYPEGG_GUILD_ID
+from config import BOT_PREFIX, STAGING, STATS_CHANNEL_ID, TYPEGG_GUILD_ID, GENERAL_CHANNEL_ID, SITE_CHAT_URL, SECRET
 from database.bot.users import get_user, update_commands, get_user_ids, get_all_command_usage
 from utils.errors import UserBanned, InvalidNumber
 from utils.files import get_command_modules
@@ -90,11 +92,37 @@ def register_bot_checks(bot):
             raise UserBanned("Banned user attempted to use a command")
         return True
 
+    async def forward_to_site(message):
+        """Forward a general channel message to the site's chat."""
+        user = get_user(str(message.author.id))
+        linked = user and user.get("userId")
+        payload = {
+            "username": message.author.display_name,
+            "avatarUrl": message.author.display_avatar.url,
+            "content": message.content,
+        }
+        if linked:
+            payload |= {"userId": user["userId"]}
+
+        async with aiohttp.ClientSession() as session:
+            await session.post(
+                SITE_CHAT_URL,
+                json=payload,
+                headers={"Authorization": SECRET},
+            )
+
     @bot.event
     async def on_message(message):
         """Global message handler."""
 
-        if not message.content.startswith(BOT_PREFIX) or message.author.bot:
+        if message.author.bot:
+            return
+
+        if SITE_CHAT_URL and message.channel.id == GENERAL_CHANNEL_ID and not message.content.startswith(BOT_PREFIX):
+            asyncio.ensure_future(forward_to_site(message))  # Fire and forget
+            return
+
+        if not message.content.startswith(BOT_PREFIX):
             return
 
         # Parsing flags

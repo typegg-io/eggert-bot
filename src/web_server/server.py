@@ -8,6 +8,7 @@ from discord.ext import commands
 from config import SOURCE_DIR, ROOT_DIR, TYPEGG_GUILD_ID
 from utils.logging import log_server
 from web_server.middleware import error_middleware, security_headers_middleware, request_logging_middleware
+from web_server.routes.chat import receive_message
 from web_server.routes.compare import compare_page
 from web_server.routes.quotes import create_quote, patch_quote, remove_quote
 from web_server.routes.sources import create_source, patch_source, remove_source
@@ -38,6 +39,7 @@ class WebServer(commands.Cog):
         self.app.router.add_post("/verify", partial(verify_user, self))
         self.app.router.add_post("/update-nwpm-role", partial(update_nwpm_role, self))
         self.app.router.add_post("/update-gg-plus", partial(update_gg_plus, self))
+        self.app.router.add_post("/chat/receive", receive_message)
         self.app.router.add_post("/users/{userId}/import", import_user)
         self.app.router.add_delete("/users/{userId}", delete_user)
         self.app.router.add_get("/compare/{username1}/vs/{username2}", compare_page)
