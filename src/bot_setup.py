@@ -97,7 +97,7 @@ def register_bot_checks(bot):
         """Forward a general channel message to the site's chat."""
         user = get_user(str(message.author.id))
         linked = user and user.get("userId")
-        content = re.sub(r"<a?:\w+:\d+>", "", message.content)  # custom emojis
+        content = re.sub(r"<a?:(\w+):\d+>", r":\1:", message.content)  # custom emojis → :name:
         content = re.sub(r"<[@#!&]\d+>", "", content)  # mentions, channels, roles
         content = re.sub(r"<[^>]+>", "", content)  # any remaining discord tags
         content = content.strip()
