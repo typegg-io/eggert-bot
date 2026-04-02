@@ -1,4 +1,5 @@
 import asyncio
+import re
 from zoneinfo import ZoneInfo
 
 import aiohttp
@@ -96,10 +97,17 @@ def register_bot_checks(bot):
         """Forward a general channel message to the site's chat."""
         user = get_user(str(message.author.id))
         linked = user and user.get("userId")
+        content = re.sub(r"<a?:\w+:\d+>", "", message.content)  # custom emojis
+        content = re.sub(r"<[@#!&]\d+>", "", content)  # mentions, channels, roles
+        content = re.sub(r"<[^>]+>", "", content)  # any remaining discord tags
+        content = content.strip()
+        if not content:
+            return
+
         payload = {
             "username": message.author.display_name,
             "avatarUrl": message.author.display_avatar.url,
-            "content": message.content,
+            "content": content,
         }
         if linked:
             payload |= {"userId": user["userId"]}
