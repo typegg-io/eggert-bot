@@ -349,10 +349,14 @@ class Message(View):
 
     async def on_timeout(self):
         await super().on_timeout()
-        if len(self.pages) > 1:
-            await self.message.edit(view=None)
-        for file in self.cache.values():
-            files.remove_file(file)
+        try:
+            if len(self.pages) > 1:
+                await self.message.edit(view=None)
+        except Exception:
+            pass
+        finally:
+            for file in self.cache.values():
+                files.remove_file(file)
 
 
 class Button(View):
