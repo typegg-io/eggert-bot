@@ -5,6 +5,8 @@ from config import CHAT_WEBHOOK_URL
 from utils.logging import log_server
 from web_server.utils import validate_authorization, error_response
 
+GLOBAL_EMOTE = "<:gc1:1489646936813469767>" + "<:gc2:1489646971965935617> "
+
 
 async def receive_message(request: web.Request):
     """Forward a site chat message to Discord (POST /chat/receive)."""
@@ -28,7 +30,7 @@ async def receive_message(request: web.Request):
         await session.post(CHAT_WEBHOOK_URL, json={
             "username": username,
             "avatar_url": avatar_url,
-            "content": content,
+            "content": GLOBAL_EMOTE + content,
             "allowed_mentions": {"parse": []},
         })
 
