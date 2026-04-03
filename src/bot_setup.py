@@ -101,8 +101,11 @@ def register_bot_checks(bot):
 
         def replace_mention(m):
             uid = int(m.group(1))
+            mentioned_user = get_user(str(uid))
+            if mentioned_user:
+                return f"<@{mentioned_user["userId"]}>"
             member = guild.get_member(uid) if guild else None
-            return f"@{member.display_name}" if member else "@unknown"
+            return f"@{member.name}" if member else "@unknown"
 
         def replace_role(m):
             rid = int(m.group(1))
@@ -124,7 +127,7 @@ def register_bot_checks(bot):
             return
 
         payload = {
-            "username": message.author.display_name,
+            "username": message.author.name,
             "avatarUrl": message.author.display_avatar.url,
             "content": content,
         }
