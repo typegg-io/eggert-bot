@@ -16,7 +16,7 @@ from utils.colors import ERROR
 from utils.errors import MissingArguments, BotUserNotFound, NotSubscribed
 from utils.files import remove_file
 from utils.messages import Page, Message, Button
-from utils.strings import GG_PLUS, GG_PLUS_LINK
+from utils.strings import GG_PLUS_LINK, GG_PLUS_LINKED
 
 # Name + aliases
 elements = {
@@ -43,7 +43,7 @@ themes = {
 info = {
     "name": "theme",
     "aliases": ["st"],
-    "description": f"Allows for customization of embed and graph colors [{GG_PLUS}]({GG_PLUS_LINK})\n"
+    "description": f"Allows for customization of embed and graph colors {GG_PLUS_LINKED}\n"
                    + "\nElements:\n" + ", ".join([f"`{el}`" for el in elements]) +
                    "\n\nPre-made themes (free to use):\n"
                    "`-theme typegg` (default)\n"

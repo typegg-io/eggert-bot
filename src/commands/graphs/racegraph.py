@@ -13,7 +13,7 @@ from graphs import race as race_graph
 from utils.errors import NoQuoteRaces, DailyQuoteChannel
 from utils.keystrokes import get_keystroke_data
 from utils.messages import Page, Message, Field, usable_in
-from utils.strings import quote_display, discord_date, format_duration, GG_PLUS, GG_PLUS_LINK
+from utils.strings import quote_display, discord_date, format_duration, GG_PLUS_LINKED
 
 info = {
     "name": "racegraph",
@@ -63,7 +63,7 @@ async def run(ctx: commands.Context, profile: dict, race_number: int):
     title = f"Race Graph - Race #{race_number:,}"
     raw_pp_display = (
         f"{race["rawPp"]:,.2f} pp" if ctx.user["isGgPlus"]
-        else f"[{GG_PLUS}]({GG_PLUS_LINK})"
+        else GG_PLUS_LINKED
     )
 
     page = Page(
