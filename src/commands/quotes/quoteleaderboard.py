@@ -8,8 +8,11 @@ from utils.urls import race_url
 info = {
     "name": "quoteleaderboard",
     "aliases": ["qlb", "10"],
-    "description": "Displays the top 10 leaderboard for a specific quote",
+    "description": "Displays the top 10 leaderboard for a specific quote.",
     "parameters": "<quote_id>",
+    "examples": [
+        "-10 piykyai_3408",
+    ],
 }
 
 

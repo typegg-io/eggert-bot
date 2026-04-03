@@ -10,8 +10,12 @@ from utils.strings import LOADING, ordinal_number
 info = {
     "name": "toptens",
     "aliases": ["10s"],
-    "description": "Displays the number of quote top 10s a user appears in",
+    "description": "Displays the number of quote top 10s a user appears in.",
     "parameters": "[username]",
+    "examples": [
+        "-10s",
+        "-10s eiko",
+    ],
 }
 
 

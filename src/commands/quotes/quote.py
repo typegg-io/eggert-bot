@@ -16,9 +16,15 @@ from utils.strings import discord_date, INCREASE, quote_display
 info = {
     "name": "quote",
     "aliases": ["q", "pb", "qh", "qg"],
-    "description": "Displays a user's stats about a specific text",
+    "description": "Displays a user's stats on a specific quote.\n"
+                   "Defaults to the most recently played quote.",
     "parameters": "[username] [quote_id]",
     "privacy": True,
+    "examples": [
+        "-q",
+        "-q eiko",
+        "-q eiko piykyai_3408",
+    ],
 }
 
 

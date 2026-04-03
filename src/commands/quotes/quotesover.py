@@ -12,8 +12,12 @@ from utils.strings import get_argument, parse_number, get_flag_title
 info = {
     "name": "quotesover",
     "aliases": ["qo"],
-    "description": "Displays the number of quotes a user has above a specified threshold",
-    "parameters": "<username> <threshold> [pp|wpm]",
+    "description": "Displays the number of quotes a user has above a specified WPM or pp threshold.",
+    "parameters": "[username] <threshold> [pp|wpm]",
+    "examples": [
+        "-qo eiko 200",
+        "-qo eiko 1000 pp",
+    ],
 }
 
 

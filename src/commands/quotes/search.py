@@ -10,8 +10,11 @@ from utils.strings import escape_formatting, quote_display
 info = {
     "name": "search",
     "aliases": ["qs", "lf"],
-    "description": "Performs a case-insensitive search through quotes for matching results",
+    "description": "Performs a case-insensitive search through quotes for matching results.",
     "parameters": "<query>",
+    "examples": [
+        "-qs they don't know",
+    ],
 }
 
 
