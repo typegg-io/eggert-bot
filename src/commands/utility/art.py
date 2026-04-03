@@ -29,6 +29,12 @@ info = {
         "`-art delete <title>` - Delete your own art"
     ),
     "parameters": "[title | add <title> | update <title> | rename \"old\" \"new\" | delete <title> | list | @user]",
+    "examples": [
+        "-art",
+        "-art list",
+        "-art skypromp",
+        "-art add My Drawing",
+    ],
 }
 
 

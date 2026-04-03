@@ -13,6 +13,10 @@ info = {
     "aliases": ["calculatewpm", "calc", "qc", "calcpp", "ppcalc"],
     "description": "Calculate WPM or pp for a specific quote, given the opposite.",
     "parameters": "<quote_id> <value> [pp|wpm]",
+    "examples": [
+        "-calc piykyai_3408 200 wpm",
+        "-calc piykyai_3408 500 pp",
+    ],
     "plus": True,
 }
 

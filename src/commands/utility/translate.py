@@ -15,7 +15,11 @@ info = {
     "aliases": ["tr"],
     "description": f"Translates text between keyboard layouts.\n{supported_layouts_string}",
     "parameters": "[from layout] <to layout> <text>",
-    "author": 231721357484752896
+    "examples": [
+        "-tr dvorak hello world",
+        "-tr qwerty dvorak hello world",
+    ],
+    "author": 231721357484752896,
 }
 
 

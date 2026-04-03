@@ -9,8 +9,11 @@ from utils.errors import MissingArguments
 info = {
     "name": "define",
     "aliases": ["def"],
-    "description": "Displays the definition(s) of a word",
+    "description": "Displays the definition(s) of a word.",
     "parameters": "[word]",
+    "examples": [
+        "-def typing",
+    ],
 }
 
 

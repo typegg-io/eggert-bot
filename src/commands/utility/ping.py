@@ -6,7 +6,10 @@ from utils.messages import Page, Message
 info = {
     "name": "ping",
     "aliases": ["p"],
-    "description": "Displays the bot's latency",
+    "description": "Displays the bot's latency.",
+    "examples": [
+        "-ping",
+    ],
 }
 
 

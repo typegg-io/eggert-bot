@@ -12,8 +12,11 @@ from utils.strings import EGGERT
 info = {
     "name": "chat",
     "aliases": ["ask", "ai"],
-    "description": "Ask Eggert a question about TypeGG or the bot",
-    "parameters": "[question]",
+    "description": "Ask Eggert a question about TypeGG or the bot.",
+    "parameters": "<question>",
+    "examples": [
+        "-ask how does pp work?",
+    ],
 }
 
 FREE_DAILY_LIMIT = 20
