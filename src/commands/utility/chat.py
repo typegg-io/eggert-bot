@@ -1,9 +1,10 @@
-import aiohttp
+import anthropic
 from discord.ext import commands
 
 from commands.base import Command
-from config import CHATBOT_WEBHOOK_URL, SECRET
+from config import ANTHROPIC_API_KEY
 from database.bot.chat_usage import get_daily_usage, increment_usage
+from utils.chatbot import get_system_prompt, MODEL, MAX_HISTORY
 from utils.colors import ERROR
 from utils.errors import DailyLimitReached
 from utils.messages import Message, Page, usable_in
@@ -21,12 +22,21 @@ info = {
 
 FREE_DAILY_LIMIT = 20
 
+_client: anthropic.AsyncAnthropic = None
+_history: dict[str, list] = {}
+
+
+def get_client() -> anthropic.AsyncAnthropic:
+    global _client
+    if _client is None:
+        _client = anthropic.AsyncAnthropic(api_key=ANTHROPIC_API_KEY)
+    return _client
+
 
 class Chat(Command):
     @commands.command(aliases=info["aliases"])
     @usable_in(1397687954117361745)
     async def chat(self, ctx, *, question: str = None):
-        # Check daily limit (GG+ users have unlimited)
         is_gg_plus = ctx.user["isGgPlus"]
         if not is_gg_plus:
             current_usage = get_daily_usage(str(ctx.author.id))
@@ -36,42 +46,41 @@ class Chat(Command):
         if not question:
             return await ctx.send(content=f"Hello {EGGERT} If you have any questions, just ask!")
 
-        if not CHATBOT_WEBHOOK_URL:
+        if not ANTHROPIC_API_KEY:
             message = Message(ctx, Page(
                 description="Chatbot is not configured.",
                 color=ERROR,
             ))
             return await message.send()
 
+        user_id = str(ctx.author.id)
+        history = _history.setdefault(user_id, [])
+        history.append({"role": "user", "content": question})
+        if len(history) > MAX_HISTORY:
+            _history[user_id] = history[-MAX_HISTORY:]
+
         async with ctx.typing():
             try:
-                async with aiohttp.ClientSession() as session:
-                    async with session.post(
-                        CHATBOT_WEBHOOK_URL,
-                        json={
-                            "chatInput": question,
-                            "sessionId": ctx.author.id,
-                        },
-                        headers={"Authorization": f"Bearer {SECRET}"},
-                        timeout=aiohttp.ClientTimeout(total=30)
-                    ) as response:
-                        if response.status != 200:
-                            message = Message(ctx, Page(
-                                description=f"Error: Failed to get response (Status {response.status})",
-                                color=ERROR,
-                            ))
-                            return await message.send()
+                response = await get_client().messages.create(
+                    model=MODEL,
+                    max_tokens=512,
+                    system=[{
+                        "type": "text",
+                        "text": get_system_prompt(),
+                        "cache_control": {"type": "ephemeral"},
+                    }],
+                    messages=_history[user_id],
+                )
+                reply = response.content[0].text
+                _history[user_id].append({"role": "assistant", "content": reply})
+                await ctx.message.reply(reply, mention_author=False)
 
-                        data = await response.json()
-                        output = data.get("output")
-                        await ctx.message.reply(output, mention_author=False)
+                if not is_gg_plus:
+                    increment_usage(user_id)
 
-                        if not is_gg_plus:
-                            increment_usage(str(ctx.author.id))
-
-            except aiohttp.ClientError:
+            except Exception:
                 message = Message(ctx, Page(
-                    description=f"Error: Failed to connect to chatbot service.",
+                    description="Error: Failed to get a response from the chatbot.",
                     color=ERROR,
                 ))
                 await message.send()

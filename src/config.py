@@ -10,6 +10,7 @@ BOT_TOKEN = os.getenv("BOT_TOKEN")
 SITE_URL = os.getenv("SITE_URL")
 BOT_SUBDOMAIN = os.getenv("BOT_SUBDOMAIN")
 SECRET = os.getenv("SECRET", "")
+ANTHROPIC_API_KEY = os.getenv("ANTHROPIC_API_KEY")
 
 # === Webhooks ===
 MESSAGE_WEBHOOK = os.getenv("MESSAGE_WEBHOOK")
