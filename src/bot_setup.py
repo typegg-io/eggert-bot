@@ -95,13 +95,13 @@ def register_bot_checks(bot):
 
     async def forward_to_site(message):
         """Forward a general channel message to the site's chat."""
-        user = get_user(str(message.author.id))
+        user = get_user(str(message.author.id), auto_insert=False)
         linked = user and user.get("userId")
         guild = message.guild
 
         def replace_mention(m):
             uid = int(m.group(1))
-            mentioned_user = get_user(str(uid))
+            mentioned_user = get_user(str(uid), auto_insert=False)
             if mentioned_user:
                 return f"<@{mentioned_user["userId"]}>"
             member = guild.get_member(uid) if guild else None
