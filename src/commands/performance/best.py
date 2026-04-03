@@ -16,10 +16,16 @@ metrics = ["pp", "wpm"]
 info = {
     "name": "best",
     "aliases": ["b"],
-    "description": "Displays a user's top 100 quotes\n"
-                   "\\- `metric` defaults to pp\n"
-                   "\\- `wpm range`: `>150`, `<120`, or `100-150`",
+    "description": "Displays a user's top 100 quote bests ordered by pp or WPM.\n"
+                   "Use `pp` or `wpm` to set the metric.\n"
+                   "Filter by WPM range: `>150`, `<120`, or `100-150`.",
     "parameters": "[username] [pp|wpm] [wpm range]",
+    "examples": [
+        "-b",
+        "-b eiko",
+        "-b eiko wpm",
+        "-b eiko >150"
+    ],
 }
 
 

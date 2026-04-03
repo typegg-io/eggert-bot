@@ -114,9 +114,14 @@ categories = {
 info = {
     "name": "leaderboard",
     "aliases": ["lb"],
-    "description": "Displays the top 100 users for a given category\n"
-                   f"Category can be: {", ".join("`" + c + "`" for c in categories)}\n",
+    "description": "Displays the top 100 users for a given category.\n"
+                   f"Categories: {', '.join('`' + c + '`' for c in categories)}.",
     "parameters": "<category> [args]",
+    "examples": [
+        "-lb pp",
+        "-lb wpm",
+        "-lb quickplay",
+    ],
 }
 
 

@@ -13,11 +13,15 @@ from utils.strings import get_flag_title, date_range_display, parse_number, disc
 info = {
     "name": "bestaverages",
     "aliases": ["ba"],
-    "description": "Displays a user's top 10 best averages of n consecutive races (non-overlapping)",
+    "description": "Displays a user's top 10 best averages of n consecutive races.\n"
+                   "Averages are non-overlapping.",
     "parameters": "[username] [n]",
-    "defaults": {
-        "n": "25",
-    },
+    "defaults": {"n": "25"},
+    "examples": [
+        "-ba",
+        "-ba eiko",
+        "-ba eiko 50",
+    ],
 }
 
 
