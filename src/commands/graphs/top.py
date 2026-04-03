@@ -11,14 +11,21 @@ from utils.errors import NoRankedRaces
 from utils.messages import Page, Message
 from utils.strings import get_flag_title
 
-max_users_shown = 5
+max_users = 5
 
 info = {
     "name": "top",
     "aliases": ["250"],
-    "description": "Displays the top n quotes ordered by pp from high to low.\n"
-                   f"This graph can be generated for up to {max_users_shown} users.",
-    "parameters": f"[username1] [username2] ... [username{max_users_shown}] [-n]",
+    "description": "Displays a user's top n quote PBs ordered by pp.\n"
+                   "Use `-n` to set how many quotes to show (default 50).\n"
+                   f"Supports up to {max_users} users.",
+    "parameters": f"[username1] ... [username{max_users}] [-n]",
+    "examples": [
+        "-top",
+        "-top eiko",
+        "-top eiko me",
+        "-top eiko me -1000",
+    ],
     "author": 231721357484752896,
 }
 
@@ -35,7 +42,7 @@ class Top(Command):
         if other_users and other_users[-1] in ["pp", "wpm"]:
             metric = other_users.pop()
 
-        usernames = other_users[:max_users_shown] or [ctx.user["userId"]]
+        usernames = other_users[:max_users] or [ctx.user["userId"]]
         profiles = []
 
         for username in usernames:

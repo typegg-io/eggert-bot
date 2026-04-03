@@ -63,9 +63,14 @@ metric_aliases = [metric["alias"] for metric in metrics.values()]
 info = {
     "name": "linegraph",
     "aliases": ["lg", "l"] + metric_aliases,
-    "description": f"Displays a line graph of up to {max_users} users for a given metric\n"
-                   f"Metric can be: {", ".join("`" + m + "`" for m in metrics)}",
-    "parameters": f"[metric] [username1] [username2] ... [username{max_users}]",
+    "description": f"Displays a line graph for a given metric across up to {max_users} users.\n"
+                   f"Metrics: {', '.join('`' + m + '`' for m in metrics)}",
+    "parameters": f"[metric] [username1] ... [username{max_users}]",
+    "examples": [
+        "-lg",
+        "-lg wpm eiko",
+        "-lg pp eiko me",
+    ],
 }
 
 

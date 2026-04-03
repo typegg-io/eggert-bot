@@ -7,15 +7,20 @@ from commands.base import Command
 from database.typegg.users import get_running_maximum_by_length
 from graphs.endurance import UserEnduranceData, render
 
-max_users_shown = 5
+max_users = 5
 
 info = {
     "name": "endurance",
     "aliases": ["end"],
-    "description": "Displays peak WPM achieved up until each quote length,\n"
-                   "showing user's abilities to maintain their typing speed.\n"
-                   f"Can be generated for up to {max_users_shown} users.",
-    "parameters": f"[username1] [username2] ... [username{max_users_shown}]",
+    "description": "Displays peak WPM achieved at each quote length.\n"
+                   "Shows your ability to maintain speed across longer quotes.\n"
+                   f"Supports up to {max_users} users.",
+    "parameters": f"[username1] ... [username{max_users}]",
+    "examples": [
+        "-end",
+        "-end eiko",
+        "-end eiko me",
+    ],
     "author": 231721357484752896,
 }
 
@@ -24,7 +29,7 @@ class Endurance(Command):
     @commands.command(aliases=info["aliases"])
     async def endurance(self, ctx, *other_users: str):
         other_users = list(dict.fromkeys(other_users))  # Deduplicate & maintain order
-        usernames = other_users[:max_users_shown] or [ctx.user["userId"]]
+        usernames = other_users[:max_users] or [ctx.user["userId"]]
         profiles = []
 
         for username in usernames:

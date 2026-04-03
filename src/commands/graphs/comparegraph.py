@@ -16,8 +16,14 @@ metrics = ["pp", "wpm"]
 info = {
     "name": "comparegraph",
     "aliases": ["cg", "flaneur"],
-    "description": "Displays a quote best comparison graph based on difficulty, with optional range filtering.",
-    "parameters": "<username1> [username2] [difficulty_range] [pp|wpm]",
+    "description": "Compares quote best scores between two users across difficulty levels.\n"
+                   "Pass a difficulty range (e.g. `3-5`) for a detailed head-to-head in that range.",
+    "parameters": "<username1> [username2] [difficulty_range] [wpm|pp]",
+    "examples": [
+        "-cg eiko",
+        "-cg joshu wpm",
+        "-cg eiko keegan 3-5",
+    ],
 }
 
 

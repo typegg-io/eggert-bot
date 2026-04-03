@@ -41,11 +41,15 @@ metrics = {
 info = {
     "name": "histogram",
     "aliases": ["hg", "hist", "histcompare", "hc"],
-    "description": "Displays a solo and multiplayer histogram for a given metric.\n"
-                   "Use `histcompare` to compare two users.\n"
-                   "The react and recover metrics exclude replays without typos.\n"
-                   "\\- `metric` defaults to pp\n",
-    "parameters": "[username] [username2] [pp|wpm|acc|react|recover]",
+    "description": "Displays a solo vs multiplayer histogram for a given metric.\n"
+                   "Use `-hc` to compare two users side by side instead.\n"
+                   "The react and recover metrics only include races with typos.\n",
+    "parameters": "[username] [pp|wpm|acc|react|recover]",
+    "examples": [
+        "-hg",
+        "-hg eiko wpm",
+        "-hc eiko me",
+    ],
     "author": 231721357484752896,
 }
 

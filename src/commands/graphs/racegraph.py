@@ -18,9 +18,15 @@ from utils.strings import quote_display, discord_date, format_duration, GG_PLUS_
 info = {
     "name": "racegraph",
     "aliases": ["rg", "r"],
-    "description": "Displays a graph of a user's WPM over keystrokes for a given race.\n"
-                   "Passing a quote ID will show the user's best race for that quote.",
-    "parameters": "[username] [number/quote_id]",
+    "description": "Displays a WPM over keystrokes graph for a given race.\n"
+                   "Pass a quote ID to show the user's best race on that quote.",
+    "parameters": "[username] [race_number/quote_id]",
+    "examples": [
+        "-rg",
+        "-rg eiko",
+        "-rg eiko 1500",
+        "-rg eiko piykyai_3408",
+    ],
 }
 
 

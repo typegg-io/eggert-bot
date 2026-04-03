@@ -18,8 +18,13 @@ from utils.strings import get_segments, quote_display
 info = {
     "name": "sumofbest",
     "aliases": ["sob", ":sob:", "😭"],
-    "description": "Displays your Sum of Best WPM segments merged to a single graph",
+    "description": "Displays a theoretical best race by combining your fastest segment times.\n"
+                   "Pass a quote ID to view a specific quote.",
     "parameters": "[quote_id] [username]",
+    "examples": [
+        "-sob",
+        "-sob piykyai_3408",
+    ],
     "plus": True,
 }
 

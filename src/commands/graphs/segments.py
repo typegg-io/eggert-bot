@@ -16,9 +16,15 @@ from utils.strings import escape_formatting, get_segments, discord_date, quote_d
 info = {
     "name": "segments",
     "aliases": ["sg", "words", "wg"],
-    "description": "Displays a bar graph of WPM segments over a race\n"
-                   "Passing a quote ID will show the user's best race for that quote.",
-    "parameters": "[username] [number/quote_id]",
+    "description": "Displays a bar graph of WPM segments across a race.\n"
+                   "Pass a quote ID to show the user's best race on that quote.",
+    "parameters": "[username] [race_number/quote_id]",
+    "examples": [
+        "-sg",
+        "-sg eiko",
+        "-sg eiko 1500",
+        "-sg eiko piykyai_3408",
+    ],
 }
 
 

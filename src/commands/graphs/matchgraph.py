@@ -17,8 +17,14 @@ from utils.strings import quote_display, discord_date, rank, username_with_flag
 info = {
     "name": "matchgraph",
     "aliases": ["mg"],
-    "description": "Displays multiplayer rankings and a graph of each user's WPM over keystrokes",
-    "parameters": "[username] [number]",
+    "description": "Displays rankings and WPM over keystrokes for a multiplayer match.\n"
+                   "Defaults to the user's most recent match.",
+    "parameters": "[username] [race_number]",
+    "examples": [
+        "-mg",
+        "-mg eiko",
+        "-mg eiko 1500",
+    ],
 }
 
 

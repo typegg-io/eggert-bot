@@ -4,7 +4,6 @@ import numpy as np
 from discord.ext import commands
 
 from commands.base import Command
-from config import BOT_PREFIX
 from database.typegg.quotes import get_quotes
 from database.typegg.races import get_races
 from graphs import improvement
@@ -17,10 +16,14 @@ metrics = ["pp", "wpm"]
 info = {
     "name": "improvement",
     "aliases": ["imp", "simp"],
-    "description": "Displays a graph of a user's multiplayer pp or WPM over races\n"
-                   "\\- `metric` defaults to pp\n"
-                   f"Use `{BOT_PREFIX}simp` to view results for solo PBs",
+    "description": "Displays a user's pp or WPM improvement over races.\n"
+                   "Use `-simp` to view solo PBs instead of multiplayer.\n",
     "parameters": "[username] [pp|wpm]",
+    "examples": [
+        "-imp",
+        "-imp eiko wpm",
+        "-simp eiko",
+    ],
 }
 
 

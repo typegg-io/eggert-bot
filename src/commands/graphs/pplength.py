@@ -10,8 +10,13 @@ from utils.flags import Flags
 info = {
     "name": "pplength",
     "aliases": ["pl"],
-    "description": "Returns a scatterplot of all your PP pb scores and their corresponding text length.",
+    "description": "Displays a scatterplot of pp PBs vs quote length.\n"
+                   "Shows how performance varies across different text lengths.",
     "parameters": "[username]",
+    "examples": [
+        "-pl",
+        "-pl eiko",
+    ],
     "author": 231721357484752896,
 }
 

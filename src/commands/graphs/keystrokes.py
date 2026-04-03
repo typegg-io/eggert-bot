@@ -12,14 +12,16 @@ from utils.messages import Page, Message, Field
 info = {
     "name": "keystrokes",
     "aliases": ["ks"],
-    "description": (
-        "Shows a keystroke heatmap across all of a user's races.\n"
-        "Based on quote data, not race data (corrections not included).\n\n"
-        "Shift keys represent total capitalizations.\n"
-        "Supported layouts: QWERTY, DVORAK\n"
-        "Non-standard characters are excluded."
-    ),
+    "description": "Displays a keystroke heatmap across all of a user's races.\n"
+                   "Based on quote text, so corrections are not included.\n"
+                   "Shift keys represent total capitalizations.\n"
+                   "Supported layouts: `qwerty`, `dvorak`",
     "parameters": "[username] [keyboard_layout]",
+    "examples": [
+        "-ks",
+        "-ks eiko",
+        "-ks skypromp dvorak",
+    ],
     "author": 231721357484752896,
 }
 
