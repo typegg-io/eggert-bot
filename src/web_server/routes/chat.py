@@ -30,7 +30,7 @@ async def receive_message(request: web.Request):
         await session.post(CHAT_WEBHOOK_URL, json={
             "username": username,
             "avatar_url": avatar_url,
-            "content": GLOBAL_EMOTE + content,
+            "content": "\u200b" + GLOBAL_EMOTE + content,
             "allowed_mentions": {"parse": []},
         })
 
