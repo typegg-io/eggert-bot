@@ -29,6 +29,7 @@ async def receive_message(request: web.Request):
             "username": username,
             "avatar_url": avatar_url,
             "content": content,
+            "allowed_mentions": {"parse": []},
         })
 
     log_server(f"[chat] {username}: {content[:50]}")
