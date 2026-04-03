@@ -1,12 +1,9 @@
-import re
 import zoneinfo
-from datetime import timedelta, timezone
 
 from discord.ext import commands
 
 from commands.base import Command
 from database.bot.users import update_timezone
-# from database.bot.users import update_timezone
 from utils.errors import GeneralException
 from utils.messages import Page, Message
 from utils.strings import get_argument
@@ -15,10 +12,10 @@ settings = {"timezone"}
 info = {
     "name": "settings",
     "aliases": ["set"],
-    "description": "Change your personal bot settings\n\n"
-                   "Available settings:\n"
-                   "\\- `timezone` (IANA format, default UTC)",
+    "description": "Change your personal bot settings:\n"
+                   "\\- `timezone` (IANA format, defaults to UTC)",
     "parameters": "<setting> <value>",
+    "examples": ["-set timezone America/New_York"],
 }
 
 

@@ -9,8 +9,12 @@ from utils.colors import ERROR
 info = {
     "name": "profilepicture",
     "aliases": ["avatar", "pfp"],
-    "description": "Displays a user's TypeGG profile picture",
+    "description": "Displays a user's TypeGG profile picture.",
     "parameters": "[username]",
+    "examples": [
+        "-pfp",
+        "-pfp eiko",
+    ],
 }
 
 

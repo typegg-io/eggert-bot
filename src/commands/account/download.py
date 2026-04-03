@@ -23,8 +23,12 @@ from utils.strings import escape_formatting, LOADING
 info = {
     "name": "download",
     "aliases": ["import", "dl", "gd", "i"],
-    "description": "Imports a user's complete race history",
+    "description": "Imports a user's latest races into the database.",
     "parameters": "[username]",
+    "examples": [
+        "-i",
+        "-i eiko",
+    ],
 }
 
 _active_imports: set[str] = set()

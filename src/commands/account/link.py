@@ -9,7 +9,8 @@ from utils.colors import ERROR
 info = {
     "name": "link",
     "aliases": ["verify"],
-    "description": "Allows you to link your Discord and TypeGG accounts",
+    "description": "Links your Discord account to your TypeGG account.",
+    "examples": ["-link"],
 }
 
 

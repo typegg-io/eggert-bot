@@ -14,10 +14,10 @@ from utils.strings import escape_formatting
 info = {
     "name": "redownload",
     "aliases": ["reimport", "ri"],
-    "description": (
-        "Re-import your own complete race history.\n"
-        "Has a cooldown of 10 minutes."
-    ),
+    "description": "Deletes and re-imports your race data.\n"
+                   "Use if your stats seem incorrect or corrupted.\n"
+                   "Has a 10 minute cooldown.",
+    "examples": ["-ri"],
 }
 
 

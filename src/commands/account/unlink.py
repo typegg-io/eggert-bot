@@ -13,7 +13,8 @@ from utils.logging import log
 info = {
     "name": "unlink",
     "aliases": ["unverify"],
-    "description": "Removes the link between your Discord account and your TypeGG account",
+    "description": "Removes the link between your Discord and TypeGG accounts.",
+    "examples": ["-unlink"],
 }
 
 

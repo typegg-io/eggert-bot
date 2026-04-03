@@ -43,13 +43,20 @@ themes = {
 info = {
     "name": "theme",
     "aliases": ["st"],
-    "description": f"Allows for customization of embed and graph colors {GG_PLUS_LINKED}\n"
+    "description": f"View and customize your embed and graph colors. {GG_PLUS_LINKED}\n"
+                   f"Run without arguments to display your current theme.\n"
                    + "\nElements:\n" + ", ".join([f"`{el}`" for el in elements]) +
                    "\n\nPre-made themes (free to use):\n"
                    "`-theme typegg` (default)\n"
                    "`-theme dark`\n"
                    "`-theme light`\n",
     "parameters": "[element] [color]",
+    "examples": [
+        "-theme",
+        "-theme @user",
+        "-theme dark",
+        "-theme line #ff0000",
+    ],
 }
 
 

@@ -11,8 +11,13 @@ from utils.messages import Page, Message
 info = {
     "name": "commandleaderboard",
     "aliases": ["clb", "blb"],
-    "description": "Displays command usage stats for a specific user",
-    "parameters": "[discord_id]",
+    "description": "Displays your command usage breakdown.\n"
+                   "Pass a Discord user to see theirs.",
+    "parameters": "[user]",
+    "examples": [
+        "-clb",
+        "-clb @user",
+    ],
 }
 
 
