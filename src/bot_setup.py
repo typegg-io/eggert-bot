@@ -148,7 +148,7 @@ def register_bot_checks(bot):
         if message.author.bot:
             return
 
-        if SITE_CHAT_URL and message.channel.id == GENERAL_CHANNEL_ID and not message.content.startswith(BOT_PREFIX):
+        if SITE_CHAT_URL and message.channel.id == 1489321133512724480 and not message.content.startswith(BOT_PREFIX):
             asyncio.ensure_future(forward_to_site(message))  # Fire and forget
             return
 
