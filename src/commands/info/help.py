@@ -109,18 +109,17 @@ async def help_command(ctx: commands.Context, command_name: str):
     aliases = command["aliases"]
     fields = []
 
-    if "parameters" in command:
-        parameter_string = f"`{prefix}{name}"
-        if command["parameters"]:
-            parameter_string += " " + command["parameters"]
-        parameter_string += "`"
-        if "defaults" in command:
-            for param, default in command["defaults"].items():
-                parameter_string += f"\n`{param}` defaults to {default}"
-        fields.append(Field(
-            title="Usage",
-            content=parameter_string,
-        ))
+    parameter_string = f"`{prefix}{name}"
+    if command.get("parameters"):
+        parameter_string += " " + command["parameters"]
+    parameter_string += "`"
+    if "defaults" in command:
+        for param, default in command["defaults"].items():
+            parameter_string += f"\n`{param}` defaults to {default}"
+    fields.append(Field(
+        title="Usage",
+        content=parameter_string,
+    ))
 
     if "usage" in command:
         fields.append(Field(
