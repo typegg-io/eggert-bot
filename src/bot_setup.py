@@ -97,9 +97,28 @@ def register_bot_checks(bot):
         """Forward a general channel message to the site's chat."""
         user = get_user(str(message.author.id))
         linked = user and user.get("userId")
-        content = re.sub(r"<a?:(\w+):\d+>", r":\1:", message.content)  # custom emojis → :name:
-        content = re.sub(r"<[@#!&]\d+>", "", content)  # mentions, channels, roles
-        content = re.sub(r"<[^>]+>", "", content)  # any remaining discord tags
+        guild = message.guild
+
+        def replace_mention(m):
+            uid = int(m.group(1))
+            member = guild.get_member(uid) if guild else None
+            return f"@{member.display_name}" if member else "@unknown"
+
+        def replace_role(m):
+            rid = int(m.group(1))
+            role = guild.get_role(rid) if guild else None
+            return f"@{role.name}" if role else "@unknown"
+
+        def replace_channel(m):
+            cid = int(m.group(1))
+            channel = guild.get_channel(cid) if guild else None
+            return f"#{channel.name}" if channel else "#unknown"
+
+        content = re.sub(r"<a?:(\w+):\d+>", r":\1:", message.content)  # custom emojis -> :name:
+        content = re.sub(r"<@!?(\d+)>", replace_mention, content)  # user mentions -> @username
+        content = re.sub(r"<@&(\d+)>", replace_role, content)  # role mentions -> @Role
+        content = re.sub(r"<#(\d+)>", replace_channel, content)  # channels -> #channel
+        content = re.sub(r"<[^>]+>", "", content)  # strip any remaining tags
         content = content.strip()
         if not content:
             return
