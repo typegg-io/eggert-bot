@@ -118,10 +118,10 @@ def register_bot_checks(bot):
             return f"#{channel.name}" if channel else "#unknown"
 
         content = re.sub(r"<a?:(\w+):\d+>", r":\1:", message.content)  # custom emojis -> :name:
-        content = re.sub(r"<@!?(\d+)>", replace_mention, content)  # user mentions -> @username
+        content = re.sub(r"<@!?(\d+)>", replace_mention, content)  # user mentions -> @username or <@tggId>
         content = re.sub(r"<@&(\d+)>", replace_role, content)  # role mentions -> @Role
         content = re.sub(r"<#(\d+)>", replace_channel, content)  # channels -> #channel
-        content = re.sub(r"<[^>]+>", "", content)  # strip any remaining tags
+        content = re.sub(r"<(?!@)\S+>", "", content)  # strip unrecognized tags
         content = content.strip()
         if not content:
             return
