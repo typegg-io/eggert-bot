@@ -16,8 +16,14 @@ from utils.urls import race_url
 info = {
     "name": "dailygraph",
     "aliases": ["dg"],
-    "description": "Displays a graph of the top 10 user's WPM over keystrokes for a daily quote",
+    "description": "Displays a WPM over keystrokes graph for the top 10 daily quote finishers.\n"
+                   "Pass a date or day number to view a past daily.",
     "parameters": "[date/day_number]",
+    "examples": [
+        "-dg",
+        "-dg 2025-11-09",
+        "-dg 100",
+    ],
 }
 
 

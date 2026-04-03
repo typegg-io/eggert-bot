@@ -14,8 +14,14 @@ from utils.urls import race_url
 info = {
     "name": "dailyleaderboard",
     "aliases": ["daily", "dlb", "d10"],
-    "description": "Displays the top 10 leaderboard for the daily quote",
+    "description": "Displays the top 10 leaderboard for today's daily quote.\n"
+                   "Pass a date or day number to view a past daily.",
     "parameters": "[date/day_number]",
+    "examples": [
+        "-daily",
+        "-daily 2025-11-09",
+        "-daily 100",
+    ],
 }
 
 

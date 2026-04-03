@@ -14,8 +14,13 @@ from utils.messages import Page, Message, Field, usable_in
 info = {
     "name": "dailystats",
     "aliases": ["ds"],
-    "description": "Displays daily quote stats for a given user.",
+    "description": "Displays stats about a user's daily quote history.\n"
+                   "Includes streaks, participation rate, average pp/WPM, and top placements.",
     "parameters": "[username]",
+    "examples": [
+        "-ds",
+        "-ds joshu",
+    ],
 }
 
 
