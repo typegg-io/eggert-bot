@@ -8,7 +8,9 @@ from utils.strings import GG_PLUS
 info = {
     "name": "support",
     "aliases": ["gg+", "premium", "subscribe"],
-    "description": "Displays information about the GG+ subscription",
+    "description": "Displays information about the GG+ subscription.\n"
+                   "Includes pricing, features, and a link to upgrade.",
+    "examples": ["-gg+"],
 }
 
 

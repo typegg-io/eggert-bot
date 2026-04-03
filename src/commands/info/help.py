@@ -13,8 +13,10 @@ from utils.strings import GG_PLUS
 info = {
     "name": "help",
     "aliases": ["h"],
-    "description": "Displays a list of available commands, or information about a specific command",
+    "description": "Displays a list of available commands.\n"
+                   "Pass a command name to view its usage and aliases.",
     "parameters": "[command]",
+    "examples": ["-h", "-h stats"],
 }
 
 

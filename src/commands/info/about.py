@@ -8,7 +8,8 @@ from utils.messages import Page, Message
 info = {
     "name": "about",
     "aliases": ["info"],
-    "description": "Displays information about the bot",
+    "description": "Displays information about the bot.",
+    "examples": ["-about"],
 }
 
 
