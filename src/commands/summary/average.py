@@ -13,8 +13,7 @@ info = {
     "name": "average",
     "aliases": ["avg", "a", "rsa", "rawsa"],
     "description": "Displays the average stats of a user's last n races.",
-    "parameters": "[username] [n]",
-    "defaults": {"n": "25"},
+    "parameters": "[username] [n:25]",
     "examples": [
         "-a",
         "-a eiko",

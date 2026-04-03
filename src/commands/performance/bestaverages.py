@@ -15,8 +15,7 @@ info = {
     "aliases": ["ba"],
     "description": "Displays a user's top 10 best averages of n consecutive races.\n"
                    "Averages are non-overlapping.",
-    "parameters": "[username] [n]",
-    "defaults": {"n": "25"},
+    "parameters": "[username] [n:25]",
     "examples": [
         "-ba",
         "-ba eiko",
