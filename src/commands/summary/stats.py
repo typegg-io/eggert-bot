@@ -12,8 +12,12 @@ from utils.urls import profile_url
 info = {
     "name": "stats",
     "aliases": ["s", "profile"],
-    "description": "Displays stats about a TypeGG account",
+    "description": "Displays stats for a TypeGG account.",
     "parameters": "[username]",
+    "examples": [
+        "-s",
+        "-s eiko",
+    ],
 }
 
 

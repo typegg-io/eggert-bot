@@ -10,8 +10,11 @@ from utils.strings import parse_number, get_flag_title
 info = {
     "name": "longestaverage",
     "aliases": ["la"],
-    "description": "Displays the longest number of races a user has maintained a WPM average",
-    "parameters": "<username> <wpm>",
+    "description": "Displays the longest streak of consecutive races a user maintained a given WPM average.",
+    "parameters": "[username] <wpm>",
+    "examples": [
+        "-la eiko 150",
+    ],
 }
 
 

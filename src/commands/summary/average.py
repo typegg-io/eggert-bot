@@ -12,9 +12,14 @@ from utils.strings import get_flag_title, format_duration
 info = {
     "name": "average",
     "aliases": ["avg", "a", "rsa", "rawsa"],
-    "description": "Displays the average stats of a user's last n races\n"
-                   "`n` defaults to 25",
-    "parameters": "[user_id] [n]",
+    "description": "Displays the average stats of a user's last n races.",
+    "parameters": "[username] [n]",
+    "defaults": {"n": "25"},
+    "examples": [
+        "-a",
+        "-a eiko",
+        "-a eiko 50",
+    ],
 }
 
 
@@ -28,7 +33,6 @@ class Average(Command):
 
 
 async def run(ctx: commands.Context, profile: dict, n: int):
-
     if n < 1:
         raise NumberGreaterThan
 

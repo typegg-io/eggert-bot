@@ -1,17 +1,23 @@
-from discord.ext import commands
 from typing import Optional
+
+from discord.ext import commands
 
 from commands.base import Command
 from utils.dates import parse_date, now
-from utils.messages import Page, Message, Field
+from utils.messages import Page, Message
 from utils.strings import discord_date, format_duration
 
 info = {
     "name": "lastonline",
     "aliases": ["lo"],
-    "description": "Displays when a user last completed a race",
+    "description": "Displays when a user last completed a race.",
     "parameters": "[username]",
+    "examples": [
+        "-lo",
+        "-lo eiko",
+    ],
 }
+
 
 class LastOnline(Command):
     @commands.command(aliases=info["aliases"])

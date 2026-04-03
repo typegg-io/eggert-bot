@@ -11,8 +11,12 @@ from utils.strings import discord_date, get_flag_title
 info = {
     "name": "racehistory",
     "aliases": ["rh"],
-    "description": "Displays a user's recent races",
-    "parameters": "[user_id]",
+    "description": "Displays a user's recent race history.",
+    "parameters": "[username]",
+    "examples": [
+        "-rh",
+        "-rh eiko",
+    ],
     "privacy": True,
 }
 

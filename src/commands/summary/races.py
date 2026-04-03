@@ -17,8 +17,13 @@ from utils.strings import format_duration, get_flag_title, date_range_display
 info = {
     "name": "races",
     "aliases": ["rd"],
-    "description": "Displays detailed race information about a user's account",
+    "description": "Displays a comprehensive stat summary for a user's races.\n"
+                   "Covers performance, speed, activity, and quote stats.",
     "parameters": "[username]",
+    "examples": [
+        "-rd",
+        "-rd eiko",
+    ],
 }
 
 

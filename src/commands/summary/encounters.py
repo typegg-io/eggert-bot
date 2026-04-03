@@ -17,10 +17,16 @@ sorts = ["wins", "losses", "winrate", "wpm", "-winrate", "-wpm"]
 info = {
     "name": "encounters",
     "aliases": ["en"],
-    "description": "Displays a list of opponents faced in multiplayer matches\n"
-                   "Enter a second username for head-to-head analysis\n"
-                   "Sort options: `wins`, `losses`, `winrate`, `wpm`,\n`-winrate` (lowest), `-wpm` (biggest diff)",
+    "description": "Displays a list of opponents faced in multiplayer matches.\n"
+                   "Pass a second username for head-to-head analysis.\n"
+                   "Sort by: `wins`, `losses`, `winrate`, `wpm`, `-winrate`, `-wpm`.",
     "parameters": "[username] [username2/sort]",
+    "examples": [
+        "-en",
+        "-en eiko",
+        "-en eiko me",
+        "-en eiko winrate",
+    ],
 }
 
 

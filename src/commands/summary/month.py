@@ -10,9 +10,15 @@ from utils.dates import parse_date
 info = {
     "name": "month",
     "aliases": ["m", "yestermonth", "ym", "lm"],
-    "description": "Displays race information for a given user and month\n"
-                   "Date defaults to today",
+    "description": "Displays race information for a user in a given month.\n"
+                   "Date defaults to the current month.",
     "parameters": "[username] [date]",
+    "examples": [
+        "-m",
+        "-m eiko",
+        "-m eiko 2024-01",
+        "-lm eiko",
+    ],
 }
 
 

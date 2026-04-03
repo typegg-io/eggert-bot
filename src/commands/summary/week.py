@@ -10,9 +10,15 @@ from utils.dates import parse_date
 info = {
     "name": "week",
     "aliases": ["w", "yesterweek", "yw", "lw"],
-    "description": "Displays race information for a given user and week\n"
-                   "Date defaults to today",
+    "description": "Displays race information for a user in a given week.\n"
+                   "Date defaults to the current week.",
     "parameters": "[username] [date]",
+    "examples": [
+        "-w",
+        "-w eiko",
+        "-w eiko 2024-01-01",
+        "-lw eiko",
+    ],
 }
 
 
