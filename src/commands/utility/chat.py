@@ -1,3 +1,5 @@
+from collections import OrderedDict
+
 import anthropic
 from discord.ext import commands
 
@@ -21,9 +23,10 @@ info = {
 }
 
 FREE_DAILY_LIMIT = 20
+MAX_CONTEXTS = 500  # max unique (user, channel) pairs kept in memory
 
 _client: anthropic.AsyncAnthropic = None
-_history: dict[str, list] = {}
+_history: OrderedDict[tuple, list] = OrderedDict()
 
 
 def get_client() -> anthropic.AsyncAnthropic:
@@ -54,10 +57,16 @@ class Chat(Command):
             return await message.send()
 
         user_id = str(ctx.author.id)
-        history = _history.setdefault(user_id, [])
-        history.append({"role": "user", "content": question})
-        if len(history) > MAX_HISTORY:
-            _history[user_id] = history[-MAX_HISTORY:]
+        history_key = (user_id, str(ctx.channel.id))
+        if history_key in _history:
+            _history.move_to_end(history_key)
+        else:
+            if len(_history) >= MAX_CONTEXTS:
+                _history.popitem(last=False)  # evict least recently used
+            _history[history_key] = []
+        _history[history_key].append({"role": "user", "content": question})
+        if len(_history[history_key]) > MAX_HISTORY:
+            _history[history_key] = _history[history_key][-MAX_HISTORY:]
 
         async with ctx.typing():
             try:
@@ -69,10 +78,11 @@ class Chat(Command):
                         "text": get_system_prompt(),
                         "cache_control": {"type": "ephemeral"},
                     }],
-                    messages=_history[user_id],
+                    messages=_history[history_key],
                 )
                 reply = response.content[0].text
-                _history[user_id].append({"role": "assistant", "content": reply})
+                _history[history_key].append({"role": "assistant", "content": reply})
+                _history.move_to_end(history_key)
                 await ctx.message.reply(reply, mention_author=False)
 
                 if not is_gg_plus:
