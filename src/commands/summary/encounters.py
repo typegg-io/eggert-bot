@@ -4,11 +4,14 @@ import numpy as np
 from discord.ext import commands
 
 from commands.base import Command
+from config import EIKO
 from database.typegg.match_results import get_encounter_stats, get_match_stats, get_opponent_encounters
 from database.typegg.quotes import get_quote, get_quotes
 from database.typegg.races import get_races
 from graphs import match as match_graph, encounters as encounters_graph
+from utils.colors import ERROR
 from utils.errors import GeneralException
+from utils.keystroke_codec import KeystrokeCodecError
 from utils.keystrokes import get_keystroke_data
 from utils.messages import Page, Message, Field
 from utils.strings import get_flag_title, discord_date, username_with_flag, quote_display, rank
@@ -361,45 +364,61 @@ async def run_head_to_head(ctx: commands.Context, profile1: dict, profile2: dict
         if delta <= 0:
             continue
 
-        race_data = await load_race_data(biggest)
-        quote = get_quote(biggest["quoteId"])
+        try:
+            race_data = await load_race_data(biggest)
+            quote = get_quote(biggest["quoteId"])
 
-        pages.append(Page(
-            title=f"Biggest Win - {profile["username"]} (+{delta:,.2f} WPM)",
-            description=build_race_description(race_data, quote),
-            button_name=f"Biggest Win (p{i + 1})",
-            render=lambda id=i, rd=race_data: match_graph.render(
-                race_data=rd,
-                title=(
-                    f"Match Graph - {profile1["username"]} - "
-                    f"Race #{rd[id]["raceNumber"]:,}"
+            pages.append(Page(
+                title=f"Biggest Win - {profile["username"]} (+{delta:,.2f} WPM)",
+                description=build_race_description(race_data, quote),
+                button_name=f"Biggest Win (p{i + 1})",
+                render=lambda id=i, rd=race_data: match_graph.render(
+                    race_data=rd,
+                    title=(
+                        f"Match Graph - {profile1["username"]} - "
+                        f"Race #{rd[id]["raceNumber"]:,}"
+                    ),
+                    theme=ctx.user["theme"],
+                    themed_line=id,
                 ),
-                theme=ctx.user["theme"],
-                themed_line=id,
-            ),
-        ))
+            ))
+        except KeystrokeCodecError as e:
+            pages.append(Page(
+                title=f"Keystroke Codec Error",
+                description=str(e) + f"\nPlease tell <@{EIKO}> to fix this",
+                button_name=f"Biggest Win (p{i + 1})",
+                color=ERROR,
+            ))
 
     # Closest race
     if closest_race is not None:
-        close_delta = abs(closest_race["userWpm"] - closest_race["opponentWpm"])
-        close_race_data = await load_race_data(closest_race)
-        close_quote = get_quote(closest_race["quoteId"])
-        themed_line = 0 if close_race_data[0]["userId"] == profile1["userId"] else 1
+        try:
+            close_delta = abs(closest_race["userWpm"] - closest_race["opponentWpm"])
+            close_race_data = await load_race_data(closest_race)
+            close_quote = get_quote(closest_race["quoteId"])
+            themed_line = 0 if close_race_data[0]["userId"] == profile1["userId"] else 1
 
-        pages.append(Page(
-            title=f"Closest Race (+{close_delta:,.2f} WPM)",
-            description=build_race_description(close_race_data, close_quote),
-            button_name="Closest Race",
-            render=lambda: match_graph.render(
-                race_data=close_race_data,
-                title=(
-                    f"Match Graph - {profile1["username"]} - "
-                    f"Race #{close_race_data[0]["raceNumber"]:,}"
+            pages.append(Page(
+                title=f"Closest Race (+{close_delta:,.2f} WPM)",
+                description=build_race_description(close_race_data, close_quote),
+                button_name="Closest Race",
+                render=lambda: match_graph.render(
+                    race_data=close_race_data,
+                    title=(
+                        f"Match Graph - {profile1["username"]} - "
+                        f"Race #{close_race_data[0]["raceNumber"]:,}"
+                    ),
+                    theme=ctx.user['theme'],
+                    themed_line=themed_line,
                 ),
-                theme=ctx.user['theme'],
-                themed_line=themed_line,
-            ),
-        ))
+            ))
+        except KeystrokeCodecError as e:
+            pages.append(Page(
+                title=f"Keystroke Codec Error",
+                description=str(e) + f"\nPlease tell <@{EIKO}> to fix this",
+                button_name="Closest Race",
+                color=ERROR,
+            ))
 
     message = Message(ctx, pages=pages)
     await message.send()
