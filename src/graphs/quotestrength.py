@@ -4,7 +4,7 @@ from graphs.core import plt, apply_theme, generate_file_name, GRAPH_PALETTE
 
 
 def render(users: List[Dict], theme: dict) -> str:
-    fig, ax = plt.subplots(figsize=(6, 6))
+    fig, ax = plt.subplots(figsize=(6, 6), constrained_layout=True)
 
     apply_theme(ax, theme=theme, legend_loc=None, force_legend=False)
 
@@ -14,8 +14,8 @@ def render(users: List[Dict], theme: dict) -> str:
         spine.set_visible(False)
     ax.set_xticks([])
     ax.set_yticks([])
-    ax.set_xlim(-1.3, 1.3)
-    ax.set_ylim(-1.3, 1.3)
+    ax.set_xlim(-1.1, 1.1)
+    ax.set_ylim(-1.1, 1.1)
     ax.set_aspect("equal", adjustable="box")
 
     # Crosshair
@@ -23,17 +23,17 @@ def render(users: List[Dict], theme: dict) -> str:
     ax.axhline(0, color=axis_color, linewidth=1, alpha=0.6, zorder=1)
     ax.axvline(0, color=axis_color, linewidth=1, alpha=0.6, zorder=1)
 
-    # Boundary square
-    square = plt.Rectangle((-1, -1), 2, 2, fill=False, color=axis_color, linewidth=0.8, alpha=0.3)
-    ax.add_patch(square)
+    ax.set_facecolor(theme["background"])
+    inner = plt.Rectangle((-1, -1), 2, 2, facecolor=theme["graph_background"], edgecolor=axis_color, linewidth=0.8, alpha=1, zorder=0)
+    ax.add_patch(inner)
 
     # Compass labels
     text_color = theme["text"]
     label_kwargs = dict(ha="center", va="center", color=text_color, fontsize=16, fontweight="bold")
-    ax.text(0, 1.3, "Complex", **label_kwargs)
-    ax.text(0, -1.3, "Simple", **label_kwargs)
-    ax.text(-1.3, 0, "Short", **label_kwargs)
-    ax.text(1.3, 0, "Long", **label_kwargs)
+    ax.text(0, 1.15, "Complex", **label_kwargs)
+    ax.text(0, -1.15, "Simple", **label_kwargs)
+    ax.text(-1.2, 0, "Short", **label_kwargs)
+    ax.text(1.2, 0, "Long", **label_kwargs)
 
     # Slice-based Y adjustment
     num_slices = 20
@@ -77,7 +77,7 @@ def render(users: List[Dict], theme: dict) -> str:
             zorder=6,
         )
 
-    ax.set_title("Quote Strength", y=1.05, fontsize=22)
+    ax.set_title("Quote Strength", y=1.1, fontsize=22)
     file_name = generate_file_name("quotestrength")
     plt.savefig(file_name)
     plt.close(fig)
