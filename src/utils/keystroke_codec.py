@@ -132,11 +132,11 @@ def decode_keystroke_data(raw: str) -> KeystrokeData:
 
     # Compact format [version, text, stickyStart, keystrokesStr]
     if not isinstance(raw, list) or len(raw) < 4:
-        raise ValueError("Invalid compact format")
+        raise KeystrokeCodecError("Invalid compact format")
 
     version = raw[0]
     if version not in (1, 2):
-        raise ValueError(f"Unknown codec version: {version}")
+        raise KeystrokeCodecError(f"Unknown codec version: {version}")
 
     text = raw[1].replace('\r\n', '\n')
     sticky_start = raw[2] != 0
@@ -331,3 +331,7 @@ def decode_keystroke_data(raw: str) -> KeystrokeData:
             i += 1
 
     return KeystrokeData(text=text, keystrokes=keystrokes, isStickyStart=sticky_start)
+
+
+class KeystrokeCodecError(ValueError):
+    pass
