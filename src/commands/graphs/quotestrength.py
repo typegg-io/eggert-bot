@@ -76,6 +76,7 @@ async def run(ctx: commands.Context, profiles: List[dict]):
         ])
         weights_arr = weights / total_weight
 
+        # sort by value
         sorted_idx = np.argsort(values)
         values = values[sorted_idx]
         weights_arr = weights_arr[sorted_idx]
@@ -89,7 +90,9 @@ async def run(ctx: commands.Context, profiles: List[dict]):
         ) / total_weight
 
         # Normalization
-        x = np.clip((weighted_log_length - len_p10) / (len_p90 - len_p10) * 2 - 1, -1, 1)
+        raw = (weighted_log_length - len_p10) / (len_p90 - len_p10)
+        raw = raw * 2 - 1
+        x = np.tanh(raw * 1.2)
 
         # Percentile -> [-1, 1]
         p = np.searchsorted(sorted_complexities, weighted_complexity, side="right") / len(sorted_complexities)
