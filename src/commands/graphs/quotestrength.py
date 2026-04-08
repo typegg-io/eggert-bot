@@ -9,7 +9,6 @@ from database.typegg.users import get_quote_bests
 from graphs import quotestrength as qs_graph
 from utils.errors import NoRankedRaces
 from utils.messages import Page, Message
-from utils.strings import get_flag_title
 
 max_users = 5
 
@@ -68,13 +67,21 @@ async def run(ctx: commands.Context, profiles: List[dict]):
         if not quote_bests:
             raise NoRankedRaces(profile["username"])
 
-        weights = np.array([r["pp"] for r in quote_bests])
+        weights = np.array([0.97 ** i for i in range(len(quote_bests))])
         total_weight = np.sum(weights)
 
-        weighted_log_length = sum(
-            np.log(len(quote_list[r["quoteId"]]["text"])) * w
-            for r, w in zip(quote_bests, weights)
-        ) / total_weight
+        values = np.array([
+            np.log(len(quote_list[r["quoteId"]]["text"]))
+            for r in quote_bests
+        ])
+        weights_arr = weights / total_weight
+
+        sorted_idx = np.argsort(values)
+        values = values[sorted_idx]
+        weights_arr = weights_arr[sorted_idx]
+
+        cum_weights = np.cumsum(weights_arr)
+        weighted_log_length = values[np.searchsorted(cum_weights, 0.5)]
 
         weighted_complexity = sum(
             quote_list[r["quoteId"]]["complexity"] * w
