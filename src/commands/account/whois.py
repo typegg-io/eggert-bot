@@ -3,7 +3,7 @@ import json
 from discord.ext import commands
 
 from commands.base import Command
-from database.bot.users import get_user
+from database.bot.users import get_user, get_user_by_user_id
 from utils.errors import ProfileNotFound, GeneralException
 from utils.messages import Page, Message
 from utils.strings import discord_date, GG_PLUS_LINKED
@@ -48,7 +48,8 @@ class WhoIs(Command):
         except commands.BadArgument:
             try:
                 site_profile = await self.get_profile(ctx, user_string)
-                await run(ctx, site_profile=site_profile)
+                bot_profile = get_user_by_user_id(site_profile["userId"])
+                await run(ctx, bot_profile, site_profile)
             except ProfileNotFound:
                 raise UnknownWhoIs
 

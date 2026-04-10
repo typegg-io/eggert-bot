@@ -57,6 +57,24 @@ def get_user(discord_id: str, auto_insert: bool = True):
     return user
 
 
+def get_user_by_user_id(user_id: str):
+    """Returns a user object given a TypeGG user ID."""
+    results = db.fetch("""
+        SELECT * FROM users
+        WHERE userId = ?
+        LIMIT 1
+    """, [user_id])
+
+    if results:
+        user = results[0]
+    else:
+        return None
+
+    user = dict(user)
+    user["theme"] = json.loads(user["theme"])
+    return user
+
+
 def get_user_ids():
     users = db.fetch("SELECT discordId FROM users")
 
