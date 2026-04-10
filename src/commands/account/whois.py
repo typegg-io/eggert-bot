@@ -19,7 +19,7 @@ info = {
     ]
 }
 
-UnknownWhoIs = lambda: GeneralException(
+UnknownWhoIs = GeneralException(
     "Unknown User",
     "I've never seen this person in my life"
 )
@@ -40,7 +40,7 @@ class WhoIs(Command):
                 raise UnknownWhoIs
 
             if bot_profile["userId"]:
-                site_profile = await self.get_profile(ctx, user_string)
+                site_profile = await self.get_profile(ctx, bot_profile["userId"])
                 await run(ctx, bot_profile, site_profile)
             else:
                 await run(ctx, bot_profile)
