@@ -32,25 +32,25 @@ class WhoIs(Command):
             user_string = str(ctx.author.id)
         else:
             user_string = " ".join(args)
+
         try:
-            discord_user = await commands.UserConverter().convert(ctx, user_string)
-            bot_profile = get_user(discord_user.id, auto_insert=False)
-
-            if not bot_profile:
-                raise UnknownWhoIs
-
-            if bot_profile["userId"]:
-                site_profile = await self.get_profile(ctx, bot_profile["userId"])
-                await run(ctx, bot_profile, site_profile)
-            else:
-                await run(ctx, bot_profile)
-
-        except commands.BadArgument:
+            site_profile = await self.get_profile(ctx, user_string, races_required=False)
+            bot_profile = get_user_by_user_id(site_profile["userId"])
+            await run(ctx, bot_profile, site_profile)
+        except ProfileNotFound:
             try:
-                site_profile = await self.get_profile(ctx, user_string)
-                bot_profile = get_user_by_user_id(site_profile["userId"])
-                await run(ctx, bot_profile, site_profile)
-            except ProfileNotFound:
+                discord_user = await commands.UserConverter().convert(ctx, user_string)
+                bot_profile = get_user(discord_user.id, auto_insert=False)
+
+                if not bot_profile:
+                    raise UnknownWhoIs
+
+                if bot_profile["userId"]:
+                    site_profile = await self.get_profile(ctx, bot_profile["userId"], races_required=False)
+                    await run(ctx, bot_profile, site_profile)
+                else:
+                    await run(ctx, bot_profile)
+            except commands.BadArgument:
                 raise UnknownWhoIs
 
 
