@@ -75,7 +75,7 @@ async def run(ctx: commands.Context, bot_profile: dict = None, site_profile: dic
             f"**Join Date:** {discord_date(site_profile["joinDate"], "D")}\n"
         )
     else:
-        description += "### TypeGG: Account not linked"
+        description += "### TypeGG: Account not linked\n"
 
     if bot_profile:
         commands_used = json.loads(bot_profile["commands"])["counts"]
