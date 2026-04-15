@@ -6,6 +6,7 @@ from utils.logging import log_server
 from web_server.utils import validate_authorization, error_response
 
 GLOBAL_EMOTE = "<:gc1:1489646936813469767>" + "<:gc2:1489646971965935617> "
+GLOBAL_EMOTE_PLUS = "<:gc_gg1:1493934783078596669>" + "<:gc_gg2:1493934844441395354>"
 
 
 async def receive_message(request: web.Request):
@@ -22,15 +23,18 @@ async def receive_message(request: web.Request):
     username = data.get("username")
     avatar_url = data.get("avatarUrl")
     content = data.get("content")
+    is_gg_plus = data.get("isGgPlus")
 
     if not username or not content:
         return error_response("Missing required fields: username, content.", 400)
+
+    emote = GLOBAL_EMOTE_PLUS if is_gg_plus else GLOBAL_EMOTE
 
     async with aiohttp.ClientSession() as session:
         await session.post(CHAT_WEBHOOK_URL, json={
             "username": username,
             "avatar_url": avatar_url,
-            "content": "\u200b" + GLOBAL_EMOTE + content,
+            "content": "\u200b" + emote + content,
             "allowed_mentions": {"parse": []},
         })
 
