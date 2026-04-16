@@ -9,7 +9,7 @@ from api.quotes import get_quote as get_quote_api
 from api.users import get_profile, get_races
 from config import SITE_URL, STATS_CHANNEL_ID
 from database.bot.recent_quotes import set_recent_quote, get_recent_quote
-from database.bot.users import update_warning
+from database.bot.users import update_warning, update_gg_plus_status, get_user_by_user_id
 from database.typegg.daily_quotes import get_daily_quote_id
 from database.typegg.quotes import get_quote
 from database.typegg.races import get_latest_race
@@ -28,6 +28,11 @@ class Command(commands.Cog):
         channel = self.bot.get_channel(STATS_CHANNEL_ID)
         if channel:
             await channel.send(embed=command_milestone(ctx.author.id, milestone))
+
+    def _get_db_user_gg_plus(self, user_id: str):
+        """Fetch the GG+ status from the database (synchronous)."""
+        user = get_user_by_user_id(user_id)
+        return user["isGgPlus"] if user else None
 
     def get_username(self, ctx: commands.Context, username: str):
         """Resolve 'me' to the current user's ID or return the provided username."""
@@ -52,6 +57,12 @@ class Command(commands.Cog):
             raise MissingUsername
 
         profile = await get_profile(username)
+
+        # Sync GG+ status
+        api_gg_plus = profile.get("isGgPlus", False)
+        db_user = self._get_db_user_gg_plus(profile["userId"])
+        if db_user is not None and db_user != api_gg_plus:
+            update_gg_plus_status(profile["userId"], api_gg_plus)
 
         if races_required:
             if ctx.flags.gamemode == "quickplay":
