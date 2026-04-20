@@ -119,8 +119,8 @@ async def run(ctx: commands.Context, profile: dict, metric: str):
     pages = []
 
     for column in metrics.keys():
-        solo_values = [race[column] for race in solo_quote_bests]
-        multi_values = [race[column] for race in multi_quote_bests]
+        solo_values = [race[column] for race in solo_quote_bests if race[column] is not None]
+        multi_values = [race[column] for race in multi_quote_bests if race[column] is not None]
 
         if column == "accuracy":
             solo_values = np.array(solo_values) * 100
