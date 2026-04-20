@@ -74,10 +74,11 @@ def build_stat_fields(profile, race_list, flags, all_time=False):
             multi_races += 1
 
         for key in cumulative_values:
+            value = race[key] or 0
             if "error" in key:
-                cumulative_values[key].append(min(race[key], 2000))
+                cumulative_values[key].append(min(value, 2000))
             else:
-                cumulative_values[key].append(race[key])
+                cumulative_values[key].append(value)
 
         quote_length = calculate_quote_length(race["wpm"], race["duration"])
 
