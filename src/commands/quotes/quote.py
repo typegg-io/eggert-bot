@@ -9,6 +9,7 @@ from database.typegg.users import get_quote_bests
 from graphs import improvement
 from utils.colors import SUCCESS
 from utils.dates import parse_date
+from utils.errors import GeneralException
 from utils.messages import Page, Message, Field
 from utils.stats import calculate_total_pp
 from utils.strings import discord_date, INCREASE, quote_display
@@ -251,8 +252,14 @@ async def run(ctx: commands.Context, profile: dict, quote: dict):
             build_graph_page(quote_races, is_ranked, ctx.user["theme"])
         ]
 
-    default_page = {"qh": 1, "qg": 2}.get(ctx.invoked_with, 0)
-    pages[default_page].default = True
+    try:
+        default_page = {"qh": 1, "qg": 2}.get(ctx.invoked_with, 0)
+        pages[default_page].default = True
+    except IndexError:
+        raise GeneralException(
+            "Privacy Error",
+            "You may only view this embed for your own account",
+        )
 
     message = Message(
         ctx,
