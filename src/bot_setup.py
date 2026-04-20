@@ -31,6 +31,8 @@ def parse_flags(content: str) -> tuple[dict, str]:
         if arg.startswith("-"):
             try:
                 number = parse_number(arg.lstrip("-"))
+                if not (-2147483648 <= number <= 2147483647):
+                    raise InvalidNumber
                 flags.number = number
                 continue
             except InvalidNumber:
