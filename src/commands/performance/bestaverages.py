@@ -13,28 +13,36 @@ from utils.strings import get_flag_title, date_range_display, parse_number, disc
 info = {
     "name": "bestaverages",
     "aliases": ["ba"],
-    "description": "Displays a user's top 10 best averages of n consecutive races.\n"
-                   "Averages are non-overlapping.",
+    "description": "Displays a user's top 10 best WPM averages of n consecutive races.\n"
+                   "Averages are non-overlapping.\n"
+                   "Use `-acc` to show best accuracy averages.",
     "parameters": "[username] [n:25]",
     "examples": [
         "-ba",
         "-ba eiko",
         "-ba eiko 50",
+        "-ba eiko 50 acc",
     ],
 }
 
 
 class BestAverages(Command):
     @commands.command(aliases=info["aliases"])
-    async def bestaverages(self, ctx, username: Optional[str] = "me", n: Optional[str] = "25"):
+    async def bestaverages(self, ctx, username: Optional[str] = "me", n: Optional[str] = "25", metric: Optional[str] = "wpm"):
+        if n in ["-accuracy", "-acc", "-ac"]:
+            n = 25
+            metric = "accuracy"
+        if metric in ["-accuracy", "-acc", "-ac"]:
+            metric = "accuracy"
+
         n = parse_number(n)
         profile = await self.get_profile(ctx, username, races_required=True)
         await self.import_user(ctx, profile)
 
-        await run(ctx, profile, n)
+        await run(ctx, profile, n, metric)
 
 
-async def run(ctx: commands.Context, profile: dict, n: int):
+async def run(ctx: commands.Context, profile: dict, n: int, metric: str = "wpm"):
     if n < 1:
         raise NumberGreaterThan
 
@@ -52,11 +60,11 @@ async def run(ctx: commands.Context, profile: dict, n: int):
         raise NotEnoughRaces
 
     # All averages (sliding window)
-    wpm_values = [race["wpm"] for race in race_list]
+    metric_values = [race[metric] or 0 for race in race_list]
     averages = []
 
     for i in range(len(race_list) - n + 1):
-        window = wpm_values[i:i + n]
+        window = metric_values[i:i + n]
         average = sum(window) / n
         averages.append((average, i))
 
@@ -89,17 +97,19 @@ async def run(ctx: commands.Context, profile: dict, n: int):
         start_date = start_race["timestamp"]
         end_date = end_race["timestamp"]
 
+        value_str = f"{average:.2%}" if metric == "accuracy" else f"{average:,.2f} WPM"
         description += (
             f"**{date_range_display(parse_date(start_date), parse_date(end_date), ctx.user["timezone"])}**\n"
-            f"{average:,.2f} WPM (Races {f"#{start_number:,}" if start_number else "DNF"} - "
+            f"{value_str} (Races {f"#{start_number:,}" if start_number else "DNF"} - "
             f"{f"#{end_number:,}" if end_number else "DNF"})\n\n"
         )
 
         if not top_average_desc:
             top_average_desc += description
 
+    metric_label = "Accuracy" if metric == "accuracy" else "WPM"
     pages = [Page(
-        title=f"Best Last {n:,} Averages" + flag_title,
+        title=f"Best Last {n:,} {metric_label} Averages" + flag_title,
         description=description if description else "No averages found",
         button_name="Best Averages",
     )]
@@ -135,7 +145,7 @@ async def run(ctx: commands.Context, profile: dict, n: int):
             race_descriptions += f"+{n - 25:,} others"
 
         pages.append(Page(
-            title=f"Top Average of {n:,}" + flag_title,
+            title=f"Top {metric_label} Average of {n:,}" + flag_title,
             description=f"{top_average_desc}**Races:**\n" + race_descriptions,
             button_name="Top Average"
         ))
