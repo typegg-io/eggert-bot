@@ -85,6 +85,9 @@ async def error_middleware(request, handler):
             status=404,
         )
 
+    except web.HTTPMethodNotAllowed:
+        return web.Response(status=405, text="Method Not Allowed")
+
     except Exception as e:
         log_error("WebServer Error", e)
 
