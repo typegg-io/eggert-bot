@@ -3,6 +3,7 @@ from json import JSONDecodeError
 from aiohttp import web
 
 from database.typegg.quotes import add_quote, get_quote, update_quote, delete_quote
+from utils.errors import UnknownQuote
 from utils.logging import log_server
 from web_server.utils import validate_authorization, error_response
 
@@ -57,7 +58,9 @@ async def patch_quote(request: web.Request):
     if not data:
         return error_response("No fields to update.", 400)
 
-    if not get_quote(quote_id):
+    try:
+        get_quote(quote_id)
+    except UnknownQuote:
         return error_response(f"Quote {quote_id} not found.", 404)
 
     try:
@@ -82,7 +85,9 @@ async def remove_quote(request: web.Request):
     if not quote_id:
         return error_response("Missing quoteId in URL.", 400)
 
-    if not get_quote(quote_id):
+    try:
+        get_quote(quote_id)
+    except UnknownQuote:
         return error_response(f"Quote {quote_id} not found.", 404)
 
     try:
