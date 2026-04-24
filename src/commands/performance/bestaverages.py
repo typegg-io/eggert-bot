@@ -8,7 +8,7 @@ from database.typegg.races import get_races
 from utils.dates import parse_date
 from utils.errors import NumberGreaterThan, NotEnoughRaces
 from utils.messages import Page, Message
-from utils.strings import get_flag_title, date_range_display, parse_number, discord_date
+from utils.strings import get_flag_title, date_range_display, parse_number, discord_date, get_argument
 
 info = {
     "name": "bestaverages",
@@ -36,6 +36,7 @@ class BestAverages(Command):
             metric = "accuracy"
 
         n = parse_number(n)
+        metric = get_argument(["wpm", "accuracy"], metric)
         profile = await self.get_profile(ctx, username, races_required=True)
         await self.import_user(ctx, profile)
 
