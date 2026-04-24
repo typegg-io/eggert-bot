@@ -10,6 +10,7 @@ from utils.logging import log_server
 from web_server.middleware import error_middleware, security_headers_middleware, request_logging_middleware
 from web_server.routes.chat import receive_message
 from web_server.routes.compare import compare_page
+from web_server.routes.member_count import member_count
 from web_server.routes.quotes import create_quote, patch_quote, remove_quote
 from web_server.routes.sources import create_source, patch_source, remove_source
 from web_server.routes.update_gg_plus import update_gg_plus
@@ -33,6 +34,9 @@ class WebServer(commands.Cog):
                 role for role in self.guild.roles
                 if (("-" in role.name and any(c.isdigit() for c in role.name)) or role.name == "250+")
             ]
+            self.member_count = self.guild.member_count
+        else:
+            self.member_count = 0
         self.used_tokens = {}
 
         # Routes
@@ -43,6 +47,7 @@ class WebServer(commands.Cog):
         self.app.router.add_post("/users/{userId}/import", import_user)
         self.app.router.add_delete("/users/{userId}", delete_user)
         self.app.router.add_get("/compare/{username1}/vs/{username2}", compare_page)
+        self.app.router.add_get("/member-count", partial(member_count, self))
 
         # Quote routes
         self.app.router.add_post("/quotes", create_quote)
@@ -62,6 +67,16 @@ class WebServer(commands.Cog):
         aiohttp_jinja2.setup(self.app, loader=jinja2.FileSystemLoader(str(SOURCE_DIR / "web_server" / "templates")))
 
         self.bot.loop.create_task(self.start_web_server())
+
+    @commands.Cog.listener()
+    async def on_member_join(self, member):
+        if member.guild.id == TYPEGG_GUILD_ID:
+            self.member_count += 1
+
+    @commands.Cog.listener()
+    async def on_member_remove(self, member):
+        if member.guild.id == TYPEGG_GUILD_ID:
+            self.member_count -= 1
 
     async def cog_unload(self):
         await self.stop_web_server()
