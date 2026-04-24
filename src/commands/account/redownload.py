@@ -60,7 +60,7 @@ class ReDownload(Command):
                 if not await self.await_confirmation(ctx):
                     return
 
-                delete_user_data(user_id)
+            delete_user_data(user_id)
 
             message = Message(ctx, Page(
                 title="Races Deleted",
