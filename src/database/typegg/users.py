@@ -1,3 +1,4 @@
+import asyncio
 from typing import Optional
 
 from database.typegg import db
@@ -148,18 +149,24 @@ def delete_user_data(user_id: str):
 
 async def reimport_users():
     from commands.account.download import run as download
-    from api.users import get_profile
 
     user_list = db.fetch("SELECT userId FROM users")
+    max_retries = 3
+
     for user in user_list:
         user_id = user["userId"]
-        try:
-            await get_profile(user_id)
-        except Exception as e:
-            log(f"Failed to migrate user {user_id}: {e.__class__.__name__}")
-            continue
         delete_user_data(user_id)
-        await download(user_id=user_id)
+
+        for attempt in range(1, max_retries + 1):
+            try:
+                await download(user_id=user_id)
+                break
+            except Exception as e:
+                log(f"Failed to migrate user {user_id} (attempt {attempt}/{max_retries}): {e.__class__.__name__}: {e}")
+                if attempt < max_retries:
+                    await asyncio.sleep(5)
+                else:
+                    log(f"Skipping user {user_id} after {max_retries} failed attempts")
 
 
 def get_running_maximum_by_length(user_id: str):
