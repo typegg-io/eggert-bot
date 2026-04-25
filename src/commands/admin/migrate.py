@@ -4,11 +4,11 @@ from commands.base import Command
 from commands.checks import is_bot_admin
 from config import KEEGAN
 from database.typegg.quotes import reimport_quotes
-from database.typegg.users import reimport_users
+from database.typegg.users import reimport_users, reimport_nwpm
 from utils.errors import MissingArguments, InvalidArgument
 from utils.messages import Page, Message
 
-categories = ["users", "quotes"]
+categories = ["users", "quotes", "nwpm"]
 info = {
     "name": "migrate",
     "aliases": [],
@@ -39,6 +39,8 @@ class Migrate(Command):
                     await reimport_users()
                 case "quotes":
                     await reimport_quotes()
+                case "nwpm":
+                    await reimport_nwpm()
 
         message = Message(
             ctx, Page(

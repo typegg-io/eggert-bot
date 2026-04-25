@@ -2,6 +2,7 @@ import asyncio
 from typing import Optional
 
 from database.typegg import db
+from utils.errors import ProfileNotFound
 from utils.flags import Flags
 from utils.logging import log
 
@@ -161,12 +162,37 @@ async def reimport_users():
             try:
                 await download(user_id=user_id)
                 break
+            except ProfileNotFound:
+                log(f"[user migrate] Profile not found for {user_id}, skipping")
             except Exception as e:
                 log(f"Failed to migrate user {user_id} (attempt {attempt}/{max_retries}): {e.__class__.__name__}: {e}")
                 if attempt < max_retries:
                     await asyncio.sleep(5)
                 else:
-                    log(f"Skipping user {user_id} after {max_retries} failed attempts")
+                    log(f"[user migrate] Skipping user {user_id} after {max_retries} failed attempts")
+
+
+async def reimport_nwpm():
+    from api.core import request
+    from api.users import get_profile
+    from database.bot.users import get_all_linked_users
+    from utils.errors import ProfileNotFound
+
+    linked_users = get_all_linked_users()
+
+    for user_id in linked_users:
+        try:
+            log(f"[nwpm migrate] Updating nWPM for {user_id}")
+            profile = await get_profile(user_id)
+            await request(
+                url="http://localhost:8888/update-nwpm-role",
+                json_data={"userId": user_id, "nWpm": profile["stats"]["nWpm"]},
+                method="POST",
+            )
+        except ProfileNotFound:
+            log(f"[nwpm migrate] Profile not found for {user_id}, skipping")
+        except Exception as e:
+            log(f"[nwpm migrate] Failed for {user_id}: {e.__class__.__name__}: {e}")
 
 
 def get_running_maximum_by_length(user_id: str):
