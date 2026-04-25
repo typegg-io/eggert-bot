@@ -6,7 +6,7 @@ from utils.logging import log_server
 from web_server.utils import validate_authorization, error_response
 
 GLOBAL_EMOTE = "<:gc1:1489646936813469767>" + "<:gc2:1489646971965935617> "
-GLOBAL_EMOTE_PLUS = "<:gc_gg1:1493934783078596669>" + "<:gc_gg2:1493934844441395354>"
+GLOBAL_EMOTE_PLUS = "<:gc_gg1:1493934783078596669>" + "<:gc_gg2:1493934844441395354> "
 
 
 async def receive_message(request: web.Request):
