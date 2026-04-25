@@ -41,7 +41,7 @@ def build_stat_fields(profile, race_list, flags, all_time=False):
 
     cumulative_values = {
         "wpm": [], "rawWpm": [], "accuracy": [], "duration": [],
-        "errorReactionTime": [], "errorRecoveryTime": [],
+        "errorReactionTime": [], "errorRecoveryTime": [], "pp": [],
     }
 
     total_races = 0
@@ -64,6 +64,7 @@ def build_stat_fields(profile, race_list, flags, all_time=False):
             dnf_count += 1
             cumulative_values["wpm"].append(0)
             cumulative_values["rawWpm"].append(0)
+            cumulative_values["pp"].append(0)
             continue
 
         total_races += 1
@@ -140,6 +141,7 @@ def build_stat_fields(profile, race_list, flags, all_time=False):
             content=(
                 f"**Total:** {period_total_pp:,.0f} pp " +
                 (f"(+{total_pp - old_total_pp:,.2f} gain)\n" if show_gain else "\n") +
+                f"**Average:** {cumulative_values["pp"]:.2f}pp\n"
                 f"**Best Score:** {best["pp"]["pp"]:,.2f} pp (Race #{best["pp"]["raceNumber"]:,})\n"
             )
         ),
