@@ -28,8 +28,10 @@ info = {
 
 
 class Races(Command):
+    supported_flags = {"gamemode", "status", "language"}
+
     @commands.command(aliases=info["aliases"])
-    async def races(self, ctx, username: Optional[str] = "me"):
+    async def races(self, ctx, username: Optional[str] = None):
         profile = await self.get_profile(ctx, username, races_required=True)
         await self.import_user(ctx, profile)
         await run(ctx, profile)
@@ -141,7 +143,7 @@ def build_stat_fields(profile, race_list, flags, all_time=False):
             content=(
                 f"**Total:** {period_total_pp:,.0f} pp " +
                 (f"(+{total_pp - old_total_pp:,.2f} gain)\n" if show_gain else "\n") +
-                f"**Average:** {cumulative_values["pp"]:.2f}pp\n"
+                f"**Average Score:** {cumulative_values["pp"]:.2f} pp\n"
                 f"**Best Score:** {best["pp"]["pp"]:,.2f} pp (Race #{best["pp"]["raceNumber"]:,})\n"
             )
         ),
