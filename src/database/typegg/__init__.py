@@ -174,7 +174,7 @@ db.run("""
         m.gamemode,
         m.players
     FROM match_results mr
-    JOIN races r ON r.matchId = mr.matchId AND r.userId = mr.userId
+    LEFT JOIN races r ON r.matchId = mr.matchId AND r.userId = mr.userId
     JOIN matches m ON m.matchId = mr.matchId
 """)
 
