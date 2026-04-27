@@ -24,7 +24,10 @@ class ReloadHandler(FileSystemEventHandler):
     def on_modified(self, event):
         path = Path(event.src_path)
 
-        if event.is_directory or path.suffix != ".py":
+        if event.is_directory:
+            return
+
+        if path.suffix != ".py":
             return
 
         if any(part in "__pycache__" for part in path.parts):
@@ -136,7 +139,6 @@ async def reload_module_and_cogs(bot, module_path):
             continue
         try:
             importlib.reload(sys.modules[dep])
-            print(f"[Watcher] ✓ Reloaded dependent: {dep}")
         except Exception as e:
             print(f"[Watcher] ✗ Failed to reload {dep}: {e}")
 
