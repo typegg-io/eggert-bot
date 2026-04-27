@@ -8,8 +8,11 @@ from pathlib import Path
 from watchdog.events import FileSystemEventHandler
 from watchdog.observers import Observer
 
-from commands.base import Command
 from config import SOURCE_DIR
+
+
+def _get_command_class():
+    return sys.modules["commands.base"].Command
 
 
 class ReloadHandler(FileSystemEventHandler):
@@ -64,6 +67,7 @@ async def reload_cog(bot, group, name):
             importlib.import_module(module_path)
 
         module = sys.modules[module_path]
+        Command = _get_command_class()
         for obj in module.__dict__.values():
             if isinstance(obj, type) and issubclass(obj, Command) and obj is not Command:
                 await bot.remove_cog(obj.__name__)
@@ -156,6 +160,7 @@ async def reload_module_and_cogs(bot, module_path):
         try:
             importlib.reload(sys.modules[cog_module_path])
             module = sys.modules[cog_module_path]
+            Command = _get_command_class()
             for obj in module.__dict__.values():
                 if (
                     isinstance(obj, type)
