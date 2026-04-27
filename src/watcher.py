@@ -1,4 +1,5 @@
 import asyncio
+import hashlib
 import importlib
 import sys
 import threading
@@ -20,6 +21,7 @@ class ReloadHandler(FileSystemEventHandler):
         self.bot = bot
         self.loop = loop
         self.debounce_timers = {}
+        self.file_hashes: dict[str, str] = {}
 
     def on_modified(self, event):
         path = Path(event.src_path)
@@ -32,6 +34,15 @@ class ReloadHandler(FileSystemEventHandler):
 
         if any(part in "__pycache__" for part in path.parts):
             return
+
+        try:
+            digest = hashlib.md5(path.read_bytes(), usedforsecurity=False).hexdigest()
+        except OSError:
+            return
+
+        if self.file_hashes.get(str(path)) == digest:
+            return
+        self.file_hashes[str(path)] = digest
 
         if event.src_path in self.debounce_timers:
             self.debounce_timers[event.src_path].cancel()
