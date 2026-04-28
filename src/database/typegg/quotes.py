@@ -126,6 +126,7 @@ def get_top_submitters():
     top = db.fetch(f"""
         SELECT submittedByUsername, COUNT(*) as submissions
         FROM quotes
+        WHERE ranked = 1
         GROUP BY submittedByUsername
         ORDER BY submissions DESC
         LIMIT 100     
