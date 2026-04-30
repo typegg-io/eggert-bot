@@ -29,10 +29,11 @@ def calculate_ms(quote, wpm):
     return round((len(quote) * 12000) / wpm)
 
 
-def calculate_wpm(duration, chars_typed):
-    """Returns the WPM value given duration in ms and number of characters typed."""
-    if duration == 0: return float("inf")
-    return (12000 * chars_typed) / duration
+def calculate_wpm(chars: int, time_ms: float) -> float:
+    """Returns the WPM value given a character count and duration in ms."""
+    if chars <= 0 or time_ms <= 0:
+        return 0.0
+    return (12000 * chars) / time_ms
 
 
 def calculate_duration(wpm, chars_typed):

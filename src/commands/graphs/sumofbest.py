@@ -10,7 +10,8 @@ from database.typegg.races import get_races, get_race
 from graphs import match as match_graph
 from graphs import segments as segment_graph
 from utils.errors import NoQuoteRaces, InvalidKeystrokeData
-from utils.keystrokes import get_keystroke_data, calculate_wpm, get_keystroke_wpm
+from utils.keystrokes import get_keystroke_data, get_keystroke_wpm
+from utils.stats import calculate_wpm
 from utils.messages import Page, Message
 from utils.strings import format_duration
 from utils.strings import get_segments, quote_display
