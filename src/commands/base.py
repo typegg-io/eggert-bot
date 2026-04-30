@@ -227,7 +227,7 @@ class Command(commands.Cog):
             if race_number < 1:
                 race_number = total_races + race_number
 
-        return race_number
+        return int(race_number)
 
     def check_gg_plus(self, ctx: BotContext, feature: str = None):
         if not ctx.user["isGgPlus"]:
