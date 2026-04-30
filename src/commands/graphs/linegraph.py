@@ -229,6 +229,10 @@ async def run(ctx: BotContext, metric: str, profiles: list[dict]):
         elif metric == "characters":
             y_values = get_characters_over_time(race_list)
         elif metric == "nwpm":
+            raise BotError(
+                "Graph Disabled",
+                "Due to recent nWPM changes this\ngraph is temporarily disabled <:eggertSad:1327614860388995174>"
+            )
             y_values = get_nwpm_over_time(race_list)
             if not y_values:
                 raise BotError(
