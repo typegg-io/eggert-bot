@@ -1,7 +1,7 @@
 from matplotlib.ticker import FuncFormatter
 
 from graphs.core import plt, apply_theme, interpolate_segments, apply_date_ticks, generate_file_name, filter_palette
-from utils.dates import get_timestamp_list
+from utils.dates import get_timestamp_list, now
 from utils.strings import format_big_number
 
 
@@ -17,6 +17,7 @@ def render(
 
     themed_line = 0
     timestamps = get_timestamp_list([timestamp for line in lines for timestamp in line["x_values"]])
+    timestamps.append(now().timestamp())
     max_timestamp = max(timestamps)
     line_count = len(lines)
 
