@@ -39,7 +39,7 @@ class RaceGraph(Command):
         profile = await self.get_profile(ctx, args[0] if args else None)
 
         if ctx.flags.number is not None:
-            race_number = await self.get_race_number(profile, ctx.flags.number)
+            race_number = await self.get_race_number(profile, int(ctx.flags.number))
         else:
             quote = await self.get_quote(ctx, ctx.flags.quote_id, profile["userId"])
             quote_bests = get_quote_bests(profile["userId"], quote_id=quote["quoteId"], flags=ctx.flags)
