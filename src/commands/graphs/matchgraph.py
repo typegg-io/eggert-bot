@@ -35,7 +35,7 @@ class MatchGraph(Command):
     @commands.command(aliases=info["aliases"])
     async def matchgraph(self, ctx: BotContext, username: str = None):
         profile = await self.get_profile(ctx, username)
-        race_number = await self.get_race_number(profile, int(ctx.flags.number))
+        race_number = await self.get_race_number(profile, ctx.flags.number)
 
         await run(ctx, profile, race_number)
 
