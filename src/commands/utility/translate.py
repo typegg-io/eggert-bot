@@ -2,9 +2,10 @@ from typing import List
 
 from discord.ext import commands
 
+from bot_setup import BotContext
 from commands.base import Command
 from config import GENERAL_CHANNEL_ID
-from utils.errors import GeneralException
+from utils.errors import BotError, MissingArguments
 from utils.keyboard_layouts import get_keymap, K, keymaps as external_keymaps
 from utils.messages import Page, Message, usable_in
 
@@ -24,18 +25,30 @@ info = {
 
 
 class Translate(Command):
+    ignore_flags = True
+
     @commands.command(aliases=info["aliases"])
     @usable_in(GENERAL_CHANNEL_ID)
-    async def translate(self, ctx, layout_from: str, *, text: str):
-        words = text.split(" ")
-        if words[0].lower() in external_keymaps:
-            layout_to = words[0].lower()
-            text = " ".join(words[1:])
+    async def translate(self, ctx: BotContext):
+        args = ctx.raw_args
+        if not args:
+            raise MissingArguments
+
+        layout_from = args[0].lower()
+        rest = args[1:]
+
+        if rest and rest[0].lower() in external_keymaps:
+            layout_to = rest[0].lower()
+            text = " ".join(rest[1:])
         else:
-            layout_from, layout_to = "qwerty", layout_from.lower()
+            layout_from, layout_to = "qwerty", layout_from
+            text = " ".join(rest)
+
+        if not text:
+            raise MissingArguments
 
         if layout_to not in external_keymaps:
-            raise GeneralException("Invalid Layout", supported_layouts_string)
+            raise BotError("Invalid Layout", supported_layouts_string)
 
         keymap_from, layout_from = get_keymap(layout_from)
         keymap_from = get_keylist(keymap_from)

@@ -3,6 +3,7 @@ from collections import OrderedDict
 import anthropic
 from discord.ext import commands
 
+from bot_setup import BotContext
 from commands.base import Command
 from config import ANTHROPIC_API_KEY
 from database.bot.chat_usage import get_daily_usage, increment_usage
@@ -37,9 +38,12 @@ def get_client() -> anthropic.AsyncAnthropic:
 
 
 class Chat(Command):
+    ignore_flags = True
+
     @commands.command(aliases=info["aliases"])
     @usable_in(1397687954117361745)
-    async def chat(self, ctx, *, question: str = None):
+    async def chat(self, ctx: BotContext):
+        question = " ".join(ctx.raw_args)
         is_gg_plus = ctx.user["isGgPlus"]
         if not is_gg_plus:
             current_usage = get_daily_usage(str(ctx.author.id))

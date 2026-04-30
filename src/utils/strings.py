@@ -1,5 +1,6 @@
 import json
 import math
+import re
 from typing import Optional
 
 from dateutil import parser
@@ -49,7 +50,6 @@ OPTION_ALIASES = {
     "characters": ["chars"],
     "quickplay": ["qp", "multiplayer", "multi", "mp"],
     "unranked": ["ur"],
-    "playtime": ["pt"],
     "submissions": ["qs"],
     "quotesover": ["qo"],
     "level": ["experience", "xp"],
@@ -91,14 +91,14 @@ def get_key_by_alias(alias_dict, alias):
 def get_flag_title(flags: Flags):
     """Build a parenthetical title string from command flags (e.g., '(Raw, Solo)')."""
     flag_titles = []
+    if flags.language:
+        flag_titles.append(flags.language.name)
+    if flags.status:
+        flag_titles.append(flags.status.title())
     if flags.raw:
         flag_titles.append("Raw")
     if flags.gamemode:
         flag_titles.append(flags.gamemode.title())
-    if flags.status:
-        flag_titles.append(flags.status.title())
-    if flags.language:
-        flag_titles.append(flags.language.name)
 
     if not flag_titles:
         return ""
@@ -144,6 +144,18 @@ def parse_number(value):
             continue
 
     raise InvalidNumber
+
+
+def parse_wpm_range(s: str) -> tuple[float | None, float | None] | None:
+    """Parse a WPM range string (>150, <120, 100-150). Returns (min, max) or None."""
+    p = r"(\d+(?:\.\d+)?)"
+    if m := re.fullmatch(f">{p}", s):
+        return float(m.group(1)), None
+    if m := re.fullmatch(f"<{p}", s):
+        return None, float(m.group(1))
+    if m := re.fullmatch(f"{p}-{p}", s):
+        return float(m.group(1)), float(m.group(2))
+    return None
 
 
 def rank(number):

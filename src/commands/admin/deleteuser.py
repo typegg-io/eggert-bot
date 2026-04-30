@@ -2,6 +2,7 @@ import asyncio
 
 from discord.ext import commands
 
+from bot_setup import BotContext
 from commands.base import Command
 from commands.checks import is_bot_admin
 from database.typegg.users import delete_user_data
@@ -18,9 +19,11 @@ info = {
 
 
 class DeleteUser(Command):
+    ignore_flags = True
+
     @commands.command(aliases=info["aliases"])
     @is_bot_admin()
-    async def deleteuser(self, ctx: commands.Context, username: str):
+    async def deleteuser(self, ctx: BotContext, username: str):
         try:
             profile = await self.get_profile(ctx, username)
         except ProfileNotFound:
@@ -49,7 +52,7 @@ class DeleteUser(Command):
             await run(ctx, profile)
 
 
-async def run(ctx: commands.Context, profile: dict):
+async def run(ctx: BotContext, profile: dict):
     delete_user_data(profile["userId"])
 
     message = Message(ctx, Page(

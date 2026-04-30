@@ -1,5 +1,6 @@
 from discord.ext import commands
 
+from bot_setup import BotContext
 from commands.base import Command
 from commands.checks import is_bot_admin
 from config import KEEGAN
@@ -18,9 +19,11 @@ info = {
 
 
 class Migrate(Command):
+    ignore_flags = True
+
     @commands.command(aliases=info["aliases"])
     @is_bot_admin()
-    async def migrate(self, ctx, *category_list: str):
+    async def migrate(self, ctx: BotContext, *category_list: str):
         if not category_list:
             raise MissingArguments
 

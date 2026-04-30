@@ -1,6 +1,7 @@
 import discord
 from discord.ext import commands
 
+from bot_setup import BotContext
 from commands.base import Command
 from commands.checks import is_bot_owner
 from database.bot.users import get_user, admin_user
@@ -15,9 +16,11 @@ info = {
 
 
 class Admin(Command):
+    ignore_flags = True
+
     @commands.command(aliases=info["aliases"])
     @is_bot_owner()
-    async def admin(self, ctx: commands.Context, user: discord.User):
+    async def admin(self, ctx: BotContext, user: discord.User):
         user_id = user.id
         get_user(user_id)
         admin_user(user_id)

@@ -1,5 +1,6 @@
 from discord.ext import commands
 
+from bot_setup import BotContext
 from commands.base import Command
 from utils.colors import PLUS
 from utils.messages import Page, Message, Field
@@ -15,8 +16,10 @@ info = {
 
 
 class Support(Command):
+    ignore_flags = True
+
     @commands.command(aliases=info["aliases"])
-    async def support(self, ctx):
+    async def support(self, ctx: BotContext):
         page = Page(
             description=(
                 f"### [Upgrade to {GG_PLUS}](https://typegg.io/plus)\n"

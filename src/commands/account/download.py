@@ -6,6 +6,7 @@ from discord.ext import commands
 from api.quotes import get_quote
 from api.sources import get_source
 from api.users import get_races, get_profile
+from bot_setup import BotContext
 from commands.base import Command
 from database.typegg.keystroke_data import add_keystroke_data
 from database.typegg.match_results import add_match_results
@@ -35,9 +36,11 @@ _active_imports: set[str] = set()
 
 
 class Download(Command):
+    ignore_flags = True
+
     @commands.command(aliases=info["aliases"])
-    async def download(self, ctx, username: Optional[str] = "me"):
-        profile = await self.get_profile(ctx, username, races_required=True)
+    async def download(self, ctx: BotContext, username: str = None):
+        profile = await self.get_profile(ctx, username)
         await run(ctx, profile)
 
 
@@ -63,7 +66,7 @@ async def import_new_quotes(new_quote_ids):
 
 
 async def run(
-    ctx: Optional[commands.Context] = None,
+    ctx: Optional[BotContext] = None,
     profile: Optional[dict] = None,
     user_id: Optional[str] = None
 ):

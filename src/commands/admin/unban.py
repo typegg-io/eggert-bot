@@ -1,6 +1,7 @@
 import discord
 from discord.ext import commands
 
+from bot_setup import BotContext
 from commands.base import Command
 from commands.checks import is_bot_admin
 from database.bot.users import unban_user
@@ -15,9 +16,11 @@ info = {
 
 
 class Unban(Command):
+    ignore_flags = True
+
     @commands.command(aliases=info["aliases"])
     @is_bot_admin()
-    async def unban(self, ctx: commands.Context, user: discord.User):
+    async def unban(self, ctx: BotContext, user: discord.User):
         user_id = user.id
         unban_user(user_id)
 

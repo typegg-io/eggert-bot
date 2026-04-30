@@ -2,9 +2,10 @@ import json
 
 from discord.ext import commands
 
+from bot_setup import BotContext
 from commands.base import Command
 from database.bot.users import get_user, get_user_by_user_id
-from utils.errors import ProfileNotFound, GeneralException
+from utils.errors import ProfileNotFound, BotError
 from utils.messages import Page, Message
 from utils.strings import discord_date, GG_PLUS_LINKED
 from utils.urls import profile_url
@@ -19,15 +20,17 @@ info = {
     ]
 }
 
-UnknownWhoIs = GeneralException(
+UnknownWhoIs = BotError(
     "Unknown User",
     "I've never seen this person in my life"
 )
 
 
 class WhoIs(Command):
+    ignore_flags = True
+
     @commands.command(aliases=info["aliases"])
-    async def whois(self, ctx, *args):
+    async def whois(self, ctx: BotContext, *args: str):
         if not args:
             user_string = str(ctx.author.id)
         else:
@@ -54,7 +57,7 @@ class WhoIs(Command):
                 raise UnknownWhoIs
 
 
-async def run(ctx: commands.Context, bot_profile: dict = None, site_profile: dict = None):
+async def run(ctx: BotContext, bot_profile: dict = None, site_profile: dict = None):
     description = ""
 
     if site_profile:

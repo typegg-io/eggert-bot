@@ -1,14 +1,12 @@
-from typing import Optional
-
 import numpy as np
 from discord.ext import commands
 
+from bot_setup import BotContext
 from commands.base import Command
 from database.typegg.users import get_quote_bests
 from graphs import histogram
-from utils.errors import SameUsername, MissingArguments
 from utils.messages import Page, Message, Field
-from utils.strings import get_argument, username_with_flag
+from utils.strings import username_with_flag
 
 metrics = {
     "pp": {
@@ -40,42 +38,27 @@ metrics = {
 
 info = {
     "name": "histogram",
-    "aliases": ["hg", "hist", "histcompare", "hc"],
+    "aliases": ["hg", "hist"],
     "description": "Displays a solo vs multiplayer histogram for a given metric.\n"
-                   "Use `-hc` to compare two users side by side instead.\n"
                    "The react and recover metrics only include races with typos.\n",
     "parameters": "[username] [pp|wpm|acc|react|recover]",
     "examples": [
         "-hg",
         "-hg eiko wpm",
-        "-hc eiko me",
     ],
     "author": 231721357484752896,
 }
 
 
 class Histogram(Command):
+    supported_flags = {"metric", "raw", "status", "language"}
+
     @commands.command(aliases=info["aliases"])
-    async def histogram(self, ctx, username: Optional[str] = "me", *args):
-        if ctx.invoked_with in ["histcompare", "hc"]:
-            if not args:
-                raise MissingArguments
-            username2 = args[0]
-            metric = "pp" if len(args) < 2 else args[1]
-            metric = get_argument(metrics.keys(), metric)
-            username, username2 = self.get_usernames(ctx, username, username2)
-            profile1 = await self.get_profile(ctx, username, races_required=True)
-            profile2 = await self.get_profile(ctx, username2, races_required=True)
-            if profile1["username"] == profile2["username"]:
-                raise SameUsername
-            await self.import_user(ctx, profile1)
-            await self.import_user(ctx, profile2)
-            await run_compare(ctx, profile1, profile2, metric)
-        else:
-            metric = get_argument(metrics.keys(), args[0] if args else "pp")
-            profile = await self.get_profile(ctx, username, races_required=True)
-            await self.import_user(ctx, profile)
-            await run(ctx, profile, metric)
+    async def histogram(self, ctx: BotContext, *args: str):
+        params = self.extract_params(args, metrics.keys())
+        metric = params.argument or ctx.flags.metric
+        profile = await self.get_profile(ctx, params.username)
+        await run(ctx, profile, metric)
 
 
 def make_field(data: list[float], suffix: str, title: str = None, profile: dict = None):
@@ -99,13 +82,13 @@ def make_field(data: list[float], suffix: str, title: str = None, profile: dict 
     )
 
 
-async def run(ctx: commands.Context, profile: dict, metric: str):
+async def run(ctx: BotContext, profile: dict, metric: str):
     user_id = profile["userId"]
-    ctx.flags.status = ctx.flags.status or "ranked"
     ctx.flags.gamemode = "solo"
     solo_quote_bests = get_quote_bests(user_id, columns=metrics.keys(), flags=ctx.flags)
     ctx.flags.gamemode = "quickplay"
     multi_quote_bests = get_quote_bests(user_id, columns=metrics.keys(), flags=ctx.flags)
+    ctx.flags.gamemode = None
 
     def make_render(solo_values: list[float], multi_values: list[float], column: str):
         return lambda: histogram.render(
@@ -119,6 +102,9 @@ async def run(ctx: commands.Context, profile: dict, metric: str):
     pages = []
 
     for column in metrics.keys():
+        if ctx.flags.status != "ranked" and column == "pp":
+            continue
+
         solo_values = [race[column] for race in solo_quote_bests if race[column] is not None]
         multi_values = [race[column] for race in multi_quote_bests if race[column] is not None]
 
@@ -141,14 +127,14 @@ async def run(ctx: commands.Context, profile: dict, metric: str):
             render=make_render(solo_values, multi_values, column),
             button_name=metric_title,
             default=column == metric,
+            flag_title=True,
         ))
 
     message = Message(ctx, pages=pages, profile=profile)
     await message.send()
 
 
-async def run_compare(ctx: commands.Context, profile1: dict, profile2: dict, metric: str):
-    ctx.flags.status = ctx.flags.status or "ranked"
+async def run_compare(ctx: BotContext, profile1: dict, profile2: dict, metric: str):
     quote_bests1 = get_quote_bests(profile1["userId"], columns=list(metrics.keys()), flags=ctx.flags)
     quote_bests2 = get_quote_bests(profile2["userId"], columns=list(metrics.keys()), flags=ctx.flags)
 
@@ -187,6 +173,7 @@ async def run_compare(ctx: commands.Context, profile1: dict, profile2: dict, met
             render=make_render(values1, values2, column),
             button_name=metric_title,
             default=column == metric,
+            flag_title=True,
         ))
 
     message = Message(ctx, pages=pages)

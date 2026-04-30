@@ -1,7 +1,6 @@
-from typing import Optional
-
 from discord.ext import commands
 
+from bot_setup import BotContext
 from commands.base import Command
 from database.typegg.races import get_quote_race_counts
 from graphs.keystrokes import render
@@ -9,13 +8,14 @@ from utils.data_structures import ScaledCounter
 from utils.keyboard_layouts import get_keymap
 from utils.messages import Page, Message, Field
 
+keyboard_layouts = ["qwerty", "dvorak"]
 info = {
     "name": "keystrokes",
     "aliases": ["ks"],
     "description": "Displays a keystroke heatmap across all of a user's races.\n"
                    "Based on quote text, so corrections are not included.\n"
                    "Shift keys represent total capitalizations.\n"
-                   "Supported layouts: `qwerty`, `dvorak`",
+                   "Supported layouts: " + ", ".join([f"`{kl}`" for kl in keyboard_layouts]),
     "parameters": "[username] [keyboard_layout]",
     "examples": [
         "-ks",
@@ -28,9 +28,9 @@ info = {
 
 class Keystrokes(Command):
     @commands.command(aliases=info["aliases"])
-    async def keystrokes(self, ctx, username: str = "me", keyboard_layout: Optional[str] = None):
-        profile = await self.get_profile(ctx, username, races_required=True)
-        await self.import_user(ctx, profile)
+    async def keystrokes(self, ctx: BotContext, *args: str):
+        args, username, keyboard_layout = self.extract_params(args, keyboard_layouts)
+        profile = await self.get_profile(ctx, username)
 
         if keyboard_layout is None:
             keyboard_layout = profile["hardware"]["layout"] or "qwerty"
@@ -38,7 +38,7 @@ class Keystrokes(Command):
         await run(ctx, profile, keyboard_layout.lower())
 
 
-async def run(ctx: commands.Context, profile: dict, keyboard_layout: str):
+async def run(ctx: BotContext, profile: dict, keyboard_layout: str):
     username = profile["username"]
     keymap, keyboard_layout = get_keymap(keyboard_layout)
     keypresses = get_keypresses(profile["userId"])

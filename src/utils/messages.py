@@ -4,13 +4,14 @@ from dataclasses import dataclass, field
 from typing import Callable
 
 from discord import Embed, ButtonStyle, File
-from discord.ext import commands
 from discord.ui import View, Button as DiscordButton
 
+from bot_setup import BotContext
 from config import BOT_PREFIX
 from config import TYPEGG_GUILD_ID, STATS_CHANNEL_ID
 from utils import files
 from utils.colors import SUCCESS, WARNING
+from utils.strings import get_flag_title
 from utils.urls import profile_url
 
 welcome_message = (
@@ -49,6 +50,7 @@ class Page:
         button_name (str): Name used for the page-switching button.
         render (Callable): Function to render an image/file for the page.
         default (bool): Whether this is the default page to show initially.
+        flag_title (bool): Whether this page should include flags in the title.
     """
     title: str = None
     description: str = ""
@@ -59,6 +61,7 @@ class Page:
     button_name: str = None
     render: Callable = None
     default: bool = False
+    flag_title: bool = False
 
 
 class Message(View):
@@ -66,7 +69,7 @@ class Message(View):
     Constructs and sends an interactive, embed-based message with optional pagination.
 
     Attributes:
-        ctx (commands.Context): The command context from which the message is sent.
+        ctx (BotContext): The command context from which the message is sent.
         page (Page): A Page object for a single-page message. Optional if `pages` is provided.
         pages (list[Page]): A list of Page objects to paginate through.
         content (str): Text content above the embed.
@@ -86,7 +89,7 @@ class Message(View):
 
     def __init__(
         self,
-        ctx: commands.Context,
+        ctx: BotContext,
         page: Page = None,
         pages: list = None,
         content: str = "",
@@ -133,6 +136,8 @@ class Message(View):
         """Assembles the embed(s) for the message."""
         for i, page in enumerate(self.pages):
             title = page.title if page.title else self.title
+            if page.flag_title:
+                title += get_flag_title(self.ctx.flags)
             description = self.header + "\n" + page.description
             footer = page.footer if page.footer else self.footer
             if page.default:
@@ -398,7 +403,13 @@ class Button(View):
                 pass
 
 
-def paginate_data(data: list, formatter: Callable[..., str], page_count: int = 10, per_page: int = 10):
+def paginate_data(
+    data: list,
+    formatter: Callable[..., str],
+    page_count: int = 10,
+    per_page: int = 10,
+    flag_title: bool = True,
+):
     """
     Splits a list of data into multiple Page objects.
 
@@ -407,6 +418,7 @@ def paginate_data(data: list, formatter: Callable[..., str], page_count: int = 1
         formatter (Callable): Function that formats each data item into a string.
         page_count (int): Maximum number of pages.
         per_page (int): Number of items per page.
+        flag_title (bool): Whether to include flags in the page title.
 
     Returns:
         list[Page]: A list of Page objects for use in a Message.
@@ -417,7 +429,7 @@ def paginate_data(data: list, formatter: Callable[..., str], page_count: int = 1
         description = ""
         for item in data[i * per_page:(i + 1) * per_page]:
             description += formatter(item)
-        pages.append(Page(description=description))
+        pages.append(Page(description=description, flag_title=flag_title))
 
     return pages
 
@@ -461,7 +473,7 @@ def usable_in(*channel_ids):
     return decorator
 
 
-def check_channel_permissions(ctx: commands.Context) -> bool:
+def check_channel_permissions(ctx: BotContext) -> bool:
     """
     Check if a command can be used in the current channel.
 

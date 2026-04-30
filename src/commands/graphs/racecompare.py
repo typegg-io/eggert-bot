@@ -1,14 +1,14 @@
 import asyncio
-from typing import Optional
 
 from discord.ext import commands
 
 from api.users import get_race
+from bot_setup import BotContext
 from commands.base import Command
 from database.typegg.races import get_races
 from database.typegg.users import get_quote_bests
 from graphs import match
-from utils.errors import NoQuoteRaces, GeneralException
+from utils.errors import NoQuoteRaces, BotError
 from utils.keystrokes import get_keystroke_data
 from utils.messages import Page, Message
 from utils.strings import quote_display, username_with_flag, discord_date
@@ -30,24 +30,17 @@ info = {
 
 
 class RaceCompare(Command):
+    supported_flags = {"raw", "gamemode", "quote_id"}
+
     @commands.command(aliases=info["aliases"])
-    async def racecompare(self, ctx, quote_id: Optional[str] = None, *user_args: Optional[str]):
-        if quote_id and not user_args:
-            user_args = [quote_id]
-            quote_id = None
+    async def racecompare(self, ctx: BotContext, *args: str):
+        ctx.flags.status = None
+        profiles = await self.get_profiles(ctx, args, max_users)
 
-        user_args = list(user_args) if user_args else [ctx.user["userId"]]
-        user_args = user_args[:max_users]
-        usernames = set(user_args)
-        profiles = []
-
-        for i, username in enumerate(usernames):
-            profile = await self.get_profile(ctx, username, races_required=True)
-            profiles.append(profile)
-            await self.import_user(ctx, profile)
-
-            if i == 0:
-                quote = await self.get_quote(ctx, quote_id, profile["userId"])
+        if ctx.flags.quote_id:
+            quote = await self.get_quote(ctx, ctx.flags.quote_id)
+        else:
+            quote = await self.get_quote(ctx, user_id=profiles[0]["userId"])
 
         if len(profiles) > 1:
             await run(ctx, quote, profiles)
@@ -55,20 +48,24 @@ class RaceCompare(Command):
             await run_self(ctx, quote, profiles[0])
 
 
-async def run(ctx: commands.Context, quote: dict, profiles: list[dict]):
+async def run(ctx: BotContext, quote: dict, profiles: list[dict]):
     """Compare quote bests across multiple users."""
     description = quote_display(quote, 1000, display_status=True) + "\n"
     themed_line = 0
 
     # Fetch all best races in parallel
     async def fetch_user_best(profile: dict) -> dict:
-        quote_best = get_quote_bests(profile["userId"], quote_id=quote["quoteId"])
+        quote_best = get_quote_bests(
+            profile["userId"], quote_id=quote["quoteId"],
+            order_by="wpm", flags=ctx.flags,
+        )
         if not quote_best:
             raise NoQuoteRaces(profile["username"])
 
         best_race = await get_race_keystrokes(
             profile["userId"],
-            quote_best[0]["raceNumber"]
+            quote_best[0]["raceNumber"],
+            ctx.flags.raw,
         )
         profile["bestRace"] = best_race
         return profile
@@ -88,20 +85,25 @@ async def run(ctx: commands.Context, quote: dict, profiles: list[dict]):
         description=description,
         race_data=[p["bestRace"] for p in profiles],
         theme=ctx.user["theme"],
-        themed_line=themed_line
+        themed_line=themed_line,
     )
 
     message = Message(ctx, page=page)
     await message.send()
 
 
-async def run_self(ctx: commands.Context, quote: dict, profile: dict):
+async def run_self(ctx: BotContext, quote: dict, profile: dict):
     """Compare a user's best and recent races on the same quote."""
     description = quote_display(quote, 1000, display_status=True) + "\n"
 
-    quote_races = await get_races(profile["userId"], quote_id=quote["quoteId"], order_by="timestamp")
+    quote_races = await get_races(
+        profile["userId"],
+        quote_id=quote["quoteId"],
+        order_by="timestamp",
+        flags=ctx.flags,
+    )
     if len(quote_races) < 2:
-        raise GeneralException(
+        raise BotError(
             "Not Enough Races",
             "User must have at least 2 races\non this quote to compare."
         )
@@ -133,7 +135,7 @@ async def run_self(ctx: commands.Context, quote: dict, profile: dict):
 
     # Fetch keystroke data in parallel
     races_with_keystrokes = await asyncio.gather(*[
-        get_race_keystrokes(profile["userId"], rn)
+        get_race_keystrokes(profile["userId"], rn, raw=ctx.flags.raw)
         for rn in race_numbers
     ])
 
@@ -154,11 +156,15 @@ async def run_self(ctx: commands.Context, quote: dict, profile: dict):
     await message.send()
 
 
-async def get_race_keystrokes(user_id: str, race_number: int) -> dict:
+async def get_race_keystrokes(user_id: str, race_number: int, raw: bool) -> dict:
     """Fetch race with keystroke data and add keystroke_wpm."""
     race = await get_race(user_id, race_number, get_keystrokes=True)
     keystroke_data = get_keystroke_data(race["keystrokeData"])
-    race["keystroke_wpm"] = keystroke_data.keystrokeWpm
+    if raw:
+        race["keystroke_wpm"] = keystroke_data.keystrokeRawWpm
+        race["wpm"] = race["rawWpm"]
+    else:
+        race["keystroke_wpm"] = keystroke_data.keystrokeWpm
     return race
 
 
@@ -187,5 +193,6 @@ def create_comparison_page(
             title=title,
             theme=theme,
             themed_line=themed_line,
-        )
+        ),
+        flag_title=True,
     )

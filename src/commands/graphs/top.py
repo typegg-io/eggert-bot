@@ -3,54 +3,44 @@ from typing import List
 import numpy as np
 from discord.ext import commands
 
+from bot_setup import BotContext
 from commands.base import Command
 from database.typegg.quotes import get_quotes
 from database.typegg.users import get_quote_bests
 from graphs import top as top_graph
 from utils.errors import NoRankedRaces
 from utils.messages import Page, Message
-from utils.strings import get_flag_title
 
 max_users = 5
 
 info = {
     "name": "top",
-    "aliases": ["250"],
+    "aliases": ["50", "100", "250", "500", "1000"],
     "description": "Displays a user's top n quote PBs ordered by pp.\n"
-                   "Use `-n` to set how many quotes to show (default 50).\n"
+                   "Use `n` to set how many quotes to show (default 50).\n"
                    f"Supports up to {max_users} users.",
-    "parameters": f"[username1] ... [username{max_users}] [-n]",
+    "parameters": f"[username1] ... [username{max_users}] [n]",
     "examples": [
         "-top",
         "-top eiko",
         "-top eiko me",
-        "-top eiko me -1000",
+        "-top eiko me 1000",
     ],
     "author": 231721357484752896,
 }
 
 
 class Top(Command):
+    supported_flags = {"metric", "raw", "gamemode", "status", "language", "number"}
+
     @commands.command(aliases=info["aliases"])
-    async def top(self, ctx, *other_users: str):
-        n = ctx.flags.number or 250
-        metric = ctx.flags.metric or "pp"
-        ctx.flags.status = ctx.flags.status or "ranked"
-
-        other_users = list(dict.fromkeys(other_users))
-
-        if other_users and other_users[-1] in ["pp", "wpm"]:
-            metric = other_users.pop()
-
-        usernames = other_users[:max_users] or [ctx.user["userId"]]
-        profiles = []
-
-        for username in usernames:
-            profile = await self.get_profile(ctx, username, races_required=True)
-            profiles.append(profile)
-            await self.import_user(ctx, profile)
-
-        await run(ctx, profiles, n, metric)
+    async def top(self, ctx: BotContext, *args: str):
+        if ctx.invoked_with.isnumeric():
+            n = int(ctx.invoked_with)
+        else:
+            n = int(abs(ctx.flags.number)) if ctx.flags.number is not None else 250
+        profiles = await self.get_profiles(ctx, args, max_users)
+        await run(ctx, profiles, n, ctx.flags.metric)
 
 
 def get_optimization_level(pp_values):
@@ -63,7 +53,7 @@ def get_optimization_level(pp_values):
     return 1 - deviation / pp_anchor
 
 
-async def run(ctx: commands.Context, profiles: List[dict], n: int, metric: str):
+async def run(ctx: BotContext, profiles: List[dict], n: int, metric: str):
     top_scores = []
     username = profiles[0]["username"]
     quote_list = get_quotes()
@@ -156,7 +146,7 @@ async def run(ctx: commands.Context, profiles: List[dict], n: int, metric: str):
         metric = "WPM"
 
     page = Page(
-        title=f"Top {n:,} {metric} Quotes" + get_flag_title(ctx.flags),
+        title=f"Top {n:,} {metric} Quotes",
         description=description,
         render=lambda: top_graph.render(
             username,
@@ -164,7 +154,8 @@ async def run(ctx: commands.Context, profiles: List[dict], n: int, metric: str):
             n,
             metric,
             ctx.user["theme"],
-        )
+        ),
+        flag_title=True,
     )
 
     message = Message(

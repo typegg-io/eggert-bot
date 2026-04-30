@@ -2,9 +2,10 @@ import zoneinfo
 
 from discord.ext import commands
 
+from bot_setup import BotContext
 from commands.base import Command
 from database.bot.users import update_timezone
-from utils.errors import GeneralException
+from utils.errors import BotError
 from utils.messages import Page, Message
 from utils.strings import get_argument
 
@@ -20,15 +21,17 @@ info = {
 
 
 class Settings(Command):
+    ignore_flags = True
+
     @commands.command(aliases=info["aliases"])
-    async def settings(self, ctx, setting: str, value: str):
+    async def settings(self, ctx: BotContext, setting: str, value: str):
         setting = get_argument(settings, setting)
 
         if setting == "timezone":
             try:
                 timezone = resolve_timezone(value)
             except zoneinfo.ZoneInfoNotFoundError:
-                raise GeneralException(
+                raise BotError(
                     "Invalid Timezone",
                     "Use [IANA format](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones#List) (`America/New_York`)"
                 )

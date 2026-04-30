@@ -1,11 +1,11 @@
 from discord.ext import commands
 
+from bot_setup import BotContext
 from commands.base import Command
 from commands.summary.races import build_stat_fields
 from database.typegg.races import get_races
-from utils.errors import GeneralException
+from utils.errors import BotError, MissingArguments, NoRaces
 from utils.messages import Page, Message
-from utils.strings import parse_number, get_flag_title
 
 info = {
     "name": "longestaverage",
@@ -13,22 +13,31 @@ info = {
     "description": "Displays the longest streak of consecutive races a user maintained a given WPM average.",
     "parameters": "[username] <wpm>",
     "examples": [
+        "-la 150",
         "-la eiko 150",
     ],
 }
 
 
 class LongestAverage(Command):
-    @commands.command(aliases=info["aliases"])
-    async def longestaverage(self, ctx, username: str, wpm: str):
-        profile = await self.get_profile(ctx, username)
-        await self.import_user(ctx, profile)
+    supported_flags = {"raw", "gamemode", "status", "language", "number"}
 
-        await run(ctx, profile, parse_number(wpm))
+    @commands.command(aliases=info["aliases"])
+    async def longestaverage(self, ctx: BotContext, *args: str):
+        ctx.flags.gamemode = ctx.flags.gamemode or "quickplay"
+
+        if ctx.flags.number is None:
+            raise MissingArguments
+
+        profile = await self.get_profile(ctx, args[0] if args else None)
+        await run(ctx, profile, abs(ctx.flags.number))
 
 
 def get_longest_average(values, threshold):
-    """Find the longest contiguous subarray whose average is at least threshold, using prefix sums and a monotonic stack."""
+    """
+    Find the longest contiguous subarray whose average is at
+    least threshold, using prefix sums and a monotonic stack.
+    """
     adjusted = [v - threshold for v in values]
 
     prefix = [0]
@@ -102,22 +111,20 @@ def top_10_longest_averages(values, threshold):
     return results
 
 
-async def run(ctx: commands.Context, profile: dict, wpm: float):
-    ctx.flags.gamemode = ctx.flags.gamemode or "quickplay"
-    ctx.flags.status = ctx.flags.status or "ranked"
+async def run(ctx: BotContext, profile: dict, wpm: float):
     race_list = await get_races(
         user_id=profile["userId"],
         flags=ctx.flags,
     )
 
     if not race_list:
-        return await ctx.send("No races found.")
+        raise NoRaces(profile["username"])
 
     values = [race["wpm"] for race in race_list]
     longest = get_longest_average(values, wpm)
 
     if not longest:
-        raise GeneralException(
+        raise BotError(
             "No Streak Found",
             "User has no average streak above this WPM"
         )
@@ -131,14 +138,15 @@ async def run(ctx: commands.Context, profile: dict, wpm: float):
     fields = build_stat_fields(profile, streak_races, ctx.flags)
 
     pages = [Page(
-        title=f"Longest Average of {wpm:,.2f} WPM+" + get_flag_title(ctx.flags),
+        title=f"Longest Average of {wpm:,.2f} WPM+",
         description=(
             f"**{length:,}** races "
             f"(#{streak_races[0]['raceNumber']:,} "
             f"– #{streak_races[-1]['raceNumber']:,})"
         ),
         fields=fields,
-        button_name="Longest Average"
+        button_name="Longest Average",
+        flag_title=True,
     )]
 
     top_10 = ""
@@ -152,9 +160,10 @@ async def run(ctx: commands.Context, profile: dict, wpm: float):
         )
 
     pages.append(Page(
-        title="Top 10 Longest Streaks" + get_flag_title(ctx.flags),
+        title="Top 10 Longest Streaks",
         description=top_10,
         button_name="Top 10 Longest",
+        flag_title=True,
     ))
 
     message = Message(

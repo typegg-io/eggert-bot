@@ -3,6 +3,7 @@ import zlib
 from typing import Optional
 
 from database.typegg import db
+from database.typegg.keystroke_data import get_keystroke_data
 from utils.flags import Flags
 
 
@@ -198,6 +199,21 @@ def get_latest_race(user_id: str):
     """, [user_id])
 
     return result
+
+
+def get_race(user_id: str, number: int, get_keystrokes: bool = False):
+    result = db.fetch_one("""
+        SELECT * FROM races
+        WHERE userId = ?
+        AND raceNumber = ?
+    """, [user_id, number])
+
+    race = dict(result)
+
+    if get_keystrokes:
+        race["keystrokeData"] = get_keystroke_data(race["raceId"])
+
+    return race
 
 
 def delete_races(user_id: str):

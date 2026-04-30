@@ -1,21 +1,26 @@
 from dataclasses import dataclass
+from typing import Optional
 
 from discord import Embed
 from discord.ext.commands import CommandError, CheckFailure
 
 from config import BOT_PREFIX as prefix, EIKO
 from utils.colors import WARNING, PLUS
+from utils.flags import Flags
 
 
 @dataclass
-class GeneralException(CommandError):
+class BotError(CommandError):
     title: str
     text: str
+    flags: Optional[Flags] = None
 
     @property
     def embed(self):
+        from utils.strings import get_flag_title
+        title = self.title + (get_flag_title(self.flags) if self.flags is not None else "")
         return Embed(
-            title=self.title,
+            title=title,
             description=self.text,
         )
 
@@ -169,13 +174,6 @@ class UnexpectedError(CommandError):
                 f"`{self.error_type}`"
             ),
         )
-
-
-class NoCommonTexts(CommandError):
-    embed = Embed(
-        title="No Common Texts",
-        description="Users do not have any texts in common",
-    )
 
 
 @dataclass

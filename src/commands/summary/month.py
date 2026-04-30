@@ -1,11 +1,9 @@
-from typing import Optional
-
 from dateutil.relativedelta import relativedelta
 from discord.ext import commands
 
+from bot_setup import BotContext
 from commands.base import Command
 from commands.summary.races import run
-from utils.dates import parse_date
 
 info = {
     "name": "month",
@@ -23,13 +21,14 @@ info = {
 
 
 class Month(Command):
+    supported_flags = {"gamemode", "status", "language", "date"}
+
     @commands.command(aliases=info["aliases"])
-    async def month(self, ctx, username: Optional[str] = "me", *date_args: str):
-        date = parse_date("".join(date_args))
+    async def month(self, ctx: BotContext, *args: str):
+        date = ctx.flags.date
 
         if ctx.invoked_with in ["yestermonth", "ym", "lm"]:
             date -= relativedelta(months=1)
 
-        profile = await self.get_profile(ctx, username, races_required=True)
-        await self.import_user(ctx, profile)
-        await run(ctx, profile, date, "month")
+        profile = await self.get_profile(ctx, args[0] if args else None)
+        await run(ctx, profile, date, period="month")

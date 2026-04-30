@@ -2,6 +2,7 @@ from discord.abc import GuildChannel
 from discord.ext import commands
 
 from api.daily_quotes import get_daily_quote
+from bot_setup import BotContext
 from commands.base import Command
 from config import DAILY_QUOTE_ROLE_ID, DAILY_QUOTE_CHANNEL_ID
 from database.bot.recent_quotes import set_recent_quote
@@ -26,23 +27,22 @@ info = {
 
 
 class DailyLeaderboard(Command):
+    supported_flags = {"number", "date"}
+
     @commands.command(aliases=info["aliases"])
     @usable_in(DAILY_QUOTE_CHANNEL_ID)
-    async def dailyleaderboard(self, ctx: commands.Context, *args: str):
-        arg = "".join(args)
+    async def dailyleaderboard(self, ctx: BotContext):
         try:
-            number = int(arg)
-            daily_quote = await get_daily_quote(number=number)
-        except ValueError:
-            date = parse_date("".join(args))
-            daily_quote = await get_daily_quote(date.strftime("%Y-%m-%d"), results=100)
+            daily_quote = await get_daily_quote(number=int(ctx.flags.number), results=100)
+        except TypeError:
+            daily_quote = await get_daily_quote(ctx.flags.date.strftime("%Y-%m-%d"), results=100)
 
         title = f"Daily Quote #{daily_quote["dayNumber"]:,}"
         await display_daily_quote(ctx, daily_quote, title, paginate=True)
 
 
 async def display_daily_quote(
-    ctx: commands.Context | GuildChannel,
+    ctx: BotContext | GuildChannel,
     daily_quote: dict,
     title: str,
     show_leaderboard: bool = True,
@@ -103,7 +103,7 @@ async def display_daily_quote(
         ), None)
 
         if paginate:
-            pages = paginate_data(leaderboard, format_row, page_count=10, per_page=10)
+            pages = paginate_data(leaderboard, format_row, page_count=10, per_page=10, flag_title=False)
             if user_score:
                 jump_page = user_score["index"] // 10
                 user_row = format_row(user_score)

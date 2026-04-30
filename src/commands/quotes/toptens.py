@@ -1,8 +1,7 @@
-from typing import Optional
-
 from discord.ext import commands
 
 from api.users import get_quotes
+from bot_setup import BotContext
 from commands.base import Command
 from utils.messages import Page, Message, Field
 from utils.strings import LOADING, ordinal_number
@@ -21,12 +20,12 @@ info = {
 
 class TopTens(Command):
     @commands.command(aliases=info["aliases"])
-    async def toptens(self, ctx, username: Optional[str] = "me"):
-        profile = await self.get_profile(ctx, username, races_required=True)
+    async def toptens(self, ctx: BotContext, username: str = None):
+        profile = await self.get_profile(ctx, username)
         await run(ctx, profile)
 
 
-async def run(ctx: commands.Context, profile: dict):
+async def run(ctx: BotContext, profile: dict):
     page = Page(
         title="Top Ten Appearances",
         description=(

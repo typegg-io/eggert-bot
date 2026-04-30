@@ -1,3 +1,4 @@
+import re
 from datetime import datetime, timezone, timedelta
 from zoneinfo import ZoneInfo
 
@@ -10,6 +11,14 @@ from utils.strings import ordinal_number
 # Constants
 
 API_DATE_FORMAT = "%Y-%m-%d %H:%M:%S.%fZ"
+
+_DATE_RE = re.compile(
+    r"^\d{4}([-/\.]\d{1,2}([-/\.]\d{1,2})?)?$"
+    r"|^\d{1,2}[/-]\d{1,2}[/-]\d{2,4}$"
+    r"|^\d{1,2}[/-]\d{4}$",
+    re.IGNORECASE
+)
+_DATE_KEYWORDS = {"now", "today", "yesterday", "yd"}
 
 
 # Basic Date Utilities
@@ -36,7 +45,7 @@ def date_to_string(date_object: datetime, format: str = API_DATE_FORMAT):
     return datetime.strftime(date_object, format)
 
 
-def parse_date(date_string):
+def parse_date(date_string: str | None) -> datetime:
     """Parse a flexible date string (e.g., 'now', 'yesterday', ISO format) into a UTC datetime."""
     _now = now()
     if not date_string or date_string in ["now", "present", "today"]:
@@ -50,6 +59,11 @@ def parse_date(date_string):
             raise InvalidDate
 
     return date
+
+
+def is_date_like(arg):
+    """Return whether a date string is date-like, for parameter parsing."""
+    return arg.lower() in _DATE_KEYWORDS or bool(_DATE_RE.match(arg))
 
 
 def format_date(date):

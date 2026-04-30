@@ -1,55 +1,47 @@
-from typing import Optional
-
 from discord.ext import commands
 
+from bot_setup import BotContext
 from commands.base import Command
 from database.typegg.quotes import get_quotes
 from database.typegg.races import get_races
 from utils.dates import parse_date
 from utils.errors import NumberGreaterThan, NotEnoughRaces
 from utils.messages import Page, Message
-from utils.strings import get_flag_title, date_range_display, parse_number, discord_date, get_argument
+from utils.strings import date_range_display, discord_date
 
 info = {
     "name": "bestaverages",
     "aliases": ["ba"],
     "description": "Displays a user's top 10 best WPM averages of n consecutive races.\n"
                    "Averages are non-overlapping.\n"
-                   "Use `-acc` to show best accuracy averages.",
-    "parameters": "[username] [n:25]",
+                   "Use `acc` to show best accuracy averages.",
+    "parameters": "[username] [n:25] [acc]",
     "examples": [
         "-ba",
         "-ba eiko",
         "-ba eiko 50",
         "-ba eiko 50 acc",
     ],
+    "privacy": True,
 }
 
 
 class BestAverages(Command):
+    supported_flags = {"raw", "gamemode", "status", "language", "number"}
+
     @commands.command(aliases=info["aliases"])
-    async def bestaverages(self, ctx, username: Optional[str] = "me", n: Optional[str] = "25", metric: Optional[str] = "wpm"):
-        if n in ["-accuracy", "-acc", "-ac"]:
-            n = 25
-            metric = "accuracy"
-        if metric in ["-accuracy", "-acc", "-ac"]:
-            metric = "accuracy"
-
-        n = parse_number(n)
-        metric = get_argument(["wpm", "accuracy"], metric)
-        profile = await self.get_profile(ctx, username, races_required=True)
-        await self.import_user(ctx, profile)
-
+    async def bestaverages(self, ctx: BotContext, *args: str):
+        ctx.flags.gamemode = ctx.flags.gamemode or "quickplay"
+        n = int(abs(ctx.flags.number)) if ctx.flags.number is not None else 25
+        params = self.extract_params(args, ["accuracy"])
+        profile = await self.get_profile(ctx, params.username)
+        metric = params.argument or "wpm"
         await run(ctx, profile, n, metric)
 
 
-async def run(ctx: commands.Context, profile: dict, n: int, metric: str = "wpm"):
+async def run(ctx: BotContext, profile: dict, n: int, metric: str = "wpm"):
     if n < 1:
         raise NumberGreaterThan
-
-    ctx.flags.gamemode = ctx.flags.gamemode or "quickplay"
-    flag_title = get_flag_title(ctx.flags)
-    ctx.flags.status = ctx.flags.status or "ranked"
 
     race_list = await get_races(
         user_id=profile["userId"],
@@ -110,12 +102,16 @@ async def run(ctx: commands.Context, profile: dict, n: int, metric: str = "wpm")
 
     metric_label = "Accuracy" if metric == "accuracy" else "WPM"
     pages = [Page(
-        title=f"Best Last {n:,} {metric_label} Averages" + flag_title,
+        title=f"Best Last {n:,} {metric_label} Averages",
         description=description if description else "No averages found",
         button_name="Best Averages",
+        flag_title=True,
     )]
 
-    if best_averages and ctx.flags.gamemode in ["quickplay", "lobby"]:
+    if best_averages and (
+        ctx.user["userId"] == profile["userId"]
+        or ctx.flags.gamemode in ["quickplay", "lobby"]
+    ):
         top_average, top_start_index = best_averages[0]
 
         start_offset = max(0, n - 25)  # If n > 25, start from the last 25 races
@@ -146,9 +142,10 @@ async def run(ctx: commands.Context, profile: dict, n: int, metric: str = "wpm")
             race_descriptions += f"+{n - 25:,} others"
 
         pages.append(Page(
-            title=f"Top {metric_label} Average of {n:,}" + flag_title,
+            title=f"Top {metric_label} Average of {n:,}",
             description=f"{top_average_desc}**Races:**\n" + race_descriptions,
-            button_name="Top Average"
+            button_name="Top Average",
+            flag_title=True,
         ))
 
     message = Message(

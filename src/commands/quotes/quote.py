@@ -1,15 +1,14 @@
-from typing import Optional
-
 import numpy as np
 from discord.ext import commands
 
+from bot_setup import BotContext
 from commands.base import Command
-from database.typegg.races import get_races
+from database.typegg.races import get_races, get_race
 from database.typegg.users import get_quote_bests
 from graphs import improvement
 from utils.colors import SUCCESS
 from utils.dates import parse_date
-from utils.errors import GeneralException
+from utils.errors import BotError
 from utils.messages import Page, Message, Field
 from utils.stats import calculate_total_pp
 from utils.strings import discord_date, INCREASE, quote_display
@@ -30,11 +29,19 @@ info = {
 
 
 class Quote(Command):
+    supported_flags = {"number", "quote_id"}
+
     @commands.command(aliases=info["aliases"])
-    async def quote(self, ctx, username: Optional[str] = "me", *, quote_id: Optional[str] = None):
-        profile = await self.get_profile(ctx, username, races_required=True)
-        await self.import_user(ctx, profile)
-        quote = await self.get_quote(ctx, quote_id, profile["userId"])
+    async def quote(self, ctx: BotContext, *args: str):
+        ctx.flags.status = None
+        profile = await self.get_profile(ctx, args[0] if args else None)
+
+        if ctx.flags.number is not None:
+            race_number = await self.get_race_number(profile, ctx.flags.number)
+            race = get_race(profile["userId"], race_number)
+            quote = await self.get_quote(ctx, race["quoteId"])
+        else:
+            quote = await self.get_quote(ctx, ctx.flags.quote_id, profile["userId"])
 
         await run(ctx, profile, quote)
 
@@ -231,12 +238,12 @@ def build_graph_page(quote_races: list, ranked: bool, theme: dict):
     return page
 
 
-async def run(ctx: commands.Context, profile: dict, quote: dict):
+async def run(ctx: BotContext, profile: dict, quote: dict):
     user_id = profile["userId"]
     quote_id = quote["quoteId"]
     is_ranked = quote["ranked"]
 
-    quote_races = await get_races(user_id, quote_id=quote_id)
+    quote_races = await get_races(user_id, quote_id=quote_id, flags=ctx.flags)
     show_buttons = quote_races and (ctx.user["userId"] == profile["userId"] or ctx.user["isAdmin"])
 
     if is_ranked:
@@ -256,7 +263,7 @@ async def run(ctx: commands.Context, profile: dict, quote: dict):
         default_page = {"qh": 1, "qg": 2}.get(ctx.invoked_with, 0)
         pages[default_page].default = True
     except IndexError:
-        raise GeneralException(
+        raise BotError(
             "Privacy Error",
             "You may only view this embed for your own account",
         )

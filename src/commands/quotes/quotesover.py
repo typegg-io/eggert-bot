@@ -1,13 +1,12 @@
-from typing import Optional
-
 import numpy as np
 from discord.ext import commands
 
+from bot_setup import BotContext
 from commands.base import Command
 from database.typegg.quotes import get_quotes
 from database.typegg.users import get_quote_bests
+from utils.errors import MissingArguments
 from utils.messages import Page, Message
-from utils.strings import get_argument, parse_number, get_flag_title
 
 info = {
     "name": "quotesover",
@@ -22,20 +21,18 @@ info = {
 
 
 class QuotesOver(Command):
+    supported_flags = {"metric", "raw", "gamemode", "status", "language", "number"}
+
     @commands.command(aliases=info["aliases"])
-    async def quotesover(
-        self, ctx, username: str, threshold: str, metric: Optional[str] = "wpm"):
-        threshold = parse_number(threshold)
-        metric = get_argument(["pp", "wpm"], metric)
+    async def quotesover(self, ctx: BotContext, *args: str):
+        if ctx.flags.number is None:
+            raise MissingArguments
 
-        profile = await self.get_profile(ctx, username)
-        await self.import_user(ctx, profile)
-
-        await run(ctx, profile, threshold, metric)
+        profile = await self.get_profile(ctx, args[0] if args else None)
+        await run(ctx, profile, abs(ctx.flags.number), ctx.flags.metric)
 
 
-async def run(ctx: commands.Context, profile: dict, threshold: int, metric: str):
-    ctx.flags.status = ctx.flags.status or "ranked"
+async def run(ctx: BotContext, profile: dict, threshold: int, metric: str):
     quote_bests = get_quote_bests(
         profile["userId"],
         columns=["quoteId", metric],
@@ -75,8 +72,9 @@ async def run(ctx: commands.Context, profile: dict, threshold: int, metric: str)
         description += f"**Average Difficulty:** {avg_difficulty:.2f}★\n"
 
     page = Page(
-        title=f"Quotes Over {threshold:,} {metric}" + get_flag_title(ctx.flags),
+        title=f"Quotes Over {threshold:,} {metric}",
         description=description,
+        flag_title=True,
     )
 
     message = Message(

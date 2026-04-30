@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from datetime import datetime
 from typing import Optional, Union
 
 LANGUAGES = {
@@ -50,13 +51,16 @@ class Language:
 
 
 @dataclass
-class Flags: # IF status == unranked, metric = wpm
+class Flags:
     metric: Optional[str] = "pp"
     raw: Optional[bool] = False
     gamemode: Optional[str] = None
-    status: Optional[str] = None
+    status: Optional[str] = "ranked"
     language: Optional[Union[str, Language]] = None
     number: Optional[int] = None
+    number_range: Optional[tuple] = None
+    quote_id: Optional[str] = None
+    date: Optional[datetime] = None
 
     def __post_init__(self):
         if isinstance(self.language, str):

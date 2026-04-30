@@ -4,6 +4,7 @@ import discord
 from discord import Embed
 from discord.ext import commands
 
+from bot_setup import BotContext, Eggert
 from commands.base import Command
 from config import BOT_PREFIX, TYPEGG_GUILD_ID, VERIFIED_ROLE_NAME
 from database.bot.users import unlink_user, update_gg_plus_status, update_theme
@@ -19,8 +20,10 @@ info = {
 
 
 class Unlink(Command):
+    ignore_flags = True
+
     @commands.command(aliases=info["aliases"])
-    async def unlink(self, ctx: commands.Context):
+    async def unlink(self, ctx: BotContext):
         if not ctx.user["userId"]:
             return await ctx.send(embed=not_verified())
 
@@ -61,7 +64,7 @@ class Unlink(Command):
             return await ctx.send(embed=embed)
 
 
-async def unverify_user(bot_instance: commands.Bot, discord_id: str):
+async def unverify_user(bot_instance: Eggert, discord_id: str):
     guild = bot_instance.get_guild(TYPEGG_GUILD_ID)
     if not guild:
         log(f"Guild with ID {TYPEGG_GUILD_ID} not found")

@@ -1,10 +1,10 @@
-from typing import Optional
-
 from discord.ext import commands
 
-from api.users import get_race
+from bot_setup import BotContext
 from commands.base import Command
+from database.bot.recent_quotes import set_recent_quote
 from database.typegg.quotes import get_quote
+from database.typegg.races import get_race
 from database.typegg.users import get_quote_bests
 from graphs import segments as segment_graph
 from utils.errors import NoQuoteRaces
@@ -29,16 +29,18 @@ info = {
 
 
 class Segments(Command):
-    @commands.command(aliases=info["aliases"])
-    async def segments(self, ctx, username: Optional[str] = "me", race_identifier: Optional[str] = None):
-        profile = await self.get_profile(ctx, username, races_required=True)
-        await self.import_user(ctx, profile)
+    supported_flags = {"number", "quote_id"}
 
-        try:
-            race_number = await self.get_race_number(profile, race_identifier)
-        except Exception:
-            quote = await self.get_quote(ctx, race_identifier, profile["userId"])
-            quote_bests = get_quote_bests(profile["userId"], quote_id=quote["quoteId"])
+    @commands.command(aliases=info["aliases"])
+    async def segments(self, ctx: BotContext, *args: str):
+        ctx.flags.status = None
+        profile = await self.get_profile(ctx, args[0] if args else None)
+
+        if ctx.flags.number is not None:
+            race_number = await self.get_race_number(profile, ctx.flags.number)
+        else:
+            quote = await self.get_quote(ctx, ctx.flags.quote_id, profile["userId"])
+            quote_bests = get_quote_bests(profile["userId"], quote_id=quote["quoteId"], flags=ctx.flags)
             if not quote_bests:
                 raise NoQuoteRaces(profile["username"])
             race_number = quote_bests[0]["raceNumber"]
@@ -151,9 +153,10 @@ def build_word_segments(text: str, delays: list, raw_delays: list) -> tuple[list
     return words, space_speed, newline_speed
 
 
-async def run(ctx: commands.Context, profile: dict, race_number: int):
-    race = await get_race(profile["userId"], race_number, get_keystrokes=True)
+async def run(ctx: BotContext, profile: dict, race_number: int):
+    race = get_race(profile["userId"], race_number, get_keystrokes=True)
     quote = get_quote(race["quoteId"])
+    set_recent_quote(ctx.channel.id, race["quoteId"])
     keystroke_data = get_keystroke_data(race["keystrokeData"])
     delays = keystroke_data.wpmCharacterTimes
     raw_delays = keystroke_data.rawCharacterTimes

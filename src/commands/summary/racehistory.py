@@ -1,12 +1,11 @@
-from typing import Optional
-
 from discord.ext import commands
 
+from bot_setup import BotContext
 from commands.base import Command
 from database.typegg.quotes import get_quotes
 from database.typegg.races import get_races
 from utils.messages import Message, paginate_data
-from utils.strings import discord_date, get_flag_title
+from utils.strings import discord_date
 
 info = {
     "name": "racehistory",
@@ -22,15 +21,15 @@ info = {
 
 
 class RaceHistory(Command):
-    @commands.command(aliases=info["aliases"])
-    async def racehistory(self, ctx, username: Optional[str] = "me"):
-        profile = await self.get_profile(ctx, username)
-        await self.import_user(ctx, profile)
+    supported_flags = {"gamemode", "status", "language"}
 
+    @commands.command(aliases=info["aliases"])
+    async def racehistory(self, ctx: BotContext, username: str = None):
+        profile = await self.get_profile(ctx, username)
         await run(ctx, profile)
 
 
-async def run(ctx: commands.Context, profile: dict):
+async def run(ctx: BotContext, profile: dict):
     only_historical_pbs = (
         profile["userId"] != ctx.user["userId"] and
         ctx.flags.gamemode not in ["quickplay", "lobby"]
@@ -68,7 +67,7 @@ async def run(ctx: commands.Context, profile: dict):
 
     message = Message(
         ctx,
-        title="Race History" + get_flag_title(ctx.flags),
+        title="Race History",
         pages=pages,
         profile=profile,
     )

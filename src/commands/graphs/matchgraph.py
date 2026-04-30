@@ -1,11 +1,12 @@
 from copy import deepcopy
-from typing import Optional
 
 from discord.ext import commands
 
 from api.users import get_race
+from bot_setup import BotContext
 from commands.base import Command
 from commands.graphs.racegraph import run as run_racegraph
+from database.bot.recent_quotes import set_recent_quote
 from database.typegg.quotes import get_quote
 from graphs import match as match_graph
 from utils.errors import InvalidKeystrokeData
@@ -29,16 +30,19 @@ info = {
 
 
 class MatchGraph(Command):
+    supported_flags = {"number"}
+
     @commands.command(aliases=info["aliases"])
-    async def matchgraph(self, ctx, username: Optional[str] = "me", race_number: Optional[str] = None):
-        profile = await self.get_profile(ctx, username, races_required=True)
-        race_number = await self.get_race_number(profile, race_number)
+    async def matchgraph(self, ctx: BotContext, username: str = None):
+        profile = await self.get_profile(ctx, username)
+        race_number = await self.get_race_number(profile, ctx.flags.number)
 
         await run(ctx, profile, race_number)
 
 
-async def run(ctx: commands.Context, profile: dict, race_number: int):
+async def run(ctx: BotContext, profile: dict, race_number: int):
     race = await get_race(profile["userId"], race_number, get_keystrokes=True)
+    set_recent_quote(ctx.channel.id, race["quoteId"])
     match = race.get("match")
 
     if not match:

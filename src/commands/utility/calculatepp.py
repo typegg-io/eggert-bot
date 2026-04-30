@@ -1,11 +1,11 @@
-from typing import Optional
-
 from discord.ext import commands
 
 from api.quotes import calculate_metric
+from bot_setup import BotContext
 from commands.base import Command
+from utils.errors import MissingArguments
 from utils.messages import Page, Message
-from utils.strings import get_argument, quote_display
+from utils.strings import quote_display
 from utils.urls import race_url
 
 info = {
@@ -22,16 +22,24 @@ info = {
 
 
 class CalculatePp(Command):
+    supported_flags = {"metric", "number", "quote_id"}
+
     @commands.command(aliases=info["aliases"])
-    async def calculatepp(self, ctx, quote_id: str, value: float, metric: Optional[str] = "pp"):
+    async def calculatepp(self, ctx: BotContext):
         self.check_gg_plus(ctx)
 
-        metrics = ["pp", "wpm"]
-        metric = get_argument(metrics, metric)
-        quote = await self.get_quote(ctx, quote_id, from_api=True)
-        quote_id = quote["quoteId"]
+        if ctx.flags.number is None:
+            raise MissingArguments
 
+        if not ctx.flags.quote_id:
+            raise MissingArguments
+
+        quote = await self.get_quote(ctx, ctx.flags.quote_id, from_api=True)
+        quote_id = quote["quoteId"]
+        value = abs(ctx.flags.number)
+        metric = ctx.flags.metric
         calculated_value = await calculate_metric(quote_id, value, metric)
+
         quote_description = quote_display(
             quote,
             display_author=True,
@@ -41,16 +49,17 @@ class CalculatePp(Command):
             max_text_chars=1000,
         )
 
-        labels = sorted(["pp", "WPM"], reverse=metric == "pp")
-        input_label, output_label = labels
+        labels = ["pp", "WPM"]
+        description = (
+            f"{quote_description}\n"
+            f"```{ctx.flags.number:,.2f} {labels[metric == "wpm"]} = "
+            f"{calculated_value[labels[metric == "pp"].lower()]:,.2f} "
+            f"{labels[metric == "pp"]}```"
+        )
 
         page = Page(
             title=f"Quote Calculator - {quote_id}",
-            description=(
-                f"{quote_description}\n"
-                f"```{value:,.2f} {input_label} = "
-                f"{calculated_value[metrics[metric == "pp"]]:,.2f} {output_label}```"
-            ),
+            description=description,
         )
 
         message = Message(

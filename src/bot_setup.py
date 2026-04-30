@@ -6,63 +6,133 @@ import aiohttp
 import discord
 from discord.ext import commands
 
-from config import BOT_PREFIX, STAGING, STATS_CHANNEL_ID, TYPEGG_GUILD_ID, GENERAL_CHANNEL_ID, SITE_CHAT_URL, SECRET
+from config import BOT_PREFIX, STAGING, STATS_CHANNEL_ID, TYPEGG_GUILD_ID, GENERAL_CHANNEL_ID, SITE_CHAT_URL, SECRET, SITE_URL
 from database.bot.users import get_user, update_commands, get_user_ids, get_all_command_usage
+from database.typegg.quotes import is_quote_id
+from utils.dates import is_date_like, parse_date
 from utils.errors import UserBanned, InvalidNumber
 from utils.files import get_command_modules
 from utils.flags import FLAG_VALUES, Flags, Language
 from utils.logging import get_log_message, log
-from utils.messages import check_channel_permissions, welcome_message, command_milestone
-from utils.strings import get_argument, parse_number
+from utils.strings import get_argument, parse_number, parse_wpm_range
 from web_server.utils import assign_user_roles
 
 users = get_user_ids()
 total_commands = sum(get_all_command_usage().values())
 
 
-def parse_flags(content: str) -> tuple[dict, str]:
-    """Parse flags from message content. Returns (flags dict, cleaned command)."""
+class BotContext(commands.Context):
+    flags: Flags
+    explicit_flags: dict[str, str]
+    user: dict
+    raw_args: tuple
+
+
+class Eggert(commands.Bot):
+    """
+    Custom Bot subclass that intercepts message context to parse flags before command dispatch.
+
+    Before discord.py resolves a command, get_context strips flag tokens (e.g. -ranked, -solo)
+    from the message content and populates three extra fields on every BotContext:
+
+    ctx.flags          - Flags dataclass with resolved values (metric, gamemode, status, etc.)
+    ctx.explicit_flags - maps flag name -> original arg text, only for flags the user typed
+    ctx.raw_args       - original tokens after the command name, before any stripping
+    """
+
+    async def get_context(self, message, *, cls=BotContext):
+        if message.content.startswith(BOT_PREFIX):
+            original_content = message.content
+            flags, cleaned, explicit_flags = parse_flags(message.content)
+            message.content = cleaned
+            ctx = await super().get_context(message, cls=cls)
+            message.content = original_content
+        else:
+            flags, explicit_flags = Flags(), {}
+            ctx = await super().get_context(message, cls=cls)
+        ctx.flags = flags
+        ctx.explicit_flags = explicit_flags
+        ctx.raw_args = tuple(ctx.message.content.split()[1:])
+        return ctx
+
+
+def parse_flags(content: str) -> tuple[Flags, str, dict[str, str]]:
+    """Parse flags from message content. Returns (flags, cleaned command, explicit_flags).
+
+    explicit_flags maps flag name -> original arg text the user typed,
+    e.g. {"gamemode": "-solo", "raw": "-raw"}.
+    """
     invoke, raw_args = content.split()[0], content.split()[1:]
 
     flags = Flags()
-    regular_args = []
+    explicit_flags: dict[str, str] = {}
+    regular_args = []  # Non-flag arguments
 
-    for arg in raw_args:
-        if arg.startswith("-"):
-            try:
-                number = parse_number(arg.lstrip("-"))
-                if not (-2147483648 <= number <= 2147483647):
-                    raise InvalidNumber
-                flags.number = number
-                continue
-            except InvalidNumber:
-                pass
+    for arg in raw_args[::-1]:
+        value = arg.lstrip("-")
 
-            flag = get_argument(FLAG_VALUES, arg.lstrip("-"), _raise=False)
+        try:
+            number = parse_number(value)
+            if not (-2147483648 <= number <= 2147483647):
+                raise InvalidNumber
+            sign = -1 if arg.startswith("-") else 1
+            flags.number = number * sign
+            explicit_flags["number"] = arg
+            continue
+        except InvalidNumber:
+            pass
 
-            if not flag:
-                regular_args.append(arg)
-                continue
+        if is_date_like(value):
+            flags.date = value
+            explicit_flags["date"] = arg
+            continue
 
+        if wpm_range := parse_wpm_range(value):
+            flags.number_range = wpm_range
+            explicit_flags["number_range"] = arg
+            continue
+
+        flag = get_argument(FLAG_VALUES, value, _raise=False)
+        if flag:
             match flag:
                 case "pp" | "wpm":
                     flags.metric = flag
+                    explicit_flags["metric"] = arg
                 case "raw":
                     flags.raw = True
+                    explicit_flags["raw"] = arg
                 case "solo" | "quickplay" | "lobby":
                     flags.gamemode = flag
+                    explicit_flags["gamemode"] = arg
                 case "ranked" | "unranked" | "any":
                     flags.status = flag
+                    explicit_flags["status"] = arg
                 case _:
                     flags.language = Language(flag)
-        else:
-            regular_args.append(arg)
+                    explicit_flags["language"] = arg
+            continue
+
+        if (
+            arg in ["^", "daily"]
+            or arg.startswith(f"{SITE_URL}/solo/")
+            or is_quote_id(arg)
+        ):
+            flags.quote_id = value
+            explicit_flags["quote_id"] = arg
+            continue
+
+        regular_args.append(arg)
 
     if flags.language:
         flags.status = "unranked"
 
+    if flags.status != "ranked":
+        flags.metric = "wpm"
+
+    flags.date = parse_date(flags.date)
+
     cleaned_command = f"{invoke} " + " ".join(regular_args)
-    return flags, cleaned_command
+    return flags, cleaned_command, explicit_flags
 
 
 async def load_commands(bot):
@@ -78,12 +148,11 @@ async def load_commands(bot):
 
 def register_bot_checks(bot):
     """Register global bot checks and event handlers."""
+    from utils.messages import check_channel_permissions
 
     @bot.check
-    async def set_user(ctx: commands.Context):
+    async def set_user(ctx: BotContext):
         """Attach a user to the context and block banned users."""
-        ctx.flags = ctx.message.flags
-
         if not check_channel_permissions(ctx):
             return False
 
@@ -146,6 +215,7 @@ def register_bot_checks(bot):
     @bot.event
     async def on_message(message):
         """Global message handler."""
+        from utils.messages import welcome_message
 
         if message.author.bot:
             return
@@ -156,11 +226,6 @@ def register_bot_checks(bot):
 
         if not message.content.startswith(BOT_PREFIX):
             return
-
-        # Parsing flags
-        flags, cleaned_command = parse_flags(message.content)
-        message.flags = flags
-        message.content = cleaned_command
 
         # Logging
         if not STAGING:
@@ -188,14 +253,11 @@ def register_bot_checks(bot):
         if age > 20:
             return
 
-        flags, cleaned_command = parse_flags(after.content)
-        after.flags = flags
-        after.content = cleaned_command
-
         await bot.process_commands(after)
 
     @bot.event
-    async def on_command_completion(ctx: commands.Context):
+    async def on_command_completion(ctx: BotContext):
+        from utils.messages import command_milestone
         global total_commands
 
         command_origin = "server" if ctx.guild else "dm"

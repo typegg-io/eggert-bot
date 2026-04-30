@@ -1,8 +1,7 @@
-from typing import Optional
-
 import numpy as np
 from discord.ext import commands
 
+from bot_setup import BotContext
 from commands.base import Command
 from config import EIKO
 from database.typegg.match_results import get_encounter_stats, get_match_stats, get_opponent_encounters
@@ -10,11 +9,11 @@ from database.typegg.quotes import get_quote, get_quotes
 from database.typegg.races import get_races
 from graphs import match as match_graph, encounters as encounters_graph
 from utils.colors import ERROR
-from utils.errors import GeneralException
+from utils.errors import BotError
 from utils.keystroke_codec import KeystrokeCodecError
 from utils.keystrokes import get_keystroke_data
 from utils.messages import Page, Message, Field
-from utils.strings import get_flag_title, discord_date, username_with_flag, quote_display, rank
+from utils.strings import discord_date, username_with_flag, quote_display, rank
 
 sorts = ["wins", "losses", "winrate", "wpm", "-winrate", "-wpm"]
 info = {
@@ -34,29 +33,28 @@ info = {
 
 
 class Encounters(Command):
+    supported_flags = {"metric", "gamemode", "status", "language"}
+
     @commands.command(aliases=info["aliases"])
-    async def encounters(self, ctx, username: Optional[str] = "me", username2: Optional[str] = None):
-        sort = None
-        profile = await self.get_profile(ctx, username)
-        await self.import_user(ctx, profile)
+    async def encounters(self, ctx: BotContext, *args: str):
+        if ctx.explicit_flags.get("metric"):
+            args = args + (ctx.explicit_flags["metric"],)
 
-        if username2:
-            if username2 not in sorts:
-                profile2 = await self.get_profile(ctx, username2)
-                await self.import_user(ctx, profile2)
-                return await run_head_to_head(ctx, profile, profile2)
-            else:
-                sort = username2
+        params = self.extract_params(args, extract=sorts)
+        username1 = params.remaining[0] if params.remaining else None
+        username2 = params.remaining[1] if len(params.remaining) > 1 else username1
+        sort = params.argument
 
-        if ctx.flags.metric == "wpm":
-            sort = "-wpm"
+        profiles = await self.get_profiles(ctx, [username1, username2])
 
-        await run(ctx, profile, sort)
+        if len(profiles) > 1:
+            return await run_head_to_head(ctx, profiles[0], profiles[1])
+
+        await run(ctx, profiles[0], sort)
 
 
-async def run(ctx: commands.Context, profile: dict, sort: str):
-    gamemode = ctx.flags.gamemode
-    encounters = get_encounter_stats(profile["userId"], gamemode=gamemode)
+async def run(ctx: BotContext, profile: dict, sort: str):
+    encounters = get_encounter_stats(profile["userId"], flags=ctx.flags)
 
     total_encounters = sum(en["totalEncounters"] for en in encounters)
     min_threshold = 2 if total_encounters < 500 else 10
@@ -86,18 +84,20 @@ async def run(ctx: commands.Context, profile: dict, sort: str):
             encounters.sort(key=lambda x: -abs(x["userWpm"] - x["opponentWpm"]))
 
     if not encounters:
-        raise GeneralException(
+        raise BotError(
             "No Encounters",
-            f"User `{profile["username"]}` has no {gamemode or "multiplayer"} encounters"
+            f"User `{profile["username"]}` has no {ctx.flags.gamemode or "multiplayer"} encounters"
         )
 
-    match_stats = get_match_stats(profile["userId"], gamemode=gamemode)
+    match_stats = get_match_stats(profile["userId"], flags=ctx.flags)
     bot_encounters = [e for e in encounters if e["isBot"]]
     total_bot_encounters = sum([e["totalEncounters"] for e in bot_encounters])
     user_encounters = [e for e in encounters if not e["isBot"]]
     total_user_encounters = sum([e["totalEncounters"] for e in user_encounters])
     bot_wins = sum([e["wins"] for e in bot_encounters])
     user_wins = sum([e["wins"] for e in user_encounters])
+    user_win_rate = (user_wins / total_user_encounters) if total_user_encounters > 0 else 0
+    bot_win_rate = (bot_wins / total_bot_encounters) if total_bot_encounters > 0 else 0
 
     description = (
         f"**Total Matches:** {match_stats["totalMatches"]:,} | "
@@ -105,10 +105,10 @@ async def run(ctx: commands.Context, profile: dict, sort: str):
         f"({match_stats["matchWins"] / match_stats["totalMatches"]:.2%})\n"
         f"**User Encounters:** {total_user_encounters:,} | "
         f"**Wins:** {user_wins:,} "
-        f"({user_wins / total_user_encounters:.2%})\n"
+        f"({user_win_rate:.2%})\n"
         f"**Bot Encounters:** {total_bot_encounters:,} | "
         f"**Wins:** {bot_wins:,}    "
-        f"({bot_wins / total_bot_encounters:.2%})\n"
+        f"({bot_win_rate:.2%})\n"
         f"**Unique Opponents:** {len(user_encounters):,} users | {len(bot_encounters):,} bots\n\n"
         f"**Most Faced Users**\n"
     )
@@ -151,9 +151,10 @@ async def run(ctx: commands.Context, profile: dict, sort: str):
         footer = f"Minimum {min_threshold} encounters required"
 
     page = Page(
-        title="Multiplayer Encounters" + get_flag_title(ctx.flags),
+        title="Multiplayer Encounters",
         description=description,
         footer=footer,
+        flag_title=True,
     )
 
     message = Message(
@@ -165,16 +166,16 @@ async def run(ctx: commands.Context, profile: dict, sort: str):
     return await message.send()
 
 
-async def run_head_to_head(ctx: commands.Context, profile1: dict, profile2: dict):
+async def run_head_to_head(ctx: BotContext, profile1: dict, profile2: dict):
     gamemode = ctx.flags.gamemode
-    encounters = get_opponent_encounters(profile1["userId"], profile2["userId"], gamemode=gamemode)
+    encounters = get_opponent_encounters(profile1["userId"], profile2["userId"], flags=ctx.flags)
     quote_list = get_quotes()
     difficulties = [quote_list[en["quoteId"]]["difficulty"] for en in encounters]
     p1_finish_count = len([en for en in encounters if not en["userDnf"]])
     p2_finish_count = len([en for en in encounters if not en["opponentDnf"]])
 
     if not encounters:
-        raise GeneralException(
+        raise BotError(
             "No Encounters", (
                 f"No {gamemode or "multiplayer"} encounters found \n"
                 f"between `{profile1["username"]}` and `{profile2["username"]}`"
@@ -288,7 +289,7 @@ async def run_head_to_head(ctx: commands.Context, profile1: dict, profile2: dict
         )
 
     async def load_race_data(match: dict):
-        races = await get_races(match_id=match["matchId"], get_keystrokes=True)
+        races = await get_races(match_id=match["matchId"], get_keystrokes=True, flags=ctx.flags)
 
         race_data = []
         for profile, prefix in [
@@ -344,7 +345,8 @@ async def run_head_to_head(ctx: commands.Context, profile1: dict, profile2: dict
                 theme=ctx.user["theme"],
             ),
             button_name="Stats",
-            footer=f"🔵 {profile1["username"]} | 🟣 {profile2["username"]} | ⚫ Difficulty | 🔴 DNF"
+            footer=f"🔵 {profile1["username"]} | 🟣 {profile2["username"]} | ⚫ Difficulty | 🔴 DNF",
+            flag_title=True,
         )
     ]
 
@@ -381,6 +383,7 @@ async def run_head_to_head(ctx: commands.Context, profile1: dict, profile2: dict
                     theme=ctx.user["theme"],
                     themed_line=id,
                 ),
+                flag_title=True,
             ))
         except KeystrokeCodecError as e:
             pages.append(Page(
@@ -411,6 +414,7 @@ async def run_head_to_head(ctx: commands.Context, profile1: dict, profile2: dict
                     theme=ctx.user['theme'],
                     themed_line=themed_line,
                 ),
+                flag_title=True,
             ))
         except KeystrokeCodecError as e:
             pages.append(Page(

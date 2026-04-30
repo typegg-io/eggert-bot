@@ -2,6 +2,7 @@ import aiohttp
 from discord import Embed
 from discord.ext import commands
 
+from bot_setup import BotContext
 from commands.base import Command
 from utils.colors import ERROR
 from utils.errors import MissingArguments
@@ -9,7 +10,7 @@ from utils.errors import MissingArguments
 info = {
     "name": "define",
     "aliases": ["def"],
-    "description": "Displays the definition(s) of a word.",
+    "description": "Displays the definition(s) of a word.\n Uses https://dictionaryapi.dev/",
     "parameters": "[word]",
     "examples": [
         "-def typing",
@@ -18,12 +19,14 @@ info = {
 
 
 class Define(Command):
+    ignore_flags = True
+
     @commands.command(aliases=info["aliases"])
-    async def define(self, ctx, *words: str):
-        if not words:
+    async def define(self, ctx: BotContext):
+        if not ctx.raw_args:
             raise MissingArguments
 
-        word = words[0]
+        word = ctx.raw_args[0]
 
         try:
             async with aiohttp.ClientSession() as session:

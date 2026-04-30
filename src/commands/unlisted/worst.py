@@ -1,10 +1,9 @@
-from typing import Optional
-
 from discord.ext import commands
 
+from bot_setup import BotContext
 from commands.base import Command
-from commands.performance.best import run, metrics
-from utils.strings import get_argument
+from commands.performance.best import run
+from utils.errors import NotSubscribed
 
 info = {
     "name": "worst",
@@ -16,9 +15,12 @@ info = {
 
 
 class Worst(Command):
+    supported_flags = {"metric", "raw", "gamemode", "status", "language", "number_range"}
+
     @commands.command(aliases=info["aliases"])
-    async def worst(self, ctx, username: Optional[str] = "me", metric: Optional[str] = "pp"):
-        metric = get_argument(metrics, metric)
-        profile = await self.get_profile(ctx, username, races_required=True)
-        await self.import_user(ctx, profile)
-        await run(ctx, profile, metric, False)
+    async def worst(self, ctx: BotContext, username: str = None):
+        if ctx.flags.metric == "pp" and ctx.flags.raw and not ctx.user["isGgPlus"]:
+            raise NotSubscribed("raw pp stats")
+
+        profile = await self.get_profile(ctx, username)
+        await run(ctx, profile, ctx.flags.metric, reverse=False)

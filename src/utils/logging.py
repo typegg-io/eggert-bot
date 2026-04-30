@@ -40,7 +40,7 @@ def time_stop():
 
 # Message Formatting
 
-def get_log_message(message):
+def get_log_message(message, flags=None):
     """Format a Discord message into a log string with link, user info, and content."""
     message_link = "[DM]"
     if message.guild:
@@ -56,17 +56,17 @@ def get_log_message(message):
     content = message.content
 
     flag_parts = []
-    if hasattr(message, "flags"):
-        if message.flags.metric and message.flags.metric != "pp":
-            flag_parts.append(f"-{message.flags.metric}")
-        if message.flags.raw:
+    if flags:
+        if flags.metric and flags.metric != "pp":
+            flag_parts.append(f"-{flags.metric}")
+        if flags.raw:
             flag_parts.append("-raw")
-        if message.flags.gamemode:
-            flag_parts.append(f"-{message.flags.gamemode}")
-        if message.flags.status:
-            flag_parts.append(f"-{message.flags.status}")
-        if message.flags.language:
-            flag_parts.append(f"-{message.flags.language}")
+        if flags.gamemode:
+            flag_parts.append(f"-{flags.gamemode}")
+        if flags.status:
+            flag_parts.append(f"-{flags.status}")
+        if flags.language:
+            flag_parts.append(f"-{flags.language}")
 
     flags_str = " " + " ".join(flag_parts) if flag_parts else ""
 

@@ -1,5 +1,6 @@
 from discord.ext import commands
 
+from bot_setup import BotContext
 from commands.base import Command
 from commands.checks import is_bot_owner
 from tasks import daily_quote_results, daily_quote_ping, import_daily_quotes
@@ -14,9 +15,11 @@ info = {
 
 
 class RunDaily(Command):
+    ignore_flags = True
+
     @commands.command(aliases=info["aliases"])
     @is_bot_owner()
-    async def rundaily(self, ctx: commands.Context):
+    async def rundaily(self, ctx: BotContext):
         status = []
 
         try:

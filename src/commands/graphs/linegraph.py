@@ -1,16 +1,16 @@
 import bisect
-from typing import Optional
 
 from discord import File
 from discord.ext import commands
 
+from bot_setup import BotContext
 from commands.base import Command
 from database.typegg.races import get_races
 from graphs import line
-from utils.errors import GeneralException
+from utils.errors import BotError
 from utils.nwpm_model import calculate_nwpm, initialize_nwpm_model
 from utils.stats import calculate_quote_length
-from utils.strings import get_argument, get_flag_title
+from utils.strings import get_flag_title
 
 metrics = {
     "pp": {
@@ -75,32 +75,18 @@ info = {
 
 
 class LineGraph(Command):
+    supported_flags = {"metric", "raw", "gamemode", "status", "language"}
+
     @commands.command(aliases=info["aliases"])
-    async def linegraph(self, ctx, metric: Optional[str] = "pp", *user_args: Optional[str]):
+    async def linegraph(self, ctx: BotContext, *args: str):
         invoke = ctx.invoked_with.lower()
-        user_args = list(user_args)
-
-        if not get_argument(metrics.keys(), metric, _raise=False):
-            user_args = [metric] + user_args
-            metric = "pp"
-
-        if not user_args:
-            user_args = [ctx.user["userId"]]
+        params = self.extract_params(args, extract=metrics.keys())
+        metric = params.argument or ctx.flags.metric
 
         if invoke in metric_aliases:
-            metric = [*metrics.keys()][metric_aliases.index(invoke)]
-        else:
-            metric = get_argument(metrics.keys(), metric)
+            metric = list(metrics.keys())[metric_aliases.index(invoke)]
 
-        user_args = user_args[:max_users] or [ctx.user["userId"]]
-        usernames = set(user_args)
-        profiles = []
-
-        for username in usernames:
-            profile = await self.get_profile(ctx, username, races_required=True)
-            profiles.append(profile)
-            await self.import_user(ctx, profile)
-
+        profiles = await self.get_profiles(ctx, params.remaining, max_users)
         await run(ctx, metric, profiles)
 
 
@@ -209,7 +195,7 @@ def get_nwpm_over_time(race_list: list[dict]):
     return nwpm
 
 
-async def run(ctx: commands.Context, metric: str, profiles: list[dict]):
+async def run(ctx: BotContext, metric: str, profiles: list[dict]):
     if metric == "nwpm":
         await initialize_nwpm_model()
 
@@ -220,8 +206,6 @@ async def run(ctx: commands.Context, metric: str, profiles: list[dict]):
     for profile in profiles:
         columns = metrics[metric]["columns"].split(" ")
         columns.append("timestamp")
-        if metric in ["wpm", "quotes"]:
-            ctx.flags.status = ctx.flags.status or "ranked"
 
         race_list = await get_races(
             user_id=profile["userId"],
@@ -247,7 +231,11 @@ async def run(ctx: commands.Context, metric: str, profiles: list[dict]):
         elif metric == "nwpm":
             y_values = get_nwpm_over_time(race_list)
             if not y_values:
-                raise GeneralException("Not Enough Data", "User must have completed at least\n125 quotes for this graph")
+                raise BotError(
+                    "Not Enough Data",
+                    "User must have completed at least\n125 quotes for this graph",
+                    ctx.flags,
+                )
             x_values = x_values[-len(y_values):]
 
         lines.append({

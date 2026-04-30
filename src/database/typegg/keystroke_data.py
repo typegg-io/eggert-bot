@@ -31,18 +31,14 @@ def _decompress(row):
     return keystroke_data
 
 
-def get_keystroke_data(race_ids: list[str]):
-    """Get multiple keystroke data by race IDs, decompressed."""
-    if not race_ids:
-        return []
+def get_keystroke_data(race_id: str):
+    """Get keystroke data by race ID, decompressed."""
+    result = db.fetch_one(f"""
+        SELECT keystrokeData FROM keystroke_data
+        WHERE raceId = ?
+    """, [race_id])
 
-    placeholders = ",".join(["?"] * len(race_ids))
-    rows = db.fetch(f"""
-        SELECT raceId, keystrokeData, compressed FROM keystroke_data
-        WHERE raceId IN ({placeholders})
-    """, race_ids)
-
-    return {row["raceId"]: _decompress(row) for row in rows}
+    return json.loads(result["keystrokeData"])
 
 
 def delete_keystroke_data(user_id: str):

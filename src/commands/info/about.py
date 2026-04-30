@@ -1,5 +1,6 @@
 from discord.ext import commands
 
+from bot_setup import BotContext
 from commands.base import Command
 from config import KEEGAN
 from database.bot.users import get_admin_users
@@ -14,8 +15,10 @@ info = {
 
 
 class About(Command):
+    ignore_flags = True
+
     @commands.command(aliases=info["aliases"])
-    async def about(self, ctx):
+    async def about(self, ctx: BotContext):
         message = Message(ctx, Page(
             title="Eggert",
             description=(

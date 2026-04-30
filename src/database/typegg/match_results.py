@@ -1,4 +1,5 @@
 from database.typegg import db
+from utils.flags import Flags
 
 
 def match_result_insert(match_player):
@@ -29,15 +30,30 @@ def add_match_results(match_players):
     """, [match_result_insert(player) for player in match_players])
 
 
-def get_encounter_stats(user_id: str, gamemode: str = None):
+def get_encounter_stats(user_id: str, flags: Flags = None):
     """Get all opponents a user has faced in multiplayer matches with head-to-head stats."""
     conditions = ["userId = ?", "opponentUsername != ''"]
     params = [user_id]
 
-    if gamemode:
+    if flags.gamemode:
         conditions.append("gamemode = ?")
-        params.append(gamemode)
+        params.append(flags.gamemode)
 
+    join_clauses = []
+    if flags.status == "ranked":
+        join_clauses.append("JOIN quotes q ON q.quoteId = e.quoteId")
+        conditions.append("q.ranked = 1")
+    elif flags.status == "unranked":
+        join_clauses.append("JOIN quotes q ON q.quoteId = e.quoteId")
+        conditions.append("q.ranked = 0")
+
+    if flags.language:
+        if not join_clauses:
+            join_clauses.append("JOIN quotes q ON q.quoteId = e.quoteId")
+        conditions.append("q.language = ?")
+        params.append(flags.language.name)
+
+    join_clause = " ".join(join_clauses)
     where_clause = "WHERE " + " AND ".join(conditions)
 
     results = db.fetch(f"""
@@ -51,7 +67,8 @@ def get_encounter_stats(user_id: str, gamemode: str = None):
             AVG(CASE WHEN NOT userDnf THEN userWpm END) as userWpm,
             AVG(CASE WHEN NOT opponentDnf THEN opponentWpm END) as opponentWpm,
             MAX(timestamp) AS lastEncounter
-        FROM encounters
+        FROM encounters e
+        {join_clause}
         {where_clause}
         GROUP BY opponentId, opponentUsername
         ORDER BY totalEncounters DESC
@@ -60,40 +77,72 @@ def get_encounter_stats(user_id: str, gamemode: str = None):
     return results
 
 
-def get_match_stats(user_id: str, gamemode: str = None):
+def get_match_stats(user_id: str, flags: Flags = None):
     conditions = ["userId = ?"]
     params = [user_id]
 
-    if gamemode:
+    if flags.gamemode:
         conditions.append("gamemode = ?")
-        params.append(gamemode)
+        params.append(flags.gamemode)
 
+    join_clauses = []
+    if flags.status == "ranked":
+        join_clauses.append("JOIN quotes q ON q.quoteId = e.quoteId")
+        conditions.append("q.ranked = 1")
+    elif flags.status == "unranked":
+        join_clauses.append("JOIN quotes q ON q.quoteId = e.quoteId")
+        conditions.append("q.ranked = 0")
+
+    if flags.language:
+        if not join_clauses:
+            join_clauses.append("JOIN quotes q ON q.quoteId = e.quoteId")
+        conditions.append("q.language = ?")
+        params.append(flags.language.name)
+
+    join_clause = " ".join(join_clauses)
     where_clause = "WHERE " + " AND ".join(conditions)
 
     results = db.fetch_one(f"""
         SELECT
-            COUNT(DISTINCT matchId) AS totalMatches,
-            COUNT(DISTINCT CASE WHEN userPlacement = 1 THEN matchId END) AS matchWins
-        FROM encounters
+            COUNT(DISTINCT e.matchId) AS totalMatches,
+            COUNT(DISTINCT CASE WHEN userPlacement = 1 THEN e.matchId END) AS matchWins
+        FROM encounters e
+        {join_clause}
         {where_clause}
     """, params)
 
     return results
 
 
-def get_opponent_encounters(user_id: str, opponent_id: str, gamemode: str = None):
+def get_opponent_encounters(user_id: str, opponent_id: str, flags: Flags = None):
     """Get all finished encounters between two users."""
     conditions = ["userId = ?", "opponentId = ?"]
     params = [user_id, opponent_id]
 
-    if gamemode:
+    if flags.gamemode:
         conditions.append("gamemode = ?")
-        params.append(gamemode)
+        params.append(flags.gamemode)
 
+    join_clauses = []
+    if flags.status == "ranked":
+        join_clauses.append("JOIN quotes q ON q.quoteId = e.quoteId")
+        conditions.append("q.ranked = 1")
+    elif flags.status == "unranked":
+        join_clauses.append("JOIN quotes q ON q.quoteId = e.quoteId")
+        conditions.append("q.ranked = 0")
+
+    if flags.language:
+        if not join_clauses:
+            join_clauses.append("JOIN quotes q ON q.quoteId = e.quoteId")
+        conditions.append("q.language = ?")
+        params.append(flags.language.name)
+
+    join_clause = " ".join(join_clauses)
     where_clause = "WHERE " + " AND ".join(conditions)
 
     matches = db.fetch(f"""
-        SELECT * FROM encounters
+        SELECT * FROM encounters e
+        {join_clause}
         {where_clause}
         ORDER BY timestamp ASC
     """, params)

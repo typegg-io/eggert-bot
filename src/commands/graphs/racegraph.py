@@ -1,13 +1,12 @@
-from typing import Optional
-
 from discord.ext import commands
 
-from api.users import get_race
+from bot_setup import BotContext
 from commands.base import Command
 from config import DAILY_QUOTE_CHANNEL_ID
 from database.bot.recent_quotes import set_recent_quote
 from database.typegg.daily_quotes import get_daily_quote_id
 from database.typegg.quotes import get_quote
+from database.typegg.races import get_race
 from database.typegg.users import get_quote_bests
 from graphs import race as race_graph
 from utils.errors import NoQuoteRaces, DailyQuoteChannel
@@ -22,26 +21,28 @@ info = {
                    "Pass a quote ID to show the user's best race on that quote.",
     "parameters": "[username] [race_number/quote_id]",
     "examples": [
-        "-rg",
-        "-rg eiko",
-        "-rg eiko 1500",
-        "-rg eiko piykyai_3408",
+        "-r",
+        "-r eiko",
+        "-r eiko 1500",
+        "-r eiko piykyai_3408",
     ],
 }
 
 
 class RaceGraph(Command):
+    supported_flags = {"number", "quote_id"}
+
     @commands.command(aliases=info["aliases"])
     @usable_in(DAILY_QUOTE_CHANNEL_ID)
-    async def racegraph(self, ctx, username: Optional[str] = "me", race_identifier: Optional[str] = None):
-        profile = await self.get_profile(ctx, username, races_required=True)
-        await self.import_user(ctx, profile)
+    async def racegraph(self, ctx: BotContext, *args: str):
+        ctx.flags.status = None
+        profile = await self.get_profile(ctx, args[0] if args else None)
 
-        try:
-            race_number = await self.get_race_number(profile, race_identifier)
-        except Exception:
-            quote = await self.get_quote(ctx, race_identifier, profile["userId"])
-            quote_bests = get_quote_bests(profile["userId"], quote_id=quote["quoteId"])
+        if ctx.flags.number is not None:
+            race_number = await self.get_race_number(profile, ctx.flags.number)
+        else:
+            quote = await self.get_quote(ctx, ctx.flags.quote_id, profile["userId"])
+            quote_bests = get_quote_bests(profile["userId"], quote_id=quote["quoteId"], flags=ctx.flags)
             if not quote_bests:
                 raise NoQuoteRaces(profile["username"])
             race_number = quote_bests[0]["raceNumber"]
@@ -49,9 +50,10 @@ class RaceGraph(Command):
         await run(ctx, profile, race_number)
 
 
-async def run(ctx: commands.Context, profile: dict, race_number: int):
-    race = await get_race(profile["userId"], race_number, get_keystrokes=True)
+async def run(ctx: BotContext, profile: dict, race_number: int):
+    race = get_race(profile["userId"], race_number, get_keystrokes=True)
     quote = get_quote(race["quoteId"])
+    set_recent_quote(ctx.channel.id, race["quoteId"])
 
     if ctx.channel.id == DAILY_QUOTE_CHANNEL_ID:
         daily_quote_id = get_daily_quote_id()
@@ -59,7 +61,6 @@ async def run(ctx: commands.Context, profile: dict, race_number: int):
             raise DailyQuoteChannel
 
     keystroke_data = get_keystroke_data(race["keystrokeData"])
-    set_recent_quote(ctx.channel.id, race["quoteId"])
 
     description = (
         f"Completed {discord_date(race["timestamp"])}\n\n"

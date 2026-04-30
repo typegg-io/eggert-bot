@@ -1,14 +1,15 @@
 from discord.ext import commands
 
 from api.leaders import get_leaders, get_multiplayer_leaders
+from bot_setup import BotContext
 from commands.base import Command
 from database.typegg.daily_quotes import get_daily_rank_leaderboard
 from database.typegg.quotes import get_top_submitters, get_ranked_quote_count
 from database.typegg.users import get_quotes_over_leaderboard, get_user_lookup
 from utils import strings
-from utils.errors import GeneralException
+from utils.errors import BotError
 from utils.messages import Message, Page, paginate_data
-from utils.strings import get_argument, username_with_flag, rank, get_flag_title, LOADING, parse_number
+from utils.strings import get_argument, username_with_flag, rank, LOADING, parse_number
 
 categories = {
     # API leaderboards
@@ -54,7 +55,7 @@ categories = {
     },
     "quotes": {
         "sort": "quotesTyped",
-        "title": "Ranked Quotes Typed",
+        "title": "Quotes Typed",
         "formatter": lambda user: f"{user["stats"]["quotesTyped"]:,}"
     },
     "views": {
@@ -126,9 +127,33 @@ info = {
 
 
 class Leaderboard(Command):
+    supported_flags = {"metric", "gamemode", "number"}
+
     @commands.command(aliases=info["aliases"])
-    async def leaderboard(self, ctx, category: str = "pp", *args):
+    async def leaderboard(self, ctx: BotContext, category: str = "pp", *args):
+        if (
+            category == "pp"
+            and ctx.flags.gamemode == "quickplay"
+            and not ctx.explicit_flags.get("metric")
+        ):
+            category = "quickplay"
+            ctx.flags.gamemode = None
+
+        if category in ["quotesover", "qo"]:
+            return await run_custom(ctx, categories["quotesover"], (ctx.flags.number, ctx.flags.metric))
+
         category = get_argument(categories.keys(), category)
+
+        if ctx.explicit_flags.get("metric"):
+            category = ctx.explicit_flags["metric"].lstrip("-")
+
+        if is_statusless(category):
+            ctx.flags.status = None
+            if ctx.explicit_flags.get("gamemode"):
+                ctx.flags.gamemode = None
+                if category != "quickplay":
+                    await ctx.send(f"-# :warning: `{ctx.explicit_flags["gamemode"]}` has no effect on this command")
+
         category_info = categories[category]
 
         if category_info.get("multiplayer"):
@@ -145,16 +170,23 @@ def entry_formatter(data):
     return f"{rank(data["rank"])} {bold}{username_with_flag(data)} - {data["category"]["formatter"](data)}{bold}\n"
 
 
-async def run(ctx: commands.Context, category: dict):
+def is_statusless(leaderboard: str):
+    """Returns whether a leaderboard is not based on quote status (ranked/unranked)."""
+    return leaderboard in [
+        "wins", "level", "nwpm", "views",
+        "daily", "streak", "dailyquotes", "quickplay",
+        "dailywins", "dailyseconds", "dailytoptens",
+    ]
+
+
+async def run(ctx: BotContext, category: dict):
     gamemode = ctx.flags.gamemode or "any"
     title = f"{category["title"]} Leaderboard"
-
-    if category["sort"] not in ["wins", "level", "nWpm", "profileViews"]:
-        title += get_flag_title(ctx.flags)
 
     skeleton_page = Page(
         title=title,
         description="\n".join(f"{rank(i + 1)} {LOADING}" for i in range(20)),
+        flag_title=True,
     )
     message = Message(ctx, page=skeleton_page)
     message.timeout = 60
@@ -183,7 +215,7 @@ async def run(ctx: commands.Context, category: dict):
     pages = paginate_data(leaderboard, entry_formatter, page_count=5, per_page=20)
 
     footer = None
-    if category["sort"] == "quotesTyped":
+    if category["sort"] == "quotesTyped" and gamemode == "any":
         quote_count = get_ranked_quote_count()
         footer = f"{quote_count:,} Total Quotes"
 
@@ -197,21 +229,22 @@ async def run(ctx: commands.Context, category: dict):
     await message.edit()
 
 
-async def run_custom(ctx: commands.Context, category: dict, args: tuple = ()):
+async def run_custom(ctx: BotContext, category: dict, args: tuple = ()):
     """Displays a custom leaderboard generated from the database."""
     title = f"{category["title"]} Leaderboard"
 
     if category["title"] == "Quotes Over":
-        if not args:
-            raise GeneralException("Missing threshold", "Usage: `-lb qo <threshold> [metric]`")
+        if args[0] is None:
+            raise BotError("Missing Threshold", "Usage: `-lb qo <threshold> [metric]`")
 
         threshold = parse_number(args[0])
         metric = get_argument(["pp", "wpm"], args[1] if len(args) > 1 else "wpm")
-        title = f"Quotes Over {threshold:,} {"WPM" if metric == "wpm" else "pp"} Leaderboard" + get_flag_title(ctx.flags)
+        title = f"Quotes Over {threshold:,} {"WPM" if metric == "wpm" else "pp"} Leaderboard"
 
     skeleton_page = Page(
         title=title,
         description="\n".join(f"{rank(i + 1)} {LOADING}" for i in range(20)),
+        flag_title=True,
     )
     message = Message(ctx, page=skeleton_page)
     message.timeout = 60
@@ -227,8 +260,6 @@ async def run_custom(ctx: commands.Context, category: dict, args: tuple = ()):
         pages = paginate_data(leaderboard, formatter, page_count=5, per_page=20)
 
     elif category["title"] == "Quotes Over":
-        ctx.flags.status = ctx.flags.status or "ranked"
-
         leaderboard_data = get_quotes_over_leaderboard(
             threshold=threshold,
             metric=metric,
@@ -240,7 +271,7 @@ async def run_custom(ctx: commands.Context, category: dict, args: tuple = ()):
             await initial_send
 
             message.title = title
-            message.pages = [Page(description="No users above this threshold.", )]
+            message.pages = [Page(description="No users above this threshold.", flag_title=True)]
 
             return await message.edit()
 
@@ -295,11 +326,12 @@ async def run_custom(ctx: commands.Context, category: dict, args: tuple = ()):
     await message.edit()
 
 
-async def run_multiplayer(ctx: commands.Context, category: dict):
+async def run_multiplayer(ctx: BotContext, category: dict):
     title = f"{category["title"]} Leaderboard"
     skeleton_page = Page(
         title=title,
         description="\n".join(f"{rank(i + 1)} {LOADING}" for i in range(20)),
+        flag_title=True,
     )
     message = Message(ctx, page=skeleton_page)
     message.timeout = 60

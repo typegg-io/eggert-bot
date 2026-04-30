@@ -1,8 +1,7 @@
-from typing import Optional
-
 import numpy as np
 from discord.ext import commands
 
+from bot_setup import BotContext
 from commands.base import Command
 from database.typegg.quotes import get_quotes
 from database.typegg.races import get_races
@@ -10,7 +9,6 @@ from graphs import improvement
 from utils.colors import ERROR
 from utils.dates import parse_date
 from utils.messages import Page, Message, Field
-from utils.strings import get_argument
 
 metrics = ["pp", "wpm"]
 info = {
@@ -28,18 +26,21 @@ info = {
 
 
 class Improvement(Command):
+    supported_flags = {"metric", "raw", "status", "language"}
+
     @commands.command(aliases=info["aliases"])
-    async def improvement(self, ctx, username: Optional[str] = "me", metric: Optional[str] = None):
+    async def improvement(self, ctx: BotContext, *args: str):
         solo = ctx.invoked_with == "simp"
+        metric = "pp" if solo else "wpm"
 
-        if metric is None:
-            metric = "pp" if solo else "wpm"
+        if ctx.explicit_flags.get("metric"):  # Overriding default metric
+            metric = ctx.explicit_flags["metric"].lstrip("-")
 
-        metric = get_argument(metrics, metric)
-        profile = await self.get_profile(ctx, username, races_required=True)
-        await self.import_user(ctx, profile)
+        if ctx.flags.status != "ranked":  # Unranked quotes are 0 pp
+            metric = "wpm"
 
-        ctx.flags.status = ctx.flags.status or "ranked"
+        username = args[0] if args else None
+        profile = await self.get_profile(ctx, username)
 
         if solo:
             await solo_improvement(ctx, profile, metric)
@@ -52,7 +53,7 @@ def get_window_size(n: int, min_n: int = 25, max_n: int = 500):
     return window_size if window_size < n else 1
 
 
-async def multiplayer_improvement(ctx: commands.Context, profile: dict, metric: str):
+async def multiplayer_improvement(ctx: BotContext, profile: dict, metric: str):
     ctx.flags.gamemode = "quickplay"
     race_list = await get_races(
         user_id=profile["userId"],
@@ -143,7 +144,7 @@ async def multiplayer_improvement(ctx: commands.Context, profile: dict, metric: 
 
     message = Message(
         ctx,
-        title=f"Quickplay - {metric} Improvement",
+        title=f"{metric} Improvement",
         header=description,
         pages=[
             Page(
@@ -157,6 +158,7 @@ async def multiplayer_improvement(ctx: commands.Context, profile: dict, metric: 
                     window_size=window,
                     dnf_indices=dnf_indices,
                 ),
+                flag_title=True,
             ),
             Page(
                 fields=fields,
@@ -169,6 +171,7 @@ async def multiplayer_improvement(ctx: commands.Context, profile: dict, metric: 
                     window_size=window,
                     dnf_indices=dnf_indices,
                 ),
+                flag_title=True,
             ),
         ],
         profile=profile,
@@ -177,7 +180,7 @@ async def multiplayer_improvement(ctx: commands.Context, profile: dict, metric: 
     await message.send()
 
 
-async def solo_improvement(ctx: commands.Context, profile: dict, metric: str):
+async def solo_improvement(ctx: BotContext, profile: dict, metric: str):
     ctx.flags.gamemode = "solo"
     race_list = await get_races(
         user_id=profile["userId"],
@@ -223,7 +226,7 @@ async def solo_improvement(ctx: commands.Context, profile: dict, metric: str):
 
     message = Message(
         ctx,
-        title=f"Solo PBs - {metric} Improvement",
+        title=f"{metric} PB Improvement",
         header=description,
         pages=[
             Page(
@@ -235,6 +238,7 @@ async def solo_improvement(ctx: commands.Context, profile: dict, metric: str):
                     theme=ctx.user["theme"],
                     window_size=window,
                 ),
+                flag_title=True,
             ),
             Page(
                 button_name="Over Time",
@@ -244,7 +248,8 @@ async def solo_improvement(ctx: commands.Context, profile: dict, metric: str):
                     theme=ctx.user["theme"],
                     dates=dates,
                     window_size=window,
-                )
+                ),
+                flag_title=True,
             )
         ],
         profile=profile,

@@ -1,5 +1,6 @@
 from discord.ext import commands
 
+from bot_setup import BotContext
 from commands.base import Command
 from utils.messages import Page, Message
 from utils.strings import rank, discord_date, quote_display, username_with_flag
@@ -17,13 +18,15 @@ info = {
 
 
 class QuoteLeaderboard(Command):
+    supported_flags = {"quote_id"}
+
     @commands.command(aliases=info["aliases"])
-    async def quoteleaderboard(self, ctx: commands.Context, *, quote_id: str):
-        quote = await self.get_quote(ctx, quote_id, from_api=True)
+    async def quoteleaderboard(self, ctx: BotContext):
+        quote = await self.get_quote(ctx, ctx.flags.quote_id, from_api=True)
         await run(ctx, quote)
 
 
-async def run(ctx: commands.Context, quote: dict):
+async def run(ctx: BotContext, quote: dict):
     description = quote_display(
         quote,
         display_author=True,

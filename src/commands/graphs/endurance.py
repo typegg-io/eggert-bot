@@ -3,6 +3,7 @@ from typing import List
 from discord import File
 from discord.ext import commands
 
+from bot_setup import BotContext
 from commands.base import Command
 from database.typegg.users import get_running_maximum_by_length
 from graphs.endurance import UserEnduranceData, render
@@ -27,20 +28,12 @@ info = {
 
 class Endurance(Command):
     @commands.command(aliases=info["aliases"])
-    async def endurance(self, ctx, *other_users: str):
-        other_users = list(dict.fromkeys(other_users))  # Deduplicate & maintain order
-        usernames = other_users[:max_users] or [ctx.user["userId"]]
-        profiles = []
-
-        for username in usernames:
-            profile = await self.get_profile(ctx, username, races_required=True)
-            profiles.append(profile)
-            await self.import_user(ctx, profile)
-
+    async def endurance(self, ctx: BotContext, *args: str):
+        profiles = await self.get_profiles(ctx, args, max_users)
         await run(ctx, profiles)
 
 
-async def run(ctx: commands.Context, profiles: List[dict]):
+async def run(ctx: BotContext, profiles: List[dict]):
     data = []
 
     for profile in profiles:

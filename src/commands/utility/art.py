@@ -1,14 +1,14 @@
 import re
 import shlex
 from difflib import get_close_matches
-from typing import Optional
 
 from discord.ext import commands
 
+from bot_setup import BotContext
 from commands.base import Command
 from database.bot import art as art_db
 from database.bot.users import get_user
-from utils.errors import GeneralException, MissingArguments
+from utils.errors import BotError, MissingArguments
 from utils.logging import ADMIN_ALIASES
 from utils.messages import Page, Message, paginate_data
 from utils.strings import discord_date
@@ -39,8 +39,11 @@ info = {
 
 
 class Art(Command):
+    ignore_flags = True
+
     @commands.command(aliases=info["aliases"])
-    async def art(self, ctx, *, args: Optional[str] = None):
+    async def art(self, ctx: BotContext):
+        args = " ".join(ctx.raw_args)
         if not args:
             await show_random_art(ctx)
             return
@@ -72,7 +75,7 @@ class Art(Command):
             await show_art_by_title(ctx, args)
 
 
-async def show_random_art(ctx: commands.Context):
+async def show_random_art(ctx: BotContext):
     """Display a random piece of art."""
     art = art_db.get_random_art()
 
@@ -90,10 +93,10 @@ async def show_random_art(ctx: commands.Context):
     await display_art(ctx, art)
 
 
-async def add_art(ctx: commands.Context, args: str):
+async def add_art(ctx: BotContext, args: str):
     """Add a new piece of art."""
     if not ctx.message.attachments:
-        raise GeneralException(
+        raise BotError(
             "No Image Attached",
             "Please attach an image to your message.\n"
             "Usage: `-art add <title>` with an image attached"
@@ -103,13 +106,13 @@ async def add_art(ctx: commands.Context, args: str):
     title = args.strip()
 
     if len(title) > 100:
-        raise GeneralException(
+        raise BotError(
             "Title Too Long",
             "Title must be 100 characters or less."
         )
 
     if art_db.art_exists(title):
-        raise GeneralException(
+        raise BotError(
             "Title Already Exists",
             "Please choose a different title."
         )
@@ -128,7 +131,7 @@ async def add_art(ctx: commands.Context, args: str):
     await message.send()
 
 
-async def show_art_by_title(ctx: commands.Context, title: str):
+async def show_art_by_title(ctx: BotContext, title: str):
     """Show a specific piece of art by title (with fuzzy matching)."""
     art = art_db.get_art_by_title(title)
 
@@ -150,7 +153,7 @@ async def show_art_by_title(ctx: commands.Context, title: str):
     await display_art(ctx, art)
 
 
-async def list_art(ctx: commands.Context, author_id: str = None):
+async def list_art(ctx: BotContext, author_id: str = None):
     """Display a list of all art in the gallery, optionally filtered by author."""
     if author_id:
         all_art = art_db.get_art_by_author(author_id)
@@ -176,7 +179,7 @@ async def list_art(ctx: commands.Context, author_id: str = None):
         message = Message(ctx, page=page)
         return await message.send()
 
-    pages = paginate_data(all_art, formatter, page_count=999, per_page=20)
+    pages = paginate_data(all_art, formatter, page_count=999, per_page=20, flag_title=False)
 
     message = Message(
         ctx,
@@ -188,7 +191,7 @@ async def list_art(ctx: commands.Context, author_id: str = None):
     await message.send()
 
 
-async def display_art(ctx: commands.Context, art: dict):
+async def display_art(ctx: BotContext, art: dict):
     """Display a single piece of art."""
     page = Page(
         title=art["title"],
@@ -203,30 +206,30 @@ async def display_art(ctx: commands.Context, art: dict):
     await message.send()
 
 
-async def rename_art_command(ctx: commands.Context, args: str):
+async def rename_art_command(ctx: BotContext, args: str):
     """Rename an existing piece of art (admins or the original artist)."""
     try:
         tokens = shlex.split(args)
     except ValueError:
-        raise GeneralException("Invalid Arguments", 'Usage: `-art rename "old title" "new title"`')
+        raise BotError("Invalid Arguments", 'Usage: `-art rename "old title" "new title"`')
 
     if len(tokens) < 2:
-        raise GeneralException("Invalid Arguments", 'Usage: `-art rename "old title" "new title"`')
+        raise BotError("Invalid Arguments", 'Usage: `-art rename "old title" "new title"`')
 
     old_title, new_title = tokens[0], tokens[1]
     art = art_db.get_art_by_title(old_title)
 
     if not art:
-        raise GeneralException("Art Not Found", "No art found with that title.")
+        raise BotError("Art Not Found", "No art found with that title.")
 
     is_admin = ctx.author.id in ADMIN_ALIASES.keys()
     is_author = str(ctx.author.id) == art["author_id"]
 
     if not is_admin and not is_author:
-        raise GeneralException("Permission Denied", "You can only rename your own art.")
+        raise BotError("Permission Denied", "You can only rename your own art.")
 
     if art_db.get_art_by_title(new_title):
-        raise GeneralException("Title Already Exists", "Please choose a different title.")
+        raise BotError("Title Already Exists", "Please choose a different title.")
 
     art_db.rename_art(old_title, new_title)
 
@@ -239,10 +242,10 @@ async def rename_art_command(ctx: commands.Context, args: str):
     await message.send()
 
 
-async def update_art_command(ctx: commands.Context, title: str):
+async def update_art_command(ctx: BotContext, title: str):
     """Replace the image of an existing piece of art (admins or the original artist)."""
     if not ctx.message.attachments:
-        raise GeneralException(
+        raise BotError(
             "No Image Attached",
             "Please attach a new image to your message."
         )
@@ -250,7 +253,7 @@ async def update_art_command(ctx: commands.Context, title: str):
     art = art_db.get_art_by_title(title)
 
     if not art:
-        raise GeneralException(
+        raise BotError(
             "Art Not Found",
             "No art found with this title."
         )
@@ -259,7 +262,7 @@ async def update_art_command(ctx: commands.Context, title: str):
     is_author = str(ctx.author.id) == art["author_id"]
 
     if not is_admin and not is_author:
-        raise GeneralException(
+        raise BotError(
             "Permission Denied",
             "You can only update your own art."
         )
@@ -275,12 +278,12 @@ async def update_art_command(ctx: commands.Context, title: str):
     await message.send()
 
 
-async def delete_art_command(ctx: commands.Context, title: str):
+async def delete_art_command(ctx: BotContext, title: str):
     """Delete a piece of art (admins or the original artist)."""
     art = art_db.get_art_by_title(title)
 
     if not art:
-        raise GeneralException(
+        raise BotError(
             "Art Not Found",
             "No art found with this title."
         )
@@ -289,7 +292,7 @@ async def delete_art_command(ctx: commands.Context, title: str):
     is_author = str(ctx.author.id) == art["author_id"]
 
     if not is_admin and not is_author:
-        raise GeneralException(
+        raise BotError(
             "Permission Denied",
             "You can only delete your own art."
         )

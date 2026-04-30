@@ -1,7 +1,6 @@
-from typing import Optional
-
 from discord.ext import commands
 
+from bot_setup import BotContext
 from commands.base import Command
 from database.bot.users import get_command_usage_by_user, get_top_users_by_command_usage, get_all_command_usage, get_command_usage
 from utils.errors import UnknownCommand, BotUserNotFound, UserNotAdmin
@@ -22,8 +21,11 @@ info = {
 
 
 class CommandLeaderboard(Command):
+    ignore_flags = True
+
     @commands.command(aliases=info["aliases"])
-    async def commandleaderboard(self, ctx: commands.Context, arg: Optional[str] = None):
+    async def commandleaderboard(self, ctx: BotContext):
+        arg = " ".join(ctx.raw_args)
         if not arg:
             return await user_command_leaderboard(ctx, ctx.author.id)
 
@@ -52,7 +54,7 @@ class CommandLeaderboard(Command):
                 raise UnknownCommand
 
 
-async def command_leaderboard(ctx: commands.Context, command_name: str):
+async def command_leaderboard(ctx: BotContext, command_name: str):
     """Display a leaderboard of users by usage count for a given command."""
     all_commands = get_command_usage_by_user()
 
@@ -99,7 +101,7 @@ def format_command_leaderboard(command_usage: dict, discord_id: int | str):
     return description, total_usages
 
 
-async def user_command_leaderboard(ctx: commands.Context, discord_id: int | str):
+async def user_command_leaderboard(ctx: BotContext, discord_id: int | str):
     """Display a leaderboard of command usage count by user, or overall."""
     if discord_id == "users":
         title = "Top Command Users"

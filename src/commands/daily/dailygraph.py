@@ -1,6 +1,7 @@
 from discord.ext import commands
 
 from api.daily_quotes import get_daily_quote
+from bot_setup import BotContext
 from commands.base import Command
 from commands.daily.dailyleaderboard import daily_quote_display
 from config import DAILY_QUOTE_CHANNEL_ID
@@ -8,7 +9,7 @@ from database.bot.recent_quotes import set_recent_quote
 from database.typegg.quotes import get_quote
 from graphs import daily as daily_graph
 from utils.dates import parse_date, format_date
-from utils.errors import GeneralException
+from utils.errors import BotError
 from utils.keystrokes import get_keystroke_data
 from utils.messages import Page, Message, usable_in
 from utils.urls import race_url
@@ -28,27 +29,26 @@ info = {
 
 
 class DailyGraph(Command):
+    supported_flags = {"number", "date"}
+
     @commands.command(aliases=info["aliases"])
     @usable_in(DAILY_QUOTE_CHANNEL_ID)
-    async def dailygraph(self, ctx: commands.Context, *args: str):
-        arg = "".join(args)
+    async def dailygraph(self, ctx: BotContext):
         try:
-            number = int(arg)
-            daily_quote = await get_daily_quote(number=number, results=100, get_keystrokes=True)
-        except ValueError:
-            date = parse_date("".join(args))
-            daily_quote = await get_daily_quote(date.strftime("%Y-%m-%d"), results=100, get_keystrokes=True)
+            daily_quote = await get_daily_quote(number=int(ctx.flags.number), results=100, get_keystrokes=True)
+        except TypeError:
+            daily_quote = await get_daily_quote(ctx.flags.date.strftime("%Y-%m-%d"), results=100, get_keystrokes=True)
 
         await run(ctx, daily_quote)
 
 
-async def run(ctx: commands.Context, daily_quote: dict):
+async def run(ctx: BotContext, daily_quote: dict):
     quote = get_quote(daily_quote["quote"]["quoteId"])
     set_recent_quote(ctx.channel.id, quote["quoteId"])
     leaderboard = daily_quote.get("leaderboard") or []
 
     if not leaderboard:
-        raise GeneralException("No Results", "No daily scores to display")
+        raise BotError("No Results", "No daily scores to display")
 
     def build_score_list(entries):
         scores = []

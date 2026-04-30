@@ -1,13 +1,12 @@
-from typing import Optional
-
 from discord.ext import commands
 
+from bot_setup import BotContext
 from commands.base import Command
 from database.typegg.quotes import get_quotes
 from database.typegg.races import get_races
 from utils.errors import NumberGreaterThan
 from utils.messages import Message, Field, Page
-from utils.strings import get_flag_title, format_duration
+from utils.strings import format_duration
 
 info = {
     "name": "average",
@@ -23,15 +22,17 @@ info = {
 
 
 class Average(Command):
+    supported_flags = {"gamemode", "status", "language", "number"}
+
     @commands.command(aliases=info["aliases"])
-    async def average(self, ctx, username: Optional[str] = "me", n: Optional[int] = 25):
-        profile = await self.get_profile(ctx, username)
-        await self.import_user(ctx, profile)
+    async def average(self, ctx: BotContext, *args: str):
+        n = int(abs(ctx.flags.number)) if ctx.flags.number is not None else 25
+        profile = await self.get_profile(ctx, args[0] if args else None)
 
         await run(ctx, profile, n)
 
 
-async def run(ctx: commands.Context, profile: dict, n: int):
+async def run(ctx: BotContext, profile: dict, n: int):
     if n < 1:
         raise NumberGreaterThan
 
@@ -73,7 +74,7 @@ async def run(ctx: commands.Context, profile: dict, n: int):
             stats[key] /= (n - dnf_count)
 
     page = Page(
-        title=f"Average Stats - Last {n:,} Races" + get_flag_title(ctx.flags),
+        title=f"Average Stats - Last {n:,} Races",
         fields=[
             Field(
                 title="Stats",
@@ -97,7 +98,8 @@ async def run(ctx: commands.Context, profile: dict, n: int):
                 ),
                 inline=True,
             )
-        ]
+        ],
+        flag_title=True,
     )
 
     message = Message(

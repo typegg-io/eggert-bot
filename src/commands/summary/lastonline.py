@@ -1,7 +1,6 @@
-from typing import Optional
-
 from discord.ext import commands
 
+from bot_setup import BotContext
 from commands.base import Command
 from utils.dates import parse_date, now
 from utils.messages import Page, Message
@@ -10,7 +9,7 @@ from utils.strings import discord_date, format_duration
 info = {
     "name": "lastonline",
     "aliases": ["lo"],
-    "description": "Displays when a user last completed a race.",
+    "description": "Displays when a user was last active on their account.",
     "parameters": "[username]",
     "examples": [
         "-lo",
@@ -21,7 +20,7 @@ info = {
 
 class LastOnline(Command):
     @commands.command(aliases=info["aliases"])
-    async def lastonline(self, ctx, username: Optional[str] = "me"):
+    async def lastonline(self, ctx: BotContext, username: str = None):
         profile = await self.get_profile(ctx, username)
         last_online = parse_date(profile["lastSeen"]).timestamp()
         duration = now().timestamp() - last_online

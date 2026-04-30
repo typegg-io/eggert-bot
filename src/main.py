@@ -1,9 +1,8 @@
 import asyncio
 
 import discord
-from discord.ext import commands
 
-from bot_setup import load_commands, register_bot_checks
+from bot_setup import load_commands, register_bot_checks, Eggert
 from config import BOT_PREFIX, BOT_TOKEN, STAGING
 from utils.files import clear_image_cache
 from utils.logging import log
@@ -14,7 +13,7 @@ intents.message_content = True
 intents.members = True
 intents.guilds = True
 
-bot = commands.Bot(
+bot = Eggert(
     command_prefix=BOT_PREFIX,
     case_insensitive=True,
     intents=intents,

@@ -1,7 +1,6 @@
-from typing import Optional
-
 from discord.ext import commands
 
+from bot_setup import BotContext
 from commands.base import Command
 from utils.colors import DEFAULT, PLUS
 from utils.dates import format_date, parse_date, now
@@ -23,12 +22,12 @@ info = {
 
 class Stats(Command):
     @commands.command(aliases=info["aliases"])
-    async def stats(self, ctx, username: Optional[str] = "me"):
+    async def stats(self, ctx: BotContext, username: str = None):
         profile = await self.get_profile(ctx, username, races_required=False)
         await run(ctx, profile)
 
 
-async def run(ctx: commands.Context, profile: dict):
+async def run(ctx: BotContext, profile: dict):
     join_date = parse_date(profile["joinDate"])
     today = now()
     is_anniversary = join_date.month == today.month and join_date.day == today.day

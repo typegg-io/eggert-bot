@@ -1,12 +1,12 @@
 import copy
-from typing import Optional
 
 from dateutil import parser
 from discord.ext import commands
 
+from bot_setup import BotContext
 from commands.base import Command
 from commands.graphs.segments import build_segments, format_segment
-from database.typegg.races import get_races
+from database.typegg.races import get_races, get_race
 from graphs import match as match_graph
 from graphs import segments as segment_graph
 from utils.errors import NoQuoteRaces, InvalidKeystrokeData
@@ -18,7 +18,7 @@ from utils.strings import get_segments, quote_display
 info = {
     "name": "sumofbest",
     "aliases": ["sob", ":sob:", "😭"],
-    "description": "Displays a theoretical best race by combining your fastest segment times.\n"
+    "description": "Displays a theoretical best race by combining your fastest segments.\n"
                    "Pass a quote ID to view a specific quote.",
     "parameters": "[quote_id] [username]",
     "examples": [
@@ -30,18 +30,33 @@ info = {
 
 
 class SumOfBest(Command):
+    supported_flags = {"gamemode", "number", "quote_id"}
+
     @commands.command(aliases=info["aliases"])
-    async def sumofbest(self, ctx, quote_id: Optional[str], username: Optional[str] = "me"):
+    async def sumofbest(self, ctx: BotContext, *args: str):
         self.check_gg_plus(ctx)
-        profile = await self.get_profile(ctx, username, races_required=True)
-        await self.import_user(ctx, profile)
-        quote = await self.get_quote(ctx, quote_id, user_id=profile["userId"])
+
+        ctx.flags.status = None
+        profile = await self.get_profile(ctx, args[0] if args else None)
+
+        if ctx.flags.number is not None:
+            race_number = await self.get_race_number(profile, ctx.flags.number)
+            race = get_race(profile["userId"], race_number)
+            quote = await self.get_quote(ctx, race["quoteId"])
+        else:
+            quote = await self.get_quote(ctx, ctx.flags.quote_id, profile["userId"])
 
         await run(ctx, profile, quote)
 
 
-async def run(ctx: commands.Context, profile: dict, quote: dict):
-    quote_races = await get_races(profile["userId"], quote_id=quote["quoteId"], order_by="rawWpm", get_keystrokes=True)
+async def run(ctx: BotContext, profile: dict, quote: dict):
+    quote_races = await get_races(
+        profile["userId"],
+        quote_id=quote["quoteId"],
+        order_by="rawWpm",
+        get_keystrokes=True,
+        flags=ctx.flags,
+    )
     if not quote_races:
         raise NoQuoteRaces(profile["username"])
 
@@ -76,7 +91,7 @@ async def run(ctx: commands.Context, profile: dict, quote: dict):
 
     delays = [delay for segment in sum_of_best_segments for delay in segment["delays"]]
     sum_of_best_wpm = calculate_wpm(len(quote["text"]) - 1, sum(delays))
-    sum_of_best_pp = sum_of_best_wpm * pp_ratio
+    sum_of_best_pp = sum_of_best_wpm * pp_ratio  # no longer accurate because of non-linear pp
     sum_of_best_keystroke_wpm = get_keystroke_wpm(delays)
 
     unique_races = set()
@@ -125,6 +140,7 @@ async def run(ctx: commands.Context, profile: dict, quote: dict):
             theme=ctx.user["theme"],
         ),
         button_name="Segments",
+        flag_title=True,
     )
 
     race_page = Page(
@@ -138,7 +154,8 @@ async def run(ctx: commands.Context, profile: dict, quote: dict):
             title=f"Race Graph - {profile["username"]} (Sum of Best)",
             theme=ctx.user["theme"],
         ),
-        button_name="Race Graph"
+        button_name="Race Graph",
+        flag_title=True,
     )
 
     message = Message(

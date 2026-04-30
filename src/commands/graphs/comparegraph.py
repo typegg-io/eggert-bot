@@ -3,13 +3,14 @@ from collections import defaultdict
 
 from discord.ext import commands
 
+from bot_setup import BotContext
 from commands.base import Command
 from database.typegg.quotes import get_quotes
 from database.typegg.users import get_quote_bests
 from graphs import compare_histogram, compare_bar
-from utils.errors import NoCommonTexts, SameUsername, InvalidRange, InvalidArgument
+from utils.errors import SameUsername, MissingArguments, BotError
 from utils.messages import Page, Message, Field
-from utils.strings import username_with_flag, get_flag_title
+from utils.strings import username_with_flag
 from utils.urls import compare_url
 
 metrics = ["pp", "wpm"]
@@ -18,62 +19,46 @@ info = {
     "aliases": ["cg", "flaneur"],
     "description": "Compares quote best scores between two users across difficulty levels.\n"
                    "Pass a difficulty range (e.g. `3-5`) for a detailed head-to-head in that range.",
-    "parameters": "<username1> [username2] [difficulty_range] [wpm|pp]",
+    "parameters": "[username1] [username2] [difficulty_range]",
     "examples": [
         "-cg eiko",
-        "-cg joshu wpm",
+        "-cg eiko keegan",
         "-cg eiko keegan 3-5",
     ],
 }
 
 
 class CompareGraph(Command):
+    supported_flags = {"metric", "raw", "gamemode", "status", "language", "number_range"}
+
     @commands.command(aliases=info["aliases"])
-    async def comparegraph(self, ctx, username1: str, *args: str):
-        username2 = "me"
-        diff_range = None
-        metric = None
-        ctx.flags.status = ctx.flags.status or "ranked"
+    async def comparegraph(self, ctx: BotContext, *args: str):
+        if not args:
+            raise MissingArguments
 
-        remaining_args = list(args)
-        if remaining_args:
-            second_arg = remaining_args[0]
-            if "-" not in second_arg and second_arg not in metrics:
-                username2 = second_arg
-                remaining_args = remaining_args[1:]
+        args = list(args)
+        if len(args) == 1:
+            args = [ctx.user["userId"]] + args
 
-        for arg in remaining_args:
-            if "-" in arg and diff_range is None:
-                try:
-                    low, high = map(float, arg.split("-", 1))
-                    if low == high:
-                        raise ValueError
-                    diff_range = (min(low, high), max(low, high))
-                    continue
-                except ValueError:
-                    raise InvalidRange
-
-            if arg in metrics and metric is None:
-                metric = arg
-                continue
-
-            raise InvalidArgument(metrics)
-
-        metric = metric or "wpm"
-        username1, username2 = self.get_usernames(ctx, username1, username2)
-        profile1 = await self.get_profile(ctx, username1, races_required=True)
-        profile2 = await self.get_profile(ctx, username2, races_required=True)
-
-        if profile1["username"] == profile2["username"]:
+        profiles = await self.get_profiles(ctx, args, max_users=2)
+        if len(profiles) < 2:
             raise SameUsername
+        profile1, profile2 = profiles[0], profiles[1]
 
-        await self.import_user(ctx, profile1)
-        await self.import_user(ctx, profile2)
-
-        if diff_range:
-            await comparegraph_ranged(ctx, profile1, profile2, diff_range[0], diff_range[1], metric)
+        if ctx.flags.number_range:
+            min_diff, max_diff = ctx.flags.number_range
+            await comparegraph_ranged(ctx, profile1, profile2, min_diff, max_diff, ctx.flags.metric)
         else:
             await comparegraph_main(ctx, profile1, profile2)
+
+
+class NoCommonTexts(BotError):
+    def __init__(self, flags=None):
+        super().__init__(
+            "No Common Texts",
+            "Users do not have any texts in common",
+            flags
+        )
 
 
 def difficulty_range(lower, upper):
@@ -104,7 +89,7 @@ def max_positive_subarray_sum(buckets, diffs):
     return max_sum, buckets[best_start], buckets[best_end]
 
 
-async def comparegraph_main(ctx: commands.Context, profile1: dict, profile2):
+async def comparegraph_main(ctx: BotContext, profile1: dict, profile2):
     quotes = get_quotes()
     quote_bests1 = get_quote_bests(profile1["userId"], as_dictionary=True, flags=ctx.flags)
     quote_bests2 = get_quote_bests(profile2["userId"], as_dictionary=True, flags=ctx.flags)
@@ -112,7 +97,7 @@ async def comparegraph_main(ctx: commands.Context, profile1: dict, profile2):
     quote_ids2 = quote_bests2.keys()
 
     if not list(quote_bests1.keys() & quote_bests2.keys()):
-        raise NoCommonTexts
+        raise NoCommonTexts(ctx.flags)
 
     gains1 = defaultdict(int)
     gains2 = defaultdict(int)
@@ -123,7 +108,6 @@ async def comparegraph_main(ctx: commands.Context, profile1: dict, profile2):
     max_difficulty1 = float("-inf")
     min_difficulty2 = float("inf")
     max_difficulty2 = float("-inf")
-    metric = "wpm" if ctx.flags.status != "ranked" else "pp"
 
     for quote_id in set(quote_ids1) | set(quote_ids2):
         difficulty = quotes[quote_id]["difficulty"]
@@ -144,7 +128,7 @@ async def comparegraph_main(ctx: commands.Context, profile1: dict, profile2):
         elif in2 and not in1:
             defaults[bucket] += 1
         else:
-            if quote_bests1[quote_id][metric] > quote_bests2[quote_id][metric]:
+            if quote_bests1[quote_id]["wpm"] > quote_bests2[quote_id]["wpm"]:
                 gains1[bucket] += 1
             else:
                 gains2[bucket] += 1
@@ -213,7 +197,7 @@ async def comparegraph_main(ctx: commands.Context, profile1: dict, profile2):
 
     message = Message(
         ctx, page=Page(
-            title="Quote Best Comparison" + get_flag_title(ctx.flags),
+            title="Quote Best Comparison",
             description=description,
             fields=[field1, field2],
             render=lambda: compare_bar.render(
@@ -223,7 +207,8 @@ async def comparegraph_main(ctx: commands.Context, profile1: dict, profile2):
                 gains2,
                 defaults,
                 ctx.user["theme"],
-            )
+            ),
+            flag_title=True,
         ),
         url=compare_url(profile1["username"], profile2["username"]),
     )
@@ -232,7 +217,7 @@ async def comparegraph_main(ctx: commands.Context, profile1: dict, profile2):
 
 
 async def comparegraph_ranged(
-    ctx: commands.Context,
+    ctx: BotContext,
     profile1: dict,
     profile2: dict,
     min_difficulty: float,
@@ -244,7 +229,7 @@ async def comparegraph_ranged(
     quote_bests2 = get_quote_bests(profile2["userId"], as_dictionary=True, flags=ctx.flags)
     common_quotes = list(quotes.keys() & quote_bests1.keys() & quote_bests2.keys())
     if not common_quotes:
-        raise NoCommonTexts
+        raise NoCommonTexts(ctx.flags)
 
     differences = [
         quote_bests1[quote_id][metric] - quote_bests2[quote_id][metric]
@@ -318,11 +303,7 @@ async def comparegraph_ranged(
     )
 
     page = Page(
-        title=(
-            f"Quote Best Comparison "
-            f"({difficulty_range(min_difficulty, max_difficulty)})"
-            + get_flag_title(ctx.flags)
-        ),
+        title=f"Quote Best Comparison ({difficulty_range(min_difficulty, max_difficulty)})",
         fields=fields,
         render=lambda: compare_histogram.render(
             profile1["username"],
@@ -331,7 +312,8 @@ async def comparegraph_ranged(
             gains2,
             metric,
             ctx.user["theme"],
-        )
+        ),
+        flag_title=True,
     )
 
     message = Message(

@@ -2,6 +2,7 @@ from typing import Optional
 
 from discord.ext import commands
 
+from bot_setup import BotContext
 from commands.account.download import run as download
 from commands.base import Command
 from database.typegg.races import get_latest_race
@@ -22,12 +23,14 @@ info = {
 
 
 class ReDownload(Command):
+    ignore_flags = True
+
     @commands.cooldown(1, 600, commands.BucketType.user)
     @commands.command(aliases=info["aliases"])
-    async def redownload(self, ctx, username: Optional[str] = "me"):
+    async def redownload(self, ctx: BotContext, username: str = None):
         try:
             is_admin = ctx.author.id in ADMIN_ALIASES.keys()
-            profile = await self.get_profile(ctx, username, races_required=True)
+            profile = await self.get_profile(ctx, username)
             user_id = profile["userId"]
 
             if not is_admin and user_id != ctx.user["userId"]:

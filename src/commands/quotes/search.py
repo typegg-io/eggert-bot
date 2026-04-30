@@ -1,6 +1,7 @@
 from discord.ext import commands
 
 from api.quotes import get_quotes
+from bot_setup import BotContext
 from commands.base import Command
 from database.bot.recent_quotes import set_recent_quote
 from utils.errors import MissingArguments
@@ -19,15 +20,19 @@ info = {
 
 
 class Search(Command):
+    ignore_flags = True
+
     @commands.command(aliases=info["aliases"])
-    async def search(self, ctx, *, query: str = None):
+    async def search(self, ctx: BotContext):
+        query = " ".join(ctx.raw_args)
+
         if not query:
             raise MissingArguments
 
         await run(ctx, query)
 
 
-async def run(ctx: commands.Context, query: str):
+async def run(ctx: BotContext, query: str):
     results = await get_quotes(
         search=query,
         min_length=len(query),
@@ -40,7 +45,7 @@ async def run(ctx: commands.Context, query: str):
     query_string = f"**Query:** \"{escape_formatting(query, remove_backticks=False)}\""
     if not quotes:
         page = Page(description="No results found.\n" + query_string)
-        message = Message(ctx, page)
+        message = Message(ctx, page, title="Quote Search")
         return await message.send()
 
     set_recent_quote(ctx.channel.id, quotes[0]["quoteId"])
@@ -51,7 +56,7 @@ async def run(ctx: commands.Context, query: str):
         display_status=True,
         text_highlight=query,
     ) + "\n"
-    pages = paginate_data(quotes, entry_formatter, 20, per_page)
+    pages = paginate_data(quotes, entry_formatter, 20, per_page, False)
     for i, page in enumerate(pages):
         page_start = i * per_page + 1
         page_end = min((i + 1) * per_page, total_results)

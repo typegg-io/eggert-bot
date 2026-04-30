@@ -1,5 +1,6 @@
 from discord.ext import commands
 
+from bot_setup import BotContext
 from commands.base import Command
 from commands.checks import is_bot_owner
 from config import STATS_CHANNEL_ID
@@ -13,13 +14,15 @@ info = {
 
 
 class Say(Command):
+    ignore_flags = True
+
     @commands.command(aliases=info["aliases"])
     @is_bot_owner()
-    async def say(self, ctx: commands.Context, *args: str):
-        if not args:
+    async def say(self, ctx: BotContext):
+        if not ctx.raw_args:
             return
 
-        message = " ".join(args)
+        message = " ".join(ctx.raw_args)
         channel = self.bot.get_channel(STATS_CHANNEL_ID)
         if not channel:
             return

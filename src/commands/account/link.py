@@ -2,9 +2,12 @@ from discord import Embed, Forbidden
 from discord.ext import commands
 
 from api.verification import generate_link
+from bot_setup import BotContext
 from commands.base import Command
-from config import BOT_PREFIX
+from config import BOT_PREFIX, STAGING
+from database.bot.users import link_user
 from utils.colors import ERROR
+from utils.messages import Message, Page
 
 info = {
     "name": "link",
@@ -15,8 +18,21 @@ info = {
 
 
 class Link(Command):
+    ignore_flags = True
+
     @commands.command(aliases=info["aliases"])
-    async def link(self, ctx: commands.Context):
+    async def link(self, ctx: BotContext):
+        if STAGING and ctx.raw_args:  # Skip verification process for development
+            profile = await self.get_profile(ctx, ctx.raw_args[0])
+            link_user(ctx.author.id, profile["userId"])
+            message = Message(
+                ctx, page=Page(
+                    title="Account Linked",
+                    description=f"Linked your account to `{profile["username"]}`"
+                )
+            )
+            return await message.send()
+
         if ctx.user["userId"]:
             return await ctx.send(embed=already_verified())
 

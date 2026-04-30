@@ -1,9 +1,9 @@
 from datetime import datetime
-from typing import Optional
 
 from dateutil.relativedelta import relativedelta
 from discord.ext import commands
 
+from bot_setup import BotContext
 from commands.base import Command
 from database.typegg.quotes import get_quotes
 from database.typegg.races import get_races
@@ -12,7 +12,7 @@ from utils.dates import count_unique_dates, parse_date, get_start_end_dates
 from utils.errors import NoRacesFiltered
 from utils.messages import Page, Message, Field
 from utils.stats import calculate_quote_length, calculate_quote_bests, calculate_total_pp
-from utils.strings import format_duration, get_flag_title, date_range_display
+from utils.strings import format_duration, date_range_display
 
 info = {
     "name": "races",
@@ -31,9 +31,8 @@ class Races(Command):
     supported_flags = {"gamemode", "status", "language"}
 
     @commands.command(aliases=info["aliases"])
-    async def races(self, ctx, username: Optional[str] = None):
-        profile = await self.get_profile(ctx, username, races_required=True)
-        await self.import_user(ctx, profile)
+    async def races(self, ctx: BotContext, *args: str):
+        profile = await self.get_profile(ctx, args[0] if args else None)
         await run(ctx, profile)
 
 
@@ -207,13 +206,12 @@ def build_stat_fields(profile, race_list, flags, all_time=False):
 
 
 async def run(
-    ctx: commands.Context,
+    ctx: BotContext,
     profile: dict,
     date: datetime = None,
     period: str = None,
 ):
     flags = ctx.flags
-    flags.status = flags.status or "ranked"
     start_date, end_date = get_start_end_dates(date, period, ctx.user["timezone"])
 
     race_list = await get_races(
@@ -236,13 +234,6 @@ async def run(
         description = "No races completed"
 
     title = "Race Stats"
-
-    if flags.status in ["ranked", "unranked"]:
-        title = f"{flags.status.title()} {title}"
-
-    flags.status = None
-    title += get_flag_title(flags)
-
     if start_date:
         title += "\n" + date_range_display(start_date, end_date, ctx.user["timezone"])
 
@@ -250,6 +241,7 @@ async def run(
         title=title,
         fields=fields,
         description=description,
+        flag_title=True,
     )
 
     message = Message(

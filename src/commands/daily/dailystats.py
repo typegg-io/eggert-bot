@@ -1,10 +1,10 @@
 from collections import defaultdict
-from typing import Optional
 
 import numpy as np
 from discord.ext import commands
 
 from api.daily_quotes import START_DATE
+from bot_setup import BotContext
 from commands.base import Command
 from config import DAILY_QUOTE_CHANNEL_ID
 from database.typegg.daily_quotes import get_user_results
@@ -27,13 +27,12 @@ info = {
 class DailyStats(Command):
     @commands.command(aliases=info["aliases"])
     @usable_in(DAILY_QUOTE_CHANNEL_ID)
-    async def dailystats(self, ctx, username: Optional[str] = "me"):
+    async def dailystats(self, ctx: BotContext, username: str = None):
         profile = await self.get_profile(ctx, username)
-
         await run(ctx, profile)
 
 
-async def run(ctx: commands.Context, profile: dict):
+async def run(ctx: BotContext, profile: dict):
     daily_stats = profile["stats"]["dailyQuotes"]
     streak = daily_stats["streak"]
     fire = " :fire:" if streak > 0 else ""

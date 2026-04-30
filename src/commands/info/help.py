@@ -1,7 +1,6 @@
-from typing import Optional
-
 from discord.ext import commands
 
+from bot_setup import BotContext
 from commands.base import Command
 from config import BOT_PREFIX as prefix
 from utils import files
@@ -21,15 +20,18 @@ info = {
 
 
 class Help(Command):
+    ignore_flags = True
+
     @commands.command(aliases=info["aliases"])
-    async def help(self, ctx: commands.Context, command: Optional[str] = None):
+    async def help(self, ctx: BotContext):
+        command = " ".join(ctx.raw_args)
         if not command:
             return await help_main(ctx)
 
         return await help_command(ctx, command)
 
 
-async def help_main(ctx: commands.Context):
+async def help_main(ctx: BotContext):
     description = (
         f"Use `{prefix}help <command>` to get information about a specific command.\n\n"
         f"**Parameter Notation:**\n"
@@ -94,7 +96,7 @@ async def help_main(ctx: commands.Context):
     await message.send()
 
 
-async def help_command(ctx: commands.Context, command_name: str):
+async def help_command(ctx: BotContext, command_name: str):
     command = None
     for group, file, module in get_command_modules():
         command_info = module.info

@@ -4,14 +4,16 @@ import aiohttp
 from discord import Embed
 from discord.ext import commands
 
+from bot_setup import BotContext
 from commands.base import Command
 from utils.colors import ERROR
+from utils.errors import MissingArguments
 from utils.messages import Message, Page
 
 info = {
     "name": "calculator",
     "aliases": ["cc", "eval", "math"],
-    "description": "Evaluates a mathematical expression.",
+    "description": "Evaluates a mathematical expression.\nUses https://api.mathjs.org/",
     "parameters": "[expression]",
     "examples": [
         "-cc 2 + 2",
@@ -21,9 +23,14 @@ info = {
 
 
 class Calculator(Command):
+    ignore_flags = True
+
     @commands.command(aliases=info["aliases"])
-    async def calculator(self, ctx: commands.Context, *, expression: str):
-        encoded_expression = quote(expression)
+    async def calculator(self, ctx: BotContext):
+        if not ctx.raw_args:
+            raise MissingArguments
+
+        encoded_expression = quote(" ".join(ctx.raw_args))
 
         try:
             async with aiohttp.ClientSession() as session:

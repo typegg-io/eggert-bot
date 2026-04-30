@@ -5,6 +5,7 @@ import matplotlib.colors as mcolors
 from discord import Embed, Member, File
 from discord.ext import commands
 
+from bot_setup import BotContext
 from commands.base import Command
 from config import KEEGAN
 from database.bot.users import update_theme, get_theme, get_user
@@ -61,8 +62,10 @@ info = {
 
 
 class Theme(Command):
+    ignore_flags = True
+
     @commands.command(aliases=info["aliases"])
-    async def theme(self, ctx, element: Optional[str], color: Optional[str]):
+    async def theme(self, ctx: BotContext, element: Optional[str], color: Optional[str]):
         if not element:
             return await display_user_theme(ctx, ctx.author)
 
@@ -122,7 +125,7 @@ class Theme(Command):
         await run(ctx)
 
 
-async def run(ctx: commands.Context):
+async def run(ctx: BotContext):
     update_theme(str(ctx.author.id), ctx.user["theme"])
 
     page = Page(
@@ -139,7 +142,7 @@ async def run(ctx: commands.Context):
     await message.send()
 
 
-async def display_user_theme(ctx: commands.Context, member: Member):
+async def display_user_theme(ctx: BotContext, member: Member):
     user_theme = get_theme(member.id)
     if not user_theme:
         raise BotUserNotFound(member.id)

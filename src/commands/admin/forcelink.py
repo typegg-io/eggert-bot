@@ -5,6 +5,7 @@ import discord
 import jwt
 from discord.ext import commands
 
+from bot_setup import BotContext
 from commands.base import Command
 from commands.checks import is_bot_admin
 from config import SECRET
@@ -22,9 +23,11 @@ info = {
 
 
 class ForceLink(Command):
+    ignore_flags = True
+
     @commands.command(aliases=info["aliases"])
     @is_bot_admin()
-    async def forcelink(self, ctx: commands.Context, user: discord.User, typegg_user_id: str):
+    async def forcelink(self, ctx: BotContext, user: discord.User, typegg_user_id: str):
         discord_id = str(user.id)
         get_user(discord_id)
 

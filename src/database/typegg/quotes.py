@@ -107,6 +107,12 @@ def get_quote(quote_id: str):
     return quote
 
 
+def is_quote_id(quote_id: str):
+    """Returns a boolean whether a quote ID exists or not."""
+    result = db.fetch("SELECT 1 FROM quotes WHERE quoteId = ?", [quote_id])
+    return bool(result)
+
+
 async def reimport_quotes():
     from database.typegg.sources import add_sources
 
@@ -187,6 +193,7 @@ async def update_quote(quote_id: str, updates: dict):
                             WHERE quoteId = ?
                         """, [pp_ratio, pp_ratio, quote_id])
 
+                        # no longer accurate because of non-linear pp
                         log_server(f"Quote {quote_id} ranked: Updated pp values using ratio {pp_ratio:.4f}")
 
     fields = [
