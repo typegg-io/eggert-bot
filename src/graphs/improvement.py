@@ -119,6 +119,7 @@ def render_over_races(
 
     ax.set_ylabel(metric)
     ax.set_xlabel(f"Races")
+    ax2.invert_yaxis()
     ax2.set_ylabel("Difficulty")
     title = f"{metric} Improvement"
 
