@@ -38,6 +38,7 @@ async def help_main(ctx: BotContext):
         f"• Parameters in `<>` are required\n"
         f"• Parameters in `[]` are optional\n"
         f"• Parameters with `|` indicate a choice between options\n"
+        f"• Parameters can be passed in any order\n"
         f"**Parameter Flags**\n"
         f"• Metric: `-raw`\n"
         f"• Gamemode: `-solo`, `-multi`\n"
