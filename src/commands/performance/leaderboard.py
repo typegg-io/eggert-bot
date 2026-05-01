@@ -112,7 +112,7 @@ categories = {
         "max_rank": 10,
     },
     "quotechars": {
-        "title": "Quote Characters Typed (Ranked)",
+        "title": "Quote Characters Typed",
     },
 }
 info = {
@@ -321,7 +321,8 @@ async def run_custom(ctx: BotContext, category: dict, args: tuple = ()):
 
         pages = paginate_data(leaderboard, daily_formatter, page_count=5, per_page=20)
 
-    elif category["title"] == "Quote Characters Typed (Ranked)":
+    elif category["title"] == "Quote Characters Typed":
+        ctx.flags.status = "ranked"
         leaderboard_data = get_quote_chars_typed(limit=20)
         user_lookup = get_user_lookup()
 
