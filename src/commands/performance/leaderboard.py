@@ -4,8 +4,8 @@ from api.leaders import get_leaders, get_multiplayer_leaders
 from bot_setup import BotContext
 from commands.base import Command
 from database.typegg.daily_quotes import get_daily_rank_leaderboard
-from database.typegg.quotes import get_top_submitters, get_ranked_quote_count
-from database.typegg.users import get_quotes_over_leaderboard, get_user_lookup
+from database.typegg.quotes import get_top_submitters, get_ranked_quote_count, get_ranked_quote_chars
+from database.typegg.users import get_quote_chars_typed, get_quotes_over_leaderboard, get_user_lookup
 from utils import strings
 from utils.errors import BotError
 from utils.messages import Message, Page, paginate_data
@@ -111,6 +111,9 @@ categories = {
         "title": "Daily Quote Top 10s",
         "max_rank": 10,
     },
+    "quotechars": {
+        "title": "Quote Characters Typed (Ranked)",
+    },
 }
 info = {
     "name": "leaderboard",
@@ -176,6 +179,7 @@ def is_statusless(leaderboard: str):
         "wins", "level", "nwpm", "views",
         "daily", "streak", "dailyquotes", "quickplay",
         "dailywins", "dailyseconds", "dailytoptens",
+        "quotechars",
     ]
 
 
@@ -316,6 +320,32 @@ async def run_custom(ctx: BotContext, category: dict, args: tuple = ()):
             return f"{rank(entry["rank"])} {bold}{username_with_flag(entry)} - {entry["count"]:,}{bold}\n"
 
         pages = paginate_data(leaderboard, daily_formatter, page_count=5, per_page=20)
+
+    elif category["title"] == "Quote Characters Typed (Ranked)":
+        leaderboard_data = get_quote_chars_typed(limit=20)
+        user_lookup = get_user_lookup()
+
+        leaderboard = [
+            {
+                "rank": i + 1,
+                "username": user_lookup.get(entry["userId"], {}).get("username", entry["userId"]),
+                "country": user_lookup.get(entry["userId"], {}).get("country"),
+                "quoteCharsTyped": entry["quoteCharsTyped"],
+                "highlight": entry["userId"] == ctx.user["userId"],
+            }
+            for i, entry in enumerate(leaderboard_data)
+        ]
+
+        def chars_formatter(entry):
+            bold = "**" if entry["highlight"] else ""
+            return f"{rank(entry["rank"])} {bold}{username_with_flag(entry)} - {entry["quoteCharsTyped"]:,}{bold}\n"
+
+        total_chars = get_ranked_quote_chars()
+        pages = [Page(
+            description="".join(chars_formatter(e) for e in leaderboard),
+            footer=f"{total_chars:,} Total Quote Characters",
+            flag_title=True,
+        )]
 
     await initial_send
 

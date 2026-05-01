@@ -150,6 +150,15 @@ def get_ranked_quote_count():
     return result["total"]
 
 
+def get_ranked_quote_chars():
+    result = db.fetch_one("""
+        SELECT SUM(LENGTH(text)) AS total FROM quotes
+        WHERE ranked = 1
+    """)
+
+    return result["total"]
+
+
 async def update_quote(quote_id: str, updates: dict):
     """
     Update a quote's fields. Only updates provided fields.

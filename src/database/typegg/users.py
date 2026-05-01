@@ -215,6 +215,18 @@ def get_running_maximum_by_length(user_id: str):
     """, [user_id])
 
 
+def get_quote_chars_typed(limit: int = 20):
+    return db.fetch("""
+        SELECT r.userId, SUM(LENGTH(q.text)) AS quoteCharsTyped
+        FROM (SELECT DISTINCT userId, quoteId FROM races) r
+        JOIN quotes q ON q.quoteId = r.quoteId
+        WHERE q.ranked = 1
+        GROUP BY r.userId
+        ORDER BY quoteCharsTyped DESC
+        LIMIT ?
+    """, [limit])
+
+
 def get_quotes_over_leaderboard(threshold: int, metric: str = "wpm", limit: int = 100, flags: Flags = Flags()):
     """Returns users with the most quotes over a threshold."""
     min_pp = 0
