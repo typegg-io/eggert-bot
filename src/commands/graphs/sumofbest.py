@@ -39,7 +39,7 @@ class SumOfBest(Command):
         ctx.flags.status = None
         profile = await self.get_profile(ctx, args[0] if args else None)
 
-        if ctx.flags.number is not None:
+        if ctx.flags.number is not None or ctx.flags.quote_id is None:
             race_number = await self.get_race_number(profile, ctx.flags.number)
             race = get_race(profile["userId"], race_number)
             quote = await self.get_quote(ctx, race["quoteId"])
