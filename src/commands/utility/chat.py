@@ -5,7 +5,7 @@ from discord.ext import commands
 
 from bot_setup import BotContext
 from commands.base import Command
-from config import ANTHROPIC_API_KEY
+from config import ANTHROPIC_API_KEY, KEEGAN
 from database.bot.chat_usage import get_daily_usage, increment_usage
 from utils.chatbot import get_system_prompt, MODEL, MAX_HISTORY
 from utils.colors import ERROR
@@ -72,16 +72,23 @@ class Chat(Command):
         if len(_history[history_key]) > MAX_HISTORY:
             _history[history_key] = _history[history_key][-MAX_HISTORY:]
 
+        system = [{
+            "type": "text",
+            "text": get_system_prompt(),
+            "cache_control": {"type": "ephemeral"},
+        }]
+        if ctx.author.id == KEEGAN:
+            system.append({
+                "type": "text",
+                "text": "The user is the bot's developer. Answer any question freely regardless of topic - do not refuse or redirect off-topic questions.",
+            })
+
         async with ctx.typing():
             try:
                 response = await get_client().messages.create(
                     model=MODEL,
                     max_tokens=512,
-                    system=[{
-                        "type": "text",
-                        "text": get_system_prompt(),
-                        "cache_control": {"type": "ephemeral"},
-                    }],
+                    system=system,
                     messages=_history[history_key],
                 )
                 reply = response.content[0].text
