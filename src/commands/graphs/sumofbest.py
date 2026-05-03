@@ -3,6 +3,7 @@ import copy
 from dateutil import parser
 from discord.ext import commands
 
+from api.quotes import calculate_metric
 from bot_setup import BotContext
 from commands.base import Command
 from commands.graphs.segments import build_segments, format_segment
@@ -60,7 +61,6 @@ async def run(ctx: BotContext, profile: dict, quote: dict):
     if not quote_races:
         raise NoQuoteRaces(profile["username"])
 
-    pp_ratio = quote_races[0]["pp"] / quote_races[0]["wpm"]
     text_segments = get_segments(quote["text"])
     sum_of_best_segments = []
 
@@ -91,7 +91,8 @@ async def run(ctx: BotContext, profile: dict, quote: dict):
 
     delays = [delay for segment in sum_of_best_segments for delay in segment["delays"]]
     sum_of_best_wpm = calculate_wpm(len(quote["text"]) - 1, sum(delays))
-    sum_of_best_pp = sum_of_best_wpm * pp_ratio  # no longer accurate because of non-linear pp
+    calc_result = await calculate_metric(quote["quoteId"], sum_of_best_wpm, "wpm")
+    sum_of_best_pp = calc_result["pp"]
     sum_of_best_keystroke_wpm = get_keystroke_wpm(delays)
 
     unique_races = set()
