@@ -341,7 +341,8 @@ def quote_display(
     else:
         display_string += " | "
 
-    display_string += f"{quote["difficulty"]:.2f}★ | {len(text):,}c"
+    truncated_difficulty = int(quote["difficulty"] * 100) / 100
+    display_string += f"{truncated_difficulty}★ | {len(text):,}c"
 
     if display_status:
         display_string += f" | {"Ranked" if quote["ranked"] else "Unranked"}"
