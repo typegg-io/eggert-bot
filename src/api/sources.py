@@ -41,8 +41,7 @@ async def get_source(source_id: str) -> Dict[str, Any]:
 
 
 async def get_all_sources():
-    """Paginates through and returns every source under /sources"""
-    all_sources = []
+    """Async generator that yields one page of sources at a time."""
     page = 1
     first_page = await get_sources(per_page=1000)
     total_pages = first_page["totalPages"]
@@ -50,13 +49,9 @@ async def get_all_sources():
     while True:
         data = first_page if page == 1 else await get_sources(page=page, per_page=1000)
         log(f"Fetched page {page}/{total_pages}")
-
-        for source in data["sources"]:
-            all_sources.append(source)
+        yield data["sources"]
 
         if page >= total_pages:
             break
 
         page += 1
-
-    return all_sources

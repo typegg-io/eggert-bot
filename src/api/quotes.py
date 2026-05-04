@@ -1,3 +1,4 @@
+import asyncio
 from typing import Optional, Dict, Any
 
 from api.core import API_URL, request
@@ -59,8 +60,7 @@ async def get_quote(quote_id: str, distinct: bool = True) -> Dict[str, Any]:
 
 
 async def get_all_quotes():
-    """Paginates through and returns every quote under /quotes"""
-    all_quotes = []
+    """Async generator that yields one page of quotes at a time."""
     page = 1
     first_page = await get_quotes(status="any", per_page=200)
     total_pages = first_page["totalPages"]
@@ -68,16 +68,12 @@ async def get_all_quotes():
     while True:
         data = first_page if page == 1 else await get_quotes(page=page, status="any", per_page=200)
         log(f"Fetched page {page}/{total_pages}")
-
-        for quote in data["quotes"]:
-            all_quotes.append(quote)
+        yield data["quotes"]
 
         if page >= total_pages:
             break
 
         page += 1
-
-    return all_quotes
 
 
 async def calculate_metric(quote_id: str, value: float, metric: str = "pp"):

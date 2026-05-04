@@ -14,10 +14,15 @@ def source_insert(source):
 
 
 def add_sources(sources):
-    """Batch insert sources."""
-    db.run_many(f"""
-        INSERT OR IGNORE INTO sources
-        VALUES ({",".join(["?"] * 6)})
+    """Batch insert or update sources."""
+    db.run_many("""
+        INSERT INTO sources VALUES (?,?,?,?,?,?)
+        ON CONFLICT(sourceId) DO UPDATE SET
+            title = excluded.title,
+            author = excluded.author,
+            type = excluded.type,
+            thumbnailUrl = excluded.thumbnailUrl,
+            publicationYear = excluded.publicationYear
     """, [source_insert(source) for source in sources])
 
 

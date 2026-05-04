@@ -31,10 +31,20 @@ def quote_insert(quote):
 
 
 def add_quotes(quotes):
-    """Batch insert quotes."""
-    db.run_many(f"""
-        INSERT OR IGNORE INTO quotes
-        VALUES ({",".join(["?"] * 11)})
+    """Batch insert or update quotes."""
+    db.run_many("""
+        INSERT INTO quotes VALUES (?,?,?,?,?,?,?,?,?,?,?)
+        ON CONFLICT(quoteId) DO UPDATE SET
+            sourceId = excluded.sourceId,
+            text = excluded.text,
+            explicit = excluded.explicit,
+            difficulty = excluded.difficulty,
+            complexity = excluded.complexity,
+            submittedByUsername = excluded.submittedByUsername,
+            ranked = excluded.ranked,
+            created = excluded.created,
+            language = excluded.language,
+            formatting = excluded.formatting
     """, [quote_insert(quote) for quote in quotes])
 
 
@@ -117,15 +127,12 @@ async def reimport_quotes():
     from database.typegg.sources import add_sources
 
     log("Fetching sources")
-    all_sources = await get_all_sources()
+    async for page_sources in get_all_sources():
+        add_sources(page_sources)
+
     log("Fetching quotes")
-    all_quotes = await get_all_quotes()
-
-    db.run("DELETE FROM quotes")
-    db.run("DELETE FROM sources")
-
-    add_sources(all_sources)
-    add_quotes(all_quotes)
+    async for page_quotes in get_all_quotes():
+        add_quotes(page_quotes)
 
 
 def get_top_submitters():
