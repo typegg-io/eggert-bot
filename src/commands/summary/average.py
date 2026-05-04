@@ -26,6 +26,7 @@ class Average(Command):
 
     @commands.command(aliases=info["aliases"])
     async def average(self, ctx: BotContext, *args: str):
+        ctx.flags.gamemode = ctx.flags.gamemode or "quickplay"
         n = int(abs(ctx.flags.number)) if ctx.flags.number is not None else 25
         profile = await self.get_profile(ctx, args[0] if args else None)
 
