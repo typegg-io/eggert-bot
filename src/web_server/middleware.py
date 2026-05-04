@@ -9,7 +9,7 @@ from utils.strings import compact_pretty_print
 @web.middleware
 async def request_logging_middleware(request, handler):
     """Log all incoming requests."""
-    if request.path.startswith(("/static/", "/assets/")):
+    if request.path.startswith(("/static/", "/assets/")) or request.path == "/member-count":
         return await handler(request)
 
     ip = (
