@@ -62,11 +62,11 @@ async def get_all_quotes():
     """Paginates through and returns every quote under /quotes"""
     all_quotes = []
     page = 1
-    first_page = await get_quotes(status="any", per_page=1000)
+    first_page = await get_quotes(status="any", per_page=200)
     total_pages = first_page["totalPages"]
 
     while True:
-        data = first_page if page == 1 else await get_quotes(page=page, status="any", per_page=1000)
+        data = first_page if page == 1 else await get_quotes(page=page, status="any", per_page=200)
         log(f"Fetched page {page}/{total_pages}")
 
         for quote in data["quotes"]:
