@@ -2,6 +2,7 @@ from discord.ext import commands
 
 from bot_setup import BotContext
 from commands.base import Command
+from database.bot.recent_quotes import get_recent_quote
 from utils.messages import Page, Message
 from utils.strings import rank, discord_date, quote_display, username_with_flag
 from utils.urls import race_url
@@ -22,6 +23,8 @@ class QuoteLeaderboard(Command):
 
     @commands.command(aliases=info["aliases"])
     async def quoteleaderboard(self, ctx: BotContext):
+        if ctx.flags.quote_id is None:
+            ctx.flags.quote_id = get_recent_quote(ctx.channel.id)
         quote = await self.get_quote(ctx, ctx.flags.quote_id, from_api=True)
         await run(ctx, quote)
 
