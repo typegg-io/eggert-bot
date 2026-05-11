@@ -67,6 +67,7 @@ def parse_flags(content: str) -> tuple[Flags, str, dict[str, str]]:
     flags = Flags()
     explicit_flags: dict[str, str] = {}
     regular_args = []  # Non-flag arguments
+    date_args = []  # Collected date-like tokens (value, original_arg)
 
     for arg in raw_args[::-1]:
         value = arg.lstrip("-")
@@ -85,8 +86,7 @@ def parse_flags(content: str) -> tuple[Flags, str, dict[str, str]]:
             pass
 
         if is_date_like(value):
-            flags.date = value
-            explicit_flags["date"] = arg
+            date_args.append((value, arg))
             continue
 
         if wpm_range := parse_wpm_range(value):
@@ -131,7 +131,16 @@ def parse_flags(content: str) -> tuple[Flags, str, dict[str, str]]:
     if flags.status != "ranked":
         flags.metric = "wpm"
 
-    flags.date = parse_date(flags.date)
+    if len(date_args) >= 2:
+        parsed = sorted([parse_date(v) for v, _ in date_args[:2]])
+        flags.date_range = (parsed[0], parsed[1])
+        flags.date = parsed[0]
+        date_args_original = date_args[::-1]
+        explicit_flags["date"] = f"{date_args_original[0][1]} {date_args_original[1][1]}"
+        explicit_flags["date_range"] = explicit_flags["date"]
+    elif len(date_args) == 1:
+        flags.date = parse_date(date_args[0][0])
+        explicit_flags["date"] = date_args[0][1]
 
     cleaned_command = f"{invoke} " + " ".join(regular_args)
     return flags, cleaned_command, explicit_flags
