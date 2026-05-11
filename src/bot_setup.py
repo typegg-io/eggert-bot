@@ -72,6 +72,8 @@ def parse_flags(content: str) -> tuple[Flags, str, dict[str, str]]:
         value = arg.lstrip("-")
 
         try:
+            if "_" in value:
+                raise InvalidNumber
             number = parse_number(value)
             if not (-2147483648 <= number <= 2147483647):
                 raise InvalidNumber
