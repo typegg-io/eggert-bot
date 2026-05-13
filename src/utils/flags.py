@@ -61,7 +61,6 @@ class Flags:
     number_range: Optional[tuple] = None
     quote_id: Optional[str] = None
     date: Optional[datetime] = None
-    date_range: Optional[tuple] = None
 
     def __post_init__(self):
         if isinstance(self.language, str):
