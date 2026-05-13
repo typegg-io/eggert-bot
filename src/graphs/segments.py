@@ -104,8 +104,17 @@ def apply_colormap(ax, theme, x_values, wpm_values, raw_values, width, y_limit):
     ))
 
 
-def calculate_y_limit(values: list[float], percentile: int = 99) -> float:
-    """Calculate y-axis limit, capping outliers using percentile."""
-    cap = np.percentile(values, percentile)
-    actual_max = max(values)
-    return actual_max if actual_max < cap else cap
+def calculate_y_limit(values: list[float]) -> float:
+    """Calculate y-axis limit, capping extreme outliers."""
+    arr = np.array([v for v in values if v > 0])
+    if len(arr) == 0:
+        return float(max(values))
+
+    actual_max = float(arr.max())
+    q75 = float(np.percentile(arr, 75))
+
+    if actual_max > q75 * 10:
+        filtered = arr[arr <= q75 * 10]
+        return float(filtered.max()) if len(filtered) > 0 else actual_max
+
+    return actual_max
