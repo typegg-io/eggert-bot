@@ -9,7 +9,7 @@ from discord.ext import commands
 from config import BOT_PREFIX, STAGING, STATS_CHANNEL_ID, TYPEGG_GUILD_ID, GENERAL_CHANNEL_ID, SITE_CHAT_URL, SECRET, SITE_URL
 from database.bot.users import get_user, update_commands, get_user_ids, get_all_command_usage
 from database.typegg.quotes import is_quote_id
-from utils.dates import is_date_like, parse_date, get_start_end_dates, now as now_utc
+from utils.dates import is_date_like, parse_date
 from utils.errors import UserBanned, InvalidNumber
 from utils.files import get_command_modules
 from utils.flags import FLAG_VALUES, Flags, Language
@@ -87,13 +87,6 @@ def parse_flags(content: str) -> tuple[Flags, str, dict[str, str]]:
 
         if is_date_like(value):
             date_args.append((value, arg))
-            continue
-
-        if value.lower() in {"day", "week", "month", "year"}:
-            start, end = get_start_end_dates(now_utc(), value.lower(), ZoneInfo("UTC"))
-            flags.date_range = (start, end)
-            flags.date = start
-            explicit_flags["date_range"] = arg
             continue
 
         if wpm_range := parse_wpm_range(value):
