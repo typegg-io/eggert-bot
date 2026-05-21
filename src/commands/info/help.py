@@ -2,7 +2,7 @@ from discord.ext import commands
 
 from bot_setup import BotContext
 from commands.base import Command
-from config import BOT_PREFIX as prefix
+from config import BOT_PREFIX as prefix, BOT_SUBDOMAIN
 from utils import files
 from utils.errors import UnknownCommand, UserNotAdmin
 from utils.files import get_command_modules
@@ -33,7 +33,8 @@ class Help(Command):
 
 async def help_main(ctx: BotContext):
     description = (
-        f"Use `{prefix}help <command>` to get information about a specific command.\n\n"
+        f"Use `{prefix}help <command>` to get information about a specific command.\n"
+        f"A full list is also available [here]({BOT_SUBDOMAIN}/help).\n\n"
         f"**Parameter Notation:**\n"
         f"• Parameters in `<>` are required\n"
         f"• Parameters in `[]` are optional\n"
