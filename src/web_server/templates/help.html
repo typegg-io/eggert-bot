@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+
+{% block head %}
+<link rel="stylesheet" href="/static/css/help.css">
+{% endblock %}
+
+{% block title %}
+Command Reference
+{% endblock %}
+
+{% block content %}
+<div class="help-layout">
+    <aside class="sidebar">
+        <input
+            type="text"
+            id="search"
+            class="search-box"
+            placeholder="Search commands..."
+            autocomplete="off"
+        >
+        <nav class="group-nav">
+            {% for section in sections %}
+            <a href="#{{ section.group }}" class="group-link">{{ section.group | title }}</a>
+            {% endfor %}
+        </nav>
+    </aside>
+
+    <div class="command-list">
+        {% for section in sections %}
+        <section id="{{ section.group }}" class="command-group">
+            <h2 class="group-heading">{{ section.group | title }}</h2>
+            {% for cmd in section.commands %}
+            <div class="command-card" data-name="{{ cmd.name }}" data-aliases="{{ cmd.aliases | join(' ') }}" data-desc="{{ cmd.description | lower }}">
+                <div class="command-header">
+                    <div class="command-name-row">
+                        <span class="command-name">{{ cmd.prefix }}{{ cmd.name }}</span>
+                        {% if cmd.parameters %}
+                        <span class="command-params">{{ cmd.parameters }}</span>
+                        {% endif %}
+                        {% if cmd.plus %}
+                        <a href="https://typegg.io/plus" class="plus-badge" target="_blank">GG+</a>
+                        {% endif %}
+                    </div>
+                    {% if cmd.aliases %}
+                    <div class="command-aliases">
+                        {% for alias in cmd.aliases %}
+                        <code>{{ cmd.prefix }}{{ alias }}</code>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                </div>
+                <p class="command-desc">{{ cmd.description | discord_md }}</p>
+                {% if cmd.examples %}
+                <div class="command-examples">
+                    <span class="examples-label">Examples:</span>
+                    {% for ex in cmd.examples %}
+                    <code>{{ ex }}</code>
+                    {% endfor %}
+                </div>
+                {% endif %}
+            </div>
+            {% endfor %}
+        </section>
+        {% endfor %}
+
+        <div id="no-results" class="no-results" style="display:none">
+            No commands match your search.
+        </div>
+    </div>
+</div>
+
+<script src="/static/js/help.js" defer></script>
+{% endblock %}

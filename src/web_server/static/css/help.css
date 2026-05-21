@@ -1,0 +1,208 @@
+.help-layout {
+    display: flex;
+    gap: 2rem;
+    align-items: flex-start;
+    width: 100%;
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 1.5rem 1rem;
+    box-sizing: border-box;
+}
+
+/* Sidebar */
+.sidebar {
+    position: sticky;
+    top: calc(85px + 1rem);
+    width: 180px;
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.search-box {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 0.5rem 0.75rem;
+    background-color: #0d1030;
+    border: 1px solid #1a1f3a;
+    border-radius: 6px;
+    color: #fff;
+    font-size: 0.9rem;
+    font-family: inherit;
+    outline: none;
+    transition: border-color 0.15s;
+}
+
+.search-box:focus {
+    border-color: #58a6ff;
+}
+
+.group-nav {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.group-link {
+    color: #aaa;
+    text-decoration: none;
+    font-size: 0.875rem;
+    padding: 0.3rem 0.5rem;
+    border-radius: 4px;
+    transition: background 0.1s, color 0.1s;
+}
+
+.group-link:hover,
+.group-link.active {
+    background-color: #0d1030;
+    color: #58a6ff;
+}
+
+/* Command list */
+.command-list {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 2.5rem;
+}
+
+.command-group {
+    scroll-margin-top: calc(85px + 2rem);
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.group-heading {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #58a6ff;
+    border-bottom: 1px solid #1a1f3a;
+    padding-bottom: 0.4rem;
+    margin: 0;
+}
+
+/* Command card */
+.command-card {
+    background-color: #080c26;
+    border: 1px solid #1a1f3a;
+    border-radius: 8px;
+    padding: 1rem 1.25rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.command-header {
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+}
+
+.command-name-row {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    flex-wrap: wrap;
+}
+
+.command-name {
+    font-size: 1rem;
+    font-weight: 700;
+    color: #e6edf3;
+    font-family: monospace;
+}
+
+.command-params {
+    font-size: 0.85rem;
+    color: #8b949e;
+    font-family: monospace;
+}
+
+.plus-badge {
+    font-size: 0.7rem;
+    font-weight: 700;
+    padding: 0.15rem 0.45rem;
+    border-radius: 4px;
+    background-color: #ff279a;
+    color: #000;
+    letter-spacing: 0.04em;
+    text-decoration: none;
+}
+
+.command-aliases {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+}
+
+.command-aliases code {
+    font-size: 0.8rem;
+    background-color: #0d1030;
+    border: 1px solid #1a1f3a;
+    border-radius: 4px;
+    padding: 0.1rem 0.4rem;
+    color: #8b949e;
+}
+
+.command-desc {
+    margin: 0;
+    font-size: 0.9rem;
+    color: #cdd9e5;
+    white-space: pre-line;
+}
+
+.command-desc code {
+    font-size: 0.85em;
+    background-color: #0d1030;
+    border: 1px solid #1a1f3a;
+    border-radius: 3px;
+    padding: 0.1em 0.35em;
+    color: #e6edf3;
+}
+
+.command-examples {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    align-items: center;
+}
+
+.examples-label {
+    font-size: 0.8rem;
+    color: #8b949e;
+}
+
+.command-examples code {
+    font-size: 0.82rem;
+    background-color: #0d1030;
+    border: 1px solid #1a1f3a;
+    border-radius: 4px;
+    padding: 0.2rem 0.5rem;
+    color: #79c0ff;
+}
+
+.no-results {
+    color: #888;
+    font-size: 0.95rem;
+    text-align: center;
+    padding: 3rem 0;
+}
+
+@media (max-width: 640px) {
+    .help-layout {
+        flex-direction: column;
+    }
+
+    .sidebar {
+        position: static;
+        width: 100%;
+    }
+
+    .group-nav {
+        flex-direction: row;
+        flex-wrap: wrap;
+    }
+}

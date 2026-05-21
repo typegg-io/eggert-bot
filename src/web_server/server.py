@@ -7,9 +7,11 @@ from discord.ext import commands
 
 from config import SOURCE_DIR, ROOT_DIR, TYPEGG_GUILD_ID
 from utils.logging import log_server
+from web_server.filters import FILTERS
 from web_server.middleware import error_middleware, security_headers_middleware, request_logging_middleware
 from web_server.routes.chat import receive_message
 from web_server.routes.compare import compare_page
+from web_server.routes.help import help_page
 from web_server.routes.member_count import member_count
 from web_server.routes.quotes import create_quote, patch_quote, remove_quote
 from web_server.routes.sources import create_source, patch_source, remove_source
@@ -46,6 +48,7 @@ class WebServer(commands.Cog):
         self.app.router.add_post("/chat/receive", receive_message)
         self.app.router.add_post("/users/{userId}/import", import_user)
         self.app.router.add_delete("/users/{userId}", delete_user)
+        self.app.router.add_get("/help", help_page)
         self.app.router.add_get("/compare/{username1}/vs/{username2}", compare_page)
         self.app.router.add_get("/member-count", partial(member_count, self))
 
@@ -64,7 +67,8 @@ class WebServer(commands.Cog):
         self.app.router.add_static("/assets", path=str(ROOT_DIR / "assets"), name="assets")
 
         # Templates
-        aiohttp_jinja2.setup(self.app, loader=jinja2.FileSystemLoader(str(SOURCE_DIR / "web_server" / "templates")))
+        env = aiohttp_jinja2.setup(self.app, loader=jinja2.FileSystemLoader(str(SOURCE_DIR / "web_server" / "templates")))
+        env.filters.update(FILTERS)
 
         self.bot.loop.create_task(self.start_web_server())
 
