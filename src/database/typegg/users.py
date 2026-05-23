@@ -195,6 +195,18 @@ async def reimport_nwpm():
             log(f"[nwpm migrate] Failed for {user_id}: {e.__class__.__name__}: {e}")
 
 
+def get_best_by_length(user_id: str, metric: str = "pp"):
+    col = "r.pp" if metric == "pp" else "r.wpm"
+    return db.fetch(f"""
+        SELECT MAX({col}) AS value, LENGTH(q.text) AS length
+        FROM races r
+        JOIN quotes q ON q.quoteId = r.quoteId
+        WHERE r.userId = ? AND q.ranked
+        GROUP BY LENGTH(q.text)
+        ORDER BY length
+    """, [user_id])
+
+
 def get_running_maximum_by_length(user_id: str):
     return db.fetch("""
         WITH text_bests_with_length AS (
