@@ -132,6 +132,7 @@ def parse_flags(content: str) -> tuple[Flags, str, dict[str, str]]:
         flags.metric = "wpm"
 
     flags.date = parse_date(flags.date)
+    regular_args = regular_args[::-1]
 
     cleaned_command = f"{invoke} " + " ".join(regular_args)
     return flags, cleaned_command, explicit_flags
