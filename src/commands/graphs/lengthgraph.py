@@ -4,8 +4,7 @@ from discord.ext import commands
 from bot_setup import BotContext
 from commands.base import Command
 from database.typegg.users import get_best_by_length
-from graphs import lengthgraph as lengthgraph_renderer
-from graphs.lengthgraph import UserLengthData
+from graphs import length
 
 max_users = 5
 
@@ -37,18 +36,20 @@ class LengthGraph(Command):
 async def run(ctx: BotContext, profiles: list):
     metric = ctx.flags.metric
     data = []
+    username = profiles[0]["username"]
 
     for profile in profiles:
         rows = get_best_by_length(profile["userId"], metric)
         if not rows:
             continue
         values, lengths = zip(*((r["value"], r["length"]) for r in rows))
-        data.append(UserLengthData(profile["username"], list(values), list(lengths)))
+        data.append(length.UserLengthData(profile["username"], list(values), list(lengths)))
 
-    first_username = profiles[0]["username"] if profiles[0]["userId"] == ctx.user["userId"] else ""
+        if profile["userId"] == ctx.user["userId"]:
+            username = profile["username"]
 
-    file_name = lengthgraph_renderer.render(
-        first_username,
+    file_name = length.render(
+        username,
         data,
         metric,
         ctx.user["theme"],

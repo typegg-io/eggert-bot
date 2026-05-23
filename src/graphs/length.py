@@ -34,7 +34,7 @@ def bucket_by_log(lengths: List[int], values: List[float]) -> tuple[List[float],
 
 
 def render(
-    first_username: str,
+    username: str,
     data: List[UserLengthData],
     metric: str,
     theme: dict,
@@ -47,7 +47,7 @@ def render(
     data_count = len(data)
 
     for line_index, user_data in enumerate(data):
-        if user_data.username == first_username:
+        if user_data.username == username:
             themed_line = line_index
 
         lengths, values = bucket_by_log(user_data.lengths, user_data.values)
