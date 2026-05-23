@@ -55,6 +55,15 @@ class Command(commands.Cog):
                 if hasattr(ctx.flags, name):
                     setattr(ctx.flags, name, getattr(defaults, name))
 
+        period_arg = explicit.get("date_range")
+        if period_arg and ctx.flags.date_range is not None:
+            period = period_arg.lstrip("-").lower()
+            if period in {"day", "week", "month", "year"}:
+                from utils.dates import get_start_end_dates, now
+                start, end = get_start_end_dates(now(), period, ctx.user["timezone"])
+                ctx.flags.date_range = (start, end)
+                ctx.flags.date = start
+
     async def celebrate_milestone(self, ctx: BotContext, milestone: int):
         channel = self.bot.get_channel(STATS_CHANNEL_ID)
         if channel:

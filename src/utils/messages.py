@@ -155,6 +155,11 @@ class Message(View):
                 embed.set_image(url=page.image_url)
             if footer:
                 self.update_footer(embed, footer)
+            if page.flag_title and hasattr(self.ctx, "flags") and self.ctx.flags.date_range:
+                start, end = self.ctx.flags.date_range
+                start_str = start.strftime(f"%b {start.day}, %Y")
+                end_str = end.strftime(f"%b {end.day}, %Y")
+                self.update_footer(embed, f"{start_str} – {end_str}")
             if self.footer_icon:
                 embed.set_footer(text=embed.footer.text, icon_url=self.footer_icon)
             if self.profile:

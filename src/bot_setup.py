@@ -9,7 +9,7 @@ from discord.ext import commands
 from config import BOT_PREFIX, STAGING, STATS_CHANNEL_ID, TYPEGG_GUILD_ID, GENERAL_CHANNEL_ID, SITE_CHAT_URL, SECRET, SITE_URL
 from database.bot.users import get_user, update_commands, get_user_ids, get_all_command_usage
 from database.typegg.quotes import is_quote_id
-from utils.dates import is_date_like, parse_date
+from utils.dates import is_date_like, parse_date, get_start_end_dates, now as now_utc
 from utils.errors import UserBanned, InvalidNumber
 from utils.files import get_command_modules
 from utils.flags import FLAG_VALUES, Flags, Language
@@ -67,6 +67,7 @@ def parse_flags(content: str) -> tuple[Flags, str, dict[str, str]]:
     flags = Flags()
     explicit_flags: dict[str, str] = {}
     regular_args = []  # Non-flag arguments
+    date_args = []  # Collected date-like tokens (value, original_arg)
 
     for arg in raw_args[::-1]:
         value = arg.lstrip("-")
@@ -85,8 +86,14 @@ def parse_flags(content: str) -> tuple[Flags, str, dict[str, str]]:
             pass
 
         if is_date_like(value):
-            flags.date = value
-            explicit_flags["date"] = arg
+            date_args.append((value, arg))
+            continue
+
+        if value.lower() in {"day", "week", "month", "year"}:
+            start, end = get_start_end_dates(now_utc(), value.lower(), ZoneInfo("UTC"))
+            flags.date_range = (start, end)
+            flags.date = start
+            explicit_flags["date_range"] = arg
             continue
 
         if wpm_range := parse_wpm_range(value):
@@ -133,6 +140,16 @@ def parse_flags(content: str) -> tuple[Flags, str, dict[str, str]]:
 
     flags.date = parse_date(flags.date)
     regular_args = regular_args[::-1]
+    if len(date_args) >= 2:
+        parsed = sorted([parse_date(v) for v, _ in date_args[:2]])
+        flags.date_range = (parsed[0], parsed[1])
+        flags.date = parsed[0]
+        date_args_original = date_args[::-1]
+        explicit_flags["date"] = f"{date_args_original[0][1]} {date_args_original[1][1]}"
+        explicit_flags["date_range"] = explicit_flags["date"]
+    elif len(date_args) == 1:
+        flags.date = parse_date(date_args[0][0])
+        explicit_flags["date"] = date_args[0][1]
 
     cleaned_command = f"{invoke} " + " ".join(regular_args)
     return flags, cleaned_command, explicit_flags

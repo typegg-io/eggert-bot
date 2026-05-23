@@ -90,6 +90,11 @@ async def get_races(
         table = "multiplayer_races"
         min_pp = -1
 
+    if flags.date_range and start_date is None and end_date is None:
+        from utils.dates import format_timestamp
+        start_date = format_timestamp(flags.date_range[0])
+        end_date = format_timestamp(flags.date_range[1])
+
     # WHERE clause
     conditions = []
     params = []

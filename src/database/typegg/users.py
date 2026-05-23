@@ -66,6 +66,11 @@ def get_quote_bests(
     if multiplayer:
         table = "multiplayer_races"
 
+    if flags.date_range and start_date is None and end_date is None:
+        from utils.dates import format_timestamp
+        start_date = format_timestamp(flags.date_range[0])
+        end_date = format_timestamp(flags.date_range[1])
+
     # WHERE clause
     conditions = ["userId = ?"]
     params = [user_id]

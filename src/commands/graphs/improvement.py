@@ -26,11 +26,11 @@ info = {
 
 
 class Improvement(Command):
-    supported_flags = {"metric", "raw", "status", "language"}
+    supported_flags = {"metric", "raw", "status", "language", "gamemode", "date_range"}
 
     @commands.command(aliases=info["aliases"])
     async def improvement(self, ctx: BotContext, *args: str):
-        solo = ctx.invoked_with == "simp"
+        solo = ctx.invoked_with == "simp" or ctx.flags.gamemode == "solo"
         metric = "pp" if solo else "wpm"
 
         if ctx.explicit_flags.get("metric"):  # Overriding default metric
