@@ -8,3 +8,4 @@ PyJWT~=2.10.1
 watchdog~=6.0.0
 aiohttp-jinja2~=1.6
 anthropic~=0.89.0
+tzdata~=2026.2
