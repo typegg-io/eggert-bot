@@ -18,7 +18,9 @@ info = {
     "aliases": ["qs"],
     "description": "Displays a compass showing where a user's pp comes from.\n"
                    "Axes are short/long (character count) and simple/complex (complexity).\n"
-                   f"Based on top 250 ranked quotes.\n"
+                   "For a single user, a heatmap is shown behind the dot representing play density.\n"
+                   "The dot is where pp comes from, the heatmap shows what is played the most.\n"
+                   "Based on top 250 ranked quotes.\n"
                    f"Supports up to {max_users} users.",
     "parameters": f"[username1] ... [username{max_users}]",
     "examples": [
@@ -36,6 +38,15 @@ class QuoteStrength(Command):
         await run(ctx, profiles)
 
 
+def _quote_xy(quote, len_p10, len_p90, sorted_complexities):
+    log_len = np.log(len(quote["text"]))
+    raw = (log_len - len_p10) / (len_p90 - len_p10) * 2 - 1
+    x = float(np.tanh(raw * 1.2))
+    p = np.searchsorted(sorted_complexities, quote["complexity"], side="right") / len(sorted_complexities)
+    y = float(np.clip(p * 2 - 1, -1, 1))
+    return x, y
+
+
 async def run(ctx: BotContext, profiles: List[dict]):
     quote_list = get_quotes()
 
@@ -49,6 +60,7 @@ async def run(ctx: BotContext, profiles: List[dict]):
     len_p90 = np.percentile(log_lengths, 90)
 
     users = []
+    quote_bests = None
 
     for profile in profiles:
         quote_bests = get_quote_bests(
@@ -98,9 +110,17 @@ async def run(ctx: BotContext, profiles: List[dict]):
             "y": y,
         })
 
+    heatmap_points = None
+    if len(profiles) == 1:
+        heatmap_points = [
+            _quote_xy(quote_list[r["quoteId"]], len_p10, len_p90, sorted_complexities)
+            for r in quote_bests
+            if r["quoteId"] in quote_list
+        ]
+
     page = Page(
         title="Quote Strength Compass",
-        render=lambda: qs_graph.render(users, ctx.user["theme"]),
+        render=lambda: qs_graph.render(users, ctx.user["theme"], heatmap_points),
     )
 
     message = Message(ctx, page=page)
