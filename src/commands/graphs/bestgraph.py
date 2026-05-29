@@ -7,15 +7,15 @@ from bot_setup import BotContext
 from commands.base import Command
 from database.typegg.quotes import get_quotes
 from database.typegg.users import get_quote_bests
-from graphs import top as top_graph
+from graphs import best as best_graph
 from utils.errors import NoRankedRaces
 from utils.messages import Page, Message
 
 max_users = 5
 
 info = {
-    "name": "top",
-    "aliases": ["50", "100", "250", "500", "1000"],
+    "name": "bestgraph",
+    "aliases": ["top", "bg", "50", "100", "250", "500", "1000"],
     "description": "Displays a user's top n quote PBs ordered by pp.\n"
                    "Use `n` to set how many quotes to show (default 50).\n"
                    f"Supports up to {max_users} users.",
@@ -30,11 +30,11 @@ info = {
 }
 
 
-class Top(Command):
+class BestGraph(Command):
     supported_flags = {"metric", "raw", "gamemode", "status", "language", "number"}
 
     @commands.command(aliases=info["aliases"])
-    async def top(self, ctx: BotContext, *args: str):
+    async def bestgraph(self, ctx: BotContext, *args: str):
         if ctx.invoked_with.isnumeric():
             n = int(ctx.invoked_with)
         else:
@@ -148,7 +148,7 @@ async def run(ctx: BotContext, profiles: List[dict], n: int, metric: str):
     page = Page(
         title=f"Top {n:,} {metric} Quotes",
         description=description,
-        render=lambda: top_graph.render(
+        render=lambda: best_graph.render(
             username,
             top_scores,
             n,
