@@ -4,6 +4,7 @@ from api.quotes import get_quotes
 from bot_setup import BotContext
 from commands.base import Command
 from database.bot.recent_quotes import set_recent_quote
+from database.typegg.quotes import is_quote_id, get_quote
 from utils.errors import MissingArguments
 from utils.messages import Page, Message, paginate_data
 from utils.strings import escape_formatting, quote_display
@@ -39,8 +40,13 @@ async def run(ctx: BotContext, query: str):
         status="any",
         per_page=100,
     )
-    quotes = results["quotes"]
+    quotes = results["quotes"] or []
     total_results = results["totalCount"]
+
+    if is_quote_id(query):
+        quote = get_quote(query)
+        quotes.append(quote)
+        total_results += 1
 
     query_string = f"**Query:** \"{escape_formatting(query, remove_backticks=False)}\""
     if not quotes:
