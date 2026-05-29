@@ -9,7 +9,7 @@ from database.typegg.users import get_quote_chars_typed, get_quotes_over_leaderb
 from utils import strings
 from utils.errors import BotError
 from utils.messages import Message, Page, paginate_data
-from utils.strings import get_argument, username_with_flag, rank, LOADING, parse_number
+from utils.strings import get_argument, username_with_flag, rank, LOADING, parse_number, get_streak_emoji
 
 categories = {
     # API leaderboards
@@ -66,12 +66,12 @@ categories = {
     "daily": {
         "sort": "dailyQuotes.streak",
         "title": "Current Daily Quote Streak",
-        "formatter": lambda user: f"{user["stats"]["dailyQuotes"]["streak"]} :fire:"
+        "formatter": lambda user: f"{user["stats"]["dailyQuotes"]["streak"]}{get_streak_emoji(user["stats"]["dailyQuotes"]["streak"])}"
     },
     "streak": {
         "sort": "dailyQuotes.bestStreak",
         "title": "Best Daily Quote Streak",
-        "formatter": lambda user: f"{user["stats"]["dailyQuotes"]["bestStreak"]} :fire:"
+        "formatter": lambda user: f"{user["stats"]["dailyQuotes"]["bestStreak"]}{get_streak_emoji(user["stats"]["dailyQuotes"]["bestStreak"])}"
     },
     "dailyquotes": {
         "sort": "dailyQuotes.completed",

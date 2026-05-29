@@ -36,6 +36,14 @@ RANK_EMOJIS = [
     "<:20th:1384880508999041178>",
 ]
 
+STREAK_TIERS = {
+    10: "fire",
+    100: ":fire_green:1509719968407879710>",
+    250: ":fire_blue:1509719995687637122>",
+    500: ":fire_purple:1509720021067366522>",
+    1000: ":fire_pink:1509720046417744067>",
+}
+
 LOADING = "<a:loading:1418688762745065594>"
 INCREASE = "<:increase:1372466536693891142>"
 GG_PLUS = "<:GG1:1445664315871985807><:GG2:1445664341742452798>"
@@ -163,6 +171,16 @@ def rank(number):
     if 1 <= number <= 20:
         return RANK_EMOJIS[number - 1]
     return f"**{number}**"
+
+
+def get_streak_emoji(streak: int) -> str:
+    """Return the respective fire emoji for the given streak."""
+    for threshold in sorted(STREAK_TIERS.keys(), reverse=True):
+        if streak >= threshold:
+            value = STREAK_TIERS[threshold]
+            emoji = f":{value}:" if value == "fire" else f"<{value}"
+            return f" {emoji}"
+    return ""
 
 
 # Date & Time Formatting

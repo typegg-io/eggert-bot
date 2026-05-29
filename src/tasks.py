@@ -17,7 +17,7 @@ from utils.dates import parse_date, format_date
 from utils.files import remove_file
 from utils.keystrokes import get_keystroke_data
 from utils.logging import log, log_error
-from utils.strings import discord_date
+from utils.strings import discord_date, get_streak_emoji
 
 STATUSES_FILE = SOURCE_DIR / "data" / "statuses.txt"
 SEASONAL_STATUSES = {
@@ -156,11 +156,11 @@ async def daily_quote_reminder(bot: commands.Bot):
         profile = await get_profile(user_id)
         current_streak = profile["stats"]["dailyQuotes"]["streak"]
 
-        if current_streak > 0 and user_id not in daily_users:
+        if current_streak >= 10 and user_id not in daily_users:
             embed = Embed(
                 title=":warning: Your daily streak expires soon! :warning:",
                 description=(
-                    f"Your :fire: {current_streak} day streak will end "
+                    f"Your{get_streak_emoji(current_streak)} {current_streak} day streak will end "
                     f"{discord_date(daily_quote['endDate'])}\n"
                     "Keep it alive by playing today's quote!\n"
                     f"{SITE_URL}/daily"

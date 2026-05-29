@@ -10,6 +10,7 @@ from config import DAILY_QUOTE_CHANNEL_ID
 from database.typegg.daily_quotes import get_user_results, get_today_result, get_daily_quote_id
 from utils import dates
 from utils.messages import Page, Message, Field, usable_in
+from utils.strings import get_streak_emoji
 
 info = {
     "name": "dailystats",
@@ -35,7 +36,6 @@ class DailyStats(Command):
 async def run(ctx: BotContext, profile: dict):
     daily_stats = profile["stats"]["dailyQuotes"]
     streak = daily_stats["streak"]
-    fire = " :fire:" if streak > 0 else ""
     results = get_user_results(profile["userId"])
 
     if not results:
@@ -67,7 +67,7 @@ async def run(ctx: BotContext, profile: dict):
         Field(
             title="Participation",
             content=(
-                f"**Current Streak:** {streak:,}{fire}\n"
+                f"**Current Streak:** {streak:,}{get_streak_emoji(streak)}\n"
                 f"**Best Streak:** {daily_stats["bestStreak"]:,}\n"
                 f"**Total Completed:** {daily_stats["completed"]:,}\n"
                 f"**Participation Rate:** {daily_stats["completed"] / total_days:,.2%}\n\n"
