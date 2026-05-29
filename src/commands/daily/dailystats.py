@@ -7,7 +7,7 @@ from api.daily_quotes import START_DATE
 from bot_setup import BotContext
 from commands.base import Command
 from config import DAILY_QUOTE_CHANNEL_ID
-from database.typegg.daily_quotes import get_user_results
+from database.typegg.daily_quotes import get_user_results, get_today_result, get_daily_quote_id
 from utils import dates
 from utils.messages import Page, Message, Field, usable_in
 
@@ -52,7 +52,16 @@ async def run(ctx: BotContext, profile: dict):
     total_days = (dates.now() - START_DATE).days + 1
     total_days = min(total_days, (dates.now() - dates.parse_date(profile["joinDate"])).days + 2)
 
+    today_quote_id = get_daily_quote_id()
+    today_result = get_today_result(profile["userId"], today_quote_id) if today_quote_id else None
+
     pp, wpm, positions = zip(*[(race["pp"], race["wpm"], race["rank"]) for race in results])
+    pp = list(pp)
+    wpm = list(wpm)
+
+    if today_result:
+        pp.append(today_result["pp"])
+        wpm.append(today_result["wpm"])
 
     fields = [
         Field(
@@ -71,7 +80,6 @@ async def run(ctx: BotContext, profile: dict):
                 f"**Best Performance:** {max(pp):,.2f} pp\n"
                 f"**Average Speed:** {np.average(wpm):,.2f} WPM\n"
                 f"**Best Speed:** {max(wpm):,.2f} WPM\n"
-                f"**Average Rank:** {np.average(positions):,.2f}"
             ),
         )
     ]
@@ -81,16 +89,16 @@ async def run(ctx: BotContext, profile: dict):
         ranks[row["rank"]] += 1
     top_10s = sum(ranks[rank] for rank in range(1, 11))
 
-    if top_10s > 0:
-        fields.append(Field(
-            title="Placements",
-            content=(
-                (f":trophy: **Champion:** {ranks[1]:,}\n" if ranks[1] else "") +
-                (f":medal: **Runner-up:** {ranks[2]:,}\n" if ranks[2] else "") +
-                (f":third_place: **Third Place:** {ranks[3]:,}\n" if ranks[3] else "") +
-                f":star: **Top 10:** {top_10s:,}"
-            )
-        ))
+    fields.append(Field(
+        title="Placements",
+        content=(
+            (f":trophy: **Champion:** {ranks[1]:,}\n" if ranks[1] else "") +
+            (f":medal: **Runner-up:** {ranks[2]:,}\n" if ranks[2] else "") +
+            (f":third_place: **Third Place:** {ranks[3]:,}\n" if ranks[3] else "") +
+            (f":star: **Top 10:** {top_10s:,}\n" if top_10s > 0 else "") +
+            f":bar_chart: **Median Rank:** {np.median(positions):,.0f}"
+        )
+    ))
 
     page = Page(
         title="Daily Quote Stats",

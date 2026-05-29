@@ -89,6 +89,19 @@ def get_user_results(user_id: str):
     return db.fetch("SELECT * FROM daily_quote_results WHERE userId = ?", [user_id])
 
 
+def get_today_result(user_id: str, quote_id: str):
+    """Fetch the user's best race on today's daily quote."""
+    today = dates.floor_day(dates.now()).strftime("%Y-%m-%d")
+    return db.fetch_one("""
+        SELECT pp, wpm FROM races
+        WHERE userId = ?
+        AND quoteId = ?
+        AND timestamp >= ?
+        ORDER BY wpm DESC
+        LIMIT 1
+    """, [user_id, quote_id, today])
+
+
 def get_user_ranks(user_id: str):
     results = db.fetch("SELECT rank FROM daily_quote_results WHERE userId = ?", [user_id])
 
