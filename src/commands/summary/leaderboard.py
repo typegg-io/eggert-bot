@@ -10,6 +10,7 @@ from utils import strings
 from utils.errors import BotError
 from utils.messages import Message, Page, paginate_data
 from utils.strings import get_argument, username_with_flag, rank, LOADING, parse_number, get_streak_emoji
+from commands.quotes.quoteleaderboard import run as run_quoteleaderboard
 
 categories = {
     # API leaderboards
@@ -51,7 +52,8 @@ categories = {
     "wins": {
         "sort": "wins",
         "title": "Wins",
-        "formatter": lambda user: f"{user["stats"]["wins"]:,} ({user["stats"]["wins"] / user["stats"]["quickplayRaces"]:.2%} win rate)"
+        "formatter": lambda
+            user: f"{user["stats"]["wins"]:,} ({user["stats"]["wins"] / user["stats"]["quickplayRaces"]:.2%} win rate)"
     },
     "quotes": {
         "sort": "quotesTyped",
@@ -66,12 +68,14 @@ categories = {
     "daily": {
         "sort": "dailyQuotes.streak",
         "title": "Current Daily Quote Streak",
-        "formatter": lambda user: f"{user["stats"]["dailyQuotes"]["streak"]}{get_streak_emoji(user["stats"]["dailyQuotes"]["streak"])}"
+        "formatter": lambda
+            user: f"{user["stats"]["dailyQuotes"]["streak"]}{get_streak_emoji(user["stats"]["dailyQuotes"]["streak"])}"
     },
     "streak": {
         "sort": "dailyQuotes.bestStreak",
         "title": "Best Daily Quote Streak",
-        "formatter": lambda user: f"{user["stats"]["dailyQuotes"]["bestStreak"]}{get_streak_emoji(user["stats"]["dailyQuotes"]["bestStreak"])}"
+        "formatter": lambda
+            user: f"{user["stats"]["dailyQuotes"]["bestStreak"]}{get_streak_emoji(user["stats"]["dailyQuotes"]["bestStreak"])}"
     },
     "dailyquotes": {
         "sort": "dailyQuotes.completed",
@@ -130,10 +134,17 @@ info = {
 
 
 class Leaderboard(Command):
-    supported_flags = {"metric", "gamemode", "number"}
+    supported_flags = {"metric", "gamemode", "number", "quote_id"}
 
     @commands.command(aliases=info["aliases"])
     async def leaderboard(self, ctx: BotContext, category: str = "pp", *args):
+        if ctx.flags.quote_id is not None:
+            if ctx.flags.quote_id == "daily":
+                category = "daily"
+            else:
+                quote = await self.get_quote(ctx, ctx.flags.quote_id, from_api=True)
+                return await run_quoteleaderboard(ctx, quote)
+
         if (
             category == "pp"
             and ctx.flags.gamemode == "quickplay"
