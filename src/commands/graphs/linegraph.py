@@ -9,7 +9,7 @@ from database.typegg.races import get_races
 from graphs import line
 from utils.errors import BotError
 from utils.nwpm_model import calculate_nwpm, initialize_nwpm_model
-from utils.stats import calculate_quote_length
+from utils.stats import calculate_quote_length, calculate_total_pp
 from utils.strings import get_flag_title
 
 metrics = {
@@ -115,9 +115,7 @@ def get_total_pp_over_time(race_list: list[dict]):
             quote_bests[quote_id] = race
 
             if len(best_pps) <= max_entries or best_pps.index(pp) < max_entries:
-                current_total = 0.0
-                for i, p in enumerate(best_pps[:max_entries]):
-                    current_total += p * 0.97 ** i
+                current_total = calculate_total_pp(best_pps[:max_entries])
 
         total_pp.append(current_total)
 
@@ -185,9 +183,7 @@ def get_nwpm_over_time(race_list: list[dict]):
             quote_bests[quote_id] = race
 
             if len(best_pps) <= max_entries or best_pps.index(pp) < max_entries:
-                current_total = 0.0
-                for i, p in enumerate(best_pps[:max_entries]):
-                    current_total += p * 0.97 ** i
+                current_total = calculate_total_pp(best_pps[:max_entries])
 
         if len(best_pps) >= 125:
             nwpm.append(calculate_nwpm(current_total))

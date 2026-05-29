@@ -10,6 +10,7 @@ from database.typegg.users import get_quote_bests
 from graphs import best as best_graph
 from utils.errors import NoRankedRaces
 from utils.messages import Page, Message
+from utils.stats import calculate_total_pp
 
 max_users = 5
 
@@ -70,7 +71,7 @@ async def run(ctx: BotContext, profiles: List[dict], n: int, metric: str):
         values = [race[metric] for race in quote_bests]
         quote_ids = [race["quoteId"] for race in quote_bests]
         difficulties = [quote_list[quote_id]["difficulty"] for quote_id in quote_ids]
-        total = sum(v * (0.97 ** i) for i, v in enumerate(values))
+        total = calculate_total_pp(values)
 
         if not values:
             raise NoRankedRaces(username)

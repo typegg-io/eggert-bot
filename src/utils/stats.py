@@ -1,7 +1,14 @@
-def calculate_total_pp(quote_bests: list[dict]):
-    """Returns the total performance given a list of quote bests."""
-    quote_bests.sort(key=lambda x: -x["pp"])
-    return sum(q["pp"] * (0.97 ** i) for i, q in enumerate(quote_bests[:250]))
+import math
+
+
+def calculate_total_pp(quote_bests: list[dict] | list[float]):
+    """Returns the total performance given a list of quote bests or pp values."""
+    if isinstance(quote_bests[0], float):
+        quote_bests.sort(reverse=True)
+        return sum(math.floor(v) * (0.97 ** i) for i, v in enumerate(quote_bests[:250]))
+    else:
+        quote_bests.sort(key=lambda x: -x["pp"])
+        return sum(math.floor(q["pp"]) * (0.97 ** i) for i, q in enumerate(quote_bests[:250]))
 
 
 def calculate_quote_bests(race_list: list[dict]):
