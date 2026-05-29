@@ -5,7 +5,7 @@ import discord
 from bot_setup import load_commands, register_bot_checks, Eggert
 from config import BOT_PREFIX, BOT_TOKEN, STAGING
 from utils.files import clear_image_cache
-from utils.logging import log
+from utils.logging import log, log_error
 from watcher import start_watcher
 
 intents = discord.Intents.default()
@@ -23,20 +23,27 @@ bot.remove_command("help")
 
 @bot.event
 async def on_ready():
-    await load_commands(bot)
-    register_bot_checks(bot)
-    await bot.load_extension("error_handler")
-    await bot.load_extension("web_server.server")
+    try:
+        await load_commands(bot)
+        register_bot_checks(bot)
+        await bot.load_extension("error_handler")
+        await bot.load_extension("web_server.server")
 
-    if not STAGING:
-        await bot.load_extension("tasks")
-    else:
-        loop = asyncio.get_running_loop()
-        start_watcher(bot, loop)
+        if not STAGING:
+            await bot.load_extension("tasks")
+        else:
+            loop = asyncio.get_running_loop()
+            start_watcher(bot, loop)
 
-    log("Bot ready.")
+        log("Bot ready.")
+    except Exception as e:
+        log_error("Bot startup failed", e)
+        raise
 
 
 if __name__ == "__main__":
     clear_image_cache()
-    bot.run(BOT_TOKEN)
+    try:
+        bot.run(BOT_TOKEN)
+    except Exception as e:
+        log_error("Bot startup failed", e)
