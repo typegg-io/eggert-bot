@@ -399,7 +399,7 @@ async def run_head_to_head(ctx: BotContext, profile1: dict, profile2: dict):
             close_delta = abs(closest_race["userWpm"] - closest_race["opponentWpm"])
             close_race_data = await load_race_data(closest_race)
             close_quote = get_quote(closest_race["quoteId"])
-            themed_line = 0 if close_race_data[0]["userId"] == profile1["userId"] else 1
+            p1_race_number = next(r for r in close_race_data if r["userId"] == profile1["userId"])["raceNumber"]
 
             pages.append(Page(
                 title=f"Closest Race (+{close_delta:,.2f} WPM)",
@@ -409,10 +409,10 @@ async def run_head_to_head(ctx: BotContext, profile1: dict, profile2: dict):
                     race_data=close_race_data,
                     title=(
                         f"Match Graph - {profile1["username"]} - "
-                        f"Race #{close_race_data[0]["raceNumber"]:,}"
+                        f"Race #{p1_race_number:,}"
                     ),
                     theme=ctx.user['theme'],
-                    themed_line=themed_line,
+                    themed_line=next(i for i, r in enumerate(close_race_data) if r["userId"] == profile1["userId"]),
                 ),
                 flag_title=True,
             ))
