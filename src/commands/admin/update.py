@@ -1,6 +1,7 @@
 import asyncio
 import subprocess
 
+from discord import Embed
 from discord.ext import commands
 
 from bot_setup import BotContext
@@ -37,7 +38,12 @@ class Update(Command):
         stdout, _ = await proc.communicate()
         output = stdout.decode().strip()
 
-        await message.message.edit(content="Restarted", embed=None)
+        if proc.returncode != 0:
+            await message.message.edit(embed=Embed(title="Update Failed"))
+            await ctx.send(f"```\n{output[:1900]}\n```")
+            return
+
+        await message.message.edit(embed=Embed(title="Restarted"))
         await ctx.send(f"```\n{output[:1900]}\n```")
 
         subprocess.Popen(
