@@ -30,7 +30,7 @@ class Update(Command):
         await message.send()
 
         proc = await asyncio.create_subprocess_exec(
-            "git", "pull", "origin", "main",
+            "git", "-c", "color.ui=always", "pull", "origin", "main",
             stdout=asyncio.subprocess.PIPE,
             stderr=asyncio.subprocess.STDOUT,
             cwd=ROOT_DIR,
@@ -40,11 +40,11 @@ class Update(Command):
 
         if proc.returncode != 0:
             await message.message.edit(embed=Embed(title="Update Failed"))
-            await ctx.send(f"```\n{output[:1900]}\n```")
+            await ctx.send(f"```ansi\n{output[:1900]}\n```")
             return
 
         await message.message.edit(embed=Embed(title="Restarted"))
-        await ctx.send(f"```\n{output[:1900]}\n```")
+        await ctx.send(f"```ansi\n{output[:1900]}\n```")
 
         subprocess.Popen(
             ["sudo", "systemctl", "restart", "eggert-bot"],
