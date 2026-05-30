@@ -2,7 +2,7 @@ import asyncio
 from typing import Optional, NamedTuple
 from urllib.parse import unquote
 
-from discord import Forbidden
+from discord import Embed, Forbidden
 from discord.ext import commands
 
 from api.quotes import get_quote as get_quote_api
@@ -14,6 +14,7 @@ from database.bot.users import update_warning, update_gg_plus_status, get_user_b
 from database.typegg.daily_quotes import get_daily_quote_id
 from database.typegg.quotes import get_quote as get_quote_db
 from database.typegg.races import get_latest_race
+from utils.colors import ERROR
 from utils.errors import NoRaces, NotSubscribed, InvalidNumber, NoRacesFiltered, MissingUsername
 from utils.flags import Flags
 from utils.messages import privacy_warning, command_milestone
@@ -159,7 +160,7 @@ class Command(commands.Cog):
         from commands.account.download import run as download
         await download(ctx, profile)
 
-    async def await_confirmation(self, ctx: BotContext, confirm_message="confirm", timeout=10):
+    async def await_confirmation(self, ctx: BotContext, confirm_message="confirm", timeout=10, prompt_message=None):
         """Waits for the user to send a specific confirmation message."""
 
         def check(message):
@@ -173,6 +174,15 @@ class Command(commands.Cog):
             await self.bot.wait_for("message", timeout=timeout, check=check)
             return True
         except asyncio.TimeoutError:
+            if prompt_message is not None:
+                await prompt_message.edit(
+                    embed=Embed(
+                        title="Confirmation Expired",
+                        description="Please run the command again.",
+                        color=ERROR,
+                    ),
+                    view=None,
+                )
             return False
 
     async def send_privacy_warning(self, ctx: BotContext):

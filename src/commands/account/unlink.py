@@ -1,5 +1,3 @@
-import asyncio
-
 import discord
 from discord import Embed
 from discord.ext import commands
@@ -27,7 +25,7 @@ class Unlink(Command):
         if not ctx.user["userId"]:
             return await ctx.send(embed=not_verified())
 
-        await ctx.send(embed=Embed(
+        sent = await ctx.send(embed=Embed(
             title="Are You Sure?",
             description=(
                 "You are about to remove the verification link\n"
@@ -37,31 +35,24 @@ class Unlink(Command):
             color=WARNING,
         ))
 
-        def check(message):
-            return message.author == ctx.author and message.content.lower() == "confirm"
-
-        try:
-            await self.bot.wait_for("message", timeout=10, check=check)
-        except asyncio.TimeoutError:
+        if not await self.await_confirmation(ctx, prompt_message=sent):
             return
-        else:
-            await unverify_user(self.bot, ctx.author.id)
 
-            # Reset GG+ status and theme in database
-            if ctx.user["userId"]:
-                update_gg_plus_status(ctx.user["userId"], False)
-                update_theme(ctx.author.id, DEFAULT_THEME)
-                log(f"Reset GG+ status and theme for user {ctx.user['userId']}")
+        await unverify_user(self.bot, ctx.author.id)
 
-            unlink_user(ctx.author.id)
+        # Reset GG+ status and theme in database
+        if ctx.user["userId"]:
+            update_gg_plus_status(ctx.user["userId"], False)
+            update_theme(ctx.author.id, DEFAULT_THEME)
+            log(f"Reset GG+ status and theme for user {ctx.user['userId']}")
 
-            embed = Embed(
-                title="Verification Removed",
-                description=f"To re-verify your account, run `{BOT_PREFIX}link`.\n",
-                color=ctx.user["theme"]["embed"]
-            )
+        unlink_user(ctx.author.id)
 
-            return await ctx.send(embed=embed)
+        return await ctx.send(embed=Embed(
+            title="Verification Removed",
+            description=f"To re-verify your account, run `{BOT_PREFIX}link`.\n",
+            color=ctx.user["theme"]["embed"]
+        ))
 
 
 async def unverify_user(bot_instance: Eggert, discord_id: str):

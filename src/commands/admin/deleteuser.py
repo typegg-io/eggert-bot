@@ -1,5 +1,3 @@
-import asyncio
-
 from discord.ext import commands
 
 from bot_setup import BotContext
@@ -41,15 +39,10 @@ class DeleteUser(Command):
         )
         await message.send()
 
-        def check(message):
-            return message.author == ctx.author and message.content.lower() == "confirm"
-
-        try:
-            await self.bot.wait_for("message", timeout=10, check=check)
-        except asyncio.TimeoutError:
+        if not await self.await_confirmation(ctx, prompt_message=message.message):
             return
-        else:
-            await run(ctx, profile)
+
+        await run(ctx, profile)
 
 
 async def run(ctx: BotContext, profile: dict):

@@ -60,7 +60,7 @@ class ReDownload(Command):
                 ))
                 await message.send()
 
-                if not await self.await_confirmation(ctx):
+                if not await self.await_confirmation(ctx, prompt_message=message.message):
                     return
 
             delete_user_data(user_id)
