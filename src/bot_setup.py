@@ -43,10 +43,16 @@ class Eggert(commands.Bot):
     async def get_context(self, message, *, cls=BotContext):
         if message.content.startswith(BOT_PREFIX):
             original_content = message.content
-            flags, cleaned, explicit_flags = parse_flags(message.content)
-            message.content = cleaned
-            ctx = await super().get_context(message, cls=cls)
-            message.content = original_content
+            cmd_name = message.content.split()[0][len(BOT_PREFIX):]
+            cmd = self.get_command(cmd_name)
+            if cmd and hasattr(cmd.cog, "ignore_flags"):
+                flags, explicit_flags = Flags(), {}
+                ctx = await super().get_context(message, cls=cls)
+            else:
+                flags, cleaned, explicit_flags = parse_flags(message.content)
+                message.content = cleaned
+                ctx = await super().get_context(message, cls=cls)
+                message.content = original_content
         else:
             flags, explicit_flags = Flags(), {}
             ctx = await super().get_context(message, cls=cls)
