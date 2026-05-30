@@ -34,16 +34,16 @@ class Help(Command):
 async def help_main(ctx: BotContext):
     description = (
         f"Use `{prefix}help <command>` to get information about a specific command.\n"
-        f"A full list is also available [here]({BOT_SUBDOMAIN}/help).\n\n"
+        f"Use `{prefix}ask <query>` to ask Eggert about anything bot or TypeGG related.\n\n"
         f"**Parameter Notation:**\n"
         f"• Parameters in `<>` are required\n"
         f"• Parameters in `[]` are optional\n"
         f"• Parameters with `|` indicate a choice between options\n"
         f"• Parameters can be passed in any order\n"
         f"**Parameter Flags**\n"
-        f"• Metric: `-raw`\n"
-        f"• Gamemode: `-solo`, `-multi`\n"
-        f"• Status: `-unranked`, `-any`\n"
+        f"• Speed: `raw`\n"
+        f"• Gamemode: `solo`, `quickplay`, `lobby`\n"
+        f"• Status: `unranked`, `any`\n"
     )
 
     fields = []
@@ -93,6 +93,7 @@ async def help_main(ctx: BotContext):
         page=page,
         footer="Developed by @keegant",
         footer_icon="https://cdn.discordapp.com/avatars/155481579005804544/33ede24295683bbb2253481d5029266e.webp?size=1024",
+        url=f"{BOT_SUBDOMAIN}/help"
     )
 
     await message.send()
