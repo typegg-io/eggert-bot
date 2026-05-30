@@ -321,6 +321,15 @@ class NumberGreaterThan(CommandError):
         )
 
 
+class BotLocked(CheckFailure):
+    """Raised when the bot is in lockdown mode."""
+    embed = Embed(
+        title=":rotating_light: Bot Locked",
+        description="The bot is currently in lockdown mode",
+        color=WARNING,
+    )
+
+
 class MigrationActive(CommandError):
     """Raised when a migration is currently in progress."""
     embed = Embed(

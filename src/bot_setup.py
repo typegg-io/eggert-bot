@@ -6,11 +6,12 @@ import aiohttp
 import discord
 from discord.ext import commands
 
-from config import BOT_PREFIX, STAGING, STATS_CHANNEL_ID, TYPEGG_GUILD_ID, GENERAL_CHANNEL_ID, SITE_CHAT_URL, SECRET, SITE_URL
+from config import BOT_PREFIX, STAGING, STATS_CHANNEL_ID, TYPEGG_GUILD_ID, GENERAL_CHANNEL_ID, SITE_CHAT_URL, SECRET, \
+    SITE_URL, EIKO, KEEGAN
 from database.bot.users import get_user, update_commands, get_user_ids, get_all_command_usage
 from database.typegg.quotes import is_quote_id
 from utils.dates import is_date_like, parse_date
-from utils.errors import UserBanned, InvalidNumber
+from utils.errors import BotLocked, UserBanned, InvalidNumber
 from utils.files import get_command_modules
 from utils.flags import FLAG_VALUES, Flags, Language
 from utils.logging import get_log_message, log
@@ -19,6 +20,17 @@ from web_server.utils import assign_user_roles
 
 users = get_user_ids()
 total_commands = sum(get_all_command_usage().values())
+
+_locked = False
+
+
+def set_lockdown(state: bool):
+    global _locked
+    _locked = state
+
+
+def is_locked():
+    return _locked
 
 
 class BotContext(commands.Context):
@@ -158,6 +170,12 @@ async def load_commands(bot):
 def register_bot_checks(bot):
     """Register global bot checks and event handlers."""
     from utils.messages import check_channel_permissions
+
+    @bot.check
+    async def lockdown_check(ctx: BotContext):
+        if _locked and ctx.author.id not in [EIKO, KEEGAN]:
+            raise BotLocked
+        return True
 
     @bot.check
     async def set_user(ctx: BotContext):
