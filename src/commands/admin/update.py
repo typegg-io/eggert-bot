@@ -1,7 +1,6 @@
 import asyncio
 import subprocess
 
-from discord import Embed
 from discord.ext import commands
 
 from bot_setup import BotContext
@@ -38,10 +37,8 @@ class Update(Command):
         stdout, _ = await proc.communicate()
         output = stdout.decode().strip()
 
-        await message.message.edit(embed=Embed(
-            title="Restarting...",
-            description=f"```\n{output[:1900]}\n```",
-        ))
+        await message.message.edit(content="Restarted", embed=None)
+        await ctx.send(f"```\n{output[:1900]}\n```")
 
         subprocess.Popen(
             ["sudo", "systemctl", "restart", "eggert-bot"],
