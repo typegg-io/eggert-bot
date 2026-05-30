@@ -1,4 +1,5 @@
 import asyncio
+import subprocess
 
 from discord import Embed
 from discord.ext import commands
@@ -6,12 +7,13 @@ from discord.ext import commands
 from bot_setup import BotContext
 from commands.base import Command
 from commands.checks import is_bot_owner
+from config import ROOT_DIR, STAGING
 from utils.messages import Page, Message
 
 info = {
     "name": "update",
     "aliases": [],
-    "description": "Runs the update script to pull the latest changes and restart the bot.",
+    "description": "Pulls the latest changes and restarts the bot.",
 }
 
 
@@ -21,28 +23,27 @@ class Update(Command):
     @commands.command(aliases=info["aliases"])
     @is_bot_owner()
     async def update(self, ctx: BotContext):
+        if STAGING:
+            return
+
         message = Message(ctx, Page(title="Updating..."))
         await message.send()
 
-        proc = await asyncio.create_subprocess_shell(
-            "update",
+        proc = await asyncio.create_subprocess_exec(
+            "git", "pull", "origin", "main",
             stdout=asyncio.subprocess.PIPE,
             stderr=asyncio.subprocess.STDOUT,
+            cwd=ROOT_DIR,
         )
+        stdout, _ = await proc.communicate()
+        output = stdout.decode().strip()
 
-        output_lines = []
-        try:
-            while True:
-                line = await asyncio.wait_for(proc.stdout.readline(), timeout=15)
-                if not line:
-                    break
-                output_lines.append(line.decode())
-        except (asyncio.TimeoutError, Exception):
-            pass
+        await message.message.edit(embed=Embed(
+            title="Restarting...",
+            description=f"```\n{output[:1900]}\n```",
+        ))
 
-        output = "".join(output_lines).strip()
-        if output:
-            await message.message.edit(embed=Embed(
-                title="Restarting...",
-                description=f"```\n{output[:1900]}\n```",
-            ))
+        subprocess.Popen(
+            ["sudo", "systemctl", "restart", "eggert-bot"],
+            start_new_session=True,
+        )
