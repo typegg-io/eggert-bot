@@ -3,6 +3,9 @@ import math
 
 def calculate_total_pp(quote_bests: list[dict] | list[float]):
     """Returns the total performance given a list of quote bests or pp values."""
+    if not quote_bests:
+        return 0
+
     if isinstance(quote_bests[0], float):
         quote_bests.sort(reverse=True)
         return sum(math.floor(v) * (0.97 ** i) for i, v in enumerate(quote_bests[:250]))
