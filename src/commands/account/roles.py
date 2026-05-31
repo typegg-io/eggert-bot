@@ -22,7 +22,7 @@ info = {
 
 ACHIEVEMENT_ROLES = {
     "masochist": {
-        "role_name": "Masochist 😈",
+        "role_name": "Masochist",
         "description": "Type all 100 masochist quotes",
         "total": 100,
     },
