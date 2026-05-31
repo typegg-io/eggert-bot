@@ -40,7 +40,7 @@ def time_stop():
 
 # Message Formatting
 
-def get_log_message(message, flags=None):
+def get_log_message(message):
     """Format a Discord message into a log string with link, user info, and content."""
     message_link = "[DM]"
     if message.guild:
@@ -55,22 +55,7 @@ def get_log_message(message, flags=None):
     linked_account = f" ({user_id})" if user_id else ""
     content = message.content
 
-    flag_parts = []
-    if flags:
-        if flags.metric and flags.metric != "pp":
-            flag_parts.append(f"-{flags.metric}")
-        if flags.raw:
-            flag_parts.append("-raw")
-        if flags.gamemode:
-            flag_parts.append(f"-{flags.gamemode}")
-        if flags.status:
-            flag_parts.append(f"-{flags.status}")
-        if flags.language:
-            flag_parts.append(f"-{flags.language}")
-
-    flags_str = " " + " ".join(flag_parts) if flag_parts else ""
-
-    return f"{message_link} {mention}{linked_account}: `{content}{flags_str}`"
+    return f"{message_link} {mention}{linked_account}: `{content}`"
 
 
 # Logging Functions

@@ -63,7 +63,7 @@ class ErrorHandler(commands.Cog):
 
         await send_error(ctx, UnexpectedError(type(error).__name__).embed)
 
-        log_message = get_log_message(ctx.message, getattr(ctx, "flags", None))
+        log_message = get_log_message(ctx.message)
         log_error(log_message, error)
 
 
