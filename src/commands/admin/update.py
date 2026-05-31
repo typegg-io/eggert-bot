@@ -36,7 +36,7 @@ class Update(Command):
             cwd=ROOT_DIR,
         )
         stdout, _ = await proc.communicate()
-        output = stdout.decode().strip()
+        output = stdout.decode().strip().replace("\x1b[m", "\x1b[0m")
 
         if proc.returncode != 0:
             await message.message.edit(embed=Embed(title="Update Failed"))
