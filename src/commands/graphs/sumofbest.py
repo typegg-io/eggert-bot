@@ -91,8 +91,10 @@ async def run(ctx: BotContext, profile: dict, quote: dict):
 
     delays = [delay for segment in sum_of_best_segments for delay in segment["delays"]]
     sum_of_best_wpm = calculate_wpm(len(quote["text"]) - 1, sum(delays))
-    calc_result = await calculate_metric(quote["quoteId"], sum_of_best_wpm, "wpm")
-    sum_of_best_pp = calc_result["pp"]
+    sum_of_best_pp = 0
+    if quote["ranked"]:
+        calc_result = await calculate_metric(quote["quoteId"], sum_of_best_wpm, "wpm")
+        sum_of_best_pp = calc_result["pp"]
     sum_of_best_keystroke_wpm = get_keystroke_wpm(delays)
 
     unique_races = set()
