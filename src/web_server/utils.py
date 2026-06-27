@@ -5,7 +5,7 @@ import discord
 from aiohttp import web
 
 from api.core import API_URL
-from config import SECRET, VERIFIED_ROLE_NAME
+from config import SECRET, VERIFIED_ROLE_NAME, LANGUAGE_ROLE_IDS
 from utils.logging import log_server
 
 
@@ -31,6 +31,83 @@ def validate_authorization(request: web.Request):
 
 
 # Discord Role Management
+
+COUNTRY_LANGUAGE_ROLES = {
+    # French
+    "fr": "french",
+    "mc": "french",
+
+    # German
+    "de": "german",
+    "at": "german",
+    "li": "german",
+
+    # Italian
+    "it": "italian",
+    "sm": "italian",
+    "va": "italian",
+
+    # Spanish
+    "es": "spanish", "mx": "spanish", "ar": "spanish", "co": "spanish",
+    "pe": "spanish", "ve": "spanish", "cl": "spanish", "ec": "spanish",
+    "gt": "spanish", "cu": "spanish", "bo": "spanish", "do": "spanish",
+    "hn": "spanish", "py": "spanish", "sv": "spanish", "ni": "spanish",
+    "cr": "spanish", "pa": "spanish", "uy": "spanish",
+
+    # Portuguese
+    "pt": "portuguese",
+    "br": "portuguese",
+
+    # Russian
+    "ru": "russian",
+
+    # Turkish
+    "tr": "turkish",
+
+    # Indonesian
+    "id": "indonesian",
+
+    # Vietnamese
+    "vn": "vietnamese",
+}
+
+
+def get_language_key(country):
+    """Get the supported language key for an ISO country code, or None."""
+    if not country:
+        return None
+    return COUNTRY_LANGUAGE_ROLES.get(country.lower())
+
+
+async def assign_language_role(guild: discord.Guild, discord_id: int, country: str):
+    """Assign a language role based on the user's country, if it maps to one."""
+    key = get_language_key(country)
+    if not key:
+        log_server(f"No language role for country '{country}'")
+        return
+
+    role_id = LANGUAGE_ROLE_IDS.get(key)
+    if not role_id:
+        raise ValueError(f"No role ID configured for language '{key}'")
+
+    member = guild.get_member(discord_id)
+    if not member:
+        raise ValueError(f"Member with ID {discord_id} not found in guild")
+
+    role = guild.get_role(role_id)
+    if not role:
+        raise ValueError(f"Language role '{key}' (ID {role_id}) not found in guild")
+
+    if role in member.roles:
+        log_server(f"Member {member.name} already has language role '{role.name}'")
+        return
+
+    try:
+        await member.add_roles(role, reason="Assigning language role")
+        log_server(f"Assigned {role.name} role to {member.name}")
+    except (discord.Forbidden, discord.HTTPException) as e:
+        raise RuntimeError(f"Failed to assign language role to {member.name}: {e}")
+
 
 def get_nwpm_role_name(nwpm):
     """Get the role name for a given nWPM value."""
@@ -119,6 +196,12 @@ async def assign_user_roles(cog, guild: discord.Guild, discord_id: int, user_id:
                 await update_nwpm_role(cog, guild, discord_id, nwpm)
             else:
                 log_server(f"No nWPM data available for user {user_id}")
+
+            # Assign language role based on country (best-effort, never blocking)
+            try:
+                await assign_language_role(guild, discord_id, profile_data.get("country"))
+            except Exception as e:
+                log_server(f"Failed to assign language role for user {user_id}: {e}")
 
             # Get GG+ status
             is_gg_plus = profile_data.get("isGgPlus", False)

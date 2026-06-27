@@ -30,6 +30,18 @@ VERIFIED_ROLE_NAME = "Verified Egg 🥚"
 DAILY_QUOTE_CHANNEL_ID = 1419332457060372633
 DAILY_QUOTE_ROLE_ID = 1421957288385712230
 
+LANGUAGE_ROLE_IDS = {
+    "french": 1520389620007833790,  # Français
+    "german": 1520388722728894515,  # Deutsch
+    "indonesian": 1520389795593977856,  # Bahasa Indonesia
+    "italian": 1520389436322484244,  # Italiano
+    "portuguese": 1520415029109723167,  # Português
+    "russian": 1520398942754570270,  # Русский
+    "spanish": 1520389699087106049,  # Español
+    "turkish": 1520399120467230822,  # Türkçe
+    "vietnamese": 1520399008810405999,  # Tiếng Việt
+}
+
 # === User IDs ===
 EIKO = 87926662364160000
 KEEGAN = 155481579005804544
