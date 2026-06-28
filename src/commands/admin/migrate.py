@@ -13,8 +13,18 @@ categories = ["users", "quotes", "nwpm"]
 info = {
     "name": "migrate",
     "aliases": [],
-    "description": "Re-imports specified data for the bot's database",
+    "description": (
+        "Re-imports data from the TypeGG API into the bot's database. Categories:\n"
+        "• `users` - Migrates every stored user's race history\n"
+        "• `quotes` - Migrates all quote sources and quotes\n"
+        "• `nwpm` - Resyncs nWPM roles for all linked users\n\n"
+        "-# Runs in the background, silently skips individual failures. Check logs for details."
+    ),
     "parameters": "<category1> [category2] ...",
+    "examples": [
+        "migrate quotes",
+        "migrate users nwpm",
+    ],
 }
 
 
