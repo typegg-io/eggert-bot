@@ -7,7 +7,7 @@ import discord
 from discord.ext import commands
 
 from config import BOT_PREFIX, STAGING, STATS_CHANNEL_ID, TYPEGG_GUILD_ID, GENERAL_CHANNEL_ID, SITE_CHAT_URL, SECRET, \
-    SITE_URL, EIKO, KEEGAN
+    EIKO, KEEGAN
 from database.bot.users import get_user, update_commands, get_user_ids, get_all_command_usage
 from database.typegg.quotes import is_quote_id
 from utils.dates import is_date_like, parse_date
@@ -16,6 +16,7 @@ from utils.files import get_command_modules
 from utils.flags import FLAG_VALUES, Flags, Language
 from utils.logging import get_log_message, log
 from utils.strings import get_argument, parse_number, parse_wpm_range
+from utils.urls import parse_solo_url
 from web_server.utils import assign_user_roles
 
 users = get_user_ids()
@@ -134,7 +135,7 @@ def parse_flags(content: str) -> tuple[Flags, str, dict[str, str]]:
 
         if (
             arg in ["^", "daily"]
-            or arg.startswith(f"{SITE_URL}/solo/")
+            or parse_solo_url(arg) is not None
             or is_quote_id(arg)
         ):
             flags.quote_id = value

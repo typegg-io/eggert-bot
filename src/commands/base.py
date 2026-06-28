@@ -8,7 +8,7 @@ from discord.ext import commands
 from api.quotes import get_quote as get_quote_api
 from api.users import get_profile, get_races
 from bot_setup import BotContext
-from config import SITE_URL, STATS_CHANNEL_ID
+from config import STATS_CHANNEL_ID
 from database.bot.recent_quotes import set_recent_quote, get_recent_quote
 from database.bot.users import update_warning, update_gg_plus_status, get_user_by_user_id
 from database.typegg.daily_quotes import get_daily_quote_id
@@ -19,6 +19,7 @@ from utils.errors import NoRaces, NotSubscribed, InvalidNumber, NoRacesFiltered,
 from utils.flags import Flags
 from utils.messages import privacy_warning, command_milestone
 from utils.strings import parse_number, get_argument
+from utils.urls import parse_solo_url
 
 
 class ParseResult(NamedTuple):
@@ -205,8 +206,8 @@ class Command(commands.Cog):
         if quote_id is None and user_id is not None:
             latest_race = get_latest_race(user_id)
             quote_id = latest_race["quoteId"]
-        elif quote_id.startswith(f"{SITE_URL}/solo/"):
-            quote_id = quote_id.split("/")[-1]
+        elif (solo_quote_id := parse_solo_url(quote_id)) is not None:
+            quote_id = solo_quote_id
         elif quote_id == "^":
             quote_id = get_recent_quote(ctx.channel.id)
         elif quote_id == "daily":
