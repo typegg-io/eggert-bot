@@ -51,6 +51,24 @@ def add_daily_results(day_number: int, results: list[dict]):
     """, [daily_result_insert(day_number, i + 1, result) for i, result in enumerate(results)])
 
 
+def zero_daily_results_pp(quote_id: str):
+    """Zero out pp values for a quote's daily results."""
+    db.run("""
+        UPDATE daily_quote_results
+        SET pp = 0, rawPp = 0
+        WHERE quoteId = ?
+    """, [quote_id])
+
+
+def update_daily_results_pp(quote_id: str, pp_ratio: float):
+    """Recalculate pp values for a quote's daily results from a wpm:pp ratio."""
+    db.run("""
+        UPDATE daily_quote_results
+        SET pp = wpm * ?, rawPp = rawWpm * ?
+        WHERE quoteId = ?
+    """, [pp_ratio, pp_ratio, quote_id])
+
+
 async def reimport_daily_results():
     """Re-fetch and replace the leaderboard results for every stored daily quote."""
     from api.daily_quotes import get_daily_quote

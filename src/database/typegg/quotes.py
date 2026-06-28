@@ -182,12 +182,15 @@ async def update_quote(quote_id: str, updates: dict):
             new_ranked = updates["ranked"]
 
             if old_ranked != new_ranked:
+                from database.typegg.daily_quotes import zero_daily_results_pp, update_daily_results_pp
+
                 if new_ranked == 0:  # Ranked -> Unranked: Zero out pp values
                     db.run("""
                         UPDATE races
                         SET pp = 0, rawPp = 0
                         WHERE quoteId = ?
                     """, [quote_id])
+                    zero_daily_results_pp(quote_id)
                     log_server(f"Quote {quote_id} unranked: Zeroed out pp values")
                 elif new_ranked == 1:  # Unranked -> Ranked: Calculate pp from sample
                     from api.users import get_race
@@ -208,8 +211,8 @@ async def update_quote(quote_id: str, updates: dict):
                             SET pp = wpm * ?, rawPp = rawWpm * ?
                             WHERE quoteId = ?
                         """, [pp_ratio, pp_ratio, quote_id])
+                        update_daily_results_pp(quote_id, pp_ratio)
 
-                        # no longer accurate because of non-linear pp
                         log_server(f"Quote {quote_id} ranked: Updated pp values using ratio {pp_ratio:.4f}")
 
     fields = [
