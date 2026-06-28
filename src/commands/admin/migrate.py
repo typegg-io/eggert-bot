@@ -63,6 +63,6 @@ class Migrate(Command):
                     ", ".join([f"`{category}`" for category in category_list])
                 ),
             ),
-            content=f"<@{KEEGAN}>",
+            content=f"<@{ctx.author.id}>",
         )
         await message.send()
