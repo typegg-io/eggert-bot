@@ -3,13 +3,13 @@ from discord.ext import commands
 from bot_setup import BotContext
 from commands.base import Command
 from commands.checks import is_bot_admin
-from config import KEEGAN
+from database.typegg.daily_quotes import reimport_daily_results
 from database.typegg.quotes import reimport_quotes
 from database.typegg.users import reimport_users, reimport_nwpm
 from utils.errors import MissingArguments, InvalidArgument
 from utils.messages import Page, Message
 
-categories = ["users", "quotes", "nwpm"]
+categories = ["users", "quotes", "nwpm", "daily"]
 info = {
     "name": "migrate",
     "aliases": [],
@@ -17,7 +17,8 @@ info = {
         "Re-imports data from the TypeGG API into the bot's database. Categories:\n"
         "• `users` - Migrates every stored user's race history\n"
         "• `quotes` - Migrates all quote sources and quotes\n"
-        "• `nwpm` - Resyncs nWPM roles for all linked users\n\n"
+        "• `daily` - Migrates daily quote leaderboard results\n\n"
+        "• `nwpm` - Resyncs nWPM roles for all linked users\n"
         "-# Runs in the background, silently skips individual failures. Check logs for details."
     ),
     "parameters": "<category1> [category2] ...",
@@ -54,6 +55,8 @@ class Migrate(Command):
                     await reimport_quotes()
                 case "nwpm":
                     await reimport_nwpm()
+                case "daily":
+                    await reimport_daily_results()
 
         message = Message(
             ctx, Page(

@@ -51,6 +51,24 @@ def add_daily_results(day_number: int, results: list[dict]):
     """, [daily_result_insert(day_number, i + 1, result) for i, result in enumerate(results)])
 
 
+async def reimport_daily_results():
+    """Re-fetch and replace the leaderboard results for every stored daily quote."""
+    from api.daily_quotes import get_daily_quote
+    from utils.logging import log
+
+    day_numbers = [row["dayNumber"] for row in db.fetch("SELECT dayNumber FROM daily_quotes ORDER BY dayNumber")]
+
+    for number in day_numbers:
+        try:
+            log(f"[daily migrate] Re-importing results for daily quote #{number:,}")
+            daily_quote = await get_daily_quote(number=number, results=100)
+            # Only clear the day's results once we have the new data
+            db.run("DELETE FROM daily_quote_results WHERE dayNumber = ?", [number])
+            add_daily_results(number, daily_quote["leaderboard"])
+        except Exception as e:
+            log(f"[daily migrate] Failed for day #{number}: {e.__class__.__name__}: {e}")
+
+
 def update_daily_quote_id(quote_id: str):
     db.run("""
         INSERT OR REPLACE INTO daily_quote_id (id, quoteId)
