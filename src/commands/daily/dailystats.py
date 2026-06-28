@@ -63,6 +63,10 @@ async def run(ctx: BotContext, profile: dict):
         pp.append(today_result["pp"])
         wpm.append(today_result["wpm"])
 
+    # Excluding 0 pp values
+    ranked_pp = [p for p in pp if p > 0]
+    average_pp = np.average(ranked_pp) if ranked_pp else 0
+
     fields = [
         Field(
             title="Participation",
@@ -76,7 +80,7 @@ async def run(ctx: BotContext, profile: dict):
         Field(
             title="Stats",
             content=(
-                f"**Average Performance:** {np.average(pp):,.2f} pp\n"
+                f"**Average Performance:** {average_pp:,.2f} pp\n"
                 f"**Best Performance:** {max(pp):,.2f} pp\n"
                 f"**Average Speed:** {np.average(wpm):,.2f} WPM\n"
                 f"**Best Speed:** {max(wpm):,.2f} WPM\n"
