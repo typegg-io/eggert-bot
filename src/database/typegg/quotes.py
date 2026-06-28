@@ -192,7 +192,7 @@ async def update_quote(quote_id: str, updates: dict):
                     """, [quote_id])
                     zero_daily_results_pp(quote_id)
                     log_server(f"Quote {quote_id} unranked: Zeroed out pp values")
-                elif new_ranked == 1:  # Unranked -> Ranked: Calculate pp from sample
+                elif new_ranked == 1:  # Unranked -> Ranked: Recalculate pp values
                     from api.users import get_race
 
                     sample = db.fetch_one("""
@@ -202,18 +202,22 @@ async def update_quote(quote_id: str, updates: dict):
                         LIMIT 1
                     """, [quote_id])
 
-                    if sample:
+                    if sample:  # Derive the ratio from an existing race
                         race_data = await get_race(sample["userId"], sample["raceNumber"])
                         pp_ratio = race_data["pp"] / race_data["wpm"]
+                    else:  # No local race to sample, use the calculate pp endpoint
+                        from api.quotes import calculate_metric
+                        calc_result = await calculate_metric(quote_id, 200, "wpm")
+                        pp_ratio = calc_result["pp"] / 200
 
-                        db.run("""
-                            UPDATE races
-                            SET pp = wpm * ?, rawPp = rawWpm * ?
-                            WHERE quoteId = ?
-                        """, [pp_ratio, pp_ratio, quote_id])
-                        update_daily_results_pp(quote_id, pp_ratio)
+                    db.run("""
+                        UPDATE races
+                        SET pp = wpm * ?, rawPp = rawWpm * ?
+                        WHERE quoteId = ?
+                    """, [pp_ratio, pp_ratio, quote_id])
+                    update_daily_results_pp(quote_id, pp_ratio)
 
-                        log_server(f"Quote {quote_id} ranked: Updated pp values using ratio {pp_ratio:.4f}")
+                    log_server(f"Quote {quote_id} ranked: Updated pp values using ratio {pp_ratio:.4f}")
 
     fields = [
         "quoteId", "sourceId", "text", "explicit", "difficulty", "complexity",
