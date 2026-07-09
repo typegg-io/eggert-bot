@@ -42,6 +42,38 @@ LANGUAGE_ROLE_IDS = {
     "vietnamese": 1520399008810405999,  # Tiếng Việt
 }
 
+# === Global chat bridge (per-universe) ===
+# ISO-639-1 universe codes
+UNIVERSE_CODES = ("en", "fr", "it", "ru", "es", "vi", "de", "pt", "tr", "id")
+DEFAULT_UNIVERSE = "en"
+
+
+def _chat_channel_id(code):
+    """Discord channel ID bridged for a universe (en is the general channel)."""
+    if code == DEFAULT_UNIVERSE:
+        return GENERAL_CHANNEL_ID
+    raw = os.getenv(f"CHAT_{code.upper()}_CHANNEL_ID")
+    return int(raw) if raw else None
+
+
+def _chat_webhook_url(code):
+    """Webhook used to post site messages into a universe's channel."""
+    if code == DEFAULT_UNIVERSE:
+        return CHAT_WEBHOOK_URL
+    return os.getenv(f"CHAT_{code.upper()}_WEBHOOK_URL")
+
+
+# Universe <-> Discord channel mapping
+CHAT_CHANNEL_IDS = {code: _chat_channel_id(code) for code in UNIVERSE_CODES}
+CHAT_WEBHOOK_URLS = {code: _chat_webhook_url(code) for code in UNIVERSE_CODES}
+# Reverse map for the Discord -> site direction
+CHAT_CHANNEL_UNIVERSES = {cid: code for code, cid in CHAT_CHANNEL_IDS.items() if cid is not None}
+
+
+def normalize_universe(code):
+    """Return a valid universe code, defaulting to 'en' for missing/unknown values."""
+    return code if code in UNIVERSE_CODES else DEFAULT_UNIVERSE
+
 # === User IDs ===
 EIKO = 87926662364160000
 KEEGAN = 155481579005804544
