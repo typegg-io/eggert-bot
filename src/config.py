@@ -47,32 +47,31 @@ LANGUAGE_ROLE_IDS = {
 UNIVERSE_CODES = ("en", "fr", "it", "ru", "es", "vi", "de", "pt", "tr", "id")
 DEFAULT_UNIVERSE = "en"
 
+# Discord channel bridged for each universe (en is the general channel).
+CHAT_CHANNEL_IDS = {
+    "en": GENERAL_CHANNEL_ID,
+    "fr": 1520394133036990607,
+    "it": 1520394065798103100,
+    "ru": 1520394755497000960,
+    "es": 1520394682218053632,
+    "vi": 1520415436624232498,
+    "de": 1520399776972275753,
+    "pt": 1520394541578981521,
+    "tr": 1520399938780004473,
+    "id": 1520399874560888884,
+}
 
-def _chat_channel_id(code):
-    """Discord channel ID bridged for a universe (en is the general channel)."""
-    if code == DEFAULT_UNIVERSE:
-        return GENERAL_CHANNEL_ID
-    raw = os.getenv(f"CHAT_{code.upper()}_CHANNEL_ID")
-    return int(raw) if raw else None
-
-
-def _chat_webhook_url(code):
-    """Webhook used to post site messages into a universe's channel."""
-    if code == DEFAULT_UNIVERSE:
-        return CHAT_WEBHOOK_URL
-    return os.getenv(f"CHAT_{code.upper()}_WEBHOOK_URL")
-
-
-# Universe <-> Discord channel mapping
-CHAT_CHANNEL_IDS = {code: _chat_channel_id(code) for code in UNIVERSE_CODES}
-CHAT_WEBHOOK_URLS = {code: _chat_webhook_url(code) for code in UNIVERSE_CODES}
-# Reverse map for the Discord -> site direction
-CHAT_CHANNEL_UNIVERSES = {cid: code for code, cid in CHAT_CHANNEL_IDS.items() if cid is not None}
+CHAT_WEBHOOK_URLS = {
+    code: CHAT_WEBHOOK_URL if code == DEFAULT_UNIVERSE else os.getenv(f"CHAT_{code.upper()}_WEBHOOK_URL")
+    for code in UNIVERSE_CODES
+}
+CHAT_CHANNEL_UNIVERSES = {cid: code for code, cid in CHAT_CHANNEL_IDS.items() if cid}
 
 
 def normalize_universe(code):
     """Return a valid universe code, defaulting to 'en' for missing/unknown values."""
     return code if code in UNIVERSE_CODES else DEFAULT_UNIVERSE
+
 
 # === User IDs ===
 EIKO = 87926662364160000
