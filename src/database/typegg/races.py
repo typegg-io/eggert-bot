@@ -4,6 +4,7 @@ from typing import Optional
 
 from database.typegg import db
 from database.typegg.keystroke_data import get_keystroke_data
+from utils.errors import RaceNotFound
 from utils.flags import Flags
 
 
@@ -207,6 +208,9 @@ def get_race(user_id: str, number: int, get_keystrokes: bool = False):
         WHERE userId = ?
         AND raceNumber = ?
     """, [user_id, number])
+
+    if result is None:
+        raise RaceNotFound(user_id, number)
 
     race = dict(result)
 
