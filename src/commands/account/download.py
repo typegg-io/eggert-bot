@@ -40,7 +40,7 @@ class Download(Command):
 
     @commands.command(aliases=info["aliases"])
     async def download(self, ctx: BotContext, username: str = None):
-        profile = await self.get_profile(ctx, username)
+        profile = await self.get_profile(ctx, username, auto_import=False)
         await run(ctx, profile)
 
 
