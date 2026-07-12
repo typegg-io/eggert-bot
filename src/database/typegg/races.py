@@ -4,12 +4,16 @@ from typing import Optional
 
 from database.typegg import db
 from database.typegg.keystroke_data import get_keystroke_data
+from utils.dates import normalize_datetime
 from utils.errors import RaceNotFound
 from utils.flags import Flags
 
 
 def race_insert(race):
     """Return a race tuple for parameterized inserting."""
+    timestamp = normalize_datetime(race["timestamp"])
+    if "Z" not in timestamp:
+        timestamp += ".000Z"
     return (
         race["raceId"],
         race["quoteId"],
@@ -24,7 +28,7 @@ def race_insert(race):
         race["accuracy"],
         race["errorReactionTime"],
         race["errorRecoveryTime"],
-        race["timestamp"] + ".000Z" if "Z" not in race["timestamp"] else race["timestamp"],
+        timestamp,
         race["stickyStart"],
     )
 

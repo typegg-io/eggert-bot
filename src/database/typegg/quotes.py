@@ -5,6 +5,7 @@ from api.quotes import get_all_quotes
 from api.sources import get_all_sources
 from database.typegg import db
 from database.typegg.sources import get_source
+from utils.dates import normalize_datetime
 from utils.errors import UnknownQuote
 from utils.logging import log, log_server
 
@@ -24,7 +25,7 @@ def quote_insert(quote):
         quote["complexity"],
         quote["submittedByUsername"],
         quote["ranked"],
-        quote["created"],
+        normalize_datetime(quote["created"]),
         quote["language"],
         formatting,
     )

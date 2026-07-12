@@ -1,4 +1,5 @@
 from database.typegg import db
+from utils.dates import normalize_datetime
 
 
 def match_insert(match):
@@ -6,7 +7,7 @@ def match_insert(match):
     return (
         match["matchId"],
         match["quoteId"],
-        match["startTime"],
+        normalize_datetime(match["startTime"]),
         match["gamemode"],
         match["players"],
     )

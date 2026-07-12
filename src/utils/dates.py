@@ -35,9 +35,16 @@ def epoch():
 
 # String & Date Conversion
 
+def normalize_datetime(date_string: str) -> str:
+    """Normalize an RFC-3339 'T' separator to the space-separated form the bot stores and parses."""
+    if date_string and len(date_string) > 10 and date_string[10] == "T":
+        return date_string[:10] + " " + date_string[11:]
+    return date_string
+
+
 def string_to_date(date_string: str, format: str = API_DATE_FORMAT):
     """Convert a date string to a datetime object using the specified format."""
-    return datetime.strptime(date_string, format)
+    return datetime.strptime(normalize_datetime(date_string), format)
 
 
 def date_to_string(date_object: datetime, format: str = API_DATE_FORMAT):
@@ -82,7 +89,7 @@ def format_timestamp(date: datetime):
 
 def get_timestamp_list(date_list):
     """Convert a list of date strings to Unix timestamps."""
-    return [datetime.strptime(date.rstrip("Z"), "%Y-%m-%d %H:%M:%S.%f").timestamp() for date in date_list]
+    return [datetime.strptime(normalize_datetime(date).rstrip("Z"), "%Y-%m-%d %H:%M:%S.%f").timestamp() for date in date_list]
 
 
 # Date Flooring Functions
