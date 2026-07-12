@@ -6,8 +6,8 @@ def match_result_insert(match_player):
     """Return a match player tuple for parameterized inserting."""
     return (
         match_player["matchId"],
-        match_player["userId"],
-        match_player["botId"],
+        match_player.get("userId"),
+        match_player.get("botId"),
         match_player["username"],
         match_player["raceNumber"],
         match_player["matchWpm"],

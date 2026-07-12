@@ -71,10 +71,10 @@ async def run(ctx: BotContext, profile: dict, race_number: int):
     raw_players.sort(key=lambda x: -x["rawMatchWpm"])
 
     for i, player in enumerate(players):
-        if player["userId"] == ctx.user["userId"]:
+        if player.get("userId") == ctx.user["userId"]:
             themed_line = i
 
-        bot = ":robot:" if player["botId"] else ""
+        bot = ":robot:" if player.get("botId") else ""
 
         if player.get("keystrokeData"):
             try:
@@ -93,10 +93,10 @@ async def run(ctx: BotContext, profile: dict, race_number: int):
             description += f":x: {bot} {username_with_flag(player, False)} - DNF"
 
     for i, player in enumerate(raw_players):
-        if player["userId"] == ctx.user["userId"]:
+        if player.get("userId") == ctx.user["userId"]:
             raw_themed_line = i
 
-        bot = ":robot:" if player["botId"] else ""
+        bot = ":robot:" if player.get("botId") else ""
 
         if player.get("keystrokeData"):
             try:
