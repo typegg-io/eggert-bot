@@ -224,8 +224,13 @@ class Command(commands.Cog):
         return quote
 
     async def get_race_number(self, profile, race_number):
-        latest_race = get_latest_race(profile["userId"])
-        total_races = latest_race["raceNumber"] if latest_race else profile["stats"]["races"]
+        from commands.account.download import get_total_races
+
+        # Fetch the API's true latest race number, fall back to the latest stored race
+        total_races = await get_total_races(profile["userId"])
+        if not total_races:
+            latest_race = get_latest_race(profile["userId"])
+            total_races = latest_race["raceNumber"] if latest_race else profile["stats"]["races"]
 
         if race_number is None:
             race_number = total_races
