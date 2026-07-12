@@ -9,7 +9,7 @@ async def get_sources(
     search: Optional[str] = None,
     min_publication_year: Optional[int] = None,
     max_publication_year: Optional[int] = None,
-    sort: str = "created",
+    sort: str = "timestamp",
     reverse: bool = True,
     page: int = 1,
     per_page: int = 10,
