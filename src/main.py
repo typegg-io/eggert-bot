@@ -23,6 +23,11 @@ bot.remove_command("help")
 
 @bot.event
 async def on_ready():
+    if getattr(bot, "_setup_complete", False):
+        log("Reconnected.")
+        return
+    bot._setup_complete = True
+
     try:
         await load_commands(bot)
         register_bot_checks(bot)
