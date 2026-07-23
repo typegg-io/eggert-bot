@@ -75,6 +75,15 @@ async def get_races(
     only_historical_pbs: Optional[bool] = False,
 ):
     """Fetch races for a user with optional filters."""
+    if flags.raw:
+        raw_columns = {"wpm": "rawWpm as wpm", "pp": "rawPp as pp"}
+        if "*" in columns:
+            columns = ["rawWpm as wpm", "rawPp as pp"] + list(columns)
+        else:
+            columns = [raw_columns.get(column, column) for column in columns]
+        if order_by in ["pp", "wpm"]:
+            order_by = "raw" + order_by.title()
+
     columns = ",".join(columns)
     table = "races"
 
@@ -83,11 +92,6 @@ async def get_races(
         min_pp = -1
         if flags.status == "unranked":
             max_pp = 0
-
-    if flags.raw:
-        columns = "rawWpm as wpm, rawPp as pp, " + columns
-        if order_by in ["pp", "wpm"]:
-            order_by = "raw" + order_by.title()
 
     multiplayer = flags.gamemode in ["quickplay", "lobby"]
 
