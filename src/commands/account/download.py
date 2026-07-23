@@ -180,7 +180,8 @@ async def run(
 
                     for player in players:
                         player["matchId"] = match["matchId"]
-                        player["rawMatchPp"] = player.get("matchPp", 0) * (player["matchWpm"] / (player["rawMatchWpm"] or 1))
+                        wpm_ratio = (player["rawMatchWpm"] or 0) / (player["matchWpm"] or 1)
+                        player["rawMatchPp"] = player.get("matchPp", 0) * (wpm_ratio or 1)
                         start_timestamp = match["startTime"]
                         duration = calculate_duration(player["matchWpm"], player["charactersTyped"])
                         end_timestamp = parse_date(start_timestamp) + relativedelta(microseconds=duration * 1000)
