@@ -125,19 +125,19 @@ async def multiplayer_improvement(ctx: BotContext, profile: dict, metric: str):
     if window > 25:
         fields.append(Field(
             title="Average of 25",
-            content=f"– Recent: {last_25:,.2f} WPM | Best: {best_25:,.2f} WPM",
+            content=f"– Recent: {last_25:,.2f} {metric} | Best: {best_25:,.2f} {metric}",
         ))
 
     if window > 100:
         fields.append(Field(
             title="Average of 100",
-            content=f"– Recent: {last_100:,.2f} WPM | Best: {best_100:,.2f} WPM",
+            content=f"– Recent: {last_100:,.2f} {metric} | Best: {best_100:,.2f} {metric}",
         ))
 
     fields.append(Field(
         title=f"Average of {window}",
         content=(
-            f"– Recent: {last_average:,.2f} WPM | Best: {best_average:,.2f} WPM\n"
+            f"– Recent: {last_average:,.2f} {metric} | Best: {best_average:,.2f} {metric}\n"
             f"– Completion: {window / (window + quits_in_average):.2%}"
         ),
     ))
