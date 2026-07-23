@@ -44,7 +44,7 @@ LANGUAGE_ROLE_IDS = {
 
 # === Global chat bridge (per-universe) ===
 # ISO-639-1 universe codes
-UNIVERSE_CODES = ("en", "fr", "it", "ru", "es", "vi", "de", "pt", "tr", "id")
+UNIVERSE_CODES = ("en", "fr", "it", "ru", "es", "vi", "de", "pt", "tr", "id", "nl")
 DEFAULT_UNIVERSE = "en"
 
 # Discord channel bridged for each universe (en is the general channel).
@@ -59,6 +59,7 @@ CHAT_CHANNEL_IDS = {
     "es": 1520394541578981521,
     "tr": 1520399938780004473,
     "vi": 1520399874560888884,
+    "nl": 1529843950272122991,
 }
 
 CHAT_WEBHOOK_URLS = {
