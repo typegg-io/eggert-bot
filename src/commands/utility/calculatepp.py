@@ -2,9 +2,10 @@ from discord.ext import commands
 
 from api.quotes import calculate_metric
 from bot_setup import BotContext
-from commands.base import Command
+from commands.base import Command, enforce_daily_quote
+from config import DAILY_QUOTE_CHANNEL_ID
 from utils.errors import MissingArguments
-from utils.messages import Page, Message
+from utils.messages import Page, Message, usable_in
 from utils.strings import quote_display
 from utils.urls import race_url
 
@@ -25,6 +26,7 @@ class CalculatePp(Command):
     supported_flags = {"metric", "number", "quote_id"}
 
     @commands.command(aliases=info["aliases"])
+    @usable_in(DAILY_QUOTE_CHANNEL_ID)
     async def calculatepp(self, ctx: BotContext):
         self.check_gg_plus(ctx)
 
@@ -36,6 +38,7 @@ class CalculatePp(Command):
 
         quote = await self.get_quote(ctx, ctx.flags.quote_id, from_api=True)
         quote_id = quote["quoteId"]
+        enforce_daily_quote(ctx, quote_id)
         value = abs(ctx.flags.number)
         metric = ctx.flags.metric
         calculated_value = await calculate_metric(quote_id, value, metric)

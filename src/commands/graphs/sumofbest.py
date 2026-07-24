@@ -5,14 +5,15 @@ from discord.ext import commands
 
 from api.quotes import calculate_metric
 from bot_setup import BotContext
-from commands.base import Command
+from commands.base import Command, enforce_daily_quote
 from commands.graphs.segments import build_segments, format_segment
+from config import DAILY_QUOTE_CHANNEL_ID
 from database.typegg.races import get_races, get_race
 from graphs import match as match_graph
 from graphs import segments as segment_graph
 from utils.errors import NoQuoteRaces, InvalidKeystrokeData
 from utils.keystrokes import get_keystroke_data, calculate_wpm, get_keystroke_wpm
-from utils.messages import Page, Message
+from utils.messages import Page, Message, usable_in
 from utils.strings import format_duration
 from utils.strings import get_segments, quote_display
 
@@ -34,6 +35,7 @@ class SumOfBest(Command):
     supported_flags = {"gamemode", "number", "quote_id"}
 
     @commands.command(aliases=info["aliases"])
+    @usable_in(DAILY_QUOTE_CHANNEL_ID)
     async def sumofbest(self, ctx: BotContext, *args: str):
         self.check_gg_plus(ctx)
 
@@ -47,6 +49,7 @@ class SumOfBest(Command):
         else:
             quote = await self.get_quote(ctx, ctx.flags.quote_id, profile["userId"])
 
+        enforce_daily_quote(ctx, quote["quoteId"])
         await run(ctx, profile, quote)
 
 

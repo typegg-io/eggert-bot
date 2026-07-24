@@ -4,13 +4,14 @@ from discord.ext import commands
 
 from api.users import get_race
 from bot_setup import BotContext
-from commands.base import Command
+from commands.base import Command, enforce_daily_quote
+from config import DAILY_QUOTE_CHANNEL_ID
 from database.typegg.races import get_races
 from database.typegg.users import get_quote_bests
 from graphs import match
 from utils.errors import NoQuoteRaces, BotError
 from utils.keystrokes import get_keystroke_data
-from utils.messages import Page, Message
+from utils.messages import Page, Message, usable_in
 from utils.strings import quote_display, username_with_flag, discord_date
 
 max_users = 5
@@ -33,6 +34,7 @@ class RaceCompare(Command):
     supported_flags = {"raw", "gamemode", "quote_id"}
 
     @commands.command(aliases=info["aliases"])
+    @usable_in(DAILY_QUOTE_CHANNEL_ID)
     async def racecompare(self, ctx: BotContext, *args: str):
         ctx.flags.status = None
         profiles = await self.get_profiles(ctx, args, max_users)
@@ -41,6 +43,8 @@ class RaceCompare(Command):
             quote = await self.get_quote(ctx, ctx.flags.quote_id)
         else:
             quote = await self.get_quote(ctx, user_id=profiles[0]["userId"])
+
+        enforce_daily_quote(ctx, quote["quoteId"])
 
         if len(profiles) > 1:
             await run(ctx, quote, profiles)

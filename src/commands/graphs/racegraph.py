@@ -1,15 +1,14 @@
 from discord.ext import commands
 
 from bot_setup import BotContext
-from commands.base import Command
+from commands.base import Command, enforce_daily_quote
 from config import DAILY_QUOTE_CHANNEL_ID
 from database.bot.recent_quotes import set_recent_quote
-from database.typegg.daily_quotes import get_daily_quote_id
 from database.typegg.quotes import get_quote
 from database.typegg.races import get_race
 from database.typegg.users import get_quote_bests
 from graphs import race as race_graph
-from utils.errors import NoQuoteRaces, DailyQuoteChannel
+from utils.errors import NoQuoteRaces
 from utils.keystrokes import get_keystroke_data
 from utils.messages import Page, Message, Field, usable_in
 from utils.strings import quote_display, discord_date, format_duration, GG_PLUS_LINKED
@@ -55,10 +54,7 @@ async def run(ctx: BotContext, profile: dict, race_number: int):
     quote = get_quote(race["quoteId"])
     set_recent_quote(ctx.channel.id, race["quoteId"])
 
-    if ctx.channel.id == DAILY_QUOTE_CHANNEL_ID:
-        daily_quote_id = get_daily_quote_id()
-        if race["quoteId"] != daily_quote_id:
-            raise DailyQuoteChannel
+    enforce_daily_quote(ctx, race["quoteId"])
 
     keystroke_data = get_keystroke_data(race["keystrokeData"])
 

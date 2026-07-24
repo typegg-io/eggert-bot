@@ -2,15 +2,16 @@ from discord.ext import commands
 
 from api.leaders import get_leaders, get_multiplayer_leaders
 from bot_setup import BotContext
-from commands.base import Command
+from commands.base import Command, enforce_daily_quote
+from commands.quotes.quoteleaderboard import run as run_quoteleaderboard
+from config import DAILY_QUOTE_CHANNEL_ID
 from database.typegg.daily_quotes import get_daily_rank_leaderboard
 from database.typegg.quotes import get_top_submitters, get_ranked_quote_count, get_ranked_quote_chars
 from database.typegg.users import get_quote_chars_typed, get_quotes_over_leaderboard, get_user_lookup
 from utils import strings
-from utils.errors import BotError
-from utils.messages import Message, Page, paginate_data
+from utils.errors import BotError, DailyQuoteChannel
+from utils.messages import Message, Page, paginate_data, usable_in
 from utils.strings import get_argument, username_with_flag, rank, LOADING, parse_number, get_streak_emoji
-from commands.quotes.quoteleaderboard import run as run_quoteleaderboard
 
 categories = {
     # API leaderboards
@@ -119,6 +120,9 @@ categories = {
         "title": "Quote Characters Typed",
     },
 }
+
+DAILY_CATEGORIES = {"daily", "streak", "dailyquotes", "dailywins", "dailyseconds", "dailytoptens"}
+
 info = {
     "name": "leaderboard",
     "aliases": ["lb"],
@@ -137,12 +141,16 @@ class Leaderboard(Command):
     supported_flags = {"metric", "gamemode", "number", "quote_id"}
 
     @commands.command(aliases=info["aliases"])
+    @usable_in(DAILY_QUOTE_CHANNEL_ID)
     async def leaderboard(self, ctx: BotContext, category: str = "pp", *args):
+        in_daily_channel = ctx.channel.id == DAILY_QUOTE_CHANNEL_ID
+
         if ctx.flags.quote_id is not None:
             if ctx.flags.quote_id == "daily":
                 category = "daily"
             else:
                 quote = await self.get_quote(ctx, ctx.flags.quote_id, from_api=True)
+                enforce_daily_quote(ctx, quote["quoteId"])
                 return await run_quoteleaderboard(ctx, quote)
 
         if (
@@ -154,12 +162,18 @@ class Leaderboard(Command):
             ctx.flags.gamemode = None
 
         if category in ["quotesover", "qo"]:
+            if in_daily_channel:
+                raise DailyQuoteChannel
             return await run_custom(ctx, categories["quotesover"], (ctx.flags.number, ctx.flags.metric))
 
         category = get_argument(categories.keys(), category)
 
         if ctx.explicit_flags.get("metric"):
             category = ctx.explicit_flags["metric"].lstrip("-")
+
+        # Allow daily-themed leaderboards in the daily quote channel
+        if in_daily_channel and category not in DAILY_CATEGORIES:
+            raise DailyQuoteChannel
 
         if is_statusless(category):
             ctx.flags.status = None

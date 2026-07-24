@@ -8,14 +8,14 @@ from discord.ext import commands
 from api.quotes import get_quote as get_quote_api
 from api.users import get_profile
 from bot_setup import BotContext
-from config import STATS_CHANNEL_ID
+from config import STATS_CHANNEL_ID, DAILY_QUOTE_CHANNEL_ID
 from database.bot.recent_quotes import set_recent_quote, get_recent_quote
 from database.bot.users import update_warning, update_gg_plus_status, get_user_by_user_id
 from database.typegg.daily_quotes import get_daily_quote_id
 from database.typegg.quotes import get_quote as get_quote_db
 from database.typegg.races import get_latest_race
 from utils.colors import ERROR
-from utils.errors import NoRaces, NotSubscribed, InvalidNumber, NoRacesFiltered, MissingUsername
+from utils.errors import NoRaces, NotSubscribed, InvalidNumber, NoRacesFiltered, MissingUsername, DailyQuoteChannel
 from utils.flags import Flags
 from utils.messages import privacy_warning, command_milestone
 from utils.strings import parse_number, get_argument
@@ -26,6 +26,12 @@ class ParseResult(NamedTuple):
     remaining: list
     username: str | None
     argument: str | None
+
+
+def enforce_daily_quote(ctx: BotContext, quote_id: str):
+    """In the daily quote channel, only allow commands acting on the current daily quote."""
+    if ctx.channel.id == DAILY_QUOTE_CHANNEL_ID and quote_id != get_daily_quote_id():
+        raise DailyQuoteChannel
 
 
 class Command(commands.Cog):

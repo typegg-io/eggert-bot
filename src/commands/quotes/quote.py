@@ -2,14 +2,15 @@ import numpy as np
 from discord.ext import commands
 
 from bot_setup import BotContext
-from commands.base import Command
+from commands.base import Command, enforce_daily_quote
+from config import DAILY_QUOTE_CHANNEL_ID
 from database.typegg.races import get_races, get_race
 from database.typegg.users import get_quote_bests
 from graphs import improvement
 from utils.colors import SUCCESS
 from utils.dates import parse_date
 from utils.errors import BotError
-from utils.messages import Page, Message, Field
+from utils.messages import Page, Message, Field, usable_in
 from utils.stats import calculate_total_pp
 from utils.strings import discord_date, INCREASE, quote_display
 
@@ -32,6 +33,7 @@ class Quote(Command):
     supported_flags = {"number", "quote_id"}
 
     @commands.command(aliases=info["aliases"])
+    @usable_in(DAILY_QUOTE_CHANNEL_ID)
     async def quote(self, ctx: BotContext, *args: str):
         ctx.flags.status = None
         profile = await self.get_profile(ctx, args[0] if args else None)
@@ -43,6 +45,7 @@ class Quote(Command):
         else:
             quote = await self.get_quote(ctx, ctx.flags.quote_id, profile["userId"])
 
+        enforce_daily_quote(ctx, quote["quoteId"])
         await run(ctx, profile, quote)
 
 

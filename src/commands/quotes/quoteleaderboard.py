@@ -1,9 +1,10 @@
 from discord.ext import commands
 
 from bot_setup import BotContext
-from commands.base import Command
+from commands.base import Command, enforce_daily_quote
+from config import DAILY_QUOTE_CHANNEL_ID
 from database.bot.recent_quotes import get_recent_quote
-from utils.messages import Page, Message
+from utils.messages import Page, Message, usable_in
 from utils.strings import rank, discord_date, quote_display, username_with_flag
 from utils.urls import race_url
 
@@ -22,10 +23,12 @@ class QuoteLeaderboard(Command):
     supported_flags = {"quote_id"}
 
     @commands.command(aliases=info["aliases"])
+    @usable_in(DAILY_QUOTE_CHANNEL_ID)
     async def quoteleaderboard(self, ctx: BotContext):
         if ctx.flags.quote_id is None:
             ctx.flags.quote_id = get_recent_quote(ctx.channel.id)
         quote = await self.get_quote(ctx, ctx.flags.quote_id, from_api=True)
+        enforce_daily_quote(ctx, quote["quoteId"])
         await run(ctx, quote)
 
 
