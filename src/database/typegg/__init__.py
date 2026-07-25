@@ -197,14 +197,14 @@ db.run("""
         opp.accuracy as opponentAccuracy,
         opp.completionType != 'finished' AS opponentDnf,
         opp.startTime as opponentStartTime,
-        opp.botId IS NOT '' AS isBot,
+        COALESCE(opp.botId, '') != '' AS isBot,
         mr.timestamp AS timestamp,
         m.gamemode,
         m.quoteId
     FROM match_results mr
     JOIN match_results opp
     ON opp.matchId = mr.matchId
-    AND opp.userId != mr.userId
+    AND opp.userId IS NOT mr.userId
     JOIN matches m
     ON m.matchId = mr.matchId
 """)
