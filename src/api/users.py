@@ -134,3 +134,22 @@ async def get_quote(user_id: str, quote_id: str) -> Dict[str, Any]:
     Returns the JSON response as a dict.
     """
     return await request(f"{API_URL}/v1/users/{quote(user_id, safe="")}/quotes/{quote_id}")
+
+
+async def get_quote_rankings(
+    user_id: str,
+    max_rank: int = 10,
+    status: str = "ranked",
+) -> Dict[str, Any]:
+    """
+    Calls GET /users/{userId}/quote-rankings.
+    Returns the user's quote leaderboard placement counts (rank -> count).
+    """
+    return await request(
+        url=f"{API_URL}/v1/users/{quote(user_id, safe="")}/quote-rankings",
+        params=dict(
+            maxRank=max_rank,
+            status=status,
+        ),
+        exceptions={404: ProfileNotFound(user_id)},
+    )

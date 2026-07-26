@@ -1,6 +1,6 @@
 from discord.ext import commands
 
-from api.users import get_quotes
+from api.users import get_quote_rankings
 from bot_setup import BotContext
 from commands.base import Command
 from utils.messages import Page, Message, Field
@@ -19,6 +19,8 @@ info = {
 
 
 class TopTens(Command):
+    supported_flags = {"status"}
+
     @commands.command(aliases=info["aliases"])
     async def toptens(self, ctx: BotContext, username: str = None):
         profile = await self.get_profile(ctx, username)
@@ -43,29 +45,27 @@ async def run(ctx: BotContext, profile: dict):
                 content="\n".join(f"**{ordinal_number(i + 1)}:** {LOADING}" for i in range(10)),
                 inline=True
             ),
-        ]
+        ],
+        flag_title=True,
     )
     message = Message(ctx, page=page, profile=profile)
     initial_send = message.start()
 
-    first_page = await get_quotes(profile["username"], per_page=1000)
-    total_pages = first_page["totalPages"]
-    quotes = first_page["quotes"]
-    for i in range(2, total_pages + 1):
-        results = await get_quotes(profile["username"], per_page=1000, page=i)
-        quotes += results["quotes"]
+    rankings = await get_quote_rankings(
+        profile["userId"],
+        max_rank=10,
+        status=ctx.flags.status,
+    )
 
-    appearances = {i + 1: 0 for i in range(11)}
-    for quote in quotes:
-        global_rank = quote["globalRank"]
-        if global_rank <= 10:
-            appearances[global_rank] += 1
-
-    quotes_typed = len(quotes)
+    quotes_typed = rankings["quotesTyped"]
+    position_counts = rankings["positionCounts"]
+    appearances = {i + 1: position_counts.get(str(i + 1), 0) for i in range(10)}
     total_appearances = sum(appearances.values())
+
+    appearance_rate = f" ({total_appearances / quotes_typed:.2%})" if quotes_typed else ""
     page.description = (
         f"**Quotes Typed:** {quotes_typed:,}\n"
-        f"**Appearances:** {total_appearances:,} ({total_appearances / quotes_typed:.2%})"
+        f"**Appearances:** {total_appearances:,}{appearance_rate}"
     )
 
     page.fields = [
