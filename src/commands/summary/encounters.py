@@ -124,7 +124,7 @@ async def run(ctx: BotContext, profile: dict, sort: str):
 
     description = description.replace(
         "**Most Faced Users**\n",
-        f"**{sort_labels.get(sort)}**\n"
+        f"**{sort_labels.get(sort, "Most Faced Users")}**\n"
     )
 
     for i, en in enumerate(user_encounters[:10]):
