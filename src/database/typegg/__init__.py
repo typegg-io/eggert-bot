@@ -189,7 +189,7 @@ db.run("""
         mr.accuracy as userAccuracy,
         mr.completionType != 'finished' AS userDnf,
         mr.startTime AS userStartTime,
-        opp.userId AS opponentId,
+        COALESCE(NULLIF(opp.userId, ''), NULLIF(opp.botId, ''), opp.username) AS opponentId,
         opp.username AS opponentUsername,
         opp.placement AS opponentPlacement,
         opp.matchWpm as opponentWpm,

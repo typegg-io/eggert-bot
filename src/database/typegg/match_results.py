@@ -58,9 +58,9 @@ def get_encounter_stats(user_id: str, flags: Flags = None):
 
     results = db.fetch(f"""
         SELECT
-            matchId,
-            opponentUsername,
-            isBot,
+            opponentId,
+            COALESCE(MAX(NULLIF(opponentUsername, opponentId)), MAX(opponentUsername)) AS opponentUsername,
+            MAX(isBot) AS isBot,
             COUNT(*) as totalEncounters,
             SUM(CASE WHEN userPlacement < opponentPlacement THEN 1 ELSE 0 END) as wins,
             SUM(CASE WHEN userPlacement > opponentPlacement THEN 1 ELSE 0 END) as losses,
@@ -70,7 +70,7 @@ def get_encounter_stats(user_id: str, flags: Flags = None):
         FROM encounters e
         {join_clause}
         {where_clause}
-        GROUP BY opponentId, opponentUsername
+        GROUP BY opponentId
         ORDER BY totalEncounters DESC
     """, params)
 
