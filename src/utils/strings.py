@@ -443,8 +443,15 @@ def apply_rich_text(text: str, formatting: dict[str, list[tuple[int, int]]]):
             final.append(segment_text)
             continue
 
+        core = segment_text.strip()
+        if not core:
+            final.append(segment_text)
+            continue
+
+        lead = segment_text[:len(segment_text) - len(segment_text.lstrip())]
+        trail = segment_text[len(segment_text.rstrip()):]
         token_string = "".join(tokens[f] for f in order if f in forms)
-        final.append(ZWSP + token_string + segment_text + token_string[::-1])
+        final.append(lead + ZWSP + token_string + core + token_string[::-1] + trail)
 
     return "".join(final)
 
