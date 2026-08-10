@@ -267,8 +267,10 @@ class Message(View):
 
     def make_callback(self, index):
         async def callback(interaction):
-            if index == self.page_index:
+            if self.ctx.author.id != interaction.user.id or index == self.page_index:
                 return await interaction.response.defer()
+
+            await interaction.response.defer()
 
             self.page_index = index
             if self.pages[self.page_index].render:
@@ -293,7 +295,9 @@ class Message(View):
     async def update_embed(self, interaction):
         """Updates the embed and buttons for a given page."""
         if self.ctx.author.id != interaction.user.id:
-            return await interaction.response.defer()
+            if not interaction.response.is_done():
+                await interaction.response.defer()
+            return
 
         kwargs = {
             "embed": self.embeds[self.page_index],
@@ -305,7 +309,11 @@ class Message(View):
             kwargs["attachments"] = [file]
         else:
             kwargs["attachments"] = []
-        await interaction.response.edit_message(**kwargs)
+
+        if interaction.response.is_done():
+            await interaction.edit_original_response(**kwargs)
+        else:
+            await interaction.response.edit_message(**kwargs)
 
     async def send(self):
         """Sends the constructed message with buttons and embeds."""
