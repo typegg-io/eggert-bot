@@ -47,7 +47,7 @@ def render_over_time(
 
     if dnf_indices:
         dnf_indices = np.asarray(dnf_indices)
-        dnf_mask = dnf_indices[window_size - 1:]
+        dnf_mask = dnf_indices[window_size - 1:][0::downsample_factor]
         dnf_x = np.asarray(x_points)[dnf_mask]
         dnf_y = moving_average[dnf_mask]
         ax.scatter(dnf_x, dnf_y, color=theme["crosses"], s=1, zorder=999, label="_")
