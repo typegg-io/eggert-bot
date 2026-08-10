@@ -11,7 +11,7 @@ from config import BOT_PREFIX
 from config import TYPEGG_GUILD_ID, STATS_CHANNEL_ID
 from utils import files
 from utils.colors import SUCCESS, WARNING
-from utils.strings import get_flag_title
+from utils.strings import get_flag_title, LOADING
 from utils.urls import profile_url
 
 welcome_message = (
@@ -270,15 +270,26 @@ class Message(View):
             if self.ctx.author.id != interaction.user.id or index == self.page_index:
                 return await interaction.response.defer()
 
-            await interaction.response.defer()
-
             self.page_index = index
-            if self.pages[self.page_index].render:
-                self.update_image()
             self.clear_items()
             self.add_buttons()
 
-            await self.update_embed(interaction)
+            page = self.pages[self.page_index]
+            needs_render = bool(page.render) and self.page_index not in self.cache
+
+            if needs_render:
+                embed = self.embeds[self.page_index]
+                original_title = embed.title
+                embed.title = f"{original_title} {LOADING}" if original_title else LOADING
+                await interaction.response.edit_message(embed=embed, view=self, attachments=[])
+
+                self.update_image()
+                embed.title = original_title
+                await self.update_embed(interaction)
+            else:
+                if page.render:
+                    self.update_image()
+                await self.update_embed(interaction)
 
         return callback
 
