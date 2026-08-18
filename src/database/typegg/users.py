@@ -108,28 +108,34 @@ def get_quote_bests(
         columns = columns.replace("quoteId", "r.quoteId")
 
     where_clause = "WHERE " + " AND ".join(conditions)
-    aggregate_column = f"MAX({order_by}) AS {order_by}"
     limit_clause = f"LIMIT {limit}" if limit else ""
 
-    having_conditions = []
-    if min_wpm is not None:
-        having_conditions.append("MAX(wpm) >= ?")
-        params.append(min_wpm)
-    if max_wpm is not None:
-        having_conditions.append("MAX(wpm) < ?")
-        params.append(max_wpm)
-    having_clause = "HAVING " + " AND ".join(having_conditions) if having_conditions else ""
+    inner_columns = f"{columns}, {order_by} AS _sort"
+
+    outer_conditions = ["_rn = 1"]
+    if min_wpm is not None or max_wpm is not None:
+        wpm_expr = "rawWpm" if flags.raw else "wpm"
+        inner_columns += f", {wpm_expr} AS _wpm"
+        if min_wpm is not None:
+            outer_conditions.append("_wpm >= ?")
+            params.append(min_wpm)
+        if max_wpm is not None:
+            outer_conditions.append("_wpm < ?")
+            params.append(max_wpm)
+    outer_where = "WHERE " + " AND ".join(outer_conditions)
 
     results = db.fetch(f"""
-        SELECT {aggregate_column}, {columns}
-        FROM {table} r
-        {join_clause}
-        {where_clause}
-        AND pp > {min_pp}
-        AND pp <= {max_pp}
-        GROUP BY r.quoteId
-        {having_clause}
-        ORDER BY {order_by} {order_clause}
+        SELECT * FROM (
+            SELECT {inner_columns},
+                   ROW_NUMBER() OVER (PARTITION BY r.quoteId ORDER BY {order_by} {order_clause}) AS _rn
+            FROM {table} r
+            {join_clause}
+            {where_clause}
+            AND pp > {min_pp}
+            AND pp <= {max_pp}
+        )
+        {outer_where}
+        ORDER BY _sort {order_clause}
         {limit_clause}
     """, params)
 
