@@ -60,6 +60,8 @@ def get_quotes(
     as_dictionary: bool = True,
     min_difficulty: float = None,
     max_difficulty: float = None,
+    min_length: int = None,
+    max_length: int = None,
 ):
     """Returns a list or dictionary of existing quotes."""
     conditions = []
@@ -70,6 +72,12 @@ def get_quotes(
     if max_difficulty is not None:
         conditions.append("difficulty < ?")
         params.append(max_difficulty)
+    if min_length is not None:
+        conditions.append("LENGTH(text) >= ?")
+        params.append(min_length)
+    if max_length is not None:
+        conditions.append("LENGTH(text) <= ?")
+        params.append(max_length)
 
     where_clause = "WHERE " + " AND ".join(conditions) if conditions else ""
 

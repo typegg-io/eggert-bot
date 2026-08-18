@@ -1,4 +1,5 @@
 import math
+import re
 from collections import defaultdict
 
 from discord.ext import commands
@@ -14,18 +15,52 @@ from utils.strings import username_with_flag
 from utils.urls import compare_url
 
 metrics = ["pp", "wpm"]
+
+LENGTH_BOUNDARY = 20
+RANGE_RE = re.compile(r"^(\d+(?:\.\d+)?)-(\d+(?:\.\d+)?)$")
+
 info = {
     "name": "comparegraph",
     "aliases": ["cg", "flaneur"],
     "description": "Compares quote best scores between two users across difficulty levels.\n"
-                   "Pass a difficulty range (e.g. `3-5`) for a detailed head-to-head in that range.",
-    "parameters": "[username1] [username2] [difficulty_range]",
+                   "• Pass a difficulty range (e.g. `3-5`) for a detailed head-to-head in that range.\n"
+                   "• Pass a character-length range (e.g. `50-100`) to filter by quote length.\n"
+                   "• Ranges starting at 20+ are read as length; below that, as difficulty.",
+    "parameters": "[username1] [username2] [difficulty_range] [length_range]",
     "examples": [
         "-cg eiko",
         "-cg eiko keegan",
         "-cg eiko keegan 3-5",
+        "-cg eiko keegan 3-5 50-100",
     ],
 }
+
+
+def parse_ranges(raw_args):
+    """Extract difficulty and length ranges from raw args, classified by lower bound."""
+    difficulty = None
+    length = None
+
+    for arg in raw_args:
+        match = RANGE_RE.match(arg)
+        if not match:
+            continue
+
+        lower, upper = float(match.group(1)), float(match.group(2))
+        if lower > upper:
+            lower, upper = upper, lower
+
+        if lower >= LENGTH_BOUNDARY:
+            if length is None:
+                length = (int(lower), int(upper))
+        elif difficulty is None:
+            difficulty = (lower, upper)
+
+    return difficulty, length
+
+
+def length_label(min_length, max_length):
+    return f"{min_length:,}-{max_length:,} chars"
 
 
 class CompareGraph(Command):
@@ -45,11 +80,16 @@ class CompareGraph(Command):
             raise SameUsername
         profile1, profile2 = profiles[0], profiles[1]
 
-        if ctx.flags.number_range:
-            min_diff, max_diff = ctx.flags.number_range
-            await comparegraph_ranged(ctx, profile1, profile2, min_diff, max_diff, ctx.flags.metric)
+        difficulty_range_, length_range = parse_ranges(ctx.raw_args)
+        min_length, max_length = length_range if length_range else (None, None)
+
+        if difficulty_range_:
+            min_diff, max_diff = difficulty_range_
+            await comparegraph_ranged(
+                ctx, profile1, profile2, min_diff, max_diff, ctx.flags.metric, min_length, max_length
+            )
         else:
-            await comparegraph_main(ctx, profile1, profile2)
+            await comparegraph_main(ctx, profile1, profile2, min_length, max_length)
 
 
 class NoCommonTexts(BotError):
@@ -89,14 +129,14 @@ def max_positive_subarray_sum(buckets, diffs):
     return max_sum, buckets[best_start], buckets[best_end]
 
 
-async def comparegraph_main(ctx: BotContext, profile1: dict, profile2):
-    quotes = get_quotes()
+async def comparegraph_main(ctx: BotContext, profile1: dict, profile2, min_length=None, max_length=None):
+    quotes = get_quotes(min_length=min_length, max_length=max_length)
     quote_bests1 = get_quote_bests(profile1["userId"], as_dictionary=True, flags=ctx.flags)
     quote_bests2 = get_quote_bests(profile2["userId"], as_dictionary=True, flags=ctx.flags)
-    quote_ids1 = quote_bests1.keys()
-    quote_ids2 = quote_bests2.keys()
+    quote_ids1 = quote_bests1.keys() & quotes.keys()
+    quote_ids2 = quote_bests2.keys() & quotes.keys()
 
-    if not list(quote_bests1.keys() & quote_bests2.keys()):
+    if not (quote_ids1 & quote_ids2):
         raise NoCommonTexts(ctx.flags)
 
     gains1 = defaultdict(int)
@@ -195,9 +235,13 @@ async def comparegraph_main(ctx: BotContext, profile1: dict, profile2):
         inline=True,
     )
 
+    title = "Quote Best Comparison"
+    if min_length is not None:
+        title += f" ({length_label(min_length, max_length)})"
+
     message = Message(
         ctx, page=Page(
-            title="Quote Best Comparison",
+            title=title,
             description=description,
             fields=[field1, field2],
             render=lambda: compare_bar.render(
@@ -223,8 +267,15 @@ async def comparegraph_ranged(
     min_difficulty: float,
     max_difficulty: float,
     metric: str,
+    min_length=None,
+    max_length=None,
 ):
-    quotes = get_quotes(min_difficulty=min_difficulty, max_difficulty=max_difficulty)
+    quotes = get_quotes(
+        min_difficulty=min_difficulty,
+        max_difficulty=max_difficulty,
+        min_length=min_length,
+        max_length=max_length,
+    )
     quote_bests1 = get_quote_bests(profile1["userId"], as_dictionary=True, flags=ctx.flags)
     quote_bests2 = get_quote_bests(profile2["userId"], as_dictionary=True, flags=ctx.flags)
     common_quotes = list(quotes.keys() & quote_bests1.keys() & quote_bests2.keys())
@@ -302,8 +353,13 @@ async def comparegraph_ranged(
         )
     )
 
+    title = f"Quote Best Comparison ({difficulty_range(min_difficulty, max_difficulty)}"
+    if min_length is not None:
+        title += f", {length_label(min_length, max_length)}"
+    title += ")"
+
     page = Page(
-        title=f"Quote Best Comparison ({difficulty_range(min_difficulty, max_difficulty)})",
+        title=title,
         fields=fields,
         render=lambda: compare_histogram.render(
             profile1["username"],
