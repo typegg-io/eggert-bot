@@ -1,0 +1,29 @@
+[tool.ruff]
+line-length = 120
+target-version = "py312"
+src = ["src"]
+extend-exclude = ["src/xtra", "src/sandbox.py", "src/server_sandbox.py"]
+
+# Do not add [tool.ruff.format]. The formatter rewrites the nested quotes in
+# f-strings that this codebase uses throughout its embed content.
+
+[tool.ruff.lint]
+select = [
+    "E",  # pycodestyle errors
+    "W",  # pycodestyle warnings
+    "F",  # pyflakes: unused imports, undefined names
+    "I",  # isort: import ordering
+    "B",  # flake8-bugbear: likely bugs
+]
+ignore = [
+    "B904",  # raise-without-from-inside-except: bot errors are user-facing, not chained
+    "B905",  # zip-without-explicit-strict: changing this changes behaviour
+    "B007",  # unused-loop-control-variable: common in this codebase's unpacking loops
+]
+
+[tool.ruff.lint.isort]
+combine-as-imports = true
+
+[tool.ruff.lint.per-file-ignores]
+"src/main.py" = ["F401"]  # extensions are loaded for side effects
+"src/utils/keyboard_layouts.py" = ["E501"]  # layout rows are data, not prose

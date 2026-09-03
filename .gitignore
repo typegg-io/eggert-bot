@@ -186,3 +186,7 @@ Makefile
 *.jpeg
 *.webp
 *.gif
+
+# Scratch notes kept at the repo root
+/*.txt
+!/requirements.txt
