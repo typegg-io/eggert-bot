@@ -16,10 +16,10 @@ Thank you for your interest in contributing to Eggert! Follow the instructions h
 3. (Recommended) Create and activate a virtual environment:
    ```
    python -m venv venv
-   
+
    # On Linux/Mac:
    source venv/bin/activate
-   
+
    # On Windows (PowerShell):
    .\venv\Scripts\activate
    ```
@@ -105,6 +105,9 @@ BOT_SUBDOMAIN=http://localhost:8888
 
 - **`BOT_TOKEN`**: This is your bot's authentication token obtained in the **Creating a Bot** section.
 
+Everything else is optional. The bot runs in staging mode whenever `MESSAGE_WEBHOOK` is unset,
+which routes logs to the console instead of Discord and enables hot reload.
+
 ### Step 2: Configure Bot Settings
 
 Modify bot prefix in `config.py` if needed.
@@ -140,25 +143,56 @@ You are probably in a virtual environment using the wrong version of Python. Ple
 
 ```
 /src
-    /api                # Files for handling web requests
-    /commands           # Bot command files
+    /api                # TypeGG API client, one module per resource
+    /commands           # Bot commands, one file per command, grouped into subdirectories
         template.txt    # Command template to copy when creating new commands
-    /data               # Bot's database is stored here
-    /database           # Files for handling database interactions
-    /graphs             # Graphing module responsible for generating and managing graphs
-    /utils              # Utility files and helper functions
-config.py               # Bot configuration file
+    /data               # Databases and data files (gitignored)
+    /database           # Database access layer
+        /bot            # users.db: Discord users, themes, settings, command usage
+        /typegg         # typegg.db: imported races, quotes, matches, keystrokes
+    /graphs             # Matplotlib rendering, one module per graph type
+    /utils              # Helpers: strings, dates, flags, messages, errors, keystrokes
+    /web_server         # aiohttp server: verification, site callbacks, public pages
+bot_setup.py            # Bot subclass, flag parsing, global checks and event handlers
+config.py               # Bot configuration and environment variables
 error_handler.py        # Global bot error handler
 main.py                 # Entry point of the application
-web_server.py           # Web server to listen for verification requests
+tasks.py                # Scheduled background tasks (daily quote, status rotation)
+watcher.py              # Hot reload for staging
 ```
 
 **Navigating the Code:**
 
-- Core bot logic is located in `main.py`.
-- Each command has its own file in `/commands`.
+- `main.py` is the entry point, but the core bot logic lives in `bot_setup.py`: flag parsing,
+  global checks, and the message and command event handlers.
+- Each command has its own file in `/commands`, under the subdirectory matching its help category.
+- Each graph has its own rendering module in `/graphs`. Command files in `/commands/graphs` build
+  the message; modules in `/graphs` draw the image.
 - Data related files should be stored in `/data`.
-- Each graph has its own file in `/graphs`
+
+---
+
+## Development Tooling
+
+Linting is handled by [ruff](https://docs.astral.sh/ruff/), configured in `pyproject.toml`.
+
+Install the git hooks once after cloning:
+
+```bash
+pip install pre-commit
+pre-commit install
+```
+
+The hook autofixes unused imports and import order, then fails if anything is left. Re-stage and
+commit again when it rewrites a file. To check the whole tree by hand:
+
+```bash
+ruff check src
+pre-commit run --all-files
+```
+
+The ruff **formatter** is deliberately not used. It rewrites the nested quotes in f-strings that
+this codebase relies on throughout its embed content. Only the linter runs.
 
 ---
 
@@ -175,7 +209,7 @@ web_server.py           # Web server to listen for verification requests
 
 ## Reporting Issues
 
-If you encounter any issues, please [open an issue](https://github.com/TypeGGio/TypeGG-Stats/issues) including:
+If you encounter any issues, please [open an issue](https://github.com/typegg-io/eggert-bot/issues) including:
 
 - A description of the problem
 - Steps to reproduce it
