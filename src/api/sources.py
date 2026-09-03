@@ -1,4 +1,4 @@
-from typing import Any, Dict, Optional
+from typing import Any
 from urllib.parse import quote
 
 from api.core import API_URL, request
@@ -6,14 +6,14 @@ from utils.logging import log
 
 
 async def get_sources(
-    search: Optional[str] = None,
-    min_publication_year: Optional[int] = None,
-    max_publication_year: Optional[int] = None,
+    search: str | None = None,
+    min_publication_year: int | None = None,
+    max_publication_year: int | None = None,
     sort: str = "timestamp",
     reverse: bool = True,
     page: int = 1,
     per_page: int = 10,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """
     Calls GET /sources with all available filters.
     Returns the JSON response as a dict.
@@ -32,7 +32,7 @@ async def get_sources(
     )
 
 
-async def get_source(source_id: str) -> Dict[str, Any]:
+async def get_source(source_id: str) -> dict[str, Any]:
     """
     Calls GET /sources/{sourceId}.
     Returns the JSON response as a dict.

@@ -1,4 +1,3 @@
-from typing import Dict, List
 
 import matplotlib.colors as mcolors
 import matplotlib.patches as patches
@@ -14,8 +13,8 @@ from utils.strings import format_big_number
 def render(
     username: str,
     keyboard_layout: str,
-    keypresses: Dict[str, int],
-    keymap: List[List[K]],
+    keypresses: dict[str, int],
+    keymap: list[list[K]],
     theme: dict,
 ):
     colors = [

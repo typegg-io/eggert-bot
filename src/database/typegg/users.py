@@ -1,5 +1,4 @@
 import asyncio
-from typing import Optional
 
 from database.typegg import db
 from utils.errors import ProfileNotFound
@@ -32,17 +31,17 @@ def get_user_lookup():
 
 def get_quote_bests(
     user_id: str,
-    columns: Optional[list[str]] = None,
-    quote_id: Optional[str] = None,
-    start_date: Optional[str] = None,
-    end_date: Optional[str] = None,
-    min_wpm: Optional[float] = None,
-    max_wpm: Optional[float] = None,
-    order_by: Optional[str] = "pp",
-    reverse: Optional[bool] = True,
-    limit: Optional[int] = None,
-    as_dictionary: Optional[bool] = False,
-    flags: Optional[Flags] = None,
+    columns: list[str] | None = None,
+    quote_id: str | None = None,
+    start_date: str | None = None,
+    end_date: str | None = None,
+    min_wpm: float | None = None,
+    max_wpm: float | None = None,
+    order_by: str | None = "pp",
+    reverse: bool | None = True,
+    limit: int | None = None,
+    as_dictionary: bool | None = False,
+    flags: Flags | None = None,
 ):
     """Returns quote bests for a user, with available filters."""
     columns = list(columns) if columns else ["*"]
@@ -261,7 +260,7 @@ def get_quotes_over_leaderboard(
     threshold: int,
     metric: str = "wpm",
     limit: int = 100,
-    flags: Optional[Flags] = None,
+    flags: Flags | None = None,
 ):
     """Returns users with the most quotes over a threshold."""
     flags = flags or Flags()

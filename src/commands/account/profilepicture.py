@@ -1,4 +1,3 @@
-from typing import Optional
 
 from discord import Embed
 from discord.ext import commands
@@ -23,7 +22,7 @@ class ProfilePicture(Command):
     ignore_flags = True
 
     @commands.command(aliases=info["aliases"])
-    async def profilepicture(self, ctx: BotContext, username: Optional[str] = None):
+    async def profilepicture(self, ctx: BotContext, username: str | None = None):
         profile = await self.get_profile(ctx, username, races_required=False)
         await run(ctx, profile)
 

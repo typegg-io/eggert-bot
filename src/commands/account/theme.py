@@ -1,5 +1,4 @@
 import re
-from typing import Optional
 
 import matplotlib.colors as mcolors
 from discord import Embed, File, Member
@@ -64,7 +63,7 @@ class Theme(Command):
     ignore_flags = True
 
     @commands.command(aliases=info["aliases"])
-    async def theme(self, ctx: BotContext, element: Optional[str], color: Optional[str]):
+    async def theme(self, ctx: BotContext, element: str | None, color: str | None):
         if not element:
             return await display_user_theme(ctx, ctx.author)
 
@@ -118,7 +117,7 @@ class Theme(Command):
                 return await ctx.send(embed=invalid_color())
 
         if element != "embed":
-            parsed_color = ("#%06x" % parsed_color)  # Integer to hex string
+            parsed_color = f"#{parsed_color:06x}"
         ctx.user["theme"][element] = parsed_color
 
         await run(ctx)
@@ -149,7 +148,7 @@ async def display_user_theme(ctx: BotContext, member: Member):
     description = f"{member.mention}\n\n"
     description += "\n".join(
         f"**{element.replace("_", " ").title()}:** " +
-        (("#%06x" % value).upper() if element == "embed" else f"{value}")
+        (f"#{value:06x}".upper() if element == "embed" else f"{value}")
         for element, value in user_theme.items()
         if element != "isGgPlus"
     )

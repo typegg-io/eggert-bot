@@ -1,6 +1,5 @@
 import json
 import zlib
-from typing import Optional
 
 from database.typegg import db
 from database.typegg.keystroke_data import get_keystroke_data
@@ -58,21 +57,21 @@ def decompress_keystroke_data(rows):
 
 
 async def get_races(
-    user_id: Optional[str] = None,
-    columns: Optional[list[str]] = None,
-    quote_id: Optional[str] = None,
-    start_date: Optional[str] = None,
-    end_date: Optional[str] = None,
-    min_pp: Optional[float] = 0,
-    max_pp: Optional[float] = 99999,
-    match_id: Optional[str] = None,
-    include_dnf: Optional[bool] = True,
-    order_by: Optional[str] = "timestamp",
-    reverse: Optional[bool] = False,
-    limit: Optional[int] = None,
-    flags: Optional[Flags] = None,
-    get_keystrokes: Optional[bool] = False,
-    only_historical_pbs: Optional[bool] = False,
+    user_id: str | None = None,
+    columns: list[str] | None = None,
+    quote_id: str | None = None,
+    start_date: str | None = None,
+    end_date: str | None = None,
+    min_pp: float | None = 0,
+    max_pp: float | None = 99999,
+    match_id: str | None = None,
+    include_dnf: bool | None = True,
+    order_by: str | None = "timestamp",
+    reverse: bool | None = False,
+    limit: int | None = None,
+    flags: Flags | None = None,
+    get_keystrokes: bool | None = False,
+    only_historical_pbs: bool | None = False,
 ):
     """Fetch races for a user with optional filters."""
     columns = list(columns) if columns else ["*"]

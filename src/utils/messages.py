@@ -1,7 +1,7 @@
 import asyncio
 import os
+from collections.abc import Callable
 from dataclasses import dataclass, field
-from typing import Callable
 
 from discord import ButtonStyle, Embed, File
 from discord.ui import Button as DiscordButton, View

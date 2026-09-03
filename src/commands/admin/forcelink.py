@@ -1,5 +1,5 @@
 import json
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
 import aiohttp
 import discord
@@ -33,7 +33,7 @@ class ForceLink(Command):
         get_user(discord_id)
 
         # Generate a JWT token for the verification endpoint
-        expiry = datetime.now(timezone.utc) + timedelta(minutes=5)
+        expiry = datetime.now(UTC) + timedelta(minutes=5)
         token = jwt.encode(
             {
                 "discordId": discord_id,

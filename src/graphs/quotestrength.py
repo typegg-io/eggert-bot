@@ -1,4 +1,3 @@
-from typing import Dict, List, Optional, Tuple
 
 import numpy as np
 from matplotlib.colors import LinearSegmentedColormap
@@ -6,7 +5,7 @@ from matplotlib.colors import LinearSegmentedColormap
 from graphs.core import GRAPH_PALETTE, apply_theme, generate_file_name, plt
 
 
-def render(users: List[Dict], theme: dict, heatmap_points: Optional[List[Tuple[float, float]]] = None) -> str:
+def render(users: list[dict], theme: dict, heatmap_points: list[tuple[float, float]] | None = None) -> str:
     fig, ax = plt.subplots(figsize=(6, 6), constrained_layout=True)
 
     apply_theme(ax, theme=theme, legend_loc=None, force_legend=False)

@@ -1,7 +1,6 @@
 import json
 import math
 import re
-from typing import Optional
 
 from dateutil import parser
 from dateutil.relativedelta import relativedelta
@@ -211,7 +210,7 @@ def format_duration(seconds, round_seconds=True, show_seconds=True):
     return f"{days}{hours}{minutes}{seconds_str}".strip()
 
 
-def discord_date(date_string: str, style: Optional[str] = "R"):
+def discord_date(date_string: str, style: str | None = "R"):
     """Convert a date string or timestamp to Discord's date format tag."""
     try:
         timestamp = int(date_string)

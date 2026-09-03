@@ -1,4 +1,4 @@
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 import jwt
 from aiohttp import web
@@ -66,7 +66,7 @@ async def verify_user(cog, request: web.Request):
         pass
 
     # Invalidate token
-    expiry_date = datetime.fromtimestamp(expiry_timestamp, timezone.utc)
+    expiry_date = datetime.fromtimestamp(expiry_timestamp, UTC)
     cog.used_tokens[token] = expiry_date
 
     return web.json_response({"success": True, "message": "User verified successfully."})

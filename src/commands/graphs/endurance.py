@@ -1,4 +1,3 @@
-from typing import List
 
 from discord import File
 from discord.ext import commands
@@ -33,7 +32,7 @@ class Endurance(Command):
         await run(ctx, profiles)
 
 
-async def run(ctx: BotContext, profiles: List[dict]):
+async def run(ctx: BotContext, profiles: list[dict]):
     data = []
 
     for profile in profiles:

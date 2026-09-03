@@ -1,5 +1,4 @@
 from dataclasses import dataclass
-from typing import Optional
 
 from discord import Embed
 from discord.ext.commands import CheckFailure, CommandError
@@ -13,7 +12,7 @@ from utils.flags import Flags
 class BotError(CommandError):
     title: str
     text: str
-    flags: Optional[Flags] = None
+    flags: Flags | None = None
 
     @property
     def embed(self):

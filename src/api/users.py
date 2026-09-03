@@ -1,4 +1,4 @@
-from typing import Any, Dict, Optional
+from typing import Any
 from urllib.parse import quote
 
 from api.core import API_URL, request
@@ -18,22 +18,22 @@ async def get_profile(user_id: str):
 
 async def get_races(
     user_id: str,
-    start_date: Optional[str] = None,
-    end_date: Optional[str] = None,
-    start_number: Optional[int] = None,
-    end_number: Optional[int] = None,
-    quote_id: Optional[str] = None,
-    min_pp: Optional[float] = None,
-    max_pp: Optional[float] = None,
-    min_wpm: Optional[float] = None,
-    max_wpm: Optional[float] = None,
+    start_date: str | None = None,
+    end_date: str | None = None,
+    start_number: int | None = None,
+    end_number: int | None = None,
+    quote_id: str | None = None,
+    min_pp: float | None = None,
+    max_pp: float | None = None,
+    min_wpm: float | None = None,
+    max_wpm: float | None = None,
     gamemode: str = "any",
     sort: str = "timestamp",
     reverse: bool = True,
     get_keystrokes: bool = False,
     page: int = 1,
     per_page: int = 10,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """
     Calls GET /users/{userId}/races with all available filters.
     Returns the JSON response as a dict.
@@ -60,7 +60,7 @@ async def get_races(
     )
 
 
-async def get_race(user_id: str, race_number: int, get_keystrokes=False) -> Dict[str, Any]:
+async def get_race(user_id: str, race_number: int, get_keystrokes=False) -> dict[str, Any]:
     """
     Calls GET /users/{userId}/races/{raceNumber}.
     Returns the JSON response as a dict.
@@ -72,7 +72,7 @@ async def get_race(user_id: str, race_number: int, get_keystrokes=False) -> Dict
     )
 
 
-async def get_latest_race(user_id: str) -> Dict[str, Any]:
+async def get_latest_race(user_id: str) -> dict[str, Any]:
     """
     Gets a user's latest race.
     Returns the JSON response as a dict.
@@ -84,23 +84,23 @@ async def get_latest_race(user_id: str) -> Dict[str, Any]:
 
 async def get_quotes(
     user_id: str,
-    start_date: Optional[str] = None,
-    end_date: Optional[str] = None,
-    start_number: Optional[int] = None,
-    end_number: Optional[int] = None,
-    min_pp: Optional[float] = None,
-    max_pp: Optional[float] = None,
-    min_wpm: Optional[float] = None,
-    max_wpm: Optional[float] = None,
-    min_length: Optional[int] = None,
-    max_length: Optional[int] = None,
+    start_date: str | None = None,
+    end_date: str | None = None,
+    start_number: int | None = None,
+    end_number: int | None = None,
+    min_pp: float | None = None,
+    max_pp: float | None = None,
+    min_wpm: float | None = None,
+    max_wpm: float | None = None,
+    min_length: int | None = None,
+    max_length: int | None = None,
     gamemode: str = "any",
     status: str = "any",
     sort: str = "timestamp",
     reverse: bool = True,
     page: int = 1,
     per_page: int = 10,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """
     Calls GET /users/{userId}/quotes with all available filters.
     Returns the JSON response as a dict.
@@ -128,7 +128,7 @@ async def get_quotes(
     )
 
 
-async def get_quote(user_id: str, quote_id: str) -> Dict[str, Any]:
+async def get_quote(user_id: str, quote_id: str) -> dict[str, Any]:
     """
     Calls GET /users/{userId}/quotes/{quoteId} with all available filters.
     Returns the JSON response as a dict.
@@ -140,7 +140,7 @@ async def get_quote_rankings(
     user_id: str,
     max_rank: int = 10,
     status: str = "ranked",
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """
     Calls GET /users/{userId}/quote-rankings.
     Returns the user's quote leaderboard placement counts (rank -> count).

@@ -1,4 +1,3 @@
-from typing import List
 
 import numpy as np
 from discord.ext import commands
@@ -54,7 +53,7 @@ def get_optimization_level(pp_values):
     return 1 - deviation / pp_anchor
 
 
-async def run(ctx: BotContext, profiles: List[dict], n: int, metric: str):
+async def run(ctx: BotContext, profiles: list[dict], n: int, metric: str):
     top_scores = []
     username = profiles[0]["username"]
     quote_list = get_quotes()

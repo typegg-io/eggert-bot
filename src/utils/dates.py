@@ -1,5 +1,5 @@
 import re
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from zoneinfo import ZoneInfo
 
 from dateutil import parser
@@ -25,12 +25,12 @@ _DATE_KEYWORDS = {"now", "today", "yesterday", "yd"}
 
 def now():
     """Return the current UTC datetime."""
-    return datetime.now(timezone.utc)
+    return datetime.now(UTC)
 
 
 def epoch():
     """Return the Unix epoch (January 1, 1970) as a UTC datetime."""
-    return datetime(1970, 1, 1, tzinfo=timezone.utc)
+    return datetime(1970, 1, 1, tzinfo=UTC)
 
 
 # String & Date Conversion
@@ -61,7 +61,7 @@ def parse_date(date_string: str | None) -> datetime:
         date = _now - timedelta(days=1)
     else:
         try:
-            date = parser.parse(date_string).replace(tzinfo=timezone.utc)
+            date = parser.parse(date_string).replace(tzinfo=UTC)
         except ValueError:
             raise InvalidDate
 
@@ -127,7 +127,7 @@ def get_start_end_dates(date: datetime, period: str, tz: ZoneInfo):
         floor_function, relative_delta = periods[period]
         local_date = date.astimezone(tz)
         start_local = floor_function(local_date)
-        start = start_local.astimezone(timezone.utc).replace(tzinfo=timezone.utc)
+        start = start_local.astimezone(UTC).replace(tzinfo=UTC)
         end = start + relative_delta
 
         return start, end

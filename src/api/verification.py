@@ -1,4 +1,4 @@
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 import jwt
 
@@ -7,7 +7,7 @@ from config import SECRET, SITE_URL
 
 def generate_jwt(discord_id: str):
     """Generates a JWT containing a Discord ID. Expires after 10 minutes."""
-    issued_at = int(datetime.now(timezone.utc).timestamp())
+    issued_at = int(datetime.now(UTC).timestamp())
     expiration = issued_at + 600
     payload = {
         "discordId": discord_id,

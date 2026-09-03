@@ -1,4 +1,3 @@
-from typing import List
 
 import numpy as np
 from discord.ext import commands
@@ -47,7 +46,7 @@ def _quote_xy(quote, len_p10, len_p90, sorted_complexities):
     return x, y
 
 
-async def run(ctx: BotContext, profiles: List[dict]):
+async def run(ctx: BotContext, profiles: list[dict]):
     quote_list = get_quotes()
 
     ranked_quotes = [q for q in quote_list.values() if q.get("ranked")]

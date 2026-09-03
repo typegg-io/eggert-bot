@@ -1,5 +1,4 @@
 from dataclasses import dataclass
-from typing import List
 
 
 @dataclass
@@ -52,7 +51,7 @@ keymaps = {
 }
 
 
-def get_keymap(keymap: str | None = None) -> (List[List[K]], str):
+def get_keymap(keymap: str | None = None) -> (list[list[K]], str):
     if keymap is None:
         keymap = "qwerty"
 

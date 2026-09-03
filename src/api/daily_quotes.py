@@ -1,5 +1,5 @@
 from datetime import timedelta
-from typing import Any, Dict
+from typing import Any
 
 from api.core import API_URL, request
 from utils import dates
@@ -15,7 +15,7 @@ async def get_daily_quote(
     results: int = 10,
     country: str = None,
     get_keystrokes: bool = False,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """
     Calls GET /daily with all available filters.
     Returns the JSON response as a dict.

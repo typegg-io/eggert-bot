@@ -1,5 +1,4 @@
-import asyncio
-from typing import NamedTuple, Optional
+from typing import NamedTuple
 from urllib.parse import unquote
 
 from discord import Embed, Forbidden
@@ -114,7 +113,7 @@ class Command(commands.Cog):
 
         return profiles
 
-    def get_username(self, ctx: BotContext, username: Optional[str]):
+    def get_username(self, ctx: BotContext, username: str | None):
         """Resolve None or 'me' to the current user's ID, or return the provided username."""
         if username is None or username == "me":
             if ctx.user["userId"] is None:
@@ -122,7 +121,7 @@ class Command(commands.Cog):
             return ctx.user["userId"]
         return username
 
-    def get_usernames(self, ctx: BotContext, username1: Optional[str], username2: Optional[str]):
+    def get_usernames(self, ctx: BotContext, username1: str | None, username2: str | None):
         """Resolves None/'me' to current user's ID and returns both usernames."""
         if username2 is None or username2 == "me":
             username1, username2 = username2, username1
@@ -135,8 +134,8 @@ class Command(commands.Cog):
     async def get_profile(
         self,
         ctx: BotContext,
-        username: Optional[str] = None,
-        races_required: Optional[bool] = True,
+        username: str | None = None,
+        races_required: bool | None = True,
         auto_import=True,
     ):
         """Fetch a user's profile, and optionally imports their races."""
@@ -180,7 +179,7 @@ class Command(commands.Cog):
         try:
             await self.bot.wait_for("message", timeout=timeout, check=check)
             return True
-        except asyncio.TimeoutError:
+        except TimeoutError:
             if prompt_message is not None:
                 await prompt_message.edit(
                     embed=Embed(
@@ -204,9 +203,9 @@ class Command(commands.Cog):
     async def get_quote(
         self,
         ctx: BotContext,
-        quote_id: Optional[str] = None,
-        user_id: Optional[str] = None,
-        from_api: Optional[bool] = False,
+        quote_id: str | None = None,
+        user_id: str | None = None,
+        from_api: bool | None = False,
     ):
         """Fetches a quote from database or API, optionally pass a user ID to take their latest quote ID."""
         if quote_id is None and user_id is not None:

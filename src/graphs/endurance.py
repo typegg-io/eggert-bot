@@ -1,5 +1,4 @@
 from dataclasses import dataclass
-from typing import List
 
 from graphs.core import apply_log_ticks, apply_theme, filter_palette, generate_file_name, plt
 from utils.strings import format_big_number
@@ -8,13 +7,13 @@ from utils.strings import format_big_number
 @dataclass
 class UserEnduranceData:
     username: str
-    wpm_values: List[float]
-    length_values: List[int]
+    wpm_values: list[float]
+    length_values: list[int]
 
 
 def render(
     first_username: str,
-    data: List[UserEnduranceData],
+    data: list[UserEnduranceData],
     theme: dict,
 ):
     fig, ax = plt.subplots()

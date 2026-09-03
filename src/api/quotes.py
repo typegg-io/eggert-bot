@@ -1,4 +1,4 @@
-from typing import Any, Dict, Optional
+from typing import Any
 
 from api.core import API_URL, request
 from utils.errors import UnknownQuote
@@ -6,13 +6,13 @@ from utils.logging import log
 
 
 async def get_quotes(
-    search: Optional[str] = None,
-    min_difficulty: Optional[float] = None,
-    max_difficulty: Optional[float] = None,
-    min_length: Optional[int] = None,
-    max_length: Optional[int] = None,
-    min_publication_year: Optional[int] = None,
-    max_publication_year: Optional[int] = None,
+    search: str | None = None,
+    min_difficulty: float | None = None,
+    max_difficulty: float | None = None,
+    min_length: int | None = None,
+    max_length: int | None = None,
+    min_publication_year: int | None = None,
+    max_publication_year: int | None = None,
     source_id: str = None,
     status: str = "ranked",
     sort: str = "created",
@@ -20,7 +20,7 @@ async def get_quotes(
     reverse: bool = True,
     page: int = 1,
     per_page: int = 10,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """
     Calls GET /quotes with all available filters.
     Returns the JSON response as a dict.
@@ -46,7 +46,7 @@ async def get_quotes(
     )
 
 
-async def get_quote(quote_id: str, distinct: bool = True) -> Dict[str, Any]:
+async def get_quote(quote_id: str, distinct: bool = True) -> dict[str, Any]:
     """
     Calls GET /quotes/{quoteId}.
     Returns the JSON response as a dict.

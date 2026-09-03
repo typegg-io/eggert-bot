@@ -1,6 +1,5 @@
 """Keystroke codec decoder for compact format."""
 
-from typing import Tuple
 
 from utils.keystrokes import (
     Keystroke,
@@ -25,7 +24,7 @@ def find_word_break(s: str) -> int:
     return -1
 
 
-def simulate_word_completion(input_val: str, text: str, completed_chars: int) -> Tuple[str, int]:
+def simulate_word_completion(input_val: str, text: str, completed_chars: int) -> tuple[str, int]:
     remaining_text = text[completed_chars:]
     if len(remaining_text) == 0:
         return input_val, completed_chars
@@ -91,7 +90,7 @@ def replace_range(s: str, start: int, end: int, replacement: str) -> str:
     return s[:start] + replacement + s[end:]
 
 
-def read_key_until_delimiter(runes: str, i: int) -> Tuple[str, int]:
+def read_key_until_delimiter(runes: str, i: int) -> tuple[str, int]:
     if i >= len(runes):
         return "", i
     if runes[i] == '|':

@@ -1,7 +1,6 @@
 import sys
 import textwrap
-from datetime import datetime, timezone
-from typing import Optional
+from datetime import UTC, datetime
 
 import matplotlib
 import matplotlib.font_manager as fm
@@ -66,7 +65,7 @@ class CollectionHandler(HandlerLineCollection):
 
 def apply_theme(
     ax: Axes, theme: dict,
-    legend_loc: Optional[int | str] = "upper left",
+    legend_loc: int | str | None = "upper left",
     force_legend: bool = False,
     themed_line: int = 0,
 ):
@@ -259,7 +258,7 @@ def apply_date_ticks(ax: Axes, timestamps: list[float]):
     step = date_range / 5
 
     ticks = [min_timestamp + step * i for i in range(6)]
-    labels = [datetime.fromtimestamp(ts, timezone.utc).strftime("%b %#d '%y") for ts in ticks]
+    labels = [datetime.fromtimestamp(ts, UTC).strftime("%b %#d '%y") for ts in ticks]
 
     ax.set_xticks(ticks)
     ax.set_xticklabels(labels)

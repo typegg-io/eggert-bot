@@ -1,4 +1,3 @@
-from typing import Dict, List
 
 import numpy as np
 from matplotlib.colors import hex2color
@@ -8,7 +7,7 @@ from graphs.core import apply_theme, filter_palette, generate_file_name, plt
 
 def render(
     username: str,
-    profiles: List[Dict],
+    profiles: list[dict],
     n: int,
     metric: str,
     theme: dict,

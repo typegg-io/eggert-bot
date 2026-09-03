@@ -1,5 +1,4 @@
 from dataclasses import dataclass
-from typing import List
 
 import numpy as np
 
@@ -12,11 +11,11 @@ BUCKETS = 60
 @dataclass
 class UserLengthData:
     username: str
-    values: List[float]
-    lengths: List[int]
+    values: list[float]
+    lengths: list[int]
 
 
-def bucket_by_log(lengths: List[int], values: List[float]) -> tuple[List[float], List[float]]:
+def bucket_by_log(lengths: list[int], values: list[float]) -> tuple[list[float], list[float]]:
     """Bin (length, value) pairs into log-spaced buckets, keeping the max value per bucket."""
     log_min = np.log10(min(lengths))
     log_max = np.log10(max(lengths))
@@ -35,7 +34,7 @@ def bucket_by_log(lengths: List[int], values: List[float]) -> tuple[List[float],
 
 def render(
     username: str,
-    data: List[UserLengthData],
+    data: list[UserLengthData],
     metric: str,
     theme: dict,
 ):

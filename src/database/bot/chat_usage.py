@@ -1,4 +1,4 @@
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from database.bot import db
 from utils.dates import now as _now
@@ -18,7 +18,7 @@ def get_daily_usage(discord_id: str) -> int:
         return 0
 
     usage_count = result["usageCount"]
-    last_reset = datetime.fromtimestamp(result["lastReset"], timezone.utc)
+    last_reset = datetime.fromtimestamp(result["lastReset"], UTC)
 
     # Check if reset is needed for new day
     if now.date() > last_reset.date():

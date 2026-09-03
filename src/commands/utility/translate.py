@@ -1,4 +1,3 @@
-from typing import List
 
 from discord.ext import commands
 
@@ -80,7 +79,7 @@ class Translate(Command):
         await message.send()
 
 
-def get_keylist(keystrokes: List[List[K]]) -> List[str | None]:
+def get_keylist(keystrokes: list[list[K]]) -> list[str | None]:
     keylist = []
 
     for keyrow in keystrokes:

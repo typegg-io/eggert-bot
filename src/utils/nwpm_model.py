@@ -8,7 +8,7 @@ from utils.logging import log
 DATA_FILE = SOURCE_DIR / "data" / "pp_nwpm.json"
 
 try:
-    with open(DATA_FILE, "r") as f:
+    with open(DATA_FILE) as f:
         if not f.read().strip():
             raise FileNotFoundError
 except FileNotFoundError:
@@ -23,7 +23,7 @@ async def update_nwpm_data():
     """Update the pp nWPM point data used for calculating nWPM."""
     log("Updating pp nWPM points")
 
-    with open(DATA_FILE, "r") as f:
+    with open(DATA_FILE) as f:
         raw = f.read().strip() or "[]"
         data = json.loads(raw)
 
@@ -65,7 +65,7 @@ def load_local_data():
     """Load the JSON data to a local variable."""
     global nwpm_data
 
-    with open(DATA_FILE, "r") as f:
+    with open(DATA_FILE) as f:
         raw = f.read().strip()
         nwpm_data = json.loads(raw)
 

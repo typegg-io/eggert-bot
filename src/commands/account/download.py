@@ -1,4 +1,3 @@
-from typing import Optional
 
 from dateutil.relativedelta import relativedelta
 from discord.ext import commands
@@ -66,9 +65,9 @@ async def import_new_quotes(new_quote_ids):
 
 
 async def run(
-    ctx: Optional[BotContext] = None,
-    profile: Optional[dict] = None,
-    user_id: Optional[str] = None
+    ctx: BotContext | None = None,
+    profile: dict | None = None,
+    user_id: str | None = None
 ):
     background_import = ctx is None
     auto_import = (

@@ -1,5 +1,5 @@
 import json
-from typing import Counter
+from collections import Counter
 
 from database.bot import db
 from utils import dates

@@ -1,10 +1,10 @@
-from typing import Any, Dict
+from typing import Any
 from urllib.parse import quote
 
 from api.core import API_URL, request
 
 
-async def get_race(race_id: str) -> Dict[str, Any]:
+async def get_race(race_id: str) -> dict[str, Any]:
     """
     Calls GET /races/{raceId}.
     Returns the JSON response as a dict.

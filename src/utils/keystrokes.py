@@ -1,7 +1,6 @@
 """Keystroke processing for raw WPM calculation."""
 
 from dataclasses import dataclass, field
-from typing import Dict, List, Optional, Set, Union
 
 from utils.errors import InvalidKeystrokeData
 
@@ -26,7 +25,7 @@ class KeystrokeDelete:
 class KeystrokeReplace:
     rStart: int
     rEnd: int
-    redundant: Optional[bool] = None
+    redundant: bool | None = None
     key: str = ""
 
 
@@ -34,11 +33,11 @@ class KeystrokeReplace:
 class KeystrokeComposition:
     i: int
     key: str
-    steps: List[str] = field(default_factory=list)
-    stepTimes: List[int] = field(default_factory=list)
+    steps: list[str] = field(default_factory=list)
+    stepTimes: list[int] = field(default_factory=list)
 
 
-KeystrokeAction = Union[KeystrokeInsert, KeystrokeDelete, KeystrokeReplace, KeystrokeComposition]
+KeystrokeAction = KeystrokeInsert | KeystrokeDelete | KeystrokeReplace | KeystrokeComposition
 
 
 @dataclass
@@ -51,7 +50,7 @@ class Keystroke:
 @dataclass
 class KeystrokeData:
     text: str
-    keystrokes: List[Keystroke]
+    keystrokes: list[Keystroke]
     isStickyStart: bool = False
 
 
@@ -78,8 +77,8 @@ class GraphDataPoint:
     charIndex: int
     wordIndex: int
     initialKeystrokeId: int
-    wpm: Optional[float] = None
-    raw: Optional[float] = None
+    wpm: float | None = None
+    raw: float | None = None
     time: float = 0.0
 
 
@@ -92,12 +91,12 @@ class Typo:
 
 @dataclass
 class ProcessResult:
-    keystrokesWpmGraphData: List[GraphDataPoint]
-    rawCharacterTimes: List[float]
-    wpmCharacterTimes: List[float]
-    typos: List[Typo]
-    keystrokeWpm: List[float]
-    keystrokeRawWpm: List[float]
+    keystrokesWpmGraphData: list[GraphDataPoint]
+    rawCharacterTimes: list[float]
+    wpmCharacterTimes: list[float]
+    typos: list[Typo]
+    keystrokeWpm: list[float]
+    keystrokeRawWpm: list[float]
     raw_wpm: float = 0.0
     wpm: float = 0.0
     accuracy: float = 0.0
@@ -109,7 +108,7 @@ def normalize_enter(char: str) -> str:
     return char
 
 
-def split_words(text: str) -> List[str]:
+def split_words(text: str) -> list[str]:
     """Split text into words, matching TypeGG implementation."""
     # 1. Add space after ⏎ if not already present
     result = ""
@@ -169,9 +168,9 @@ def process_keystroke_data(
     text = keystroke_data.text.replace('\r\n', '\n')
     words = split_words(text)
 
-    raw_character_times: List[float] = []
-    wpm_character_times: List[float] = []
-    keystrokes_wpm_graph_data: List[GraphDataPoint] = []
+    raw_character_times: list[float] = []
+    wpm_character_times: list[float] = []
+    keystrokes_wpm_graph_data: list[GraphDataPoint] = []
 
     input_val = ""
     word_index = 0
@@ -182,17 +181,17 @@ def process_keystroke_data(
     total_chars_before_word = 0  # cache for chars before current word
     first_char_ime_adjustment = 0.0
 
-    char_pool: Dict[str, List[CharPoolEntry]] = {}
-    position_keystrokes: Dict[int, List[PositionKeystroke]] = {}
-    post_correction_positions: Set[int] = set()
-    fat_finger_times: Dict[int, int] = {}
+    char_pool: dict[str, list[CharPoolEntry]] = {}
+    position_keystrokes: dict[int, list[PositionKeystroke]] = {}
+    post_correction_positions: set[int] = set()
+    fat_finger_times: dict[int, int] = {}
 
     correct_chars = 0
     penalties = 0
     corrective = 0
     destructive = 0
 
-    typos: List[Typo] = []
+    typos: list[Typo] = []
     typo_flag = False
 
     prev_was_insert = False
@@ -211,12 +210,12 @@ def process_keystroke_data(
                 return i
         return -1
 
-    global_used_raw_ids: Set[int] = set()
-    global_used_actual_ids: Set[int] = set()
+    global_used_raw_ids: set[int] = set()
+    global_used_actual_ids: set[int] = set()
 
-    input_val_contributors: List[int] = []
-    input_val_delays: List[List[int]] = []
-    pending_delays: List[int] = []
+    input_val_contributors: list[int] = []
+    input_val_delays: list[list[int]] = []
+    pending_delays: list[int] = []
 
     def get_absolute_position(relative_position: int) -> int:
         return total_chars_before_word + relative_position
@@ -361,7 +360,7 @@ def process_keystroke_data(
                 # Non-redundant: collect preserved IDs and modify arrays
                 adj_end = r_end + buffer_offset
 
-                preserved_ids: List[int] = []
+                preserved_ids: list[int] = []
                 for j in range(adj_start, min(adj_end, len(input_val_contributors))):
                     if input_val_contributors[j] >= 0:
                         preserved_ids.append(input_val_contributors[j])
@@ -462,7 +461,7 @@ def process_keystroke_data(
             adj_start = d_start + buffer_offset
             adj_end = d_end + buffer_offset
 
-            preserved_ids: List[int] = []
+            preserved_ids: list[int] = []
             for j in range(adj_start, min(adj_end, len(input_val_contributors))):
                 if input_val_contributors[j] >= 0:
                     preserved_ids.append(input_val_contributors[j])
@@ -544,11 +543,11 @@ def process_keystroke_data(
                input_val[:len(current_word)] == current_word and
                word_index < len(words)):
 
-            raw_times_for_word: List[float] = []
-            actual_times_for_word: List[float] = []
+            raw_times_for_word: list[float] = []
+            actual_times_for_word: list[float] = []
 
-            attribution: List[int] = [-1] * len(current_word)
-            raw_times: List[float] = [0.0] * len(current_word)
+            attribution: list[int] = [-1] * len(current_word)
+            raw_times: list[float] = [0.0] * len(current_word)
 
             for i in range(len(current_word)):
                 absolute_pos = total_chars_before_word + i

@@ -1,6 +1,5 @@
 import os
 import sqlite3
-from typing import Optional
 
 import aiosqlite
 
@@ -34,12 +33,12 @@ def _execute_fetch(query: str, params: list, one: bool):
         cursor.close()
 
 
-def fetch(query: str, params: Optional[list] = None):
+def fetch(query: str, params: list | None = None):
     """Fetch all rows from a read-only query."""
     return _execute_fetch(query, params or [], one=False)
 
 
-def fetch_one(query: str, params: Optional[list] = None):
+def fetch_one(query: str, params: list | None = None):
     """Fetch a single row from a read-only query."""
     return _execute_fetch(query, params or [], one=True)
 
@@ -52,7 +51,7 @@ async def fetch_async(query, params=None):
             return await cursor.fetchall()
 
 
-def run(query: str, params: Optional[list] = None):
+def run(query: str, params: list | None = None):
     """Execute a write query (INSERT, UPDATE, DELETE) with commit."""
     cursor = writer.cursor()
 

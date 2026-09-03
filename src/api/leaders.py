@@ -1,4 +1,4 @@
-from typing import Any, Dict, Optional
+from typing import Any
 
 from api.core import API_URL, request
 
@@ -6,10 +6,10 @@ from api.core import API_URL, request
 async def get_leaders(
     sort: str = "totalPp",
     gamemode: str = "any",
-    country: Optional[str] = None,
+    country: str | None = None,
     page: int = 1,
     per_page: int = 10,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """
     Calls GET /leaders with all available filters.
     Returns the JSON response as a dict.
@@ -30,7 +30,7 @@ async def get_multiplayer_leaders(
     metric: str = "wpm",
     page: int = 1,
     per_page: int = 100,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Temporary internal API."""
     return await request(
         url=f"{API_URL}/leaderboard/multiplayer/{metric}",
