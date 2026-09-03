@@ -33,15 +33,10 @@ def calculate_quote_length(wpm, duration):
     return int(round(wpm * duration / 12000) + 1)
 
 
-def calculate_ms(quote, wpm):
-    """Returns the ms duration given a quote and WPM."""
-    if wpm == 0: return 0
-    return round((len(quote) * 12000) / wpm)
-
-
 def calculate_wpm(duration, chars_typed):
     """Returns the WPM value given duration in ms and number of characters typed."""
-    if duration == 0: return float("inf")
+    if duration == 0:
+        return float("inf")
     return (12000 * chars_typed) / duration
 
 

@@ -39,9 +39,3 @@ def increment_usage(discord_id: str):
         SET usageCount = usageCount + 1
         WHERE discordId = ?
     """, [discord_id])
-
-
-def get_remaining_uses(discord_id: str, daily_limit: int) -> int:
-    """Get remaining uses for the day."""
-    current_usage = get_daily_usage(discord_id)
-    return max(0, daily_limit - current_usage)

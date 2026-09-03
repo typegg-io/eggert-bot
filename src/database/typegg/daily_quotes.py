@@ -1,4 +1,3 @@
-from collections import defaultdict
 
 from api.daily_quotes import START_DATE
 from database.typegg import db
@@ -136,13 +135,3 @@ def get_today_result(user_id: str, quote_id: str):
         ORDER BY wpm DESC
         LIMIT 1
     """, [user_id, quote_id, today])
-
-
-def get_user_ranks(user_id: str):
-    results = db.fetch("SELECT rank FROM daily_quote_results WHERE userId = ?", [user_id])
-
-    ranks = defaultdict(int)
-    for row in results:
-        ranks[row["rank"]] += 1
-
-    return ranks

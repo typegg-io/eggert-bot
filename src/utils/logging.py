@@ -4,7 +4,7 @@ import traceback
 
 import requests
 
-from config import STAGING, MESSAGE_WEBHOOK, ERROR_WEBHOOK, WEB_SERVER_WEBHOOK
+from config import ERROR_WEBHOOK, MESSAGE_WEBHOOK, STAGING, WEB_SERVER_WEBHOOK
 from database.bot.users import get_user
 
 # Constants
@@ -24,12 +24,6 @@ def time_start():
     """Start the performance timer."""
     global start
     start = time.time()
-
-
-def time_split():
-    """Stop the current timer, print elapsed time, and start a new timer."""
-    time_stop()
-    time_start()
 
 
 def time_stop():

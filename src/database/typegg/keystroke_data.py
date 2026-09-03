@@ -33,20 +33,12 @@ def _decompress(row):
 
 def get_keystroke_data(race_id: str):
     """Get keystroke data by race ID, decompressed."""
-    result = db.fetch_one(f"""
+    result = db.fetch_one("""
         SELECT keystrokeData FROM keystroke_data
         WHERE raceId = ?
     """, [race_id])
 
     return json.loads(result["keystrokeData"])
-
-
-def delete_keystroke_data(user_id: str):
-    """Delete all keystroke data for a user."""
-    db.run("""
-        DELETE FROM keystroke_data
-        WHERE raceId IN (SELECT raceId FROM races WHERE userId = ?)
-    """, [user_id])
 
 
 def get_uncompressed_count():

@@ -217,17 +217,6 @@ def get_all_linked_users():
     return {str(row["userId"]): str(row["discordId"]) for row in results}
 
 
-def is_user_linked(discord_id: str) -> bool:
-    """Check if a Discord user is linked to a user ID."""
-    results = db.fetch("""
-        SELECT userId
-        FROM users
-        WHERE discordId = ? AND userId IS NOT NULL
-    """, [discord_id])
-
-    return len(results) > 0
-
-
 def ban_user(discord_id: str):
     db.run("""
         UPDATE users

@@ -1,5 +1,5 @@
 import re
-from datetime import datetime, timezone, timedelta
+from datetime import datetime, timedelta, timezone
 from zoneinfo import ZoneInfo
 
 from dateutil import parser
@@ -82,14 +82,12 @@ def format_date(date):
     return f"{month} {ordinal_number(day)}, {year}"
 
 
-def format_timestamp(date: datetime):
-    """Format a datetime as an ISO-like timestamp string (YYYY-MM-DD HH:MM:SSZ)."""
-    return date.strftime("%Y-%m-%d %H:%M:%SZ")
-
-
 def get_timestamp_list(date_list):
     """Convert a list of date strings to Unix timestamps."""
-    return [datetime.strptime(normalize_datetime(date).rstrip("Z"), "%Y-%m-%d %H:%M:%S.%f").timestamp() for date in date_list]
+    return [
+        datetime.strptime(normalize_datetime(date).rstrip("Z"), "%Y-%m-%d %H:%M:%S.%f").timestamp()
+        for date in date_list
+    ]
 
 
 # Date Flooring Functions

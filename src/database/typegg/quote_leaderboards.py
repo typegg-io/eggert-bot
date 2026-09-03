@@ -1,17 +1,6 @@
 from database.typegg import db
 
 
-def get_quote_leaderboard(quote_id: str):
-    """Fetch the top 10 leaderboard for a quote."""
-    return db.fetch("""
-        SELECT ql.rank, ql.userId, u.username, u.country
-        FROM quote_leaderboards ql
-        LEFT JOIN users u ON u.userId = ql.userId
-        WHERE ql.quoteId = ?
-        ORDER BY ql.rank
-    """, [quote_id])
-
-
 def update_quote_leaderboards(quote_ids: list[str]):
     """Recompute the top 10 leaderboard rows for the given quote IDs."""
     if not quote_ids:
@@ -26,7 +15,10 @@ def update_quote_leaderboards(quote_ids: list[str]):
             SELECT quoteId, rn, userId
             FROM (
                 SELECT quoteId, userId,
-                       ROW_NUMBER() OVER (PARTITION BY quoteId ORDER BY MAX(pp) DESC, MAX(wpm) DESC, MIN(timestamp) ASC) AS rn
+                       ROW_NUMBER() OVER (
+                           PARTITION BY quoteId
+                           ORDER BY MAX(pp) DESC, MAX(wpm) DESC, MIN(timestamp) ASC
+                       ) AS rn
                 FROM races
                 WHERE quoteId IN ({placeholders})
                 GROUP BY userId, quoteId
