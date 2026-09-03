@@ -34,30 +34,30 @@ def _execute_fetch(query: str, params: list, one: bool):
         cursor.close()
 
 
-def fetch(query: str, params: Optional[list] = []):
+def fetch(query: str, params: Optional[list] = None):
     """Fetch all rows from a read-only query."""
-    return _execute_fetch(query, params, one=False)
+    return _execute_fetch(query, params or [], one=False)
 
 
-def fetch_one(query: str, params: Optional[list] = []):
+def fetch_one(query: str, params: Optional[list] = None):
     """Fetch a single row from a read-only query."""
-    return _execute_fetch(query, params, one=True)
+    return _execute_fetch(query, params or [], one=True)
 
 
-async def fetch_async(query, params=[]):
+async def fetch_async(query, params=None):
     """Asynchronously fetch all rows from a read-only query."""
     async with aiosqlite.connect(file) as db:
         db.row_factory = aiosqlite.Row
-        async with db.execute(query, params) as cursor:
+        async with db.execute(query, params or []) as cursor:
             return await cursor.fetchall()
 
 
-def run(query: str, params: Optional[list] = []):
+def run(query: str, params: Optional[list] = None):
     """Execute a write query (INSERT, UPDATE, DELETE) with commit."""
     cursor = writer.cursor()
 
     try:
-        cursor.execute(query, params)
+        cursor.execute(query, params or [])
         writer.commit()
     finally:
         cursor.close()

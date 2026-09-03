@@ -22,22 +22,22 @@ def _execute_fetch(query: str, params: list, one: bool):
         cursor.close()
 
 
-def fetch(query: str, params: Optional[list] = []):
+def fetch(query: str, params: Optional[list] = None):
     """Fetch all rows from a read-only query."""
-    return _execute_fetch(query, params, one=False)
+    return _execute_fetch(query, params or [], one=False)
 
 
-def fetch_one(query: str, params: Optional[list] = []):
+def fetch_one(query: str, params: Optional[list] = None):
     """Fetch a single row from a read-only query."""
-    return _execute_fetch(query, params, one=True)
+    return _execute_fetch(query, params or [], one=True)
 
 
-def run(query: str, params: Optional[list] = []):
+def run(query: str, params: Optional[list] = None):
     """Execute a write query (INSERT, UPDATE, DELETE) with commit."""
     cursor = connection.cursor()
 
     try:
-        cursor.execute(query, params)
+        cursor.execute(query, params or [])
         connection.commit()
     finally:
         cursor.close()

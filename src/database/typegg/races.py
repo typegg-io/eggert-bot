@@ -59,7 +59,7 @@ def decompress_keystroke_data(rows):
 
 async def get_races(
     user_id: Optional[str] = None,
-    columns: Optional[list[str]] = ["*"],
+    columns: Optional[list[str]] = None,
     quote_id: Optional[str] = None,
     start_date: Optional[str] = None,
     end_date: Optional[str] = None,
@@ -70,11 +70,14 @@ async def get_races(
     order_by: Optional[str] = "timestamp",
     reverse: Optional[bool] = False,
     limit: Optional[int] = None,
-    flags: Optional[Flags] = Flags(),
+    flags: Optional[Flags] = None,
     get_keystrokes: Optional[bool] = False,
     only_historical_pbs: Optional[bool] = False,
 ):
     """Fetch races for a user with optional filters."""
+    columns = list(columns) if columns else ["*"]
+    flags = flags or Flags()
+
     if flags.raw:
         raw_columns = {"wpm": "rawWpm as wpm", "pp": "rawPp as pp"}
         if "*" in columns:
@@ -235,7 +238,7 @@ def delete_races(user_id: str):
 
 def get_quote_race_counts(user_id: str):
     """Returns a user's quotes by race count."""
-    results = db.fetch(f"""
+    results = db.fetch("""
         SELECT q.text, COUNT(q.text) as races
         FROM races r
         JOIN quotes q on q.quoteId = r.quoteId

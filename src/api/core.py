@@ -17,7 +17,7 @@ AUTH_HEADERS = {
 def get_params(raw_params):
     """Prepare and return API parameters."""
     params = {}
-    for key, value in raw_params.items():
+    for key, value in (raw_params or {}).items():
         if value is None:
             continue
         if isinstance(value, bool):
@@ -28,8 +28,8 @@ def get_params(raw_params):
 
 async def request(
     url: str,
-    params: dict = {},
-    json_data: dict = {},
+    params: dict = None,
+    json_data: dict = None,
     exceptions: dict = None,
     method: str = "GET",
 ):
@@ -72,7 +72,7 @@ async def request(
         return json
 
     if status == 429:
-        log(f"Rate limit exceeded, retrying in 3s...")
+        log("Rate limit exceeded, retrying in 3s...")
         await asyncio.sleep(3)
 
         status, json, message = await do_request()

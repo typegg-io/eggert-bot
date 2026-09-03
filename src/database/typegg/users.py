@@ -32,7 +32,7 @@ def get_user_lookup():
 
 def get_quote_bests(
     user_id: str,
-    columns: list[str] = ["*"],
+    columns: Optional[list[str]] = None,
     quote_id: Optional[str] = None,
     start_date: Optional[str] = None,
     end_date: Optional[str] = None,
@@ -42,9 +42,12 @@ def get_quote_bests(
     reverse: Optional[bool] = True,
     limit: Optional[int] = None,
     as_dictionary: Optional[bool] = False,
-    flags: Flags = Flags(),
+    flags: Optional[Flags] = None,
 ):
     """Returns quote bests for a user, with available filters."""
+    columns = list(columns) if columns else ["*"]
+    flags = flags or Flags()
+
     min_pp = 0
     max_pp = 99999
 
@@ -151,8 +154,8 @@ def delete_user(user_id: str):
 
 def delete_user_data(user_id: str):
     """Delete all data associated with a user, recomputing affected leaderboards."""
-    from database.typegg.quote_leaderboards import remove_user_from_leaderboards
     from database.typegg.match_results import delete_match_results
+    from database.typegg.quote_leaderboards import remove_user_from_leaderboards
 
     remove_user_from_leaderboards(user_id)
     delete_match_results(user_id)
@@ -228,7 +231,11 @@ def get_running_maximum_by_length(user_id: str):
             GROUP BY LENGTH(q.text)
         ),
         running AS (
-            SELECT wpm, length, MAX(wpm) OVER (ORDER BY length DESC ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW) AS running_max_wpm
+            SELECT wpm, length,
+                   MAX(wpm) OVER (
+                       ORDER BY length DESC
+                       ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
+                   ) AS running_max_wpm
             FROM text_bests_with_length
         )
         SELECT wpm, length
@@ -250,8 +257,15 @@ def get_quote_chars_typed(limit: int = 20):
     """, [limit])
 
 
-def get_quotes_over_leaderboard(threshold: int, metric: str = "wpm", limit: int = 100, flags: Flags = Flags()):
+def get_quotes_over_leaderboard(
+    threshold: int,
+    metric: str = "wpm",
+    limit: int = 100,
+    flags: Optional[Flags] = None,
+):
     """Returns users with the most quotes over a threshold."""
+    flags = flags or Flags()
+
     min_pp = 0
     max_pp = 99999
     table = "races"
