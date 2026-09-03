@@ -12,7 +12,7 @@ from matplotlib.axes import Axes
 from matplotlib.collections import LineCollection
 from matplotlib.colors import LinearSegmentedColormap, to_rgb
 from matplotlib.legend_handler import HandlerLine2D, HandlerLineCollection
-from matplotlib.offsetbox import OffsetImage, AnnotationBbox
+from matplotlib.offsetbox import AnnotationBbox, OffsetImage
 
 from config import ROOT_DIR, STAGING
 from utils import dates

@@ -2,21 +2,20 @@ import re
 from typing import Optional
 
 import matplotlib.colors as mcolors
-from discord import Embed, Member, File
+from discord import Embed, File, Member
 from discord.ext import commands
 
 from bot_setup import BotContext
 from commands.base import Command
 from config import KEEGAN
-from database.bot.users import update_theme, get_theme, get_user
+from database.bot.users import get_theme, get_user, update_theme
 from graphs import sample
 from graphs.core import plt
 from utils import strings
-from utils.colors import DEFAULT_THEME, DARK_THEME, LIGHT_THEME, GG_PLUS_THEME
-from utils.colors import ERROR
-from utils.errors import MissingArguments, BotUserNotFound, NotSubscribed
+from utils.colors import DARK_THEME, DEFAULT_THEME, ERROR, GG_PLUS_THEME, LIGHT_THEME
+from utils.errors import BotUserNotFound, MissingArguments, NotSubscribed
 from utils.files import remove_file
-from utils.messages import Page, Message, Button
+from utils.messages import Button, Message, Page
 from utils.strings import GG_PLUS_LINK, GG_PLUS_LINKED
 
 # Name + aliases

@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from typing import List
 
-from graphs.core import plt, apply_theme, generate_file_name, filter_palette, apply_log_ticks
+from graphs.core import apply_log_ticks, apply_theme, filter_palette, generate_file_name, plt
 from utils.strings import format_big_number
 
 

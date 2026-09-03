@@ -1,4 +1,5 @@
-from datetime import datetime, timezone, timedelta
+import json
+from datetime import datetime, timedelta, timezone
 
 import aiohttp
 import discord
@@ -10,9 +11,9 @@ from commands.base import Command
 from commands.checks import is_bot_admin
 from config import SECRET
 from database.bot.users import get_user
-from utils.colors import SUCCESS, ERROR
+from utils.colors import ERROR, SUCCESS
 from utils.logging import log
-from utils.messages import Page, Message
+from utils.messages import Message, Page
 
 info = {
     "name": "forcelink",
@@ -43,7 +44,10 @@ class ForceLink(Command):
             algorithm="HS256"
         )
 
-        log(f"Admin {ctx.author.name} force-linking Discord user {user.name} ({discord_id}) to TypeGG user {typegg_user_id}")
+        log(
+            f"Admin {ctx.author.name} force-linking Discord user {user.name} "
+            f"({discord_id}) to TypeGG user {typegg_user_id}"
+        )
 
         # Call the existing verify endpoint to handle linking and role assignment
         try:
@@ -56,16 +60,18 @@ class ForceLink(Command):
                         log(f"Force link successful for {user.name} ({discord_id})")
                         message = Message(ctx, Page(
                             title="Force Link Successful",
-                            description=f"Successfully linked {user.mention} to TypeGG user `{typegg_user_id}` and assigned roles",
+                            description=(
+                                f"Successfully linked {user.mention} to TypeGG user "
+                                f"`{typegg_user_id}` and assigned roles"
+                            ),
                             color=SUCCESS,
                         ))
                     else:
                         response_text = await response.text()
                         try:
-                            import json
                             error_data = json.loads(response_text)
                             error_message = error_data.get("error", "Unknown error")
-                        except:
+                        except json.JSONDecodeError:
                             error_message = response_text
                         log(f"Force link failed for {user.name} ({discord_id}): {error_message}")
                         message = Message(ctx, Page(

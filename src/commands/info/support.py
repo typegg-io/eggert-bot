@@ -3,7 +3,7 @@ from discord.ext import commands
 from bot_setup import BotContext
 from commands.base import Command
 from utils.colors import PLUS
-from utils.messages import Page, Message, Field
+from utils.messages import Field, Message, Page
 from utils.strings import GG_PLUS
 
 info = {
@@ -73,7 +73,7 @@ class Support(Command):
         message = Message(
             ctx=ctx,
             page=page,
-            footer=f"GG+ · $4.99/mo · Cancel anytime",
+            footer="GG+ · $4.99/mo · Cancel anytime",
         )
 
         await message.send()

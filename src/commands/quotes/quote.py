@@ -4,15 +4,15 @@ from discord.ext import commands
 from bot_setup import BotContext
 from commands.base import Command, enforce_daily_quote
 from config import DAILY_QUOTE_CHANNEL_ID
-from database.typegg.races import get_races, get_race
+from database.typegg.races import get_race, get_races
 from database.typegg.users import get_quote_bests
 from graphs import improvement
 from utils.colors import SUCCESS
 from utils.dates import parse_date
 from utils.errors import BotError
-from utils.messages import Page, Message, Field, usable_in
+from utils.messages import Field, Message, Page, usable_in
 from utils.stats import calculate_total_pp
-from utils.strings import discord_date, INCREASE, quote_display
+from utils.strings import INCREASE, discord_date, quote_display
 
 info = {
     "name": "quote",

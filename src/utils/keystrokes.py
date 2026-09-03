@@ -1,7 +1,7 @@
 """Keystroke processing for raw WPM calculation."""
 
 from dataclasses import dataclass, field
-from typing import List, Dict, Set, Optional, Union
+from typing import Dict, List, Optional, Set, Union
 
 from utils.errors import InvalidKeystrokeData
 
@@ -234,7 +234,7 @@ def process_keystroke_data(
 
     for keystroke_id, keystroke in enumerate(keystrokes):
         action = keystroke.action
-        time = keystroke.time
+        time = keystroke.time  # noqa: F841  parsed then dropped, confirm against Go before removing
         time_delta = keystroke.timeDelta
 
         # Safety check: detect corrupt data where word never completes and buffer grows unbounded
@@ -703,7 +703,7 @@ def process_keystroke_data(
                     wpm_total_time += reaction_time
                     raw_total_time += reaction_time
 
-                absolute_char_index = total_chars_before_word + (i - chars_before)
+                absolute_char_index = total_chars_before_word + (i - chars_before)  # noqa: F841  parsed then dropped, confirm against Go before removing
                 initial_ks_id = attribution[i - chars_before] if (i - chars_before) < len(attribution) else -1
 
                 keystrokes_wpm_graph_data.append(
@@ -755,7 +755,7 @@ def process_keystroke_data(
                 additional_time += keystrokes[delay_id].timeDelta
 
         # add any remaining time to the running total and update last graph point.
-        # my attempt at a "best effort" fix in case the user messes with input so much we can no longer attribute correctly
+        # best-effort fallback when input is mangled beyond attribution
         if additional_time > 0 and wpm_character_times:
             wpm_character_times[-1] += additional_time
             wpm_running_total += additional_time  # Update running total too

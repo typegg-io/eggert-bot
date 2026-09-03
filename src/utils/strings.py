@@ -9,7 +9,7 @@ from dateutil.relativedelta import relativedelta
 from config import SITE_URL
 from utils.errors import InvalidArgument, InvalidNumber
 from utils.flags import Flags
-from utils.urls import race_url, profile_url
+from utils.urls import profile_url, race_url
 
 # Constants
 

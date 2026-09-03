@@ -3,15 +3,14 @@ import os
 from dataclasses import dataclass, field
 from typing import Callable
 
-from discord import Embed, ButtonStyle, File
-from discord.ui import View, Button as DiscordButton
+from discord import ButtonStyle, Embed, File
+from discord.ui import Button as DiscordButton, View
 
 from bot_setup import BotContext
-from config import BOT_PREFIX
-from config import TYPEGG_GUILD_ID, STATS_CHANNEL_ID
+from config import BOT_PREFIX, STATS_CHANNEL_ID, TYPEGG_GUILD_ID
 from utils import files
 from utils.colors import SUCCESS, WARNING
-from utils.strings import get_flag_title, LOADING
+from utils.strings import LOADING, get_flag_title
 from utils.urls import profile_url
 
 welcome_message = (

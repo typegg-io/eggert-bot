@@ -5,7 +5,7 @@ from commands.base import Command
 from database.typegg.quotes import get_quotes
 from database.typegg.races import get_races
 from utils.errors import NumberGreaterThan
-from utils.messages import Message, Field, Page
+from utils.messages import Field, Message, Page
 from utils.strings import format_duration
 
 info = {

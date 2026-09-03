@@ -6,12 +6,12 @@ from commands.base import Command, enforce_daily_quote
 from commands.quotes.quoteleaderboard import run as run_quoteleaderboard
 from config import DAILY_QUOTE_CHANNEL_ID
 from database.typegg.daily_quotes import get_daily_rank_leaderboard
-from database.typegg.quotes import get_top_submitters, get_ranked_quote_count, get_ranked_quote_chars
+from database.typegg.quotes import get_ranked_quote_chars, get_ranked_quote_count, get_top_submitters
 from database.typegg.users import get_quote_chars_typed, get_quotes_over_leaderboard, get_user_lookup
 from utils import strings
 from utils.errors import BotError, DailyQuoteChannel
 from utils.messages import Message, Page, paginate_data, usable_in
-from utils.strings import get_argument, username_with_flag, rank, LOADING, parse_number, get_streak_emoji
+from utils.strings import LOADING, get_argument, get_streak_emoji, parse_number, rank, username_with_flag
 
 categories = {
     # API leaderboards
@@ -75,8 +75,10 @@ categories = {
     "streak": {
         "sort": "dailyQuotes.bestStreak",
         "title": "Best Daily Quote Streak",
-        "formatter": lambda
-            user: f"{user["stats"]["dailyQuotes"]["bestStreak"]}{get_streak_emoji(user["stats"]["dailyQuotes"]["bestStreak"])}"
+        "formatter": lambda user: (
+            f"{user["stats"]["dailyQuotes"]["bestStreak"]}"
+            f"{get_streak_emoji(user["stats"]["dailyQuotes"]["bestStreak"])}"
+        )
     },
     "dailyquotes": {
         "sort": "dailyQuotes.completed",
@@ -285,7 +287,8 @@ async def run_custom(ctx: BotContext, category: dict, args: tuple = ()):
         leaderboard = get_top_submitters()
         for i in range(len(leaderboard)):
             leaderboard[i] = dict(leaderboard[i]) | {"rank": i + 1}
-        formatter = lambda quote: f"{rank(quote["rank"])} {quote["submittedByUsername"]} - {quote["submissions"]:,}\n"
+        def formatter(quote):
+            return f"{rank(quote["rank"])} {quote["submittedByUsername"]} - {quote["submissions"]:,}\n"
         pages = paginate_data(leaderboard, formatter, page_count=5, per_page=20)
 
     elif category["title"] == "Quotes Over":

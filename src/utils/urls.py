@@ -1,7 +1,7 @@
 import re
 from urllib.parse import urlparse
 
-from config import SITE_URL, BOT_SUBDOMAIN
+from config import BOT_SUBDOMAIN, SITE_URL
 
 _SITE_HOST = urlparse(SITE_URL or "").netloc
 _SOLO_URL_RE = re.compile(

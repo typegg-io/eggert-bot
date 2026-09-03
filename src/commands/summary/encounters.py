@@ -7,13 +7,13 @@ from config import EIKO
 from database.typegg.match_results import get_encounter_stats, get_match_stats, get_opponent_encounters
 from database.typegg.quotes import get_quote, get_quotes
 from database.typegg.races import get_races
-from graphs import match as match_graph, encounters as encounters_graph
+from graphs import encounters as encounters_graph, match as match_graph
 from utils.colors import ERROR
 from utils.errors import BotError
 from utils.keystroke_codec import KeystrokeCodecError
 from utils.keystrokes import get_keystroke_data
-from utils.messages import Page, Message, Field
-from utils.strings import discord_date, username_with_flag, quote_display, rank
+from utils.messages import Field, Message, Page
+from utils.strings import discord_date, quote_display, rank, username_with_flag
 
 sorts = ["wins", "losses", "winrate", "wpm", "-winrate", "-wpm"]
 info = {
@@ -387,7 +387,7 @@ async def run_head_to_head(ctx: BotContext, profile1: dict, profile2: dict):
             ))
         except KeystrokeCodecError as e:
             pages.append(Page(
-                title=f"Keystroke Codec Error",
+                title="Keystroke Codec Error",
                 description=str(e) + f"\nPlease tell <@{EIKO}> to fix this",
                 button_name=f"Biggest Win (p{i + 1})",
                 color=ERROR,
@@ -418,7 +418,7 @@ async def run_head_to_head(ctx: BotContext, profile1: dict, profile2: dict):
             ))
         except KeystrokeCodecError as e:
             pages.append(Page(
-                title=f"Keystroke Codec Error",
+                title="Keystroke Codec Error",
                 description=str(e) + f"\nPlease tell <@{EIKO}> to fix this",
                 button_name="Closest Race",
                 color=ERROR,

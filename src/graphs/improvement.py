@@ -2,7 +2,7 @@ import numpy as np
 from matplotlib.colors import hex2color
 from matplotlib.ticker import FuncFormatter
 
-from graphs.core import plt, apply_theme, interpolate_segments, apply_date_ticks, generate_file_name
+from graphs.core import apply_date_ticks, apply_theme, generate_file_name, interpolate_segments, plt
 from utils.dates import get_timestamp_list
 from utils.strings import format_big_number
 
@@ -52,7 +52,7 @@ def render_over_time(
         dnf_y = moving_average[dnf_mask]
         ax.scatter(dnf_x, dnf_y, color=theme["crosses"], s=1, zorder=999, label="_")
 
-    ax.set_xlabel(f"Date")
+    ax.set_xlabel("Date")
     ax.set_ylabel(metric)
     title = f"{metric} Improvement"
 
@@ -118,7 +118,7 @@ def render_over_races(
         ax.scatter(dnf_x, dnf_y, color=theme["crosses"], s=1, zorder=999, label="_")
 
     ax.set_ylabel(metric)
-    ax.set_xlabel(f"Races")
+    ax.set_xlabel("Races")
     ax2.invert_yaxis()
     ax2.set_ylabel("Difficulty")
     title = f"{metric} Improvement"
@@ -189,7 +189,7 @@ def render_text(
     ax.scatter(x_best[-1], y_best[-1], color="#FFB600", marker="*", zorder=15, s=35)
 
     metric = ["WPM", "pp"][metric == "pp"]
-    ax.set_xlabel(f"Races")
+    ax.set_xlabel("Races")
     ax.set_ylabel(metric)
     title = f"{metric} Improvement - Quote {quote_id}"
     if window_size > 1:

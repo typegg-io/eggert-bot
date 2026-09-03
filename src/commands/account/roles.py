@@ -6,7 +6,7 @@ from commands.base import Command
 from database.typegg.users import get_quote_bests
 from utils.errors import BotError
 from utils.flags import Flags
-from utils.messages import Page, Message
+from utils.messages import Message, Page
 from utils.strings import get_argument
 
 info = {

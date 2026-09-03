@@ -1,7 +1,7 @@
 import numpy as np
 from matplotlib.collections import LineCollection
 
-from graphs.core import plt, apply_theme, generate_file_name
+from graphs.core import apply_theme, generate_file_name, plt
 
 
 def moving_average(y, window=20):

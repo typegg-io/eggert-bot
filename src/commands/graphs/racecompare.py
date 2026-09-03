@@ -9,10 +9,10 @@ from config import DAILY_QUOTE_CHANNEL_ID
 from database.typegg.races import get_races
 from database.typegg.users import get_quote_bests
 from graphs import match
-from utils.errors import NoQuoteRaces, BotError
+from utils.errors import BotError, NoQuoteRaces
 from utils.keystrokes import get_keystroke_data
-from utils.messages import Page, Message, usable_in
-from utils.strings import quote_display, username_with_flag, discord_date
+from utils.messages import Message, Page, usable_in
+from utils.strings import discord_date, quote_display, username_with_flag
 
 max_users = 5
 

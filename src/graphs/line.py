@@ -1,6 +1,6 @@
 from matplotlib.ticker import FuncFormatter
 
-from graphs.core import plt, apply_theme, interpolate_segments, apply_date_ticks, generate_file_name, filter_palette
+from graphs.core import apply_date_ticks, apply_theme, filter_palette, generate_file_name, interpolate_segments, plt
 from utils.dates import get_timestamp_list, now
 from utils.strings import format_big_number
 

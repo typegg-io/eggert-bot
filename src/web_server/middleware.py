@@ -79,7 +79,7 @@ async def error_middleware(request, handler):
             request=request,
             context={
                 "status": 404,
-                "error": f"User Not Found",
+                "error": "User Not Found",
                 "message": str(e),
             },
             status=404,

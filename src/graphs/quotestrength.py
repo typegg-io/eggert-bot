@@ -1,9 +1,9 @@
-from typing import List, Dict, Optional, Tuple
+from typing import Dict, List, Optional, Tuple
 
 import numpy as np
 from matplotlib.colors import LinearSegmentedColormap
 
-from graphs.core import plt, apply_theme, generate_file_name, GRAPH_PALETTE
+from graphs.core import GRAPH_PALETTE, apply_theme, generate_file_name, plt
 
 
 def render(users: List[Dict], theme: dict, heatmap_points: Optional[List[Tuple[float, float]]] = None) -> str:

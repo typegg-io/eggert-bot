@@ -2,10 +2,10 @@ from dataclasses import dataclass
 from typing import Optional
 
 from discord import Embed
-from discord.ext.commands import CommandError, CheckFailure
+from discord.ext.commands import CheckFailure, CommandError
 
 from config import BOT_PREFIX as prefix, EIKO
-from utils.colors import WARNING, PLUS
+from utils.colors import PLUS, WARNING
 from utils.flags import Flags
 
 
@@ -55,7 +55,7 @@ class InvalidArgument(CommandError):
     def embed(self):
         return Embed(
             title="Invalid Argument",
-            description=f"Argument can be: " + ", ".join([f"`{option}`" for option in self.options]),
+            description="Argument can be: " + ", ".join([f"`{option}`" for option in self.options]),
         )
 
 

@@ -10,7 +10,7 @@ from database.bot import art as art_db
 from database.bot.users import get_user
 from utils.errors import BotError, MissingArguments
 from utils.logging import ADMIN_ALIASES
-from utils.messages import Page, Message, paginate_data
+from utils.messages import Message, Page, paginate_data
 from utils.strings import discord_date
 
 info = {

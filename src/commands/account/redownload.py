@@ -1,4 +1,3 @@
-from typing import Optional
 
 from discord.ext import commands
 
@@ -9,7 +8,7 @@ from database.typegg.races import get_latest_race
 from database.typegg.users import delete_user_data
 from utils.colors import ERROR, WARNING
 from utils.logging import ADMIN_ALIASES
-from utils.messages import Page, Message
+from utils.messages import Message, Page
 from utils.strings import escape_formatting
 
 info = {
@@ -55,7 +54,7 @@ class ReDownload(Command):
             if not is_admin:
                 message = Message(ctx, Page(
                     title="Are You Sure?",
-                    description=f"Please type \"confirm\" to proceed with the re-import",
+                    description="Please type \"confirm\" to proceed with the re-import",
                     color=WARNING,
                 ))
                 await message.send()

@@ -2,9 +2,9 @@ from json import JSONDecodeError
 
 from aiohttp import web
 
-from database.typegg.sources import add_source, get_source, update_source, delete_source
+from database.typegg.sources import add_source, delete_source, get_source, update_source
 from utils.logging import log_server
-from web_server.utils import validate_authorization, error_response
+from web_server.utils import error_response, validate_authorization
 
 
 async def create_source(request: web.Request):

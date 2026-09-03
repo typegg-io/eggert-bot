@@ -9,7 +9,7 @@ from database.typegg.quotes import get_quotes
 from database.typegg.users import get_quote_bests
 from graphs import quotestrength as qs_graph
 from utils.errors import NoRankedRaces
-from utils.messages import Page, Message
+from utils.messages import Message, Page
 
 max_users = 5
 

@@ -4,7 +4,7 @@ from bot_setup import BotContext
 from commands.base import Command
 from commands.checks import is_bot_owner
 from database.bot.users import migrate_command_name
-from utils.messages import Page, Message
+from utils.messages import Message, Page
 
 info = {
     "name": "renamecommand",

@@ -1,5 +1,5 @@
 import asyncio
-from typing import Optional, NamedTuple
+from typing import NamedTuple, Optional
 from urllib.parse import unquote
 
 from discord import Embed, Forbidden
@@ -8,17 +8,17 @@ from discord.ext import commands
 from api.quotes import get_quote as get_quote_api
 from api.users import get_profile
 from bot_setup import BotContext
-from config import STATS_CHANNEL_ID, DAILY_QUOTE_CHANNEL_ID
-from database.bot.recent_quotes import set_recent_quote, get_recent_quote
-from database.bot.users import update_warning, update_gg_plus_status, get_user_by_user_id
+from config import DAILY_QUOTE_CHANNEL_ID, STATS_CHANNEL_ID
+from database.bot.recent_quotes import get_recent_quote, set_recent_quote
+from database.bot.users import get_user_by_user_id, update_gg_plus_status, update_warning
 from database.typegg.daily_quotes import get_daily_quote_id
 from database.typegg.quotes import get_quote as get_quote_db
 from database.typegg.races import get_latest_race
 from utils.colors import ERROR
-from utils.errors import NoRaces, NotSubscribed, InvalidNumber, NoRacesFiltered, MissingUsername, DailyQuoteChannel
+from utils.errors import DailyQuoteChannel, InvalidNumber, MissingUsername, NoRaces, NoRacesFiltered, NotSubscribed
 from utils.flags import Flags
-from utils.messages import privacy_warning, command_milestone
-from utils.strings import parse_number, get_argument
+from utils.messages import command_milestone, privacy_warning
+from utils.strings import get_argument, parse_number
 from utils.urls import parse_solo_url
 
 

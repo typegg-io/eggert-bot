@@ -1,7 +1,7 @@
 import numpy as np
 from matplotlib import patches
 
-from graphs.core import plt, apply_theme, generate_file_name
+from graphs.core import apply_theme, generate_file_name, plt
 
 
 def render(

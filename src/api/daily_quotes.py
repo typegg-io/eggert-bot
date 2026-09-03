@@ -1,9 +1,9 @@
 from datetime import timedelta
-from typing import Dict, Any
+from typing import Any, Dict
 
 from api.core import API_URL, request
 from utils import dates
-from utils.dates import parse_date, now
+from utils.dates import now, parse_date
 
 START_DATE = parse_date("2025-09-21")
 

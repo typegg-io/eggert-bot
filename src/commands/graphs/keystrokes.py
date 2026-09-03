@@ -6,7 +6,7 @@ from database.typegg.races import get_quote_race_counts
 from graphs.keystrokes import render
 from utils.data_structures import ScaledCounter
 from utils.keyboard_layouts import get_keymap
-from utils.messages import Page, Message, Field
+from utils.messages import Field, Message, Page
 
 keyboard_layouts = ["qwerty", "dvorak"]
 info = {

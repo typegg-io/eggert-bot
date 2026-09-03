@@ -1,4 +1,4 @@
-from typing import Dict, Any
+from typing import Any, Dict
 from urllib.parse import quote
 
 from api.core import API_URL, request

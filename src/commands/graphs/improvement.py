@@ -8,7 +8,7 @@ from database.typegg.races import get_races
 from graphs import improvement
 from utils.colors import ERROR
 from utils.dates import parse_date
-from utils.messages import Page, Message, Field
+from utils.messages import Field, Message, Page
 
 metrics = ["pp", "wpm"]
 info = {

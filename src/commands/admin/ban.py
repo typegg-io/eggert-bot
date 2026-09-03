@@ -4,8 +4,8 @@ from discord.ext import commands
 from bot_setup import BotContext
 from commands.base import Command
 from commands.checks import is_bot_admin
-from database.bot.users import get_user, ban_user
-from utils.messages import Page, Message
+from database.bot.users import ban_user, get_user
+from utils.messages import Message, Page
 
 info = {
     "name": "ban",

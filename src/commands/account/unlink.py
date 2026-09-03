@@ -6,7 +6,7 @@ from bot_setup import BotContext, Eggert
 from commands.base import Command
 from config import BOT_PREFIX, TYPEGG_GUILD_ID, VERIFIED_ROLE_NAME
 from database.bot.users import unlink_user, update_gg_plus_status, update_theme
-from utils.colors import ERROR, WARNING, DEFAULT_THEME
+from utils.colors import DEFAULT_THEME, ERROR, WARNING
 from utils.logging import log
 
 info = {

@@ -3,7 +3,7 @@ from collections import defaultdict
 import numpy as np
 from matplotlib.axes import Axes
 
-from graphs.core import plt, apply_theme, generate_file_name, filter_palette
+from graphs.core import apply_theme, filter_palette, generate_file_name, plt
 from utils.keystrokes import Typo
 
 

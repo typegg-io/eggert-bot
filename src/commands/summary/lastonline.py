@@ -2,8 +2,8 @@ from discord.ext import commands
 
 from bot_setup import BotContext
 from commands.base import Command
-from utils.dates import parse_date, now
-from utils.messages import Page, Message
+from utils.dates import now, parse_date
+from utils.messages import Message, Page
 from utils.strings import discord_date, format_duration
 
 info = {

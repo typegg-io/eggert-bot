@@ -1,6 +1,6 @@
 import numpy as np
 
-from graphs.core import plt, apply_theme, generate_file_name, filter_palette
+from graphs.core import apply_theme, filter_palette, generate_file_name, plt
 
 
 def render(

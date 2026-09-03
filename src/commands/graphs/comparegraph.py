@@ -8,9 +8,9 @@ from bot_setup import BotContext
 from commands.base import Command
 from database.typegg.quotes import get_quotes
 from database.typegg.users import get_quote_bests
-from graphs import compare_histogram, compare_bar
-from utils.errors import SameUsername, MissingArguments, BotError
-from utils.messages import Page, Message, Field
+from graphs import compare_bar, compare_histogram
+from utils.errors import BotError, MissingArguments, SameUsername
+from utils.messages import Field, Message, Page
 from utils.strings import username_with_flag
 from utils.urls import compare_url
 

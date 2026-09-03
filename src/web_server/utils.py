@@ -5,9 +5,8 @@ import discord
 from aiohttp import web
 
 from api.core import API_URL
-from config import SECRET, VERIFIED_ROLE_NAME, LANGUAGE_ROLE_IDS
+from config import LANGUAGE_ROLE_IDS, SECRET, VERIFIED_ROLE_NAME
 from utils.logging import log_server
-
 
 # Request Utilities
 

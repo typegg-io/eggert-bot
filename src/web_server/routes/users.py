@@ -4,8 +4,8 @@ from aiohttp import web
 
 from commands.account.download import run as download
 from database.typegg.users import delete_user_data
-from utils.logging import log_server, log_error
-from web_server.utils import validate_authorization, error_response
+from utils.logging import log_error, log_server
+from web_server.utils import error_response, validate_authorization
 
 
 async def import_user(request: web.Request):

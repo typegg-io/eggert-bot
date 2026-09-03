@@ -2,7 +2,7 @@ import asyncio
 
 import discord
 
-from bot_setup import load_commands, register_bot_checks, Eggert
+from bot_setup import Eggert, load_commands, register_bot_checks
 from config import BOT_PREFIX, BOT_TOKEN, STAGING
 from utils.files import clear_image_cache
 from utils.logging import log, log_error

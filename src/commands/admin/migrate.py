@@ -5,9 +5,9 @@ from commands.base import Command
 from commands.checks import is_bot_admin
 from database.typegg.daily_quotes import reimport_daily_results
 from database.typegg.quotes import reimport_quotes
-from database.typegg.users import reimport_users, reimport_nwpm
-from utils.errors import MissingArguments, InvalidArgument
-from utils.messages import Page, Message
+from database.typegg.users import reimport_nwpm, reimport_users
+from utils.errors import InvalidArgument, MissingArguments
+from utils.messages import Message, Page
 
 categories = ["users", "quotes", "nwpm", "daily"]
 info = {

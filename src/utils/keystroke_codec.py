@@ -3,8 +3,12 @@
 from typing import Tuple
 
 from utils.keystrokes import (
-    KeystrokeData, Keystroke, KeystrokeInsert, KeystrokeDelete,
-    KeystrokeReplace, KeystrokeComposition
+    Keystroke,
+    KeystrokeComposition,
+    KeystrokeData,
+    KeystrokeDelete,
+    KeystrokeInsert,
+    KeystrokeReplace,
 )
 
 
@@ -180,10 +184,10 @@ def decode_keystroke_data(raw: str) -> KeystrokeData:
             potential_mod = runes[i]
             next_char = runes[i + 1]
             if potential_mod in ('L', 'R', 'S', 'C', 'V') and next_char in ('+', '>'):
-                modifier = potential_mod
+                modifier = potential_mod  # noqa: F841  parsed then dropped, confirm against Go before removing
                 i += 1
             elif potential_mod in ('X', 'M') and next_char in ('<', '-', '='):
-                delete_modifier = potential_mod
+                delete_modifier = potential_mod  # noqa: F841  parsed then dropped, confirm against Go before removing
                 i += 1
 
         action_code = runes[i]

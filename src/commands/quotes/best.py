@@ -7,7 +7,7 @@ from database.typegg.sources import get_sources
 from database.typegg.users import get_quote_bests
 from utils import strings
 from utils.errors import NoRacesFiltered, NotSubscribed
-from utils.messages import Message, paginate_data, Page
+from utils.messages import Message, Page, paginate_data
 from utils.strings import quote_display
 
 metrics = ["pp", "wpm"]

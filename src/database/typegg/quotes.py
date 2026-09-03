@@ -145,13 +145,13 @@ async def reimport_quotes():
 
 
 def get_top_submitters():
-    top = db.fetch(f"""
+    top = db.fetch("""
         SELECT submittedByUsername, COUNT(*) as submissions
         FROM quotes
         WHERE ranked = 1
         GROUP BY submittedByUsername
         ORDER BY submissions DESC
-        LIMIT 100     
+        LIMIT 100
     """)
 
     return top
@@ -191,7 +191,7 @@ async def update_quote(quote_id: str, updates: dict):
             new_ranked = updates["ranked"]
 
             if old_ranked != new_ranked:
-                from database.typegg.daily_quotes import zero_daily_results_pp, update_daily_results_pp
+                from database.typegg.daily_quotes import update_daily_results_pp, zero_daily_results_pp
 
                 if new_ranked == 0:  # Ranked -> Unranked: Zero out pp values
                     db.run("""

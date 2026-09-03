@@ -1,4 +1,4 @@
-from typing import List, Dict
+from typing import Dict, List
 
 import matplotlib.colors as mcolors
 import matplotlib.patches as patches
@@ -6,7 +6,7 @@ from matplotlib import cm
 from matplotlib.colors import LinearSegmentedColormap
 from matplotlib.ticker import FuncFormatter
 
-from graphs.core import plt, generate_file_name
+from graphs.core import generate_file_name, plt
 from utils.keyboard_layouts import K
 from utils.strings import format_big_number
 
@@ -64,7 +64,10 @@ def render(
                 max_presses = total_presses
 
             square = patches.Rectangle((total_width, -row_i), key.width, 1, edgecolor="black")
-            ax.text(total_width + key.width / 2, 0.5 - row_i, key.text, ha="center", va="center", fontsize=key.fontsize, color="black")
+            ax.text(
+                total_width + key.width / 2, 0.5 - row_i, key.text,
+                ha="center", va="center", fontsize=key.fontsize, color="black",
+            )
 
             if key.text == "Shift":
                 total_presses = -1

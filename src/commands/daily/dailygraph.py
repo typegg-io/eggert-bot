@@ -8,10 +8,10 @@ from config import DAILY_QUOTE_CHANNEL_ID
 from database.bot.recent_quotes import set_recent_quote
 from database.typegg.quotes import get_quote
 from graphs import daily as daily_graph
-from utils.dates import parse_date, format_date
+from utils.dates import format_date, parse_date
 from utils.errors import BotError
 from utils.keystrokes import get_keystroke_data
-from utils.messages import Page, Message, usable_in
+from utils.messages import Message, Page, usable_in
 from utils.urls import race_url
 
 info = {

@@ -5,10 +5,10 @@ import jinja2
 from aiohttp import web
 from discord.ext import commands
 
-from config import SOURCE_DIR, ROOT_DIR, TYPEGG_GUILD_ID
+from config import ROOT_DIR, SOURCE_DIR, TYPEGG_GUILD_ID
 from utils.logging import log_server
 from web_server.filters import FILTERS
-from web_server.middleware import error_middleware, security_headers_middleware, request_logging_middleware
+from web_server.middleware import error_middleware, request_logging_middleware, security_headers_middleware
 from web_server.routes.chat import receive_message
 from web_server.routes.compare import compare_page
 from web_server.routes.help import help_page
@@ -17,7 +17,7 @@ from web_server.routes.quotes import create_quote, patch_quote, remove_quote
 from web_server.routes.sources import create_source, patch_source, remove_source
 from web_server.routes.update_gg_plus import update_gg_plus
 from web_server.routes.update_nwpm_role import update_nwpm_role
-from web_server.routes.users import import_user, delete_user
+from web_server.routes.users import delete_user, import_user
 from web_server.routes.verify import verify_user
 
 
@@ -26,7 +26,9 @@ class WebServer(commands.Cog):
 
     def __init__(self, bot):
         self.bot = bot
-        self.app = web.Application(middlewares=[request_logging_middleware, error_middleware, security_headers_middleware])
+        self.app = web.Application(
+            middlewares=[request_logging_middleware, error_middleware, security_headers_middleware]
+        )
         self.runner = None
         self.site = None
 
@@ -67,7 +69,8 @@ class WebServer(commands.Cog):
         self.app.router.add_static("/assets", path=str(ROOT_DIR / "assets"), name="assets")
 
         # Templates
-        env = aiohttp_jinja2.setup(self.app, loader=jinja2.FileSystemLoader(str(SOURCE_DIR / "web_server" / "templates")))
+        template_dir = str(SOURCE_DIR / "web_server" / "templates")
+        env = aiohttp_jinja2.setup(self.app, loader=jinja2.FileSystemLoader(template_dir))
         env.filters.update(FILTERS)
 
         self.bot.loop.create_task(self.start_web_server())

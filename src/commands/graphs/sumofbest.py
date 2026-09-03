@@ -8,14 +8,12 @@ from bot_setup import BotContext
 from commands.base import Command, enforce_daily_quote
 from commands.graphs.segments import build_segments, format_segment
 from config import DAILY_QUOTE_CHANNEL_ID
-from database.typegg.races import get_races, get_race
-from graphs import match as match_graph
-from graphs import segments as segment_graph
-from utils.errors import NoQuoteRaces, InvalidKeystrokeData
-from utils.keystrokes import get_keystroke_data, calculate_wpm, get_keystroke_wpm
-from utils.messages import Page, Message, usable_in
-from utils.strings import format_duration
-from utils.strings import get_segments, quote_display
+from database.typegg.races import get_race, get_races
+from graphs import match as match_graph, segments as segment_graph
+from utils.errors import InvalidKeystrokeData, NoQuoteRaces
+from utils.keystrokes import calculate_wpm, get_keystroke_data, get_keystroke_wpm
+from utils.messages import Message, Page, usable_in
+from utils.strings import format_duration, get_segments, quote_display
 
 info = {
     "name": "sumofbest",
@@ -137,7 +135,7 @@ async def run(ctx: BotContext, profile: dict, quote: dict):
     )
 
     segment_page = Page(
-        title=f"WPM Segments (Sum of Best)",
+        title="WPM Segments (Sum of Best)",
         description=segments_description,
         render=lambda: segment_graph.render(
             sum_of_best_segments,

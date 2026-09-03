@@ -6,7 +6,7 @@ from bot_setup import BotContext
 from commands.base import Command
 from database.bot.users import update_timezone
 from utils.errors import BotError
-from utils.messages import Page, Message
+from utils.messages import Message, Page
 from utils.strings import get_argument
 
 settings = {"timezone"}
@@ -33,7 +33,8 @@ class Settings(Command):
             except zoneinfo.ZoneInfoNotFoundError:
                 raise BotError(
                     "Invalid Timezone",
-                    "Use [IANA format](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones#List) (`America/New_York`)"
+                    "Use [IANA format](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones#List)"
+                    " (`America/New_York`)"
                 )
 
             display_value = str(timezone)

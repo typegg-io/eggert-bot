@@ -1,6 +1,6 @@
 import numpy as np
 
-from graphs.core import plt, apply_theme, generate_file_name
+from graphs.core import apply_theme, generate_file_name, plt
 
 
 def render(
@@ -52,7 +52,7 @@ def render(
 
     plt.subplots_adjust(wspace=0, hspace=0)
 
-    fig.suptitle(f"Quote Bests Comparison", color=theme["text"])
+    fig.suptitle("Quote Bests Comparison", color=theme["text"])
     fig.text(0.5, 0.025, "Number of Quotes", ha="center", color=theme["text"])
 
     file_name = generate_file_name("compare")

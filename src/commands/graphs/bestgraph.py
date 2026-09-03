@@ -9,7 +9,7 @@ from database.typegg.quotes import get_quotes
 from database.typegg.users import get_quote_bests
 from graphs import best as best_graph
 from utils.errors import NoRankedRaces
-from utils.messages import Page, Message
+from utils.messages import Message, Page
 from utils.stats import calculate_total_pp
 
 max_users = 5
@@ -117,8 +117,14 @@ async def run(ctx: BotContext, profiles: List[dict], n: int, metric: str):
         total_width = max(len("Total"), max(len(f"{row['total']:,.0f}") for row in rows))
         opt_width = 9
 
-        description += f"{"Username":<{username_width}} {"Total":<{total_width}} {"Max":<{max_width}} {"Average":<{avg_width}} {"Min":<{min_width}} {"Optimized":<{opt_width}}\n"
-        description += f"{"-" * username_width} {"-" * total_width} {"-" * max_width} {"-" * avg_width} {"-" * min_width} {"-" * opt_width}\n"
+        description += (
+            f"{"Username":<{username_width}} {"Total":<{total_width}} {"Max":<{max_width}} "
+            f"{"Average":<{avg_width}} {"Min":<{min_width}} {"Optimized":<{opt_width}}\n"
+        )
+        description += (
+            f"{"-" * username_width} {"-" * total_width} {"-" * max_width} "
+            f"{"-" * avg_width} {"-" * min_width} {"-" * opt_width}\n"
+        )
 
         for row in rows:
             if len(row["username"]) > 9:
@@ -130,7 +136,10 @@ async def run(ctx: BotContext, profiles: List[dict], n: int, metric: str):
             description += f"{row["min"]:<{min_width}{dec_format}} "
             description += f"{row["opt"]:<{opt_width}.2%}\n"
     else:
-        description += f"{"Username":<{username_width}} {"Max":<{max_width}} {"Average":<{avg_width}} {"Min":<{min_width}}\n"
+        description += (
+            f"{"Username":<{username_width}} {"Max":<{max_width}} "
+            f"{"Average":<{avg_width}} {"Min":<{min_width}}\n"
+        )
         description += f"{"-" * username_width} {"-" * max_width} {"-" * avg_width} {"-" * min_width}\n"
 
         for row in rows:

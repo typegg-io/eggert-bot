@@ -7,9 +7,9 @@ from api.daily_quotes import START_DATE
 from bot_setup import BotContext
 from commands.base import Command
 from config import DAILY_QUOTE_CHANNEL_ID
-from database.typegg.daily_quotes import get_user_results, get_today_result, get_daily_quote_id
+from database.typegg.daily_quotes import get_daily_quote_id, get_today_result, get_user_results
 from utils import dates
-from utils.messages import Page, Message, Field, usable_in
+from utils.messages import Field, Message, Page, usable_in
 from utils.strings import get_streak_emoji
 
 info = {

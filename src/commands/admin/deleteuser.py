@@ -6,7 +6,7 @@ from commands.checks import is_bot_admin
 from database.typegg.users import delete_user_data
 from utils.colors import WARNING
 from utils.errors import ProfileNotFound
-from utils.messages import Page, Message
+from utils.messages import Message, Page
 
 info = {
     "name": "deleteuser",

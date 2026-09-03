@@ -4,7 +4,7 @@ from bot_setup import BotContext
 from commands.base import Command
 from commands.checks import is_bot_owner
 from database.typegg.db import get_row_count
-from utils.messages import Page, Message
+from utils.messages import Message, Page
 
 info = {
     "name": "database",

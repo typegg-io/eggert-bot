@@ -5,7 +5,18 @@ from discord.ext import commands
 
 from config import DAILY_QUOTE_CHANNEL_ID
 from utils.colors import ERROR
-from utils.errors import UserBanned, MissingUsername, DailyQuoteChannel, MissingArguments, UnknownCommand, UnexpectedError, CommandOnCooldown, DiscordUserNotFound, MessageTooLong, DiscordServerError as DiscordServerErrorEmbed
+from utils.errors import (
+    CommandOnCooldown,
+    DailyQuoteChannel,
+    DiscordServerError as DiscordServerErrorEmbed,
+    DiscordUserNotFound,
+    MessageTooLong,
+    MissingArguments,
+    MissingUsername,
+    UnexpectedError,
+    UnknownCommand,
+    UserBanned,
+)
 from utils.logging import get_log_message, log_error
 from utils.messages import check_channel_permissions
 

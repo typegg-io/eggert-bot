@@ -3,7 +3,7 @@ from typing import List
 
 import numpy as np
 
-from graphs.core import plt, apply_theme, generate_file_name, filter_palette, apply_log_ticks
+from graphs.core import apply_log_ticks, apply_theme, filter_palette, generate_file_name, plt
 from utils.strings import format_big_number
 
 BUCKETS = 60
@@ -24,7 +24,7 @@ def bucket_by_log(lengths: List[int], values: List[float]) -> tuple[List[float],
 
     bucketed_lengths, bucketed_values = [], []
     for i in range(len(edges) - 1):
-        pairs = [(l, v) for l, v in zip(lengths, values) if edges[i] <= l < edges[i + 1]]
+        pairs = [(length, v) for length, v in zip(lengths, values) if edges[i] <= length < edges[i + 1]]
         if pairs:
             ls, vs = zip(*pairs)
             bucketed_lengths.append(float(np.mean(ls)))

@@ -6,12 +6,21 @@ import aiohttp
 import discord
 from discord.ext import commands
 
-from config import BOT_PREFIX, STAGING, STATS_CHANNEL_ID, TYPEGG_GUILD_ID, CHAT_CHANNEL_UNIVERSES, SITE_CHAT_URL, \
-    SECRET, EIKO, KEEGAN
-from database.bot.users import get_user, update_commands, get_user_ids, get_all_command_usage
+from config import (
+    BOT_PREFIX,
+    CHAT_CHANNEL_UNIVERSES,
+    EIKO,
+    KEEGAN,
+    SECRET,
+    SITE_CHAT_URL,
+    STAGING,
+    STATS_CHANNEL_ID,
+    TYPEGG_GUILD_ID,
+)
+from database.bot.users import get_all_command_usage, get_user, get_user_ids, update_commands
 from database.typegg.quotes import is_quote_id
 from utils.dates import is_date_like, parse_date
-from utils.errors import BotLocked, UserBanned, InvalidNumber
+from utils.errors import BotLocked, InvalidNumber, UserBanned
 from utils.files import get_command_modules
 from utils.flags import FLAG_VALUES, Flags, Language
 from utils.logging import get_log_message, log
@@ -249,7 +258,8 @@ def register_bot_checks(bot):
         if message.author.bot:
             return
 
-        if SITE_CHAT_URL and message.channel.id in CHAT_CHANNEL_UNIVERSES and not message.content.startswith(BOT_PREFIX):
+        is_bridged = SITE_CHAT_URL and message.channel.id in CHAT_CHANNEL_UNIVERSES
+        if is_bridged and not message.content.startswith(BOT_PREFIX):
             asyncio.ensure_future(forward_to_site(message))  # Fire and forget
             return
 

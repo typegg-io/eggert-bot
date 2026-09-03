@@ -4,9 +4,9 @@ from api.quotes import get_quotes
 from bot_setup import BotContext
 from commands.base import Command
 from database.bot.recent_quotes import set_recent_quote
-from database.typegg.quotes import is_quote_id, get_quote
+from database.typegg.quotes import get_quote, is_quote_id
 from utils.errors import MissingArguments
-from utils.messages import Page, Message, paginate_data
+from utils.messages import Message, Page, paginate_data
 from utils.strings import escape_formatting, quote_display
 
 info = {
@@ -56,12 +56,13 @@ async def run(ctx: BotContext, query: str):
 
     set_recent_quote(ctx.channel.id, quotes[0]["quoteId"])
     per_page = 5
-    entry_formatter = lambda quote: quote_display(
-        quote,
-        max_text_chars=150,
-        display_status=True,
-        text_highlight=query,
-    ) + "\n"
+    def entry_formatter(quote):
+        return quote_display(
+            quote,
+            max_text_chars=150,
+            display_status=True,
+            text_highlight=query,
+        ) + "\n"
     pages = paginate_data(quotes, entry_formatter, 20, per_page, False)
     for i, page in enumerate(pages):
         page_start = i * per_page + 1

@@ -5,9 +5,9 @@ from discord.ext import commands
 from bot_setup import BotContext
 from commands.base import Command
 from database.bot.users import get_user, get_user_by_user_id
-from utils.errors import ProfileNotFound, BotError
-from utils.messages import Page, Message
-from utils.strings import discord_date, GG_PLUS_LINKED
+from utils.errors import BotError, ProfileNotFound
+from utils.messages import Message, Page
+from utils.strings import GG_PLUS_LINKED, discord_date
 from utils.urls import profile_url
 
 info = {

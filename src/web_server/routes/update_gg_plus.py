@@ -3,10 +3,10 @@ from json import JSONDecodeError
 import discord
 from aiohttp import web
 
-from database.bot.users import update_gg_plus_status, get_discord_id, update_theme
-from utils.colors import GG_PLUS_THEME, DEFAULT_THEME
+from database.bot.users import get_discord_id, update_gg_plus_status, update_theme
+from utils.colors import DEFAULT_THEME, GG_PLUS_THEME
 from utils.logging import log_server
-from web_server.utils import validate_authorization, error_response
+from web_server.utils import error_response, validate_authorization
 
 
 async def update_gg_plus(cog, request: web.Request):

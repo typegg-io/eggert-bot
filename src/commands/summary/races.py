@@ -8,11 +8,11 @@ from commands.base import Command
 from database.typegg.quotes import get_quotes
 from database.typegg.races import get_races
 from database.typegg.users import get_quote_bests
-from utils.dates import count_unique_dates, parse_date, get_start_end_dates
+from utils.dates import count_unique_dates, get_start_end_dates, parse_date
 from utils.errors import NoRacesFiltered
-from utils.messages import Page, Message, Field
-from utils.stats import calculate_quote_length, calculate_quote_bests, calculate_total_pp
-from utils.strings import format_duration, date_range_display
+from utils.messages import Field, Message, Page
+from utils.stats import calculate_quote_bests, calculate_quote_length, calculate_total_pp
+from utils.strings import date_range_display, format_duration
 
 info = {
     "name": "races",

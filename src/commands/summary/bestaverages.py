@@ -5,8 +5,8 @@ from commands.base import Command
 from database.typegg.quotes import get_quotes
 from database.typegg.races import get_races
 from utils.dates import parse_date
-from utils.errors import NumberGreaterThan, NotEnoughRaces
-from utils.messages import Page, Message
+from utils.errors import NotEnoughRaces, NumberGreaterThan
+from utils.messages import Message, Page
 from utils.strings import date_range_display, discord_date
 
 info = {

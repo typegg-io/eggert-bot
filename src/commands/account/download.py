@@ -5,21 +5,21 @@ from discord.ext import commands
 
 from api.quotes import get_quote
 from api.sources import get_source
-from api.users import get_races, get_profile
+from api.users import get_profile, get_races
 from bot_setup import BotContext
 from commands.base import Command
 from database.typegg.keystroke_data import add_keystroke_data
 from database.typegg.match_results import add_match_results
 from database.typegg.matches import add_matches
-from database.typegg.quotes import get_quotes, add_quote
+from database.typegg.quotes import add_quote, get_quotes
 from database.typegg.races import add_races, get_latest_race
-from database.typegg.sources import get_sources, add_source
-from database.typegg.users import get_user, create_user
-from utils.dates import string_to_date, date_to_string, epoch, parse_date
+from database.typegg.sources import add_source, get_sources
+from database.typegg.users import create_user, get_user
+from utils.dates import date_to_string, epoch, parse_date, string_to_date
 from utils.logging import log
-from utils.messages import Page, Message
+from utils.messages import Message, Page
 from utils.stats import calculate_duration
-from utils.strings import escape_formatting, LOADING
+from utils.strings import LOADING, escape_formatting
 
 info = {
     "name": "download",

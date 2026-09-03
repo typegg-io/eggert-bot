@@ -1,19 +1,19 @@
 import asyncio
 import random
 
-from discord import Embed, Forbidden, File, Game
+from discord import Embed, File, Forbidden, Game
 from discord.ext import commands, tasks
 
 from api.daily_quotes import get_daily_quote
 from api.users import get_profile, get_race
 from commands.daily.dailyleaderboard import display_daily_quote
-from config import DAILY_QUOTE_CHANNEL_ID, SITE_URL, TYPEGG_GUILD_ID, DAILY_QUOTE_ROLE_ID, SOURCE_DIR
+from config import DAILY_QUOTE_CHANNEL_ID, DAILY_QUOTE_ROLE_ID, SITE_URL, SOURCE_DIR, TYPEGG_GUILD_ID
 from database.bot.users import get_user
 from database.typegg.daily_quotes import add_daily_quote, add_daily_results, get_missing_days, update_daily_quote_id
 from graphs import daily as daily_graph
 from utils import dates
 from utils.colors import DEFAULT_THEME
-from utils.dates import parse_date, format_date
+from utils.dates import format_date, parse_date
 from utils.files import remove_file
 from utils.keystrokes import get_keystroke_data
 from utils.logging import log, log_error

@@ -2,10 +2,10 @@ from json import JSONDecodeError
 
 from aiohttp import web
 
-from database.typegg.quotes import add_quote, get_quote, update_quote, delete_quote
+from database.typegg.quotes import add_quote, delete_quote, get_quote, update_quote
 from utils.errors import UnknownQuote
 from utils.logging import log_server
-from web_server.utils import validate_authorization, error_response
+from web_server.utils import error_response, validate_authorization
 
 
 async def create_quote(request: web.Request):

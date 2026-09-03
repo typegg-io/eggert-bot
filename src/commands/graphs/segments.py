@@ -10,9 +10,9 @@ from database.typegg.users import get_quote_bests
 from graphs import segments as segment_graph
 from utils.errors import NoQuoteRaces
 from utils.keystrokes import get_keystroke_data
-from utils.messages import Page, Message, Field, usable_in
+from utils.messages import Field, Message, Page, usable_in
 from utils.stats import calculate_wpm
-from utils.strings import escape_formatting, get_segments, discord_date, quote_display
+from utils.strings import discord_date, escape_formatting, get_segments, quote_display
 
 info = {
     "name": "segments",
@@ -64,6 +64,7 @@ def format_segment(segment: dict, show_race: bool = False) -> str:
     if show_race and race_num:
         if timestamp:
             from dateutil import parser
+
             from utils.dates import format_date
 
             date = parser.parse(timestamp)

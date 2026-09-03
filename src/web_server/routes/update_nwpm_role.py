@@ -5,7 +5,7 @@ from aiohttp import web
 
 from database.bot.users import get_discord_id
 from utils.logging import log_server
-from web_server.utils import validate_authorization, error_response, get_nwpm_role_name
+from web_server.utils import error_response, get_nwpm_role_name, validate_authorization
 
 
 async def update_nwpm_role(cog, request: web.Request):

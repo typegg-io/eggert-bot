@@ -3,9 +3,9 @@ from discord.ext import commands
 from bot_setup import BotContext
 from commands.base import Command
 from utils.colors import DEFAULT, PLUS
-from utils.dates import format_date, parse_date, now
-from utils.messages import Page, Message, Field
-from utils.strings import discord_date, format_duration, GG_PLUS
+from utils.dates import format_date, now, parse_date
+from utils.messages import Field, Message, Page
+from utils.strings import GG_PLUS, discord_date, format_duration
 from utils.urls import profile_url
 
 info = {

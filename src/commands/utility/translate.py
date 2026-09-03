@@ -6,8 +6,8 @@ from bot_setup import BotContext
 from commands.base import Command
 from config import GENERAL_CHANNEL_ID
 from utils.errors import BotError, MissingArguments
-from utils.keyboard_layouts import get_keymap, K, keymaps as external_keymaps
-from utils.messages import Page, Message, usable_in
+from utils.keyboard_layouts import K, get_keymap, keymaps as external_keymaps
+from utils.messages import Message, Page, usable_in
 
 supported_layouts_string = "Supported layouts: `QWERTY` (default), `Dvorak`, `Colemak`, `Gallium`"
 

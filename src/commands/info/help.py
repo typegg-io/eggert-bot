@@ -6,7 +6,7 @@ from config import BOT_PREFIX as prefix, BOT_SUBDOMAIN
 from utils import files
 from utils.errors import UnknownCommand, UserNotAdmin
 from utils.files import get_command_modules
-from utils.messages import Page, Message, Field
+from utils.messages import Field, Message, Page
 from utils.strings import GG_PLUS
 
 info = {

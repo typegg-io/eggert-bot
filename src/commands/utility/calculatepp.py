@@ -5,7 +5,7 @@ from bot_setup import BotContext
 from commands.base import Command, enforce_daily_quote
 from config import DAILY_QUOTE_CHANNEL_ID
 from utils.errors import MissingArguments
-from utils.messages import Page, Message, usable_in
+from utils.messages import Message, Page, usable_in
 from utils.strings import quote_display
 from utils.urls import race_url
 

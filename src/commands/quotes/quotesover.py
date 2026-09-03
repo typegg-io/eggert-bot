@@ -6,7 +6,7 @@ from commands.base import Command
 from database.typegg.quotes import get_quotes
 from database.typegg.users import get_quote_bests
 from utils.errors import MissingArguments
-from utils.messages import Page, Message
+from utils.messages import Message, Page
 
 info = {
     "name": "quotesover",

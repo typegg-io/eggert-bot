@@ -1,4 +1,4 @@
-from graphs.core import plt, apply_theme, generate_file_name
+from graphs.core import apply_theme, generate_file_name, plt
 
 
 def render(theme: dict):

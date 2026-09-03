@@ -5,7 +5,7 @@ from bot_setup import BotContext
 from commands.base import Command
 from database.typegg.users import get_quote_bests
 from graphs import histogram
-from utils.messages import Page, Message, Field
+from utils.messages import Field, Message, Page
 from utils.strings import username_with_flag
 
 metrics = {
@@ -135,6 +135,7 @@ async def run(ctx: BotContext, profile: dict, metric: str):
 
 
 async def run_compare(ctx: BotContext, profile1: dict, profile2: dict, metric: str):
+    """Send a paginated histogram comparing two users across every metric."""
     quote_bests1 = get_quote_bests(profile1["userId"], columns=list(metrics.keys()), flags=ctx.flags)
     quote_bests2 = get_quote_bests(profile2["userId"], columns=list(metrics.keys()), flags=ctx.flags)
 

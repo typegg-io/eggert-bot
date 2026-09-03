@@ -5,7 +5,7 @@ from commands.base import Command
 from commands.summary.races import build_stat_fields
 from database.typegg.races import get_races
 from utils.errors import BotError, MissingArguments, NoRaces
-from utils.messages import Page, Message
+from utils.messages import Message, Page
 
 info = {
     "name": "longestaverage",
