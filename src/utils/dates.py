@@ -147,3 +147,12 @@ def count_unique_dates(start, end):
         start_date += relativedelta(days=1)
 
     return len(unique_dates)
+
+
+def discord_date(date_string: str, style: str | None = "R"):
+    """Convert a date string or timestamp to Discord's date format tag."""
+    try:
+        timestamp = int(date_string)
+    except ValueError:
+        timestamp = int(parser.parse(date_string).timestamp())
+    return f"<t:{timestamp}:{style}>"

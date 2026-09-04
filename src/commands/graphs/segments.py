@@ -8,11 +8,12 @@ from database.typegg.quotes import get_quote
 from database.typegg.races import get_race
 from database.typegg.users import get_quote_bests
 from graphs import segments as segment_graph
+from utils.dates import discord_date
 from utils.errors import NoQuoteRaces
 from utils.keystrokes import get_keystroke_data
 from utils.messages import Field, Message, Page, usable_in
 from utils.stats import calculate_wpm
-from utils.strings import discord_date, escape_formatting, get_segments, quote_display
+from utils.strings import escape_formatting, get_segments, quote_display
 
 info = {
     "name": "segments",

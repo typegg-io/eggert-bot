@@ -2,9 +2,9 @@ from discord.ext import commands
 
 from commands.base import Command
 from context import BotContext
-from utils.dates import now, parse_date
+from utils.dates import discord_date, now, parse_date
 from utils.messages import Message, Page
-from utils.strings import discord_date, format_duration
+from utils.strings import format_duration
 
 info = {
     "name": "lastonline",

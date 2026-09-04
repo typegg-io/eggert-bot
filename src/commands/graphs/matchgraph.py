@@ -9,11 +9,12 @@ from context import BotContext
 from database.bot.recent_quotes import set_recent_quote
 from database.typegg.quotes import get_quote
 from graphs import match as match_graph
+from utils.dates import discord_date
 from utils.errors import InvalidKeystrokeData
 from utils.keystrokes import get_keystroke_data
 from utils.messages import Message, Page
 from utils.stats import get_pauseless_delays
-from utils.strings import discord_date, quote_display, rank, username_with_flag
+from utils.strings import quote_display, rank, username_with_flag
 
 info = {
     "name": "matchgraph",

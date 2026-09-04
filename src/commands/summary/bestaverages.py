@@ -4,10 +4,10 @@ from commands.base import Command
 from context import BotContext
 from database.typegg.quotes import get_quotes
 from database.typegg.races import get_races
-from utils.dates import parse_date
+from utils.dates import discord_date, parse_date
 from utils.errors import NotEnoughRaces, NumberGreaterThan
 from utils.messages import Message, Page
-from utils.strings import date_range_display, discord_date
+from utils.strings import date_range_display
 
 info = {
     "name": "bestaverages",

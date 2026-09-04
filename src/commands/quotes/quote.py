@@ -8,11 +8,11 @@ from database.typegg.races import get_race, get_races
 from database.typegg.users import get_quote_bests
 from graphs import improvement
 from utils.colors import SUCCESS
-from utils.dates import parse_date
+from utils.dates import discord_date, parse_date
 from utils.errors import BotError
 from utils.messages import Field, Message, Page, usable_in
 from utils.stats import calculate_total_pp
-from utils.strings import INCREASE, discord_date, quote_display
+from utils.strings import INCREASE, quote_display
 
 info = {
     "name": "quote",

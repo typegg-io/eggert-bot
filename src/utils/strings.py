@@ -2,13 +2,10 @@ import json
 import math
 import re
 
-from dateutil import parser
 from dateutil.relativedelta import relativedelta
 
-from config import SITE_URL
 from utils.errors import InvalidArgument, InvalidNumber
-from utils.flags import Flags
-from utils.urls import profile_url, race_url
+from utils.urls import GG_PLUS_LINK, profile_url, race_url
 
 # Constants
 
@@ -47,7 +44,6 @@ LOADING = "<a:loading:1418688762745065594>"
 INCREASE = "<:increase:1372466536693891142>"
 GG_PLUS = "<:GG1:1445664315871985807><:GG2:1445664341742452798>"
 EGGERT = "<:eggertHappy:1327614782446108725>"
-GG_PLUS_LINK = f"{SITE_URL}/plus"
 GG_PLUS_LINKED = f"[{GG_PLUS}]({GG_PLUS_LINK})"
 
 OPTION_ALIASES = {
@@ -93,24 +89,6 @@ def get_key_by_alias(alias_dict, alias):
         if alias in [name] + aliases:
             return name
     return None
-
-
-def get_flag_title(flags: Flags):
-    """Build a parenthetical title string from command flags (e.g., '(Raw, Solo)')."""
-    flag_titles = []
-    if flags.language:
-        flag_titles.append(flags.language.name)
-    if flags.status:
-        flag_titles.append(flags.status.title())
-    if flags.raw:
-        flag_titles.append("Raw")
-    if flags.gamemode:
-        flag_titles.append(flags.gamemode.title())
-
-    if not flag_titles:
-        return ""
-
-    return " (" + ", ".join(flag_titles) + ")"
 
 
 # Number Formatting
@@ -208,15 +186,6 @@ def format_duration(seconds, round_seconds=True, show_seconds=True):
         seconds_str = ""
 
     return f"{days}{hours}{minutes}{seconds_str}".strip()
-
-
-def discord_date(date_string: str, style: str | None = "R"):
-    """Convert a date string or timestamp to Discord's date format tag."""
-    try:
-        timestamp = int(date_string)
-    except ValueError:
-        timestamp = int(parser.parse(date_string).timestamp())
-    return f"<t:{timestamp}:{style}>"
 
 
 def date_range_display(start, end, tz):
@@ -350,6 +319,8 @@ def quote_display(
     text_highlight: str = None,
 ):
     """Format a quote dictionary into a rich display string for Discord embeds."""
+    from utils.dates import discord_date
+
     text = quote["text"]
     display_string = f"**[{quote["source"]["title"]}]({race_url(quote["quoteId"])})**"
 

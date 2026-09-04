@@ -64,3 +64,21 @@ class Flags:
     def __post_init__(self):
         if isinstance(self.language, str):
             self.language = Language(self.language)
+
+
+def get_flag_title(flags: Flags):
+    """Build a parenthetical title string from command flags (e.g., '(Raw, Solo)')."""
+    flag_titles = []
+    if flags.language:
+        flag_titles.append(flags.language.name)
+    if flags.status:
+        flag_titles.append(flags.status.title())
+    if flags.raw:
+        flag_titles.append("Raw")
+    if flags.gamemode:
+        flag_titles.append(flags.gamemode.title())
+
+    if not flag_titles:
+        return ""
+
+    return " (" + ", ".join(flag_titles) + ")"
