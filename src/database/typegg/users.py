@@ -162,7 +162,7 @@ def delete_user_data(user_id: str):
 
 
 async def reimport_users():
-    from commands.account.download import run as download
+    from services.importer import run as download
 
     user_list = db.fetch("SELECT userId FROM users")
     max_retries = 3

@@ -13,6 +13,7 @@ from database.bot.users import get_user_by_user_id, update_gg_plus_status, updat
 from database.typegg.daily_quotes import get_daily_quote_id
 from database.typegg.quotes import get_quote as get_quote_db
 from database.typegg.races import get_latest_race
+from services.importer import get_total_races, run as import_races
 from utils.colors import ERROR
 from utils.errors import DailyQuoteChannel, InvalidNumber, MissingUsername, NoRaces, NoRacesFiltered, NotSubscribed
 from utils.flags import Flags
@@ -163,8 +164,7 @@ class Command(commands.Cog):
         return profile
 
     async def import_user(self, ctx: BotContext, profile: dict):
-        from commands.account.download import run as download
-        await download(ctx, profile)
+        await import_races(ctx, profile, auto_import=True)
 
     async def await_confirmation(self, ctx: BotContext, confirm_message="confirm", timeout=10, prompt_message=None):
         """Waits for the user to send a specific confirmation message."""
@@ -229,7 +229,6 @@ class Command(commands.Cog):
         return quote
 
     async def get_race_number(self, profile, race_number):
-        from commands.account.download import get_total_races
 
         # Fetch the API's true latest race number, fall back to the latest stored race
         total_races = await get_total_races(profile["userId"])

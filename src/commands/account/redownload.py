@@ -1,11 +1,11 @@
 
 from discord.ext import commands
 
-from commands.account.download import run as download
 from commands.base import Command
 from context import BotContext
 from database.typegg.races import get_latest_race
 from database.typegg.users import delete_user_data
+from services.importer import run as download
 from utils.colors import ERROR, WARNING
 from utils.logging import ADMIN_ALIASES
 from utils.messages import Message, Page
@@ -71,7 +71,7 @@ class ReDownload(Command):
             await message.send()
 
             ctx.invoked_with = "download"
-            await download(ctx, profile)
+            await download(ctx, profile, auto_import=True)
 
             if is_admin:
                 ctx.command.reset_cooldown(ctx)

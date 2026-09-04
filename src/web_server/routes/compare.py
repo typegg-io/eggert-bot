@@ -2,9 +2,9 @@ import aiohttp_jinja2
 from aiohttp import web
 
 from api.users import get_profile
-from commands.account.download import run as download
 from database.typegg.quotes import get_quotes
 from database.typegg.users import get_quote_bests
+from services.importer import run as download
 from utils.strings import truncate_clean
 from utils.urls import race_url
 
