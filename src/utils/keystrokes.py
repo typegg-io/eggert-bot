@@ -550,10 +550,13 @@ def process_keystroke_data(
                 input_val_delays[adj_start:adj_end] = [preserved_ids + list(pending_delays)]
                 pending_delays.clear()
 
-            if r_start <= r_end:
+            # A redundant replace rewrites the buffer, matching the TS frontend, but leaves the
+            # correctness flags alone.
+            if r_start <= r_end and r_end <= len(input_val) and (not action.redundant or r_start != r_end):
                 last_key_correct = prefix_matches_word(input_val[:r_start] + typed_char, current_word)
                 input_val = input_val[:r_start] + typed_char + input_val[r_end:]
-                input_val_correct[r_start:r_end] = [last_key_correct] * len(typed_char)
+                if not action.redundant:
+                    input_val_correct[r_start:r_end] = [last_key_correct] * len(typed_char)
 
             # Add to charPool/positionKeystrokes for ALL REPLACEs when buffer update succeeds
             if r_start <= r_end and typed_char:

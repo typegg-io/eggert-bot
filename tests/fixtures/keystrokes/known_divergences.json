@@ -62,15 +62,11 @@
     "raw/m_enter_1.json": {
       "accuracy": {
         "go": 72.72727272727273,
-        "python": 74.0
+        "python": 71.71717171717172
       },
       "graph_values": {
-        "first_diverging_point": 7,
+        "first_diverging_point": 49,
         "of": 50
-      },
-      "raw_wpm": {
-        "go": 180.18018018018017,
-        "python": 184.38844499078058
       },
       "wpm": {
         "go": 78.46214201647705,
