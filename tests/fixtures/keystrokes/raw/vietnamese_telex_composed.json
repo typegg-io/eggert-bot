@@ -1,0 +1,1953 @@
+{
+  "text": "Nói chung, hai bàn tay của chúng ta rất ngoan, chúng thường nằm im chờ chúng ta sai khiến. Trong khi chúng ta chẳng hề thương xót chúng, thỉnh thoảng lại bắt chúng làm những việc nguy hiểm khiến chúng bị trầy xước hoặc chảy máu rất nhiều.",
+  "isStickyStart": false,
+  "keystrokes": [
+    {
+      "action": {
+        "key": "N",
+        "i": 0,
+        "mod": "L"
+      },
+      "time": 0,
+      "timeDelta": 0
+    },
+    {
+      "action": {
+        "i": 1,
+        "key": "ói",
+        "steps": [
+          "o",
+          "oi",
+          "ói"
+        ],
+        "stepTimes": [
+          0,
+          50,
+          92
+        ]
+      },
+      "time": 211,
+      "timeDelta": 211
+    },
+    {
+      "action": {
+        "key": " ",
+        "i": 3
+      },
+      "time": 275,
+      "timeDelta": 64
+    },
+    {
+      "action": {
+        "key": "c",
+        "i": 0
+      },
+      "time": 302,
+      "timeDelta": 27
+    },
+    {
+      "action": {
+        "key": "h",
+        "i": 1
+      },
+      "time": 376,
+      "timeDelta": 74
+    },
+    {
+      "action": {
+        "key": "u",
+        "i": 2
+      },
+      "time": 415,
+      "timeDelta": 39
+    },
+    {
+      "action": {
+        "key": "n",
+        "i": 3
+      },
+      "time": 495,
+      "timeDelta": 80
+    },
+    {
+      "action": {
+        "key": "g",
+        "i": 4
+      },
+      "time": 554,
+      "timeDelta": 59
+    },
+    {
+      "action": {
+        "key": ",",
+        "i": 5
+      },
+      "time": 662,
+      "timeDelta": 108
+    },
+    {
+      "action": {
+        "key": " ",
+        "i": 6
+      },
+      "time": 764,
+      "timeDelta": 102
+    },
+    {
+      "action": {
+        "key": "h",
+        "i": 0
+      },
+      "time": 844,
+      "timeDelta": 80
+    },
+    {
+      "action": {
+        "key": "a",
+        "i": 1
+      },
+      "time": 911,
+      "timeDelta": 67
+    },
+    {
+      "action": {
+        "key": "i",
+        "i": 2
+      },
+      "time": 994,
+      "timeDelta": 83
+    },
+    {
+      "action": {
+        "key": " ",
+        "i": 3
+      },
+      "time": 1048,
+      "timeDelta": 54
+    },
+    {
+      "action": {
+        "key": "b",
+        "i": 0
+      },
+      "time": 1120,
+      "timeDelta": 72
+    },
+    {
+      "action": {
+        "i": 1,
+        "key": "àn",
+        "steps": [
+          "a",
+          "an",
+          "àn"
+        ],
+        "stepTimes": [
+          0,
+          125,
+          217
+        ]
+      },
+      "time": 1404,
+      "timeDelta": 284
+    },
+    {
+      "action": {
+        "key": " ",
+        "i": 3
+      },
+      "time": 1528,
+      "timeDelta": 124
+    },
+    {
+      "action": {
+        "key": "t",
+        "i": 0
+      },
+      "time": 1624,
+      "timeDelta": 96
+    },
+    {
+      "action": {
+        "key": "a",
+        "i": 1
+      },
+      "time": 1701,
+      "timeDelta": 77
+    },
+    {
+      "action": {
+        "key": "y",
+        "i": 2
+      },
+      "time": 1812,
+      "timeDelta": 111
+    },
+    {
+      "action": {
+        "key": " ",
+        "i": 3
+      },
+      "time": 1868,
+      "timeDelta": 56
+    },
+    {
+      "action": {
+        "key": "c",
+        "i": 0
+      },
+      "time": 1920,
+      "timeDelta": 52
+    },
+    {
+      "action": {
+        "i": 1,
+        "key": "ủa",
+        "steps": [
+          "u",
+          "ua",
+          "ủa"
+        ],
+        "stepTimes": [
+          0,
+          53,
+          113
+        ]
+      },
+      "time": 2153,
+      "timeDelta": 233
+    },
+    {
+      "action": {
+        "key": " ",
+        "i": 3
+      },
+      "time": 2226,
+      "timeDelta": 73
+    },
+    {
+      "action": {
+        "key": "c",
+        "i": 0
+      },
+      "time": 2320,
+      "timeDelta": 94
+    },
+    {
+      "action": {
+        "key": "h",
+        "i": 1
+      },
+      "time": 2388,
+      "timeDelta": 68
+    },
+    {
+      "action": {
+        "i": 2,
+        "key": "úng",
+        "steps": [
+          "u",
+          "un",
+          "ung",
+          "úng"
+        ],
+        "stepTimes": [
+          0,
+          49,
+          116,
+          177
+        ]
+      },
+      "time": 2671,
+      "timeDelta": 283
+    },
+    {
+      "action": {
+        "key": " ",
+        "i": 5
+      },
+      "time": 2786,
+      "timeDelta": 115
+    },
+    {
+      "action": {
+        "key": "t",
+        "i": 0
+      },
+      "time": 2845,
+      "timeDelta": 59
+    },
+    {
+      "action": {
+        "key": "a",
+        "i": 1
+      },
+      "time": 2994,
+      "timeDelta": 149
+    },
+    {
+      "action": {
+        "key": " ",
+        "i": 2
+      },
+      "time": 3286,
+      "timeDelta": 292
+    },
+    {
+      "action": {
+        "key": "r",
+        "i": 0
+      },
+      "time": 3449,
+      "timeDelta": 163
+    },
+    {
+      "action": {
+        "i": 1,
+        "key": "ất",
+        "steps": [
+          "a",
+          "â",
+          "ât",
+          "ất"
+        ],
+        "stepTimes": [
+          0,
+          153,
+          288,
+          300
+        ]
+      },
+      "time": 3834,
+      "timeDelta": 385
+    },
+    {
+      "action": {
+        "key": " ",
+        "i": 3
+      },
+      "time": 3934,
+      "timeDelta": 100
+    },
+    {
+      "action": {
+        "key": "n",
+        "i": 0
+      },
+      "time": 3989,
+      "timeDelta": 55
+    },
+    {
+      "action": {
+        "key": "g",
+        "i": 1
+      },
+      "time": 4073,
+      "timeDelta": 84
+    },
+    {
+      "action": {
+        "key": "o",
+        "i": 2
+      },
+      "time": 4153,
+      "timeDelta": 80
+    },
+    {
+      "action": {
+        "key": "a",
+        "i": 3
+      },
+      "time": 4185,
+      "timeDelta": 32
+    },
+    {
+      "action": {
+        "key": "n",
+        "i": 4
+      },
+      "time": 4277,
+      "timeDelta": 92
+    },
+    {
+      "action": {
+        "key": ",",
+        "i": 5
+      },
+      "time": 4376,
+      "timeDelta": 99
+    },
+    {
+      "action": {
+        "key": " ",
+        "i": 6
+      },
+      "time": 4478,
+      "timeDelta": 102
+    },
+    {
+      "action": {
+        "key": "c",
+        "i": 0
+      },
+      "time": 4578,
+      "timeDelta": 100
+    },
+    {
+      "action": {
+        "key": "h",
+        "i": 1
+      },
+      "time": 4646,
+      "timeDelta": 68
+    },
+    {
+      "action": {
+        "i": 2,
+        "key": "úng",
+        "steps": [
+          "u",
+          "un",
+          "ung",
+          "úng"
+        ],
+        "stepTimes": [
+          0,
+          90,
+          157,
+          209
+        ]
+      },
+      "time": 4903,
+      "timeDelta": 257
+    },
+    {
+      "action": {
+        "key": " ",
+        "i": 5
+      },
+      "time": 5010,
+      "timeDelta": 107
+    },
+    {
+      "action": {
+        "key": "t",
+        "i": 0
+      },
+      "time": 5060,
+      "timeDelta": 50
+    },
+    {
+      "action": {
+        "key": "h",
+        "i": 1
+      },
+      "time": 5126,
+      "timeDelta": 66
+    },
+    {
+      "action": {
+        "i": 2,
+        "key": "ường",
+        "steps": [
+          "u",
+          "uo",
+          "uon",
+          "uong",
+          "ương",
+          "ường"
+        ],
+        "stepTimes": [
+          0,
+          84,
+          188,
+          340,
+          401,
+          452
+        ]
+      },
+      "time": 5728,
+      "timeDelta": 602
+    },
+    {
+      "action": {
+        "key": " ",
+        "i": 6
+      },
+      "time": 5784,
+      "timeDelta": 56
+    },
+    {
+      "action": {
+        "key": "n",
+        "i": 0
+      },
+      "time": 5877,
+      "timeDelta": 93
+    },
+    {
+      "action": {
+        "i": 1,
+        "key": "ằ",
+        "steps": [
+          "a",
+          "ă",
+          "ằ"
+        ],
+        "stepTimes": [
+          0,
+          37,
+          97
+        ]
+      },
+      "time": 6037,
+      "timeDelta": 160
+    },
+    {
+      "action": {
+        "key": "m",
+        "i": 2
+      },
+      "time": 6096,
+      "timeDelta": 59
+    },
+    {
+      "action": {
+        "key": " ",
+        "i": 3
+      },
+      "time": 6218,
+      "timeDelta": 122
+    },
+    {
+      "action": {
+        "key": "i",
+        "i": 0
+      },
+      "time": 6347,
+      "timeDelta": 129
+    },
+    {
+      "action": {
+        "key": "m",
+        "i": 1
+      },
+      "time": 6393,
+      "timeDelta": 46
+    },
+    {
+      "action": {
+        "key": " ",
+        "i": 2
+      },
+      "time": 6451,
+      "timeDelta": 58
+    },
+    {
+      "action": {
+        "key": "c",
+        "i": 0
+      },
+      "time": 6614,
+      "timeDelta": 163
+    },
+    {
+      "action": {
+        "key": "h",
+        "i": 1
+      },
+      "time": 6710,
+      "timeDelta": 96
+    },
+    {
+      "action": {
+        "i": 2,
+        "key": "ờ",
+        "steps": [
+          "o",
+          "ơ",
+          "ờ"
+        ],
+        "stepTimes": [
+          0,
+          28,
+          93
+        ]
+      },
+      "time": 6878,
+      "timeDelta": 168
+    },
+    {
+      "action": {
+        "key": " ",
+        "i": 3
+      },
+      "time": 6934,
+      "timeDelta": 56
+    },
+    {
+      "action": {
+        "key": "c",
+        "i": 0
+      },
+      "time": 7070,
+      "timeDelta": 136
+    },
+    {
+      "action": {
+        "key": "h",
+        "i": 1
+      },
+      "time": 7126,
+      "timeDelta": 56
+    },
+    {
+      "action": {
+        "i": 2,
+        "key": "úng",
+        "steps": [
+          "u",
+          "un",
+          "ung",
+          "úng"
+        ],
+        "stepTimes": [
+          0,
+          56,
+          148,
+          198
+        ]
+      },
+      "time": 7412,
+      "timeDelta": 286
+    },
+    {
+      "action": {
+        "key": " ",
+        "i": 5
+      },
+      "time": 7526,
+      "timeDelta": 114
+    },
+    {
+      "action": {
+        "key": "t",
+        "i": 0
+      },
+      "time": 7561,
+      "timeDelta": 35
+    },
+    {
+      "action": {
+        "key": "a",
+        "i": 1
+      },
+      "time": 7654,
+      "timeDelta": 93
+    },
+    {
+      "action": {
+        "key": " ",
+        "i": 2
+      },
+      "time": 7758,
+      "timeDelta": 104
+    },
+    {
+      "action": {
+        "key": "s",
+        "i": 0
+      },
+      "time": 7913,
+      "timeDelta": 155
+    },
+    {
+      "action": {
+        "key": "a",
+        "i": 1
+      },
+      "time": 7961,
+      "timeDelta": 48
+    },
+    {
+      "action": {
+        "key": "i",
+        "i": 2
+      },
+      "time": 8061,
+      "timeDelta": 100
+    },
+    {
+      "action": {
+        "key": " ",
+        "i": 3
+      },
+      "time": 8159,
+      "timeDelta": 98
+    },
+    {
+      "action": {
+        "key": "k",
+        "i": 0
+      },
+      "time": 8268,
+      "timeDelta": 109
+    },
+    {
+      "action": {
+        "key": "h",
+        "i": 1
+      },
+      "time": 8312,
+      "timeDelta": 44
+    },
+    {
+      "action": {
+        "key": "i",
+        "i": 2
+      },
+      "time": 8418,
+      "timeDelta": 106
+    },
+    {
+      "action": {
+        "i": 3,
+        "key": "ến",
+        "steps": [
+          "e",
+          "ê",
+          "ên",
+          "ến"
+        ],
+        "stepTimes": [
+          0,
+          95,
+          158,
+          260
+        ]
+      },
+      "time": 8744,
+      "timeDelta": 326
+    },
+    {
+      "action": {
+        "key": ".",
+        "i": 5
+      },
+      "time": 8945,
+      "timeDelta": 201
+    },
+    {
+      "action": {
+        "key": " ",
+        "i": 6,
+        "mod": "L"
+      },
+      "time": 9314,
+      "timeDelta": 369
+    },
+    {
+      "action": {
+        "key": "T",
+        "i": 0,
+        "mod": "L"
+      },
+      "time": 9742,
+      "timeDelta": 428
+    },
+    {
+      "action": {
+        "key": "r",
+        "i": 1
+      },
+      "time": 9968,
+      "timeDelta": 226
+    },
+    {
+      "action": {
+        "key": "o",
+        "i": 2
+      },
+      "time": 10095,
+      "timeDelta": 127
+    },
+    {
+      "action": {
+        "key": "n",
+        "i": 3
+      },
+      "time": 10151,
+      "timeDelta": 56
+    },
+    {
+      "action": {
+        "key": "g",
+        "i": 4
+      },
+      "time": 10211,
+      "timeDelta": 60
+    },
+    {
+      "action": {
+        "key": " ",
+        "i": 5
+      },
+      "time": 10348,
+      "timeDelta": 137
+    },
+    {
+      "action": {
+        "key": "k",
+        "i": 0
+      },
+      "time": 10506,
+      "timeDelta": 158
+    },
+    {
+      "action": {
+        "key": "h",
+        "i": 1
+      },
+      "time": 10554,
+      "timeDelta": 48
+    },
+    {
+      "action": {
+        "key": "i",
+        "i": 2
+      },
+      "time": 10659,
+      "timeDelta": 105
+    },
+    {
+      "action": {
+        "key": " ",
+        "i": 3
+      },
+      "time": 10743,
+      "timeDelta": 84
+    },
+    {
+      "action": {
+        "key": "c",
+        "i": 0
+      },
+      "time": 10810,
+      "timeDelta": 67
+    },
+    {
+      "action": {
+        "key": "h",
+        "i": 1
+      },
+      "time": 10884,
+      "timeDelta": 74
+    },
+    {
+      "action": {
+        "i": 2,
+        "key": "úng",
+        "steps": [
+          "u",
+          "un",
+          "ung",
+          "úng"
+        ],
+        "stepTimes": [
+          0,
+          91,
+          154,
+          219
+        ]
+      },
+      "time": 11146,
+      "timeDelta": 262
+    },
+    {
+      "action": {
+        "key": " ",
+        "i": 5
+      },
+      "time": 11245,
+      "timeDelta": 99
+    },
+    {
+      "action": {
+        "key": "t",
+        "i": 0
+      },
+      "time": 11285,
+      "timeDelta": 40
+    },
+    {
+      "action": {
+        "key": "a",
+        "i": 1
+      },
+      "time": 11373,
+      "timeDelta": 88
+    },
+    {
+      "action": {
+        "key": " ",
+        "i": 2
+      },
+      "time": 11466,
+      "timeDelta": 93
+    },
+    {
+      "action": {
+        "key": "c",
+        "i": 0
+      },
+      "time": 11635,
+      "timeDelta": 169
+    },
+    {
+      "action": {
+        "key": "h",
+        "i": 1
+      },
+      "time": 11744,
+      "timeDelta": 109
+    },
+    {
+      "action": {
+        "i": 2,
+        "key": "ẳng",
+        "steps": [
+          "a",
+          "ă",
+          "ăn",
+          "ăng",
+          "ẳng"
+        ],
+        "stepTimes": [
+          0,
+          35,
+          135,
+          329,
+          384
+        ]
+      },
+      "time": 12186,
+      "timeDelta": 442
+    },
+    {
+      "action": {
+        "key": " ",
+        "i": 5
+      },
+      "time": 12430,
+      "timeDelta": 244
+    },
+    {
+      "action": {
+        "key": "h",
+        "i": 0
+      },
+      "time": 12715,
+      "timeDelta": 285
+    },
+    {
+      "action": {
+        "i": 1,
+        "key": "ề",
+        "steps": [
+          "e",
+          "ê",
+          "ề"
+        ],
+        "stepTimes": [
+          0,
+          102,
+          175
+        ]
+      },
+      "time": 13003,
+      "timeDelta": 288
+    },
+    {
+      "action": {
+        "key": " ",
+        "i": 2
+      },
+      "time": 13060,
+      "timeDelta": 57
+    },
+    {
+      "action": {
+        "key": "t",
+        "i": 0
+      },
+      "time": 13168,
+      "timeDelta": 108
+    },
+    {
+      "action": {
+        "key": "h",
+        "i": 1
+      },
+      "time": 13218,
+      "timeDelta": 50
+    },
+    {
+      "action": {
+        "i": 2,
+        "key": "ươn",
+        "steps": [
+          "u",
+          "uo",
+          "uon",
+          "ươn"
+        ],
+        "stepTimes": [
+          0,
+          110,
+          174,
+          228
+        ]
+      },
+      "time": 13563,
+      "timeDelta": 345
+    },
+    {
+      "action": {
+        "key": "g",
+        "i": 5
+      },
+      "time": 13626,
+      "timeDelta": 63
+    },
+    {
+      "action": {
+        "key": " ",
+        "i": 6
+      },
+      "time": 13680,
+      "timeDelta": 54
+    },
+    {
+      "action": {
+        "key": "x",
+        "i": 0
+      },
+      "time": 13797,
+      "timeDelta": 117
+    },
+    {
+      "action": {
+        "i": 1,
+        "key": "ót",
+        "steps": [
+          "o",
+          "ot",
+          "ót"
+        ],
+        "stepTimes": [
+          0,
+          70,
+          124
+        ]
+      },
+      "time": 14005,
+      "timeDelta": 208
+    },
+    {
+      "action": {
+        "key": " ",
+        "i": 3
+      },
+      "time": 14073,
+      "timeDelta": 68
+    },
+    {
+      "action": {
+        "key": "c",
+        "i": 0
+      },
+      "time": 14422,
+      "timeDelta": 349
+    },
+    {
+      "action": {
+        "key": "h",
+        "i": 1
+      },
+      "time": 14530,
+      "timeDelta": 108
+    },
+    {
+      "action": {
+        "i": 2,
+        "key": "úng",
+        "steps": [
+          "u",
+          "un",
+          "ung",
+          "úng"
+        ],
+        "stepTimes": [
+          0,
+          54,
+          122,
+          174
+        ]
+      },
+      "time": 14787,
+      "timeDelta": 257
+    },
+    {
+      "action": {
+        "key": ",",
+        "i": 5
+      },
+      "time": 15046,
+      "timeDelta": 259
+    },
+    {
+      "action": {
+        "key": " ",
+        "i": 6
+      },
+      "time": 15397,
+      "timeDelta": 351
+    },
+    {
+      "action": {
+        "key": "t",
+        "i": 0
+      },
+      "time": 15526,
+      "timeDelta": 129
+    },
+    {
+      "action": {
+        "key": "h",
+        "i": 1
+      },
+      "time": 15613,
+      "timeDelta": 87
+    },
+    {
+      "action": {
+        "i": 2,
+        "key": "ỉnh",
+        "steps": [
+          "i",
+          "in",
+          "inh",
+          "ỉnh"
+        ],
+        "stepTimes": [
+          0,
+          83,
+          244,
+          308
+        ]
+      },
+      "time": 16010,
+      "timeDelta": 397
+    },
+    {
+      "action": {
+        "key": " ",
+        "i": 5
+      },
+      "time": 16077,
+      "timeDelta": 67
+    },
+    {
+      "action": {
+        "key": "t",
+        "i": 0
+      },
+      "time": 16169,
+      "timeDelta": 92
+    },
+    {
+      "action": {
+        "key": "h",
+        "i": 1
+      },
+      "time": 16270,
+      "timeDelta": 101
+    },
+    {
+      "action": {
+        "key": "o",
+        "i": 2
+      },
+      "time": 16343,
+      "timeDelta": 73
+    },
+    {
+      "action": {
+        "i": 3,
+        "key": "ảng",
+        "steps": [
+          "a",
+          "an",
+          "ang",
+          "ảng"
+        ],
+        "stepTimes": [
+          0,
+          100,
+          155,
+          221
+        ]
+      },
+      "time": 16651,
+      "timeDelta": 308
+    },
+    {
+      "action": {
+        "key": " ",
+        "i": 6
+      },
+      "time": 16714,
+      "timeDelta": 63
+    },
+    {
+      "action": {
+        "key": "l",
+        "i": 0
+      },
+      "time": 16778,
+      "timeDelta": 64
+    },
+    {
+      "action": {
+        "i": 1,
+        "key": "ại",
+        "steps": [
+          "a",
+          "ai",
+          "ại"
+        ],
+        "stepTimes": [
+          0,
+          73,
+          117
+        ]
+      },
+      "time": 16970,
+      "timeDelta": 192
+    },
+    {
+      "action": {
+        "key": " ",
+        "i": 3
+      },
+      "time": 17005,
+      "timeDelta": 35
+    },
+    {
+      "action": {
+        "key": "b",
+        "i": 0
+      },
+      "time": 17160,
+      "timeDelta": 155
+    },
+    {
+      "action": {
+        "i": 1,
+        "key": "ắt",
+        "steps": [
+          "a",
+          "ă",
+          "ăt",
+          "ắt"
+        ],
+        "stepTimes": [
+          0,
+          91,
+          167,
+          300
+        ]
+      },
+      "time": 17556,
+      "timeDelta": 396
+    },
+    {
+      "action": {
+        "key": " ",
+        "i": 3
+      },
+      "time": 17679,
+      "timeDelta": 123
+    },
+    {
+      "action": {
+        "key": "c",
+        "i": 0
+      },
+      "time": 18181,
+      "timeDelta": 502
+    },
+    {
+      "action": {
+        "key": "h",
+        "i": 1
+      },
+      "time": 18264,
+      "timeDelta": 83
+    },
+    {
+      "action": {
+        "i": 2,
+        "key": "úng",
+        "steps": [
+          "u",
+          "un",
+          "ung",
+          "úng"
+        ],
+        "stepTimes": [
+          0,
+          44,
+          106,
+          161
+        ]
+      },
+      "time": 18498,
+      "timeDelta": 234
+    },
+    {
+      "action": {
+        "key": " ",
+        "i": 5
+      },
+      "time": 18604,
+      "timeDelta": 106
+    },
+    {
+      "action": {
+        "key": "l",
+        "i": 0
+      },
+      "time": 18726,
+      "timeDelta": 122
+    },
+    {
+      "action": {
+        "i": 1,
+        "key": "àm",
+        "steps": [
+          "a",
+          "am",
+          "àm"
+        ],
+        "stepTimes": [
+          0,
+          75,
+          116
+        ]
+      },
+      "time": 18902,
+      "timeDelta": 176
+    },
+    {
+      "action": {
+        "key": " ",
+        "i": 3
+      },
+      "time": 19002,
+      "timeDelta": 100
+    },
+    {
+      "action": {
+        "key": "n",
+        "i": 0
+      },
+      "time": 19051,
+      "timeDelta": 49
+    },
+    {
+      "action": {
+        "key": "h",
+        "i": 1
+      },
+      "time": 19201,
+      "timeDelta": 150
+    },
+    {
+      "action": {
+        "i": 2,
+        "key": "ững",
+        "steps": [
+          "u",
+          "ư",
+          "ưn",
+          "ưng",
+          "ững"
+        ],
+        "stepTimes": [
+          0,
+          91,
+          130,
+          240,
+          318
+        ]
+      },
+      "time": 19573,
+      "timeDelta": 372
+    },
+    {
+      "action": {
+        "key": " ",
+        "i": 5
+      },
+      "time": 19695,
+      "timeDelta": 122
+    },
+    {
+      "action": {
+        "key": "v",
+        "i": 0
+      },
+      "time": 19885,
+      "timeDelta": 190
+    },
+    {
+      "action": {
+        "key": "i",
+        "i": 1
+      },
+      "time": 20027,
+      "timeDelta": 142
+    },
+    {
+      "action": {
+        "i": 2,
+        "key": "ệc",
+        "steps": [
+          "e",
+          "ê",
+          "êc",
+          "ệc"
+        ],
+        "stepTimes": [
+          0,
+          114,
+          185,
+          240
+        ]
+      },
+      "time": 20336,
+      "timeDelta": 309
+    },
+    {
+      "action": {
+        "key": " ",
+        "i": 4
+      },
+      "time": 20445,
+      "timeDelta": 109
+    },
+    {
+      "action": {
+        "key": "n",
+        "i": 0
+      },
+      "time": 20534,
+      "timeDelta": 89
+    },
+    {
+      "action": {
+        "key": "g",
+        "i": 1
+      },
+      "time": 20586,
+      "timeDelta": 52
+    },
+    {
+      "action": {
+        "key": "u",
+        "i": 2
+      },
+      "time": 20650,
+      "timeDelta": 64
+    },
+    {
+      "action": {
+        "key": "y",
+        "i": 3
+      },
+      "time": 20727,
+      "timeDelta": 77
+    },
+    {
+      "action": {
+        "key": " ",
+        "i": 4
+      },
+      "time": 20777,
+      "timeDelta": 50
+    },
+    {
+      "action": {
+        "key": "h",
+        "i": 0
+      },
+      "time": 20852,
+      "timeDelta": 75
+    },
+    {
+      "action": {
+        "key": "i",
+        "i": 1
+      },
+      "time": 20926,
+      "timeDelta": 74
+    },
+    {
+      "action": {
+        "i": 2,
+        "key": "ểm",
+        "steps": [
+          "e",
+          "ê",
+          "êm",
+          "ểm"
+        ],
+        "stepTimes": [
+          0,
+          122,
+          187,
+          264
+        ]
+      },
+      "time": 21269,
+      "timeDelta": 343
+    },
+    {
+      "action": {
+        "key": " ",
+        "i": 4
+      },
+      "time": 21344,
+      "timeDelta": 75
+    },
+    {
+      "action": {
+        "key": "k",
+        "i": 0
+      },
+      "time": 21396,
+      "timeDelta": 52
+    },
+    {
+      "action": {
+        "key": "h",
+        "i": 1
+      },
+      "time": 21436,
+      "timeDelta": 40
+    },
+    {
+      "action": {
+        "key": "i",
+        "i": 2
+      },
+      "time": 21543,
+      "timeDelta": 107
+    },
+    {
+      "action": {
+        "i": 3,
+        "key": "ến",
+        "steps": [
+          "e",
+          "ê",
+          "ên",
+          "ến"
+        ],
+        "stepTimes": [
+          0,
+          121,
+          191,
+          285
+        ]
+      },
+      "time": 21880,
+      "timeDelta": 337
+    },
+    {
+      "action": {
+        "key": " ",
+        "i": 5
+      },
+      "time": 21943,
+      "timeDelta": 63
+    },
+    {
+      "action": {
+        "key": "c",
+        "i": 0
+      },
+      "time": 22002,
+      "timeDelta": 59
+    },
+    {
+      "action": {
+        "key": "h",
+        "i": 1
+      },
+      "time": 22070,
+      "timeDelta": 68
+    },
+    {
+      "action": {
+        "i": 2,
+        "key": "úng",
+        "steps": [
+          "u",
+          "un",
+          "ung",
+          "úng"
+        ],
+        "stepTimes": [
+          0,
+          83,
+          157,
+          200
+        ]
+      },
+      "time": 22335,
+      "timeDelta": 265
+    },
+    {
+      "action": {
+        "key": " ",
+        "i": 5
+      },
+      "time": 22414,
+      "timeDelta": 79
+    },
+    {
+      "action": {
+        "key": "b",
+        "i": 0
+      },
+      "time": 22506,
+      "timeDelta": 92
+    },
+    {
+      "action": {
+        "i": 1,
+        "key": "ị",
+        "steps": [
+          "i",
+          "ị"
+        ],
+        "stepTimes": [
+          0,
+          44
+        ]
+      },
+      "time": 22612,
+      "timeDelta": 106
+    },
+    {
+      "action": {
+        "key": " ",
+        "i": 2
+      },
+      "time": 22702,
+      "timeDelta": 90
+    },
+    {
+      "action": {
+        "key": "t",
+        "i": 0
+      },
+      "time": 22779,
+      "timeDelta": 77
+    },
+    {
+      "action": {
+        "key": "r",
+        "i": 1
+      },
+      "time": 22822,
+      "timeDelta": 43
+    },
+    {
+      "action": {
+        "i": 2,
+        "key": "ầy",
+        "steps": [
+          "a",
+          "â",
+          "ây",
+          "ầy"
+        ],
+        "stepTimes": [
+          0,
+          137,
+          286,
+          331
+        ]
+      },
+      "time": 23225,
+      "timeDelta": 403
+    },
+    {
+      "action": {
+        "key": " ",
+        "i": 4
+      },
+      "time": 23311,
+      "timeDelta": 86
+    },
+    {
+      "action": {
+        "key": "x",
+        "i": 0
+      },
+      "time": 23434,
+      "timeDelta": 123
+    },
+    {
+      "action": {
+        "i": 1,
+        "key": "ước",
+        "steps": [
+          "u",
+          "uo",
+          "ươ",
+          "ươc",
+          "ước"
+        ],
+        "stepTimes": [
+          0,
+          56,
+          121,
+          196,
+          307
+        ]
+      },
+      "time": 23804,
+      "timeDelta": 370
+    },
+    {
+      "action": {
+        "key": " ",
+        "i": 4
+      },
+      "time": 23897,
+      "timeDelta": 93
+    },
+    {
+      "action": {
+        "key": "h",
+        "i": 0
+      },
+      "time": 24005,
+      "timeDelta": 108
+    },
+    {
+      "action": {
+        "key": "o",
+        "i": 1
+      },
+      "time": 24053,
+      "timeDelta": 48
+    },
+    {
+      "action": {
+        "i": 2,
+        "key": "ặc",
+        "steps": [
+          "a",
+          "ă",
+          "ăc",
+          "ặc"
+        ],
+        "stepTimes": [
+          0,
+          44,
+          86,
+          166
+        ]
+      },
+      "time": 24301,
+      "timeDelta": 248
+    },
+    {
+      "action": {
+        "key": " ",
+        "i": 4
+      },
+      "time": 24393,
+      "timeDelta": 92
+    },
+    {
+      "action": {
+        "key": "c",
+        "i": 0
+      },
+      "time": 24485,
+      "timeDelta": 92
+    },
+    {
+      "action": {
+        "key": "h",
+        "i": 1
+      },
+      "time": 24549,
+      "timeDelta": 64
+    },
+    {
+      "action": {
+        "i": 2,
+        "key": "ảy",
+        "steps": [
+          "a",
+          "ay",
+          "ảy"
+        ],
+        "stepTimes": [
+          0,
+          87,
+          142
+        ]
+      },
+      "time": 24776,
+      "timeDelta": 227
+    },
+    {
+      "action": {
+        "key": " ",
+        "i": 4
+      },
+      "time": 24851,
+      "timeDelta": 75
+    },
+    {
+      "action": {
+        "key": "m",
+        "i": 0
+      },
+      "time": 24929,
+      "timeDelta": 78
+    },
+    {
+      "action": {
+        "i": 1,
+        "key": "áu",
+        "steps": [
+          "a",
+          "au",
+          "áu"
+        ],
+        "stepTimes": [
+          0,
+          118,
+          170
+        ]
+      },
+      "time": 25171,
+      "timeDelta": 242
+    },
+    {
+      "action": {
+        "key": " ",
+        "i": 3
+      },
+      "time": 25259,
+      "timeDelta": 88
+    },
+    {
+      "action": {
+        "key": "r",
+        "i": 0
+      },
+      "time": 25322,
+      "timeDelta": 63
+    },
+    {
+      "action": {
+        "i": 1,
+        "key": "ất",
+        "steps": [
+          "a",
+          "â",
+          "ât",
+          "ất"
+        ],
+        "stepTimes": [
+          0,
+          157,
+          261,
+          266
+        ]
+      },
+      "time": 25727,
+      "timeDelta": 405
+    },
+    {
+      "action": {
+        "key": " ",
+        "i": 3
+      },
+      "time": 25797,
+      "timeDelta": 70
+    },
+    {
+      "action": {
+        "key": "n",
+        "i": 0
+      },
+      "time": 25869,
+      "timeDelta": 72
+    },
+    {
+      "action": {
+        "key": "h",
+        "i": 1
+      },
+      "time": 26022,
+      "timeDelta": 153
+    },
+    {
+      "action": {
+        "key": "i",
+        "i": 2
+      },
+      "time": 26091,
+      "timeDelta": 69
+    },
+    {
+      "action": {
+        "i": 3,
+        "key": "ều",
+        "steps": [
+          "e",
+          "ê",
+          "êu",
+          "ều"
+        ],
+        "stepTimes": [
+          0,
+          108,
+          134,
+          248
+        ]
+      },
+      "time": 26386,
+      "timeDelta": 295
+    },
+    {
+      "action": {
+        "key": ".",
+        "i": 5
+      },
+      "time": 26459,
+      "timeDelta": 73
+    }
+  ]
+}
