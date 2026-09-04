@@ -285,6 +285,10 @@ def process_keystroke_data(
     char_pool: dict[str, list[CharPoolEntry]] = {}
     position_keystrokes: dict[int, list[PositionKeystroke]] = {}
     post_correction_positions: set[int] = set()
+    # The keystroke that first reached each character position, while the input was clean.
+    initial_keystroke_assigned = [False] * len(text)
+    char_initial_keystroke_ids = [-1] * len(text)
+    prev_input_dirty = False
     # A position whose next insert inherits correction overhead, drained once claimed.
     pending_post_delete_positions: set[int] = set()
     # Keystrokes whose timeDelta includes delete-and-retype overhead.
@@ -327,6 +331,15 @@ def process_keystroke_data(
 
     def get_absolute_position(relative_position: int) -> int:
         return total_chars_before_word + relative_position
+
+    def assign_initial_keystroke(relative_position: int, ks_id: int):
+        """Record the keystroke that first reached a position, ignoring dirty input."""
+        if prev_input_dirty:
+            return
+        position = get_absolute_position(relative_position)
+        if 0 <= position < len(initial_keystroke_assigned) and not initial_keystroke_assigned[position]:
+            initial_keystroke_assigned[position] = True
+            char_initial_keystroke_ids[position] = ks_id
 
     def add_to_char_pool(char: str, ks_id: int, typed_at_pos: int):
         normalized = normalize_enter(char).lower()
@@ -395,6 +408,8 @@ def process_keystroke_data(
             pending_delays.clear()
 
             # Always add to position_keystrokes at absolute_pos
+            assign_initial_keystroke(action.i, keystroke_id)
+
             if absolute_pos in pending_post_delete_positions:
                 correction_ks_ids.add(keystroke_id)
                 pending_post_delete_positions.discard(absolute_pos)
@@ -451,6 +466,8 @@ def process_keystroke_data(
             )
             composition_extra_time = 0
             absolute_pos = get_absolute_position(r_start)
+            assign_initial_keystroke(r_start, keystroke_id)
+
             adj_start = r_start + buffer_offset
 
             if action.redundant:
@@ -612,6 +629,7 @@ def process_keystroke_data(
             last_key_correct = prefix_matches_word(input_val[:insert_pos + len(typed_chars)], current_word)
             input_val_correct[insert_pos:insert_pos] = [last_key_correct] * len(typed_chars)
 
+            assign_initial_keystroke(insert_pos, keystroke_id)
             pending_post_delete_positions.discard(absolute_pos)
 
             for idx, char in enumerate(typed_chars):
@@ -629,6 +647,8 @@ def process_keystroke_data(
                     pending_delays.clear()
 
             prev_was_insert = False
+
+        input_dirty = not all(input_val_correct)
 
         # accuracy calc
         has_typo = False
@@ -658,6 +678,8 @@ def process_keystroke_data(
             ))
         elif not has_typo and typo_flag:
             typo_flag = False
+
+        prev_input_dirty = input_dirty
 
         # Word completion
         while (current_word and
@@ -818,8 +840,10 @@ def process_keystroke_data(
                     wpm_total_time += reaction_time
                     raw_total_time += reaction_time
 
-                absolute_char_index = total_chars_before_word + (i - chars_before)  # noqa: F841  parsed then dropped, confirm against Go before removing
-                initial_ks_id = attribution[i - chars_before] if (i - chars_before) < len(attribution) else -1
+                absolute_char_index = total_chars_before_word + (i - chars_before)
+                initial_ks_id = -1
+                if 0 <= absolute_char_index < len(char_initial_keystroke_ids):
+                    initial_ks_id = char_initial_keystroke_ids[absolute_char_index]
                 char_count = i if first_char_skipped else i + 1
 
                 keystrokes_wpm_graph_data.append(
