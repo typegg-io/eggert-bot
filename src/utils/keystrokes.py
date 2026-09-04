@@ -391,6 +391,7 @@ def process_keystroke_data(
                     unicodedata.normalize("NFD", old_char)
                 )
             )
+            composition_extra_time = 0
             absolute_pos = get_absolute_position(r_start)
             adj_start = r_start + buffer_offset
 
@@ -422,6 +423,8 @@ def process_keystroke_data(
                 for j in range(adj_start, min(adj_end, len(input_val_contributors))):
                     if input_val_contributors[j] >= 0:
                         preserved_ids.append(input_val_contributors[j])
+                        if is_composition:
+                            composition_extra_time += keystrokes[input_val_contributors[j]].timeDelta
                     preserved_ids.extend(input_val_delays[j])
 
                 del input_val_contributors[adj_start:adj_end]
@@ -441,10 +444,10 @@ def process_keystroke_data(
 
             # Add to charPool/positionKeystrokes for ALL REPLACEs when buffer update succeeds
             if r_start <= r_end and typed_char:
-                add_to_position_keystrokes(absolute_pos, keystroke_id, time_delta)
+                add_to_position_keystrokes(absolute_pos, keystroke_id, time_delta + composition_extra_time)
 
-                # Mark as post-correction for ALL REPLACE (not just non-redundant)
-                if 0 <= absolute_pos < len(text):
+                # Composition is not a correction, so it does not mark the position.
+                if not action.redundant and not is_composition and 0 <= absolute_pos < len(text):
                     post_correction_positions.add(absolute_pos)
 
                 normalized_typed = normalize_enter(typed_char).lower()
