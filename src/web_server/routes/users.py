@@ -2,8 +2,8 @@ import asyncio
 
 from aiohttp import web
 
-from commands.account.download import run as download
 from database.typegg.users import delete_user_data
+from services.importer import run as download
 from utils.logging import log_error, log_server
 from web_server.utils import error_response, validate_authorization
 
