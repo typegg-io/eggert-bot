@@ -1,10 +1,6 @@
 {
   "divergences": {
     "codec/abstract_flaneur.json": {
-      "accuracy": {
-        "go": 97.01086956521739,
-        "python": 96.875
-      },
       "graph_sample": true,
       "raw_wpm": {
         "go": 107.42880833311737,
@@ -26,10 +22,6 @@
       }
     },
     "codec/astro_handtyped_slow.ranked.json": {
-      "accuracy": {
-        "go": 94.36008676789588,
-        "python": 93.49240780911063
-      },
       "graph_sample": true,
       "raw_wpm": {
         "go": 195.40229885057468,
@@ -37,10 +29,6 @@
       }
     },
     "codec/boundaries_5401.json": {
-      "accuracy": {
-        "go": 94.49423815620999,
-        "python": 93.9820742637644
-      },
       "graph_sample": true,
       "raw_wpm": {
         "go": 182.20171390903099,
@@ -62,10 +50,6 @@
       }
     },
     "codec/combining_marks_nfc_perfect.json": {
-      "accuracy": {
-        "go": 100,
-        "python": 96.7741935483871
-      },
       "graph_points": {
         "go": 23,
         "python": 27
@@ -82,17 +66,7 @@
     "codec/dasha_beans_dict_reconstructed.json": {
       "raises": "InvalidKeystrokeData"
     },
-    "codec/he_love_me_not_raw.json": {
-      "accuracy": {
-        "go": 82.65306122448979,
-        "python": 80.61224489795919
-      }
-    },
     "codec/iht_rollover_01.ranked.json": {
-      "accuracy": {
-        "go": 70.4,
-        "python": 60.0
-      },
       "graph_sample": true,
       "raw_wpm": {
         "go": 435.7298474945533,
@@ -107,10 +81,6 @@
       }
     },
     "codec/iht_rollover_03.ranked.json": {
-      "accuracy": {
-        "go": 66.88741721854305,
-        "python": 60.9271523178808
-      },
       "graph_sample": true,
       "raw_wpm": {
         "go": 489.79591836734687,
@@ -118,10 +88,6 @@
       }
     },
     "codec/iht_rollover_04.ranked.json": {
-      "accuracy": {
-        "go": 68.61313868613139,
-        "python": 62.77372262773723
-      },
       "graph_sample": true,
       "raw_wpm": {
         "go": 447.0938897168405,
@@ -129,10 +95,6 @@
       }
     },
     "codec/iht_rollover_05.ranked.json": {
-      "accuracy": {
-        "go": 72.56637168141593,
-        "python": 69.02654867256638
-      },
       "graph_sample": true,
       "raw_wpm": {
         "go": 421.9409282700422,
@@ -140,10 +102,6 @@
       }
     },
     "codec/iht_rollover_06.ranked.json": {
-      "accuracy": {
-        "go": 70.4,
-        "python": 65.6
-      },
       "graph_sample": true,
       "raw_wpm": {
         "go": 461.8937644341802,
@@ -151,10 +109,6 @@
       }
     },
     "codec/iht_rollover_07.ranked.json": {
-      "accuracy": {
-        "go": 69.46564885496183,
-        "python": 64.12213740458016
-      },
       "graph_sample": true,
       "raw_wpm": {
         "go": 459.7701149425288,
@@ -162,10 +116,6 @@
       }
     },
     "codec/iht_rollover_08.ranked.json": {
-      "accuracy": {
-        "go": 89.23076923076923,
-        "python": 87.6923076923077
-      },
       "graph_sample": true,
       "raw_wpm": {
         "go": 451.8072289156626,
@@ -173,10 +123,6 @@
       }
     },
     "codec/iht_rollover_09.ranked.json": {
-      "accuracy": {
-        "go": 71.07438016528926,
-        "python": 65.2892561983471
-      },
       "graph_sample": true,
       "raw_wpm": {
         "go": 463.67851622874804,
@@ -190,17 +136,7 @@
         "python": 407.33197556008145
       }
     },
-    "codec/iht_rollover_11.ranked.json": {
-      "accuracy": {
-        "go": 81.48148148148148,
-        "python": 76.54320987654322
-      }
-    },
     "codec/iht_rollover_12.ranked.json": {
-      "accuracy": {
-        "go": 84.93150684931507,
-        "python": 83.56164383561644
-      },
       "graph_sample": true,
       "raw_wpm": {
         "go": 315.45741324921136,
@@ -208,27 +144,13 @@
       }
     },
     "codec/iht_rollover_13.ranked.json": {
-      "accuracy": {
-        "go": 80,
-        "python": 78.82352941176471
-      },
       "graph_sample": true,
       "raw_wpm": {
         "go": 407.6086956521739,
         "python": 285.171102661597
       }
     },
-    "codec/iht_rollover_14.ranked.json": {
-      "accuracy": {
-        "go": 73.83177570093459,
-        "python": 61.6822429906542
-      }
-    },
     "codec/iht_rollover_15.ranked.json": {
-      "accuracy": {
-        "go": 70.4,
-        "python": 67.2
-      },
       "graph_sample": true,
       "raw_wpm": {
         "go": 485.0444624090541,
@@ -236,10 +158,6 @@
       }
     },
     "codec/iht_rollover_16.ranked.json": {
-      "accuracy": {
-        "go": 73.39449541284404,
-        "python": 68.80733944954129
-      },
       "graph_sample": true,
       "raw_wpm": {
         "go": 480,
@@ -247,10 +165,6 @@
       }
     },
     "codec/iht_rollover_17.ranked.json": {
-      "accuracy": {
-        "go": 89.23076923076923,
-        "python": 86.15384615384616
-      },
       "graph_sample": true,
       "raw_wpm": {
         "go": 418.4100418410042,
@@ -258,10 +172,6 @@
       }
     },
     "codec/iht_rollover_18.ranked.json": {
-      "accuracy": {
-        "go": 77.41935483870968,
-        "python": 74.19354838709677
-      },
       "graph_sample": true,
       "raw_wpm": {
         "go": 419.2872117400419,
@@ -269,10 +179,6 @@
       }
     },
     "codec/iht_rollover_19.ranked.json": {
-      "accuracy": {
-        "go": 73.39449541284404,
-        "python": 59.63302752293578
-      },
       "graph_sample": true,
       "raw_wpm": {
         "go": 438.2761139517896,
@@ -280,33 +186,13 @@
       }
     },
     "codec/iht_rollover_21.ranked.json": {
-      "accuracy": {
-        "go": 78.65168539325843,
-        "python": 76.40449438202248
-      },
       "graph_sample": true,
       "raw_wpm": {
         "go": 446.42857142857144,
         "python": 367.19706242350065
       }
     },
-    "codec/iht_rollover_22.ranked.json": {
-      "accuracy": {
-        "go": 73.83177570093459,
-        "python": 66.35514018691589
-      }
-    },
-    "codec/iht_rollover_23.ranked.json": {
-      "accuracy": {
-        "go": 82.27848101265823,
-        "python": 78.48101265822785
-      }
-    },
     "codec/joshu_3098.json": {
-      "accuracy": {
-        "go": 96.8677494199536,
-        "python": 96.63573085846868
-      },
       "graph_sample": true,
       "raw_wpm": {
         "go": 238.7558627499383,
@@ -314,10 +200,6 @@
       }
     },
     "codec/joshu_bible_lamb.json": {
-      "accuracy": {
-        "go": 96.30314232902033,
-        "python": 95.71164510166359
-      },
       "graph_sample": true,
       "raw_wpm": {
         "go": 225.1819532469486,
@@ -325,10 +207,6 @@
       }
     },
     "codec/jyin_1655.json": {
-      "accuracy": {
-        "go": 97.66483516483517,
-        "python": 97.39010989010988
-      },
       "graph_sample": true,
       "raw_wpm": {
         "go": 199.81204366370272,
@@ -336,10 +214,6 @@
       }
     },
     "codec/keegan_15944.json": {
-      "accuracy": {
-        "go": 84.81012658227849,
-        "python": 77.21518987341773
-      },
       "graph_sample": true,
       "raw_wpm": {
         "go": 269.49152542372883,
@@ -347,10 +221,6 @@
       }
     },
     "codec/keegan_15981.json": {
-      "accuracy": {
-        "go": 93.33333333333333,
-        "python": 89.33333333333333
-      },
       "graph_sample": true,
       "raw_wpm": {
         "go": 291.44178874325365,
@@ -365,10 +235,6 @@
       }
     },
     "codec/keegan_15992.json": {
-      "accuracy": {
-        "go": 81.74603174603175,
-        "python": 80.95238095238095
-      },
       "graph_sample": true,
       "raw_wpm": {
         "go": 270.70347284060546,
@@ -376,10 +242,6 @@
       }
     },
     "codec/keegan_16008.json": {
-      "accuracy": {
-        "go": 97.75280898876404,
-        "python": 96.62921348314607
-      },
       "graph_sample": true,
       "raw_wpm": {
         "go": 262.6582278481013,
@@ -387,10 +249,6 @@
       }
     },
     "codec/keegan_1970.json": {
-      "accuracy": {
-        "go": 89.69465648854961,
-        "python": 88.26335877862596
-      },
       "graph_sample": true,
       "raw_wpm": {
         "go": 212.56122030680274,
@@ -398,10 +256,6 @@
       }
     },
     "codec/keegan_4093.json": {
-      "accuracy": {
-        "go": 94.40459110473458,
-        "python": 93.974175035868
-      },
       "graph_sample": true,
       "raw_wpm": {
         "go": 189.45179632648345,
@@ -409,10 +263,6 @@
       }
     },
     "codec/keegan_5112.json": {
-      "accuracy": {
-        "go": 94.16598192276089,
-        "python": 93.28950972336347
-      },
       "graph_sample": true,
       "raw_wpm": {
         "go": 195.51996911024287,
@@ -427,10 +277,6 @@
       }
     },
     "codec/keegan_5888.json": {
-      "accuracy": {
-        "go": 95.94896331738437,
-        "python": 95.50239234449761
-      },
       "graph_sample": true,
       "raw_wpm": {
         "go": 187.22793746026053,
@@ -438,10 +284,6 @@
       }
     },
     "codec/keegan_7789.json": {
-      "accuracy": {
-        "go": 95.7191137814495,
-        "python": 94.6676680435599
-      },
       "graph_sample": true,
       "raw_wpm": {
         "go": 188.24442289039766,
@@ -449,10 +291,6 @@
       }
     },
     "codec/keegan_7842.json": {
-      "accuracy": {
-        "go": 97.31883277700011,
-        "python": 96.95272962205233
-      },
       "graph_sample": true,
       "raw_wpm": {
         "go": 182.73974219664018,
@@ -466,17 +304,7 @@
         "python": 247.84482758620692
       }
     },
-    "codec/keegan_8408.json": {
-      "accuracy": {
-        "go": 91.2621359223301,
-        "python": 89.80582524271844
-      }
-    },
     "codec/keegan_8581.json": {
-      "accuracy": {
-        "go": 67.0391061452514,
-        "python": 62.01117318435754
-      },
       "graph_sample": true,
       "raw_wpm": {
         "go": 338.88048411497726,
@@ -484,10 +312,6 @@
       }
     },
     "codec/keegan_8827.json": {
-      "accuracy": {
-        "go": 67.94871794871794,
-        "python": 67.09401709401709
-      },
       "graph_sample": true,
       "raw_wpm": {
         "go": 378.94736842105266,
@@ -502,10 +326,6 @@
       }
     },
     "codec/keegan_9390.json": {
-      "accuracy": {
-        "go": 95.76294402337686,
-        "python": 94.90457492466442
-      },
       "graph_sample": true,
       "raw_wpm": {
         "go": 164.81612855328063,
@@ -513,10 +333,6 @@
       }
     },
     "codec/keegan_9460.json": {
-      "accuracy": {
-        "go": 79.08045977011494,
-        "python": 77.24137931034483
-      },
       "graph_sample": true,
       "raw_wpm": {
         "go": 252.05671276037108,
@@ -524,10 +340,6 @@
       }
     },
     "codec/keegan_9693.json": {
-      "accuracy": {
-        "go": 75.64102564102564,
-        "python": 73.93162393162393
-      },
       "graph_sample": true,
       "raw_wpm": {
         "go": 333.2514131236176,
@@ -535,10 +347,6 @@
       }
     },
     "codec/keegan_9733.json": {
-      "accuracy": {
-        "go": 74.59016393442623,
-        "python": 68.0327868852459
-      },
       "graph_sample": true,
       "raw_wpm": {
         "go": 350.3649635036496,
@@ -546,44 +354,20 @@
       }
     },
     "codec/keegan_9942.json": {
-      "accuracy": {
-        "go": 86.72566371681415,
-        "python": 81.41592920353982
-      },
       "graph_sample": true,
       "raw_wpm": {
         "go": 213.9514151994651,
         "python": 204.8218476637508
       }
     },
-    "codec/keegan_broken_raw_1.json": {
-      "accuracy": {
-        "go": 98.46153846153847,
-        "python": 97.6923076923077
-      }
-    },
     "codec/keegan_ctrl_a_replace.json": {
-      "accuracy": {
-        "go": 89.1566265060241,
-        "python": 85.5421686746988
-      },
       "graph_sample": true,
       "raw_wpm": {
         "go": 229.62962962962962,
         "python": 209.93227990970655
       }
     },
-    "codec/keegan_mismatch.json": {
-      "accuracy": {
-        "go": 87.00564971751412,
-        "python": 83.05084745762711
-      }
-    },
     "codec/keegan_raw_spike.json": {
-      "accuracy": {
-        "go": 69.50354609929079,
-        "python": 67.37588652482269
-      },
       "graph_sample": true,
       "raw_wpm": {
         "go": 341.4911781445646,
@@ -602,10 +386,6 @@
       }
     },
     "codec/korean_ime_typos.json": {
-      "accuracy": {
-        "go": 88.57142857142857,
-        "python": 85.71428571428571
-      },
       "graph_sample": true,
       "raw_wpm": {
         "go": 51.379638439581356,
@@ -656,10 +436,6 @@
       }
     },
     "raw/bible_lamb_jyin_log.json": {
-      "accuracy": {
-        "go": 96.85511044552602,
-        "python": 96.53687757394235
-      },
       "graph_sample": true,
       "raw_wpm": {
         "go": 188.03520792837827,
@@ -667,10 +443,6 @@
       }
     },
     "raw/broken_raw_1.json": {
-      "accuracy": {
-        "go": 84.65753424657534,
-        "python": 40.0
-      },
       "graph_sample": true,
       "raw_wpm": {
         "go": 163.09594377169955,
@@ -678,10 +450,6 @@
       }
     },
     "raw/combining_marks_perfect.json": {
-      "accuracy": {
-        "go": 100,
-        "python": 96.7741935483871
-      },
       "graph_points": {
         "go": 23,
         "python": 27
@@ -698,7 +466,7 @@
     "raw/m_enter_1.json": {
       "accuracy": {
         "go": 72.72727272727273,
-        "python": 74.50980392156863
+        "python": 74.0
       },
       "graph_sample": true,
       "raw_wpm": {
