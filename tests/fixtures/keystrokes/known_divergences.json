@@ -7,20 +7,6 @@
         "python": 106.83088974207013
       }
     },
-    "codec/add_word_ime_cheat.json": {
-      "graph_points": {
-        "go": 50,
-        "python": 49
-      },
-      "raw_wpm": {
-        "go": 216.52832912306027,
-        "python": 217.69714920399855
-      },
-      "wpm": {
-        "go": 216.52832912306027,
-        "python": 217.69714920399855
-      }
-    },
     "codec/astro_handtyped_slow.ranked.json": {
       "graph_sample": true,
       "raw_wpm": {
@@ -36,25 +22,7 @@
       }
     },
     "codec/combining_chars_perfect.json": {
-      "graph_sample": true,
-      "raw_wpm": {
-        "go": 39.672272531263474,
-        "python": 46.57179818887452
-      },
-      "wpm": {
-        "go": 39.672272531263474,
-        "python": 46.57179818887452
-      }
-    },
-    "codec/combining_marks_nfc_perfect.json": {
-      "raw_wpm": {
-        "go": 38.98855770589066,
-        "python": 45.76917643734991
-      },
-      "wpm": {
-        "go": 38.98855770589066,
-        "python": 45.76917643734991
-      }
+      "graph_sample": true
     },
     "codec/dasha_beans_dict_reconstructed.json": {
       "raises": "InvalidKeystrokeData"
@@ -367,26 +335,11 @@
         "python": 259.852750108272
       }
     },
-    "codec/korean_ime_perfect.json": {
-      "graph_sample": true,
-      "raw_wpm": {
-        "go": 60.20066889632108,
-        "python": 57.97101449275363
-      },
-      "wpm": {
-        "go": 60.20066889632108,
-        "python": 59.18057663125949
-      }
-    },
     "codec/korean_ime_typos.json": {
       "graph_sample": true,
       "raw_wpm": {
         "go": 51.379638439581356,
-        "python": 48.4171322160149
-      },
-      "wpm": {
-        "go": 36.51115618661258,
-        "python": 35.75521430208572
+        "python": 50.27932960893855
       }
     },
     "codec/robby_jp_acc.json": {
@@ -396,36 +349,24 @@
       "raises": "InvalidKeystrokeData"
     },
     "codec/robby_jp_perfect.json": {
-      "graph_sample": true,
-      "raw_wpm": {
-        "go": 45.544253833308034,
-        "python": 43.7224836799757
-      },
-      "wpm": {
-        "go": 45.544253833308034,
-        "python": 44.25322679778734
-      }
+      "graph_sample": true
     },
     "codec/surrogate_pair.json": {
       "graph_sample": true,
       "raw_wpm": {
         "go": 50.4116955133591,
-        "python": 45.12691946098402
+        "python": 47.007207771858354
       },
       "wpm": {
         "go": 16.294606485253382,
-        "python": 15.642822225843243
+        "python": 20.31694433157253
       }
     },
     "codec/vietnamese_ime_perfect.json": {
       "graph_sample": true,
-      "raw_wpm": {
-        "go": 57.301293900184845,
-        "python": 55.452865064695004
-      },
       "wpm": {
         "go": 57.301293900184845,
-        "python": 35.08771929824562
+        "python": 36.10248447204969
       }
     },
     "raw/bible_lamb_jyin_log.json": {
@@ -440,16 +381,10 @@
       "raw_wpm": {
         "go": 163.09594377169955,
         "python": 160.3964106514543
-      }
-    },
-    "raw/combining_marks_perfect.json": {
-      "raw_wpm": {
-        "go": 38.98855770589066,
-        "python": 45.76917643734991
       },
       "wpm": {
-        "go": 38.98855770589066,
-        "python": 45.76917643734991
+        "go": 130.22972767381714,
+        "python": 130.57848438109122
       }
     },
     "raw/m_enter_1.json": {
