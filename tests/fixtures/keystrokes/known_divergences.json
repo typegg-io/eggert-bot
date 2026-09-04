@@ -1,11 +1,5 @@
 {
   "divergences": {
-    "codec/combining_chars_perfect.json": {
-      "graph_values": {
-        "first_diverging_point": 5,
-        "of": 23
-      }
-    },
     "codec/dasha_beans_dict_reconstructed.json": {
       "raises": "InvalidKeystrokeData"
     },
@@ -23,7 +17,7 @@
     },
     "codec/surrogate_pair.json": {
       "graph_values": {
-        "first_diverging_point": 1,
+        "first_diverging_point": 2,
         "of": 25
       },
       "raw_wpm": {
@@ -32,7 +26,7 @@
       },
       "wpm": {
         "go": 16.294606485253382,
-        "python": 20.31694433157253
+        "python": 29.741251115296915
       }
     },
     "codec/vietnamese_ime_perfect.json": {
@@ -53,7 +47,7 @@
     },
     "raw/broken_raw_1.json": {
       "graph_values": {
-        "first_diverging_point": 157,
+        "first_diverging_point": 582,
         "of": 642
       },
       "raw_wpm": {
@@ -81,12 +75,6 @@
       "wpm": {
         "go": 78.46214201647705,
         "python": 72.74490785645006
-      }
-    },
-    "raw/vietnamese_telex_composed.json": {
-      "graph_values": {
-        "first_diverging_point": 1,
-        "of": 237
       }
     }
   },

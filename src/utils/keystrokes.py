@@ -407,19 +407,34 @@ def process_keystroke_data(
             last_key_correct = prefix_matches_word(input_val[:i + len(typed_char)], current_word)
             input_val_correct[i:i] = [last_key_correct] * len(typed_char)
 
+            # One key can insert several codepoints, and every one of them is contributed by
+            # this keystroke, so the same-contributor guard can charge them as one keypress.
             adj_i = i + buffer_offset
-            if adj_i >= len(input_val_contributors):
-                input_val_contributors.append(keystroke_id)
-                input_val_delays.append(list(pending_delays) if pending_delays else [])
-            else:
-                # When inserting in the middle, merge existing delays at this position
-                # with pending_delays. This handles the case where DELETE added delays
-                # to a position, and now INSERT is typing a new character there.
-                existing_delays = input_val_delays[adj_i] if adj_i < len(input_val_delays) else []
-                merged_delays = list(pending_delays) + existing_delays
-                input_val_contributors.insert(adj_i, keystroke_id)
-                input_val_delays.insert(adj_i, merged_delays)
-            pending_delays.clear()
+            key_length = len(typed_char)
+
+            size = max(len(input_val_contributors) + key_length, adj_i + key_length)
+            new_contributors = [0] * size
+            head = min(adj_i, len(input_val_contributors))
+            new_contributors[:head] = input_val_contributors[:head]
+            for j in range(key_length):
+                new_contributors[adj_i + j] = keystroke_id
+            if adj_i < len(input_val_contributors):
+                tail = input_val_contributors[adj_i:]
+                new_contributors[adj_i + key_length:adj_i + key_length + len(tail)] = tail
+            input_val_contributors = new_contributors
+
+            # The first inserted codepoint picks up any pending delays.
+            size = max(len(input_val_delays) + key_length, adj_i + key_length)
+            new_delays: list[list[int]] = [[] for _ in range(size)]
+            head = min(adj_i, len(input_val_delays))
+            new_delays[:head] = input_val_delays[:head]
+            if pending_delays:
+                new_delays[adj_i] = list(pending_delays)
+                pending_delays.clear()
+            if adj_i < len(input_val_delays):
+                tail_delays = input_val_delays[adj_i:]
+                new_delays[adj_i + key_length:adj_i + key_length + len(tail_delays)] = tail_delays
+            input_val_delays = new_delays
 
             # Always add to position_keystrokes at absolute_pos
             assign_initial_keystroke(action.i, keystroke_id)
