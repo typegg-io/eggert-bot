@@ -14,8 +14,11 @@ Fixtures and expected values are vendored from typegg's own goldens:
     python tests/fixtures/refresh_divergences.py          # after fixing the port
 """
 
+import json
+import os
+
 import pytest
-from keystroke_diff import EXCLUDED, compare, load_golden, load_manifest
+from keystroke_diff import EXCLUDED, FIXTURE_DIR, compare, load_golden, load_manifest
 
 GOLDEN = load_golden()
 MANIFEST = load_manifest()
@@ -65,3 +68,41 @@ def test_parity_progress_is_reported(record_property):
     record_property("keystroke_parity_matching", total - diverging)
     record_property("keystroke_parity_total", total)
     assert diverging <= len(MANIFEST)
+
+
+# The full graph golden is a diagnostic rather than a second gate. The ratchet above is the gate.
+# These only check that a vendored copy is well formed, so a bad refresh is caught early.
+
+GRAPH_GOLDEN = os.path.join(FIXTURE_DIR, "graph_golden.json")
+
+
+@pytest.mark.skipif(not os.path.isfile(GRAPH_GOLDEN), reason="graph golden not vendored yet")
+def test_graph_golden_covers_the_same_fixtures():
+    """The full graph and the sampled golden describe the same corpus."""
+    with open(GRAPH_GOLDEN, encoding="utf-8") as f:
+        graph = json.load(f)
+
+    sampled = {f"{g['format']}/{g['file']}" for g in GOLDEN}
+    full = {f"{g['format']}/{g['file']}" for g in graph}
+    assert sorted(sampled - full) == []
+
+
+@pytest.mark.skipif(not os.path.isfile(GRAPH_GOLDEN), reason="graph golden not vendored yet")
+def test_graph_golden_agrees_with_the_sampled_golden():
+    """Both goldens come from the same Go run, so their scalars must match."""
+    with open(GRAPH_GOLDEN, encoding="utf-8") as f:
+        graph = {f"{g['format']}/{g['file']}": g for g in json.load(f)}
+
+    mismatches = []
+    for entry in GOLDEN:
+        other = graph.get(f"{entry['format']}/{entry['file']}")
+        if other is None:
+            continue
+        for field in ("wpm", "raw_wpm", "accuracy", "duration"):
+            if other[field] != entry[field]:
+                mismatches.append(f"{entry['file']} {field}: {entry[field]} vs {other[field]}")
+        if len(other["points"]) != entry["graph_points"]:
+            mismatches.append(
+                f"{entry['file']} point count: {entry['graph_points']} vs {len(other['points'])}"
+            )
+    assert mismatches == []
