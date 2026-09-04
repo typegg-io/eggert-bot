@@ -61,6 +61,19 @@ def test_matches_go_or_diverges_exactly_as_recorded(golden):
         f"Run tests/fixtures/refresh_divergences.py to shrink the manifest."
     )
 
+    # The graph diverges somewhere in both, so compare where. Moving later is progress and must
+    # be recorded; moving earlier is a regression.
+    was = expected.get("graph_values", {}).get("first_diverging_point")
+    now = actual.get("graph_values", {}).get("first_diverging_point")
+    if was is not None and now is not None:
+        assert now >= was, (
+            f"{key} now diverges at graph point {now}, earlier than the recorded {was}."
+        )
+        assert now <= was, (
+            f"{key} now diverges at graph point {now}, later than the recorded {was}. "
+            f"Run tests/fixtures/refresh_divergences.py to record the gain."
+        )
+
 
 def test_parity_progress_is_reported(record_property):
     """Surface how much of the corpus still diverges, so progress is visible in CI output."""
