@@ -254,6 +254,22 @@ def process_keystroke_data(
     words = split_words(text)
     cp_to_grapheme, grapheme_count = build_cp_to_grapheme(text)
 
+    # A clean start is the only case where the first character's time is dropped.
+    is_ime_start = bool(keystrokes) and isinstance(keystrokes[0].action, KeystrokeComposition)
+    first_key_is_partial_surrogate = False
+    if keystrokes and isinstance(keystrokes[0].action, KeystrokeInsert):
+        first_key = keystrokes[0].action.key
+        if first_key and (ord(first_key[0]) == 0xFFFD or 0xD800 <= ord(first_key[0]) <= 0xDBFF):
+            first_key_is_partial_surrogate = True
+    is_clean_start = (
+        not is_multiplayer
+        and bool(keystrokes)
+        and keystrokes[0].timeDelta == 0
+        and not is_ime_start
+        and not first_key_is_partial_surrogate
+    )
+    first_char_skipped = False
+
     raw_character_times: list[float] = []
     wpm_character_times: list[float] = []
     keystrokes_wpm_graph_data: list[GraphDataPoint] = []
@@ -265,7 +281,6 @@ def process_keystroke_data(
     wpm_running_total = 0.0
     raw_running_total = 0.0
     total_chars_before_word = 0  # cache for chars before current word
-    first_char_ime_adjustment = 0.0
 
     char_pool: dict[str, list[CharPoolEntry]] = {}
     position_keystrokes: dict[int, list[PositionKeystroke]] = {}
@@ -755,15 +770,6 @@ def process_keystroke_data(
                     global_used_actual_ids.add(contributor_id)
                     actual_time += keystrokes[contributor_id].timeDelta
 
-                    # for first character in solo mode with IME, subtract first step time for adjusted wpm
-                    is_first_char_overall = len(wpm_character_times) == 0 and i == 0
-                    if is_first_char_overall and not is_multiplayer and actual_time > 0:
-                        action = keystrokes[contributor_id].action
-                        if isinstance(action, KeystrokeComposition) and len(action.stepTimes) > 1:
-                            ime_step_time = action.stepTimes[1]
-                            actual_time -= ime_step_time
-                            first_char_ime_adjustment = ime_step_time
-
                 for delay_id in delay_ids:
                     if delay_id not in global_used_actual_ids:
                         global_used_actual_ids.add(delay_id)
@@ -777,16 +783,11 @@ def process_keystroke_data(
                 actual_times_for_word, total_chars_before_word, cp_to_grapheme
             )
 
-            is_first_word = len(wpm_character_times) == 0
-            first_char_time_is_zero = len(actual_times_for_word) > 0 and actual_times_for_word[0] == 0.0
-
-            if is_first_word:
-                if not is_multiplayer and first_char_time_is_zero:
-                    chars_before = 1  # Solo with non-IME: skip first char
-                else:
-                    chars_before = 0  # Multiplayer OR IME: include first char
-            else:
-                chars_before = len(wpm_character_times)
+            chars_before = len(wpm_character_times)
+            first_char_is_free = len(actual_times_for_word) == 0 or actual_times_for_word[0] == 0
+            if chars_before == 0 and is_clean_start and first_char_is_free:
+                chars_before = 1
+                first_char_skipped = True
 
             wpm_character_times.extend(actual_times_for_word)
 
@@ -803,14 +804,15 @@ def process_keystroke_data(
 
                 absolute_char_index = total_chars_before_word + (i - chars_before)  # noqa: F841  parsed then dropped, confirm against Go before removing
                 initial_ks_id = attribution[i - chars_before] if (i - chars_before) < len(attribution) else -1
+                char_count = i if first_char_skipped else i + 1
 
                 keystrokes_wpm_graph_data.append(
                     GraphDataPoint(
                         charIndex=i,
                         wordIndex=word_index,
                         initialKeystrokeId=initial_ks_id,
-                        raw=calculate_wpm(i + (1 if is_multiplayer else 0), raw_total_time),
-                        wpm=calculate_wpm(i + (1 if is_multiplayer else 0), wpm_total_time),
+                        raw=calculate_wpm(char_count, raw_total_time),
+                        wpm=calculate_wpm(char_count, wpm_total_time),
                         time=wpm_total_time
                     )
                 )
@@ -860,19 +862,18 @@ def process_keystroke_data(
             wpm_running_total += additional_time  # Update running total too
 
             last_point = keystrokes_wpm_graph_data[-1]
-            text_len = len(text) - 1
+            text_len = len(wpm_character_times) - 1 if first_char_skipped else len(wpm_character_times)
             total_time = wpm_running_total
             last_point.wpm = calculate_wpm(text_len, total_time)
             last_point.time = total_time
 
-    text_length = len(text) - 1
+    # wpm_character_times is the authoritative grapheme count. split_words can drop trailing
+    # characters, so grapheme_count can differ.
+    processed_graphemes = len(wpm_character_times)
+    text_length = processed_graphemes - 1 if first_char_skipped else processed_graphemes
     total_raw_time = raw_running_total
 
-    last_timestamp = keystrokes[-1].time if keystrokes else 0
-
-    total_time_for_wpm = last_timestamp
-    if not is_multiplayer:
-        total_time_for_wpm -= first_char_ime_adjustment
+    total_time_for_wpm = wpm_running_total
 
     raw_wpm = calculate_wpm(text_length, total_raw_time) if total_raw_time > 0 else 0.0
     wpm = calculate_wpm(text_length, total_time_for_wpm) if total_time_for_wpm > 0 else 0.0
