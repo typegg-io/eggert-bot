@@ -4,8 +4,7 @@ import aiohttp
 import discord
 from aiohttp import web
 
-from api.core import API_URL
-from config import LANGUAGE_ROLE_IDS, SECRET, VERIFIED_ROLE_NAME
+from config import API_URL, LANGUAGE_ROLE_IDS, SECRET, VERIFIED_ROLE_NAME
 from database.bot.users import update_gg_plus_status, update_theme
 from utils.colors import GG_PLUS_THEME
 from utils.logging import log_server

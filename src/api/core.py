@@ -1,5 +1,4 @@
 import asyncio
-import os
 
 import aiohttp
 from aiohttp import ContentTypeError
@@ -8,7 +7,6 @@ from config import SECRET
 from utils.errors import APIError
 from utils.logging import log
 
-API_URL = os.getenv("API_URL")
 AUTH_HEADERS = {
     "Authorization": SECRET,
 }

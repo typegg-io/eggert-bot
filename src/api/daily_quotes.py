@@ -1,7 +1,8 @@
 from datetime import timedelta
 from typing import Any
 
-from api.core import API_URL, request
+from api.core import request
+from config import API_URL
 from utils import dates
 from utils.dates import now, parse_date
 

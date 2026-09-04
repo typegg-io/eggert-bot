@@ -1,7 +1,8 @@
 from typing import Any
 from urllib.parse import quote
 
-from api.core import API_URL, request
+from api.core import request
+from config import API_URL
 
 
 async def get_race(race_id: str) -> dict[str, Any]:
