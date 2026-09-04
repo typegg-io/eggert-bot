@@ -1,7 +1,8 @@
 """Vendor the full keystroke graph golden produced by ~/gparity/run.sh.
 
 Replaces the 25-point sample in golden.json with every point, so per-character timing can be
-compared directly instead of inferred from a summary. Points are stored as arrays:
+compared directly instead of inferred from a summary. Stored gzipped, since 50,000 points of
+float text is 2.8 MB plain. Points are arrays:
 
     [charIndex, wordIndex, initialKeystrokeID, time, wpm, raw]
 
@@ -9,6 +10,7 @@ compared directly instead of inferred from a summary. Points are stored as array
     python tools/refresh_graph_golden.py
 """
 
+import gzip
 import json
 import os
 import sys
@@ -16,7 +18,7 @@ import sys
 DEFAULT_SOURCE = r"\\wsl.localhost\Ubuntu-24.04\home\keegan\gparity\graph_golden.json"
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-DEST = os.path.join(HERE, "..", "tests", "fixtures", "keystrokes", "graph_golden.json")
+DEST = os.path.join(HERE, "..", "tests", "fixtures", "keystrokes", "graph_golden.json.gz")
 
 
 def main() -> int:
@@ -37,10 +39,10 @@ def main() -> int:
 
     points = sum(len(entry["points"]) for entry in golden)
 
+    # Gzipped: 2.8 MB of float text compresses to 1.1 MB, under the large-file hook's limit.
     dest = os.path.normpath(DEST)
-    with open(dest, "w", encoding="utf-8", newline="\n") as f:
+    with gzip.open(dest, "wt", encoding="utf-8", newline="\n", compresslevel=9) as f:
         json.dump(golden, f, separators=(",", ":"))
-        f.write("\n")
 
     size = os.path.getsize(dest) / (1024 * 1024)
     print(f"vendored {len(golden)} fixtures, {points:,} graph points ({size:.1f} MB)")
