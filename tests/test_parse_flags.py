@@ -123,9 +123,27 @@ def test_an_unrecognised_word_is_left_alone():
 
 # Quote ids
 
-@pytest.mark.parametrize("token", ["^", "daily", "piykyai_3408"])
-def test_quote_id_flag(token):
+@pytest.mark.parametrize("token", ["^", "daily"])
+def test_quote_id_keywords(token):
     assert flags_for(f"-r {token}").quote_id == token
+
+
+def test_a_real_quote_id_is_recognised(monkeypatch):
+    """is_quote_id queries the quotes table, so this branch is stubbed to stay database free.
+
+    parse_flags therefore runs one SELECT per unrecognised token on every command invocation.
+    """
+    import bot_setup
+
+    monkeypatch.setattr(bot_setup, "is_quote_id", lambda token: token == "piykyai_3408")
+    assert flags_for("-r piykyai_3408").quote_id == "piykyai_3408"
+
+
+def test_an_unknown_token_is_not_a_quote_id(monkeypatch):
+    import bot_setup
+
+    monkeypatch.setattr(bot_setup, "is_quote_id", lambda token: False)
+    assert flags_for("-r keegant").quote_id is None
 
 
 # Stripping and reporting
