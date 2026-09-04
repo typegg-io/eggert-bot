@@ -1,9 +1,9 @@
 from discord.ext import commands
 
 from api.quotes import calculate_metric
-from bot_setup import BotContext
 from commands.base import Command, enforce_daily_quote
 from config import DAILY_QUOTE_CHANNEL_ID
+from context import BotContext
 from utils.errors import MissingArguments
 from utils.messages import Message, Page, usable_in
 from utils.strings import quote_display

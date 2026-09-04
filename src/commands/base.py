@@ -6,8 +6,8 @@ from discord.ext import commands
 
 from api.quotes import get_quote as get_quote_api
 from api.users import get_profile
-from bot_setup import BotContext
 from config import DAILY_QUOTE_CHANNEL_ID, STATS_CHANNEL_ID
+from context import BotContext
 from database.bot.recent_quotes import get_recent_quote, set_recent_quote
 from database.bot.users import get_user_by_user_id, update_gg_plus_status, update_warning
 from database.typegg.daily_quotes import get_daily_quote_id

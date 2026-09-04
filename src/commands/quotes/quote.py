@@ -1,9 +1,9 @@
 import numpy as np
 from discord.ext import commands
 
-from bot_setup import BotContext
 from commands.base import Command, enforce_daily_quote
 from config import DAILY_QUOTE_CHANNEL_ID
+from context import BotContext
 from database.typegg.races import get_race, get_races
 from database.typegg.users import get_quote_bests
 from graphs import improvement

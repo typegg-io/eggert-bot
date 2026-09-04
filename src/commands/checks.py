@@ -1,7 +1,7 @@
 from discord.ext import commands
 
-from bot_setup import BotContext
 from config import EIKO, KEEGAN, STAGING
+from context import BotContext
 from utils.errors import UserNotAdmin, UserNotOwner
 
 

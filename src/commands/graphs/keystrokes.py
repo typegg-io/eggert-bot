@@ -1,7 +1,7 @@
 from discord.ext import commands
 
-from bot_setup import BotContext
 from commands.base import Command
+from context import BotContext
 from database.typegg.races import get_quote_race_counts
 from graphs.keystrokes import render
 from utils.data_structures import ScaledCounter

@@ -1,9 +1,9 @@
 from dateutil.relativedelta import relativedelta
 from discord.ext import commands
 
-from bot_setup import BotContext
 from commands.base import Command
 from commands.summary.races import run
+from context import BotContext
 
 info = {
     "name": "month",

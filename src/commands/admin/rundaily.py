@@ -1,8 +1,8 @@
 from discord.ext import commands
 
-from bot_setup import BotContext
 from commands.base import Command
 from commands.checks import is_bot_owner
+from context import BotContext
 from tasks import daily_quote_ping, daily_quote_results, import_daily_quotes
 from utils.messages import Message, Page
 

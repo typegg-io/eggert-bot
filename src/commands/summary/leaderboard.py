@@ -1,10 +1,10 @@
 from discord.ext import commands
 
 from api.leaders import get_leaders, get_multiplayer_leaders
-from bot_setup import BotContext
 from commands.base import Command, enforce_daily_quote
 from commands.quotes.quoteleaderboard import run as run_quoteleaderboard
 from config import DAILY_QUOTE_CHANNEL_ID
+from context import BotContext
 from database.typegg.daily_quotes import get_daily_rank_leaderboard
 from database.typegg.quotes import get_ranked_quote_chars, get_ranked_quote_count, get_top_submitters
 from database.typegg.users import get_quote_chars_typed, get_quotes_over_leaderboard, get_user_lookup

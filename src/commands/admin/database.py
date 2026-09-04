@@ -1,8 +1,8 @@
 from discord.ext import commands
 
-from bot_setup import BotContext
 from commands.base import Command
 from commands.checks import is_bot_owner
+from context import BotContext
 from database.typegg.db import get_row_count
 from utils.messages import Message, Page
 

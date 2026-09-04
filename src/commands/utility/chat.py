@@ -3,9 +3,9 @@ from collections import OrderedDict
 import anthropic
 from discord.ext import commands
 
-from bot_setup import BotContext
 from commands.base import Command
 from config import ANTHROPIC_API_KEY, KEEGAN
+from context import BotContext
 from database.bot.chat_usage import get_daily_usage, increment_usage
 from utils.chatbot import MAX_HISTORY, MODEL, get_system_prompt
 from utils.colors import ERROR

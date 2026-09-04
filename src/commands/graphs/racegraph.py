@@ -1,8 +1,8 @@
 from discord.ext import commands
 
-from bot_setup import BotContext
 from commands.base import Command, enforce_daily_quote
 from config import DAILY_QUOTE_CHANNEL_ID
+from context import BotContext
 from database.bot.recent_quotes import set_recent_quote
 from database.typegg.quotes import get_quote
 from database.typegg.races import get_race

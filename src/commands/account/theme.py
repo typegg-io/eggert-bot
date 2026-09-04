@@ -4,9 +4,9 @@ import matplotlib.colors as mcolors
 from discord import Embed, File, Member
 from discord.ext import commands
 
-from bot_setup import BotContext
 from commands.base import Command
 from config import KEEGAN
+from context import BotContext
 from database.bot.users import get_theme, get_user, update_theme
 from graphs import sample
 from graphs.core import plt

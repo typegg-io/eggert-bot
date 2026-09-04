@@ -1,8 +1,8 @@
 from discord.ext import commands
 
-from bot_setup import BotContext
 from commands.base import Command
 from config import GENERAL_CHANNEL_ID
+from context import BotContext
 from utils.messages import usable_in
 
 info = {

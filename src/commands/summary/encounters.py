@@ -1,9 +1,9 @@
 import numpy as np
 from discord.ext import commands
 
-from bot_setup import BotContext
 from commands.base import Command
 from config import EIKO
+from context import BotContext
 from database.typegg.match_results import get_encounter_stats, get_match_stats, get_opponent_encounters
 from database.typegg.quotes import get_quote, get_quotes
 from database.typegg.races import get_races

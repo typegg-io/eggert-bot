@@ -2,8 +2,8 @@
 import numpy as np
 from discord.ext import commands
 
-from bot_setup import BotContext
 from commands.base import Command
+from context import BotContext
 from database.typegg.quotes import get_quotes
 from database.typegg.users import get_quote_bests
 from graphs import best as best_graph

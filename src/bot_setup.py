@@ -6,6 +6,7 @@ import aiohttp
 import discord
 from discord.ext import commands
 
+from commands.base import Command
 from config import (
     BOT_PREFIX,
     CHAT_CHANNEL_UNIVERSES,
@@ -17,6 +18,7 @@ from config import (
     STATS_CHANNEL_ID,
     TYPEGG_GUILD_ID,
 )
+from context import BotContext
 from database.bot.users import get_all_command_usage, get_user, get_user_ids, update_commands
 from database.typegg.quotes import is_quote_id
 from utils.dates import is_date_like, parse_date
@@ -24,6 +26,7 @@ from utils.errors import BotLocked, InvalidNumber, UserBanned
 from utils.files import get_command_modules
 from utils.flags import FLAG_VALUES, Flags, Language
 from utils.logging import get_log_message, log
+from utils.messages import check_channel_permissions, command_milestone, welcome_message
 from utils.strings import get_argument, parse_number, parse_wpm_range
 from utils.urls import parse_solo_url
 from web_server.utils import assign_user_roles
@@ -41,13 +44,6 @@ def set_lockdown(state: bool):
 
 def is_locked():
     return _locked
-
-
-class BotContext(commands.Context):
-    flags: Flags
-    explicit_flags: dict[str, str]
-    user: dict
-    raw_args: tuple
 
 
 class Eggert(commands.Bot):
@@ -168,7 +164,6 @@ def parse_flags(content: str) -> tuple[Flags, str, dict[str, str]]:
 
 async def load_commands(bot):
     """Load all command cogs into the bot."""
-    from commands.base import Command
 
     for group, file, module in get_command_modules():
         for obj in module.__dict__.values():
@@ -179,7 +174,6 @@ async def load_commands(bot):
 
 def register_bot_checks(bot):
     """Register global bot checks and event handlers."""
-    from utils.messages import check_channel_permissions
 
     @bot.check
     async def lockdown_check(ctx: BotContext):
@@ -253,7 +247,6 @@ def register_bot_checks(bot):
     @bot.event
     async def on_message(message):
         """Global message handler."""
-        from utils.messages import welcome_message
 
         if message.author.bot:
             return
@@ -296,7 +289,6 @@ def register_bot_checks(bot):
 
     @bot.event
     async def on_command_completion(ctx: BotContext):
-        from utils.messages import command_milestone
         global total_commands
 
         command_origin = "server" if ctx.guild else "dm"

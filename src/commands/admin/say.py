@@ -1,9 +1,9 @@
 from discord.ext import commands
 
-from bot_setup import BotContext
 from commands.base import Command
 from commands.checks import is_bot_owner
 from config import STATS_CHANNEL_ID
+from context import BotContext
 
 info = {
     "name": "say",

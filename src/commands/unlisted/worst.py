@@ -1,8 +1,8 @@
 from discord.ext import commands
 
-from bot_setup import BotContext
 from commands.base import Command
 from commands.quotes.best import run
+from context import BotContext
 from utils.errors import NotSubscribed
 
 info = {

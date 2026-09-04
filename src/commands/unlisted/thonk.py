@@ -4,8 +4,8 @@ from discord import File
 from discord.ext import commands
 from thonk import generate_thonk
 
-from bot_setup import BotContext
 from commands.base import Command
+from context import BotContext
 from utils import files
 
 info = {

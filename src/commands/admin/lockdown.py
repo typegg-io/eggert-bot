@@ -1,8 +1,9 @@
 from discord.ext import commands
 
-from bot_setup import BotContext, is_locked, set_lockdown
+from bot_setup import is_locked, set_lockdown
 from commands.base import Command
 from commands.checks import is_bot_owner
+from context import BotContext
 from utils.messages import Message, Page
 
 info = {
