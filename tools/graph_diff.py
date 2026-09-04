@@ -8,9 +8,10 @@ five.
     python tools/graph_diff.py keegan_5313.json    # full detail around the divergence
     python tools/graph_diff.py keegan_5313.json 20 # with 20 points of context
 
-Needs tests/fixtures/keystrokes/graph_golden.json, vendored by tools/refresh_graph_golden.py.
+Needs tests/fixtures/keystrokes/graph_golden.json.gz, vendored by tools/refresh_graph_golden.py.
 """
 
+import gzip
 import json
 import os
 import sys
@@ -21,7 +22,7 @@ sys.path.insert(0, os.path.join(HERE, "..", "src"))
 from utils.keystrokes import get_keystroke_data  # noqa: E402  needs the sys.path line above
 
 FIXTURES = os.path.join(HERE, "..", "tests", "fixtures", "keystrokes")
-GOLDEN = os.path.join(FIXTURES, "graph_golden.json")
+GOLDEN = os.path.join(FIXTURES, "graph_golden.json.gz")
 TOLERANCE = 1e-6
 
 FIELDS = ("charIndex", "wordIndex", "initialKeystrokeId", "time", "wpm", "raw")
@@ -119,7 +120,7 @@ def main() -> int:
         print("run `bash ~/gparity/run.sh`, then tools/refresh_graph_golden.py", file=sys.stderr)
         return 1
 
-    with open(GOLDEN, encoding="utf-8") as f:
+    with gzip.open(GOLDEN, "rt", encoding="utf-8") as f:
         golden = json.load(f)
 
     if len(sys.argv) > 1:

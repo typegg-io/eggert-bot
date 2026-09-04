@@ -14,6 +14,7 @@ Fixtures and expected values are vendored from typegg's own goldens:
     python tests/fixtures/refresh_divergences.py          # after fixing the port
 """
 
+import gzip
 import json
 import os
 
@@ -73,13 +74,13 @@ def test_parity_progress_is_reported(record_property):
 # The full graph golden is a diagnostic rather than a second gate. The ratchet above is the gate.
 # These only check that a vendored copy is well formed, so a bad refresh is caught early.
 
-GRAPH_GOLDEN = os.path.join(FIXTURE_DIR, "graph_golden.json")
+GRAPH_GOLDEN = os.path.join(FIXTURE_DIR, "graph_golden.json.gz")
 
 
 @pytest.mark.skipif(not os.path.isfile(GRAPH_GOLDEN), reason="graph golden not vendored yet")
 def test_graph_golden_covers_the_same_fixtures():
     """The full graph and the sampled golden describe the same corpus."""
-    with open(GRAPH_GOLDEN, encoding="utf-8") as f:
+    with gzip.open(GRAPH_GOLDEN, "rt", encoding="utf-8") as f:
         graph = json.load(f)
 
     sampled = {f"{g['format']}/{g['file']}" for g in GOLDEN}
@@ -90,7 +91,7 @@ def test_graph_golden_covers_the_same_fixtures():
 @pytest.mark.skipif(not os.path.isfile(GRAPH_GOLDEN), reason="graph golden not vendored yet")
 def test_graph_golden_agrees_with_the_sampled_golden():
     """Both goldens come from the same Go run, so their scalars must match."""
-    with open(GRAPH_GOLDEN, encoding="utf-8") as f:
+    with gzip.open(GRAPH_GOLDEN, "rt", encoding="utf-8") as f:
         graph = {f"{g['format']}/{g['file']}": g for g in json.load(f)}
 
     mismatches = []

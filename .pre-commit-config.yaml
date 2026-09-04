@@ -10,8 +10,12 @@ repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v6.0.0
     hooks:
+      # Fixtures are vendored byte for byte from typegg. Reformatting them would make every
+      # refresh churn.
       - id: trailing-whitespace
+        exclude: ^tests/fixtures/
       - id: end-of-file-fixer
+        exclude: ^tests/fixtures/
       - id: check-merge-conflict
       - id: check-added-large-files
         args: [--maxkb=2048]
