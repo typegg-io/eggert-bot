@@ -16,9 +16,9 @@ FIXTURE_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "fixtures
 # divergence, not a formatting one.
 TOLERANCE = 1e-6
 
-# Processing this one allocates without bound and dies after about a minute, while Go handles it.
-# It is excluded rather than recorded, because a MemoryError takes the test runner down with it.
-EXCLUDED = {"stall_flush_batch.json": "MemoryError after ~55s, Go processes it fine"}
+# Nothing is excluded. stall_flush_batch.json used to die with MemoryError after about a minute;
+# the codec fix in 63afc9b retired that, and it now matches Go exactly.
+EXCLUDED: dict[str, str] = {}
 
 SCALAR_FIELDS = (("wpm", "wpm"), ("raw_wpm", "raw_wpm"), ("accuracy", "accuracy"))
 
