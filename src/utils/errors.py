@@ -28,11 +28,13 @@ class MissingArguments(CommandError):
     """Raised when one or more parameters are missing from command arguments."""
 
     def embed(self, info, show_tip=False):
+        # Commands that take no arguments omit "parameters" entirely.
+        usage = f"{prefix}{info["name"]} {info.get("parameters", "")}".rstrip()
         embed = Embed(
             title="Missing Argument",
             description=(
                 "One or more arguments is missing\n"
-                f"Usage: `{prefix}{info["name"]} {info["parameters"]}`"
+                f"Usage: `{usage}`"
             ),
         )
         if show_tip:
