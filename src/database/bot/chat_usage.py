@@ -1,3 +1,5 @@
+"""Per-user chat command usage counters in users.db."""
+
 from datetime import UTC, datetime
 
 from database.bot import db
@@ -32,7 +34,7 @@ def get_daily_usage(discord_id: str) -> int:
     return usage_count
 
 
-def increment_usage(discord_id: str):
+def increment_usage(discord_id: str) -> None:
     """Increment the usage count for a user."""
     db.run("""
         UPDATE chat_usage

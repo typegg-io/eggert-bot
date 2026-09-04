@@ -1,4 +1,7 @@
+"""Discord users in users.db: linkage, themes, settings and command counts."""
+
 import json
+import sqlite3
 from collections import Counter
 
 from database.bot import db
@@ -6,12 +9,13 @@ from utils import dates
 from utils.colors import DEFAULT_THEME
 
 
-def _parse_counts(commands_json: str):
+def _parse_counts(commands_json: str) -> dict[str, int]:
     """Parse the commands JSON string and return the counts dict."""
     return json.loads(commands_json).get("counts", {})
 
 
-def add_user(discord_id: str):
+def add_user(discord_id: str) -> dict:
+    """Insert a new Discord user with default settings and return them."""
     user = {
         "discordId": discord_id,
         "userId": None,
@@ -37,7 +41,7 @@ def add_user(discord_id: str):
     return user
 
 
-def get_user(discord_id: str, auto_insert: bool = True):
+def get_user(discord_id: str, auto_insert: bool = True) -> dict | None:
     """Returns a user object given a Discord ID. Optionally create a new user if no record is found."""
     results = db.fetch("""
         SELECT * FROM users
@@ -57,7 +61,7 @@ def get_user(discord_id: str, auto_insert: bool = True):
     return user
 
 
-def get_user_by_user_id(user_id: str):
+def get_user_by_user_id(user_id: str) -> dict | None:
     """Returns a user object given a TypeGG user ID."""
     results = db.fetch("""
         SELECT * FROM users
@@ -75,19 +79,20 @@ def get_user_by_user_id(user_id: str):
     return user
 
 
-def get_user_ids():
+def get_user_ids() -> list[int]:
+    """Return every registered Discord ID."""
     users = db.fetch("SELECT discordId FROM users")
 
     return [int(user[0]) for user in users]
 
 
-def get_command_usage(user_id: int):
+def get_command_usage(user_id: int) -> dict[str, int]:
     """Return command counts for a single user."""
     results = db.fetch("SELECT commands FROM users WHERE discordId = ?", [user_id])
     return _parse_counts(results[0]["commands"]) if results else {}
 
 
-def get_all_command_usage():
+def get_all_command_usage() -> dict[str, int]:
     """Return total command counts across all users."""
     all_commands = db.fetch("SELECT commands FROM users")
     counter = Counter()
@@ -98,7 +103,7 @@ def get_all_command_usage():
     return dict(counter)
 
 
-def get_command_usage_by_user():
+def get_command_usage_by_user() -> list[dict]:
     """Return a list of per-user command counts."""
     all_commands = db.fetch("SELECT discordId, commands FROM users")
     return [
@@ -107,7 +112,7 @@ def get_command_usage_by_user():
     ]
 
 
-def get_top_users_by_command_usage():
+def get_top_users_by_command_usage() -> list[dict]:
     """Return users sorted by total command usage."""
     users = db.fetch("SELECT discordId, commands FROM users")
 
@@ -119,14 +124,14 @@ def get_top_users_by_command_usage():
     return sorted(top_users, key=lambda u: u["total_commands"], reverse=True)
 
 
-def get_theme(discord_id: int):
+def get_theme(discord_id: int) -> dict | None:
     """Returns a user's theme if they exist."""
     results = db.fetch("SELECT theme FROM users WHERE discordId = ?", [discord_id])
 
     return json.loads(results[0]["theme"]) if results else None
 
 
-def update_commands(discord_id: str, command_name: str, origin: str):
+def update_commands(discord_id: str, command_name: str, origin: str) -> None:
     """
     Increments a user's command count.
     Args:
@@ -154,7 +159,8 @@ def update_commands(discord_id: str, command_name: str, origin: str):
     """, [json.dumps(user_commands), discord_id])
 
 
-def update_theme(discord_id: str, theme: dict):
+def update_theme(discord_id: str, theme: dict) -> None:
+    """Replace a user's saved theme."""
     db.run("""
         UPDATE users
         SET theme = ?
@@ -162,7 +168,8 @@ def update_theme(discord_id: str, theme: dict):
     """, [json.dumps(theme), discord_id])
 
 
-def update_warning(discord_id: str):
+def update_warning(discord_id: str) -> None:
+    """Record that a user has seen the privacy warning."""
     db.run("""
         UPDATE users
         SET isPrivacyWarned = 1
@@ -170,7 +177,7 @@ def update_warning(discord_id: str):
     """, [discord_id])
 
 
-def update_gg_plus_status(user_id: str, is_gg_plus: bool):
+def update_gg_plus_status(user_id: str, is_gg_plus: bool) -> None:
     """Update a user's GG+ subscription status."""
     db.run("""
         UPDATE users
@@ -179,7 +186,7 @@ def update_gg_plus_status(user_id: str, is_gg_plus: bool):
     """, [1 if is_gg_plus else 0, user_id])
 
 
-def update_timezone(discord_id: str, timezone: str):
+def update_timezone(discord_id: str, timezone: str) -> None:
     """Update a user's timezone."""
     db.run("""
         UPDATE users
@@ -188,7 +195,7 @@ def update_timezone(discord_id: str, timezone: str):
     """, [timezone, discord_id])
 
 
-def link_user(discord_id: str, user_id: str):
+def link_user(discord_id: str, user_id: str) -> None:
     """Creates a link between a Discord ID and a User ID."""
     db.run("""
         UPDATE users
@@ -197,7 +204,7 @@ def link_user(discord_id: str, user_id: str):
     """, [user_id, discord_id])
 
 
-def unlink_user(discord_id: str):
+def unlink_user(discord_id: str) -> None:
     """Removes the link between a Discord ID and a User ID."""
     db.run("""
         UPDATE users
@@ -206,7 +213,7 @@ def unlink_user(discord_id: str):
     """, [discord_id])
 
 
-def get_all_linked_users():
+def get_all_linked_users() -> dict[str, str]:
     """Returns a dictionary of user IDs and Discord ID."""
     results = db.fetch("""
         SELECT discordId, userId
@@ -217,7 +224,8 @@ def get_all_linked_users():
     return {str(row["userId"]): str(row["discordId"]) for row in results}
 
 
-def ban_user(discord_id: str):
+def ban_user(discord_id: str) -> None:
+    """Ban a user from using the bot."""
     db.run("""
         UPDATE users
         SET isBanned = 1
@@ -225,7 +233,8 @@ def ban_user(discord_id: str):
     """, [discord_id])
 
 
-def unban_user(discord_id: str):
+def unban_user(discord_id: str) -> None:
+    """Lift a user's ban."""
     db.run("""
         UPDATE users
         SET isBanned = 0
@@ -233,7 +242,8 @@ def unban_user(discord_id: str):
     """, [discord_id])
 
 
-def admin_user(discord_id: str):
+def admin_user(discord_id: str) -> None:
+    """Grant a user admin privileges."""
     db.run("""
         UPDATE users
         SET isAdmin = 1
@@ -241,7 +251,8 @@ def admin_user(discord_id: str):
     """, [discord_id])
 
 
-def unadmin_user(discord_id: str):
+def unadmin_user(discord_id: str) -> None:
+    """Revoke a user's admin privileges."""
     db.run("""
         UPDATE users
         SET isAdmin = 0
@@ -249,7 +260,8 @@ def unadmin_user(discord_id: str):
     """, [discord_id])
 
 
-def get_admin_users():
+def get_admin_users() -> list[sqlite3.Row]:
+    """Return the Discord IDs of every admin."""
     results = db.fetch("""
         SELECT discordId FROM users
         WHERE isAdmin = 1
@@ -258,7 +270,8 @@ def get_admin_users():
     return results
 
 
-def get_discord_id(user_id: str):
+def get_discord_id(user_id: str) -> str | None:
+    """Return the Discord ID linked to a TypeGG user ID, if any."""
     result = db.fetch_one("SELECT discordId FROM users WHERE userId = ?", [user_id])
     if not result:
         return None
@@ -266,7 +279,7 @@ def get_discord_id(user_id: str):
     return result["discordId"]
 
 
-def migrate_command_name(old_name: str, new_name: str):
+def migrate_command_name(old_name: str, new_name: str) -> int:
     """Migrate command usage data from an old command name to a new one."""
     all_users = db.fetch("SELECT discordId, commands FROM users")
     affected_count = 0

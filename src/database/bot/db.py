@@ -1,3 +1,5 @@
+"""Connection and query helpers for users.db."""
+
 import os
 import sqlite3
 
@@ -11,7 +13,7 @@ connection = sqlite3.connect(file)
 connection.row_factory = sqlite3.Row
 
 
-def _execute_fetch(query: str, params: list, one: bool):
+def _execute_fetch(query: str, params: list, one: bool) -> sqlite3.Row | list[sqlite3.Row] | None:
     """Execute a read-only query and return one row or all rows."""
     cursor = connection.cursor()
     try:
@@ -21,17 +23,17 @@ def _execute_fetch(query: str, params: list, one: bool):
         cursor.close()
 
 
-def fetch(query: str, params: list | None = None):
+def fetch(query: str, params: list | None = None) -> list[sqlite3.Row]:
     """Fetch all rows from a read-only query."""
     return _execute_fetch(query, params or [], one=False)
 
 
-def fetch_one(query: str, params: list | None = None):
+def fetch_one(query: str, params: list | None = None) -> sqlite3.Row | None:
     """Fetch a single row from a read-only query."""
     return _execute_fetch(query, params or [], one=True)
 
 
-def run(query: str, params: list | None = None):
+def run(query: str, params: list | None = None) -> None:
     """Execute a write query (INSERT, UPDATE, DELETE) with commit."""
     cursor = connection.cursor()
 

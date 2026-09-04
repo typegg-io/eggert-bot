@@ -1,8 +1,10 @@
+"""The most recently queried quote per Discord channel."""
+
 from config import STATS_CHANNEL_ID
 from database.bot import db
 
 
-def get_recent_quote(channel_id: str):
+def get_recent_quote(channel_id: str) -> str:
     """Returns the most recently queried quote ID for a Discord channel."""
     quote_id = db.fetch_one("""
         SELECT quoteId
@@ -16,7 +18,7 @@ def get_recent_quote(channel_id: str):
     return quote_id[0]
 
 
-def set_recent_quote(channel_id: str, quote_id: str):
+def set_recent_quote(channel_id: str, quote_id: str) -> None:
     """Updates the recent quote ID for a Discord channel."""
     db.run("""
         INSERT INTO recent_quotes

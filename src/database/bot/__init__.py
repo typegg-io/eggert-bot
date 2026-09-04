@@ -1,3 +1,5 @@
+"""users.db schema. Importing this module creates any missing tables."""
+
 from database.bot import db
 
 db.run("""

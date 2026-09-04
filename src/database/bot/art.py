@@ -1,8 +1,10 @@
+"""Art submissions in users.db, keyed by title."""
+
 from database.bot import db
 from utils import dates
 
 
-def add_art(title: str, image_url: str, author_discord_id: str):
+def add_art(title: str, image_url: str, author_discord_id: str) -> None:
     """Add a new piece of art to the database."""
     timestamp = dates.now().timestamp()
 
@@ -12,7 +14,7 @@ def add_art(title: str, image_url: str, author_discord_id: str):
     """, [title, image_url, author_discord_id, timestamp])
 
 
-def get_art_by_title(title: str):
+def get_art_by_title(title: str) -> dict | None:
     """Get a specific piece of art by title (case-insensitive)."""
     result = db.fetch_one("""
         SELECT * FROM art
@@ -22,7 +24,7 @@ def get_art_by_title(title: str):
     return dict(result) if result else None
 
 
-def get_all_art():
+def get_all_art() -> list[dict]:
     """Get all pieces of art."""
     results = db.fetch("""
         SELECT * FROM art
@@ -32,7 +34,7 @@ def get_all_art():
     return [dict(row) for row in results]
 
 
-def get_art_by_author(author_id: str):
+def get_art_by_author(author_id: str) -> list[dict]:
     """Get all art submitted by a specific author."""
     results = db.fetch("""
         SELECT * FROM art
@@ -43,7 +45,7 @@ def get_art_by_author(author_id: str):
     return [dict(row) for row in results]
 
 
-def get_random_art():
+def get_random_art() -> dict | None:
     """Get a random piece of art."""
     result = db.fetch_one("""
         SELECT * FROM art
@@ -54,7 +56,7 @@ def get_random_art():
     return dict(result) if result else None
 
 
-def rename_art(old_title: str, new_title: str):
+def rename_art(old_title: str, new_title: str) -> None:
     """Rename an existing piece of art."""
     db.run("""
         UPDATE art SET title = ?
@@ -62,7 +64,7 @@ def rename_art(old_title: str, new_title: str):
     """, [new_title, old_title])
 
 
-def update_art(title: str, image_url: str):
+def update_art(title: str, image_url: str) -> None:
     """Update the image URL of an existing piece of art."""
     db.run("""
         UPDATE art SET image_url = ?
@@ -70,7 +72,7 @@ def update_art(title: str, image_url: str):
     """, [image_url, title])
 
 
-def delete_art(title: str):
+def delete_art(title: str) -> None:
     """Delete a piece of art by title."""
     db.run("""
         DELETE FROM art
