@@ -1,9 +1,9 @@
 
 from discord.ext import commands
 
-from bot_setup import BotContext
 from commands.base import Command
 from config import GENERAL_CHANNEL_ID
+from context import BotContext
 from utils.errors import BotError, MissingArguments
 from utils.keyboard_layouts import K, get_keymap, keymaps as external_keymaps
 from utils.messages import Message, Page, usable_in

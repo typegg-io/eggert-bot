@@ -5,8 +5,8 @@ from discord.ext import commands
 from api.quotes import get_quote
 from api.sources import get_source
 from api.users import get_profile, get_races
-from bot_setup import BotContext
 from commands.base import Command
+from context import BotContext
 from database.typegg.keystroke_data import add_keystroke_data
 from database.typegg.match_results import add_match_results
 from database.typegg.matches import add_matches

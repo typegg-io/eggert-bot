@@ -4,8 +4,8 @@ import aiohttp
 from discord import Embed
 from discord.ext import commands
 
-from bot_setup import BotContext
 from commands.base import Command
+from context import BotContext
 from utils.colors import ERROR
 from utils.errors import MissingArguments
 from utils.messages import Message, Page

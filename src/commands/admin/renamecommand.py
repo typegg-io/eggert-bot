@@ -1,8 +1,8 @@
 from discord.ext import commands
 
-from bot_setup import BotContext
 from commands.base import Command
 from commands.checks import is_bot_owner
+from context import BotContext
 from database.bot.users import migrate_command_name
 from utils.messages import Message, Page
 

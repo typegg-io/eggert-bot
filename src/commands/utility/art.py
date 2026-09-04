@@ -4,8 +4,8 @@ from difflib import get_close_matches
 
 from discord.ext import commands
 
-from bot_setup import BotContext
 from commands.base import Command
+from context import BotContext
 from database.bot import art as art_db
 from database.bot.users import get_user
 from utils.errors import BotError, MissingArguments

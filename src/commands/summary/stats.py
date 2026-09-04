@@ -1,7 +1,7 @@
 from discord.ext import commands
 
-from bot_setup import BotContext
 from commands.base import Command
+from context import BotContext
 from utils.colors import DEFAULT, PLUS
 from utils.dates import format_date, now, parse_date
 from utils.messages import Field, Message, Page

@@ -6,8 +6,8 @@ from dataclasses import dataclass, field
 from discord import ButtonStyle, Embed, File
 from discord.ui import Button as DiscordButton, View
 
-from bot_setup import BotContext
 from config import BOT_PREFIX, STATS_CHANNEL_ID, TYPEGG_GUILD_ID
+from context import BotContext
 from utils import files
 from utils.colors import SUCCESS, WARNING
 from utils.strings import LOADING, get_flag_title

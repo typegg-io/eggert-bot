@@ -3,8 +3,8 @@ import bisect
 from discord import File
 from discord.ext import commands
 
-from bot_setup import BotContext
 from commands.base import Command
+from context import BotContext
 from database.typegg.races import get_races
 from graphs import line
 from utils.errors import BotError

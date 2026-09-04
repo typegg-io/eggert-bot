@@ -1,8 +1,8 @@
 from discord.ext import commands
 
-from bot_setup import BotContext
 from commands.base import Command
 from config import BOT_PREFIX as prefix, BOT_SUBDOMAIN
+from context import BotContext
 from utils import files
 from utils.errors import UnknownCommand, UserNotAdmin
 from utils.files import get_command_modules

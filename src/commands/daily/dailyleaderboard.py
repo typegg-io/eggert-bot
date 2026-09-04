@@ -2,9 +2,9 @@ from discord.abc import GuildChannel
 from discord.ext import commands
 
 from api.daily_quotes import get_daily_quote
-from bot_setup import BotContext
 from commands.base import Command
 from config import DAILY_QUOTE_CHANNEL_ID, DAILY_QUOTE_ROLE_ID
+from context import BotContext
 from database.bot.recent_quotes import set_recent_quote
 from utils import dates
 from utils.dates import format_date, parse_date

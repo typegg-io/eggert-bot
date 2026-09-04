@@ -3,9 +3,9 @@ from copy import deepcopy
 from discord.ext import commands
 
 from api.users import get_race
-from bot_setup import BotContext
 from commands.base import Command
 from commands.graphs.racegraph import run as run_racegraph
+from context import BotContext
 from database.bot.recent_quotes import set_recent_quote
 from database.typegg.quotes import get_quote
 from graphs import match as match_graph

@@ -1,8 +1,8 @@
 from discord.ext import commands
 
-from bot_setup import BotContext
 from commands.base import Command
 from config import KEEGAN
+from context import BotContext
 from database.bot.users import get_admin_users
 from utils.messages import Message, Page
 

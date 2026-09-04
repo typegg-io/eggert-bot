@@ -2,8 +2,8 @@ import zoneinfo
 
 from discord.ext import commands
 
-from bot_setup import BotContext
 from commands.base import Command
+from context import BotContext
 from database.bot.users import update_timezone
 from utils.errors import BotError
 from utils.messages import Message, Page

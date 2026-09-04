@@ -1,10 +1,10 @@
 from discord.ext import commands
 
 from api.daily_quotes import get_daily_quote
-from bot_setup import BotContext
 from commands.base import Command
 from commands.daily.dailyleaderboard import daily_quote_display
 from config import DAILY_QUOTE_CHANNEL_ID
+from context import BotContext
 from database.bot.recent_quotes import set_recent_quote
 from database.typegg.quotes import get_quote
 from graphs import daily as daily_graph

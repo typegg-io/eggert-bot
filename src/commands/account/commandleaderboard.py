@@ -1,7 +1,7 @@
 from discord.ext import commands
 
-from bot_setup import BotContext
 from commands.base import Command
+from context import BotContext
 from database.bot.users import (
     get_all_command_usage,
     get_command_usage,

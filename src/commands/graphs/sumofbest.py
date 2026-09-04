@@ -4,10 +4,10 @@ from dateutil import parser
 from discord.ext import commands
 
 from api.quotes import calculate_metric
-from bot_setup import BotContext
 from commands.base import Command, enforce_daily_quote
 from commands.graphs.segments import build_segments, format_segment
 from config import DAILY_QUOTE_CHANNEL_ID
+from context import BotContext
 from database.typegg.races import get_race, get_races
 from graphs import match as match_graph, segments as segment_graph
 from utils.errors import InvalidKeystrokeData, NoQuoteRaces

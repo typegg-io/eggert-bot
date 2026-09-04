@@ -1,9 +1,9 @@
 
 from discord.ext import commands
 
-from bot_setup import BotContext
 from commands.account.download import run as download
 from commands.base import Command
+from context import BotContext
 from database.typegg.races import get_latest_race
 from database.typegg.users import delete_user_data
 from utils.colors import ERROR, WARNING

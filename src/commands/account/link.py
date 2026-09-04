@@ -2,9 +2,9 @@ from discord import Embed, Forbidden
 from discord.ext import commands
 
 from api.verification import generate_link
-from bot_setup import BotContext
 from commands.base import Command
 from config import BOT_PREFIX, STAGING
+from context import BotContext
 from database.bot.users import link_user
 from utils.colors import ERROR
 from utils.messages import Message, Page

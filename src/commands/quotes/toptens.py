@@ -1,8 +1,8 @@
 from discord.ext import commands
 
 from api.users import get_quote_rankings
-from bot_setup import BotContext
 from commands.base import Command
+from context import BotContext
 from utils.messages import Field, Message, Page
 from utils.strings import LOADING, ordinal_number
 

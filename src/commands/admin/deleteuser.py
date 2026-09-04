@@ -1,8 +1,8 @@
 from discord.ext import commands
 
-from bot_setup import BotContext
 from commands.base import Command
 from commands.checks import is_bot_admin
+from context import BotContext
 from database.typegg.users import delete_user_data
 from utils.colors import WARNING
 from utils.errors import ProfileNotFound

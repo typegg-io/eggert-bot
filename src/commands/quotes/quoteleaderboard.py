@@ -1,8 +1,8 @@
 from discord.ext import commands
 
-from bot_setup import BotContext
 from commands.base import Command, enforce_daily_quote
 from config import DAILY_QUOTE_CHANNEL_ID
+from context import BotContext
 from database.bot.recent_quotes import get_recent_quote
 from utils.messages import Message, Page, usable_in
 from utils.strings import discord_date, quote_display, rank, username_with_flag

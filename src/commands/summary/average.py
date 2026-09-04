@@ -1,7 +1,7 @@
 from discord.ext import commands
 
-from bot_setup import BotContext
 from commands.base import Command
+from context import BotContext
 from database.typegg.quotes import get_quotes
 from database.typegg.races import get_races
 from utils.errors import NumberGreaterThan

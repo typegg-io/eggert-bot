@@ -6,10 +6,10 @@ import discord
 import jwt
 from discord.ext import commands
 
-from bot_setup import BotContext
 from commands.base import Command
 from commands.checks import is_bot_admin
 from config import SECRET
+from context import BotContext
 from database.bot.users import get_user
 from utils.colors import ERROR, SUCCESS
 from utils.logging import log

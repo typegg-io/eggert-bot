@@ -1,8 +1,8 @@
 from discord.ext import commands
 
 from api.quotes import get_quotes
-from bot_setup import BotContext
 from commands.base import Command
+from context import BotContext
 from database.bot.recent_quotes import set_recent_quote
 from database.typegg.quotes import get_quote, is_quote_id
 from utils.errors import MissingArguments
