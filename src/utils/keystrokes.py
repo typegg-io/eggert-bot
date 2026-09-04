@@ -505,7 +505,7 @@ def process_keystroke_data(
                 del input_val_contributors[adj_start:adj_end]
                 del input_val_delays[adj_start:adj_end]
 
-                while len(input_val_contributors) <= adj_start:
+                while len(input_val_contributors) < adj_start:
                     input_val_contributors.append(-1)
                     input_val_delays.append([])
                 input_val_contributors[adj_start:adj_end] = [keystroke_id]
@@ -638,7 +638,7 @@ def process_keystroke_data(
                 add_to_char_pool(char, keystroke_id, absolute_pos + idx)
 
                 adj_i = insert_pos + idx + buffer_offset
-                while len(input_val_contributors) <= adj_i:
+                while len(input_val_contributors) < adj_i:
                     input_val_contributors.append(-1)
                     input_val_delays.append([])
                 input_val_contributors.insert(adj_i, keystroke_id)

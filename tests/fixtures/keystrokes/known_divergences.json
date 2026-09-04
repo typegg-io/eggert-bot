@@ -15,12 +15,6 @@
         "of": 2426
       }
     },
-    "codec/korean_ime_typos.json": {
-      "graph_values": {
-        "first_diverging_point": 1,
-        "of": 27
-      }
-    },
     "codec/robby_jp_acc.json": {
       "raises": "InvalidKeystrokeData"
     },
