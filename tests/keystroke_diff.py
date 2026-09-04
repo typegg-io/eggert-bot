@@ -16,8 +16,8 @@ FIXTURE_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "fixtures
 # divergence, not a formatting one.
 TOLERANCE = 1e-6
 
-# Nothing is excluded. stall_flush_batch.json used to die with MemoryError after about a minute;
-# the codec fix in 63afc9b retired that, and it now matches Go exactly.
+# Nothing is excluded. stall_flush_batch.json used to exhaust memory until the codec learned to
+# parse explicit composition positions.
 EXCLUDED: dict[str, str] = {}
 
 SCALAR_FIELDS = (("wpm", "wpm"), ("raw_wpm", "raw_wpm"), ("accuracy", "accuracy"))
