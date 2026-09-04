@@ -1,354 +1,18 @@
 {
   "divergences": {
-    "codec/abstract_flaneur.json": {
-      "graph_values": {
-        "first_diverging_point": 214,
-        "of": 691
-      }
-    },
-    "codec/astro_handtyped_slow.ranked.json": {
-      "graph_values": {
-        "first_diverging_point": 287,
-        "of": 408
-      }
-    },
-    "codec/boundaries_5401.json": {
-      "graph_values": {
-        "first_diverging_point": 390,
-        "of": 691
-      }
-    },
     "codec/combining_chars_perfect.json": {
       "graph_values": {
         "first_diverging_point": 5,
         "of": 23
       }
     },
-    "codec/combining_marks_nfc_perfect.json": {
-      "graph_values": {
-        "first_diverging_point": 1,
-        "of": 23
-      }
-    },
     "codec/dasha_beans_dict_reconstructed.json": {
       "raises": "InvalidKeystrokeData"
     },
-    "codec/he_love_me_not_raw.json": {
-      "graph_values": {
-        "first_diverging_point": 80,
-        "of": 124
-      }
-    },
-    "codec/iht_rollover_01.ranked.json": {
-      "graph_values": {
-        "first_diverging_point": 45,
-        "of": 50
-      }
-    },
-    "codec/iht_rollover_02.ranked.json": {
-      "graph_values": {
-        "first_diverging_point": 28,
-        "of": 50
-      }
-    },
-    "codec/iht_rollover_03.ranked.json": {
-      "graph_values": {
-        "first_diverging_point": 37,
-        "of": 50
-      }
-    },
-    "codec/iht_rollover_04.ranked.json": {
-      "graph_values": {
-        "first_diverging_point": 37,
-        "of": 50
-      }
-    },
-    "codec/iht_rollover_05.ranked.json": {
-      "graph_values": {
-        "first_diverging_point": 26,
-        "of": 50
-      }
-    },
-    "codec/iht_rollover_06.ranked.json": {
-      "graph_values": {
-        "first_diverging_point": 40,
-        "of": 50
-      }
-    },
-    "codec/iht_rollover_07.ranked.json": {
-      "graph_values": {
-        "first_diverging_point": 37,
-        "of": 50
-      }
-    },
-    "codec/iht_rollover_08.ranked.json": {
-      "graph_values": {
-        "first_diverging_point": 49,
-        "of": 50
-      }
-    },
-    "codec/iht_rollover_09.ranked.json": {
-      "graph_values": {
-        "first_diverging_point": 39,
-        "of": 50
-      }
-    },
-    "codec/iht_rollover_10.ranked.json": {
-      "graph_values": {
-        "first_diverging_point": 40,
-        "of": 50
-      }
-    },
-    "codec/iht_rollover_11.ranked.json": {
-      "graph_values": {
-        "first_diverging_point": 45,
-        "of": 50
-      }
-    },
-    "codec/iht_rollover_12.ranked.json": {
-      "graph_values": {
-        "first_diverging_point": 11,
-        "of": 50
-      }
-    },
-    "codec/iht_rollover_13.ranked.json": {
-      "graph_values": {
-        "first_diverging_point": 43,
-        "of": 50
-      }
-    },
-    "codec/iht_rollover_14.ranked.json": {
-      "graph_values": {
-        "first_diverging_point": 44,
-        "of": 50
-      }
-    },
-    "codec/iht_rollover_15.ranked.json": {
-      "graph_values": {
-        "first_diverging_point": 44,
-        "of": 50
-      }
-    },
-    "codec/iht_rollover_16.ranked.json": {
-      "graph_values": {
-        "first_diverging_point": 39,
-        "of": 50
-      }
-    },
-    "codec/iht_rollover_17.ranked.json": {
-      "graph_values": {
-        "first_diverging_point": 44,
-        "of": 50
-      }
-    },
-    "codec/iht_rollover_18.ranked.json": {
-      "graph_values": {
-        "first_diverging_point": 40,
-        "of": 50
-      }
-    },
-    "codec/iht_rollover_19.ranked.json": {
-      "graph_values": {
-        "first_diverging_point": 44,
-        "of": 50
-      }
-    },
-    "codec/iht_rollover_21.ranked.json": {
-      "graph_values": {
-        "first_diverging_point": 25,
-        "of": 50
-      }
-    },
-    "codec/iht_rollover_22.ranked.json": {
-      "graph_values": {
-        "first_diverging_point": 44,
-        "of": 50
-      }
-    },
-    "codec/iht_rollover_23.ranked.json": {
-      "graph_values": {
-        "first_diverging_point": 44,
-        "of": 50
-      }
-    },
-    "codec/joshu_3098.json": {
-      "graph_values": {
-        "first_diverging_point": 791,
-        "of": 806
-      }
-    },
-    "codec/joshu_bible_lamb.json": {
-      "graph_values": {
-        "first_diverging_point": 356,
-        "of": 4989
-      }
-    },
-    "codec/jyin_1655.json": {
-      "graph_values": {
-        "first_diverging_point": 115,
-        "of": 691
-      }
-    },
-    "codec/keegan_15944.json": {
-      "graph_values": {
-        "first_diverging_point": 50,
-        "of": 53
-      }
-    },
-    "codec/keegan_15990.json": {
-      "graph_values": {
-        "first_diverging_point": 58,
-        "of": 74
-      }
-    },
-    "codec/keegan_15992.json": {
-      "graph_values": {
-        "first_diverging_point": 40,
-        "of": 76
-      }
-    },
-    "codec/keegan_1970.json": {
-      "graph_values": {
-        "first_diverging_point": 118,
-        "of": 821
-      }
-    },
-    "codec/keegan_2696.json": {
-      "graph_values": {
-        "first_diverging_point": 90,
-        "of": 132
-      }
-    },
-    "codec/keegan_4093.json": {
-      "graph_values": {
-        "first_diverging_point": 19,
-        "of": 1230
-      }
-    },
-    "codec/keegan_5112.json": {
-      "graph_values": {
-        "first_diverging_point": 55,
-        "of": 3207
-      }
-    },
-    "codec/keegan_5313.json": {
-      "graph_values": {
-        "first_diverging_point": 2,
-        "of": 55
-      }
-    },
-    "codec/keegan_5888.json": {
-      "graph_values": {
-        "first_diverging_point": 356,
-        "of": 2871
-      }
-    },
-    "codec/keegan_6283.json": {
-      "graph_values": {
-        "first_diverging_point": 34,
-        "of": 63
-      }
-    },
     "codec/keegan_7789.json": {
       "graph_values": {
-        "first_diverging_point": 119,
+        "first_diverging_point": 413,
         "of": 2426
-      }
-    },
-    "codec/keegan_7842.json": {
-      "graph_values": {
-        "first_diverging_point": 25,
-        "of": 8773
-      }
-    },
-    "codec/keegan_7876.json": {
-      "graph_values": {
-        "first_diverging_point": 34,
-        "of": 230
-      }
-    },
-    "codec/keegan_8408.json": {
-      "graph_values": {
-        "first_diverging_point": 123,
-        "of": 167
-      }
-    },
-    "codec/keegan_8581.json": {
-      "graph_values": {
-        "first_diverging_point": 15,
-        "of": 56
-      }
-    },
-    "codec/keegan_8827.json": {
-      "graph_values": {
-        "first_diverging_point": 14,
-        "of": 75
-      }
-    },
-    "codec/keegan_9200.json": {
-      "graph_values": {
-        "first_diverging_point": 57,
-        "of": 175
-      }
-    },
-    "codec/keegan_9259.json": {
-      "graph_values": {
-        "first_diverging_point": 29,
-        "of": 59
-      }
-    },
-    "codec/keegan_9390.json": {
-      "graph_values": {
-        "first_diverging_point": 52,
-        "of": 9990
-      }
-    },
-    "codec/keegan_9460.json": {
-      "graph_values": {
-        "first_diverging_point": 35,
-        "of": 240
-      }
-    },
-    "codec/keegan_9693.json": {
-      "graph_values": {
-        "first_diverging_point": 47,
-        "of": 113
-      }
-    },
-    "codec/keegan_9733.json": {
-      "graph_values": {
-        "first_diverging_point": 13,
-        "of": 56
-      }
-    },
-    "codec/keegan_9942.json": {
-      "graph_values": {
-        "first_diverging_point": 46,
-        "of": 80
-      }
-    },
-    "codec/keegan_ctrl_a_replace.json": {
-      "graph_values": {
-        "first_diverging_point": 23,
-        "of": 62
-      }
-    },
-    "codec/keegan_inversion.json": {
-      "graph_values": {
-        "first_diverging_point": 22,
-        "of": 50
-      }
-    },
-    "codec/keegan_mismatch.json": {
-      "graph_values": {
-        "first_diverging_point": 68,
-        "of": 129
-      }
-    },
-    "codec/keegan_raw_spike.json": {
-      "graph_values": {
-        "first_diverging_point": 16,
-        "of": 50
       }
     },
     "codec/korean_ime_typos.json": {
@@ -371,7 +35,7 @@
     },
     "codec/surrogate_pair.json": {
       "graph_values": {
-        "first_diverging_point": 0,
+        "first_diverging_point": 1,
         "of": 25
       },
       "raw_wpm": {
@@ -395,13 +59,13 @@
     },
     "raw/bible_lamb_jyin_log.json": {
       "graph_values": {
-        "first_diverging_point": 442,
+        "first_diverging_point": 4706,
         "of": 4990
       }
     },
     "raw/broken_raw_1.json": {
       "graph_values": {
-        "first_diverging_point": 78,
+        "first_diverging_point": 157,
         "of": 642
       },
       "raw_wpm": {
@@ -411,12 +75,6 @@
       "wpm": {
         "go": 130.22972767381714,
         "python": 130.57848438109122
-      }
-    },
-    "raw/combining_marks_perfect.json": {
-      "graph_values": {
-        "first_diverging_point": 1,
-        "of": 23
       }
     },
     "raw/m_enter_1.json": {
