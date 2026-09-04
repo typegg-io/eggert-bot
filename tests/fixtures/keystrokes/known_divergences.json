@@ -36,10 +36,7 @@
       }
     },
     "codec/combining_chars_perfect.json": {
-      "graph_points": {
-        "go": 23,
-        "python": 27
-      },
+      "graph_sample": true,
       "raw_wpm": {
         "go": 39.672272531263474,
         "python": 46.57179818887452
@@ -50,10 +47,6 @@
       }
     },
     "codec/combining_marks_nfc_perfect.json": {
-      "graph_points": {
-        "go": 23,
-        "python": 27
-      },
       "raw_wpm": {
         "go": 38.98855770589066,
         "python": 45.76917643734991
@@ -450,10 +443,6 @@
       }
     },
     "raw/combining_marks_perfect.json": {
-      "graph_points": {
-        "go": 23,
-        "python": 27
-      },
       "raw_wpm": {
         "go": 38.98855770589066,
         "python": 45.76917643734991

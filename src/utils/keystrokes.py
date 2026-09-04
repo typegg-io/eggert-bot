@@ -4,6 +4,7 @@ import unicodedata
 from dataclasses import dataclass, field
 
 from utils.errors import InvalidKeystrokeData
+from utils.graphemes import map_clusters
 
 ATTRIBUTION_WINDOW = 7
 FAT_FINGER_THRESHOLD_MS = 7
@@ -173,6 +174,39 @@ def grapheme_prefix_matches_nfd(prefix: str, word: str) -> bool:
     return True
 
 
+def build_cp_to_grapheme(text: str) -> tuple[list[int], int]:
+    """Return each codepoint's grapheme index and the total grapheme count."""
+    return map_clusters(unicodedata.normalize("NFC", text))
+
+
+def cp_index_to_grapheme_count(cp_to_grapheme: list[int], cp_index: int) -> int:
+    """Return how many graphemes end at or before a codepoint index."""
+    if cp_index <= 0:
+        return 0
+    if not cp_to_grapheme:
+        return cp_index
+    cp_index = min(cp_index, len(cp_to_grapheme))
+    return cp_to_grapheme[cp_index - 1] + 1
+
+
+def merge_grapheme_times(times: list[float], word_start_cp: int, cp_to_grapheme: list[int]) -> list[float]:
+    """Collapse per-codepoint times into per-grapheme times, since WPM counts graphemes."""
+    merged: list[float] = []
+    for i, time in enumerate(times):
+        cp_index = word_start_cp + i
+        joined = (
+            i > 0
+            and 0 < cp_index < len(cp_to_grapheme)
+            and cp_to_grapheme[cp_index] == cp_to_grapheme[cp_index - 1]
+        )
+        if joined:
+            if merged:
+                merged[-1] += time
+        else:
+            merged.append(time)
+    return merged
+
+
 def prefix_matches_word(prefix: str, word: str) -> bool:
     """Return whether a typed prefix still matches the word being typed into."""
     if not word or not prefix:
@@ -216,8 +250,9 @@ def process_keystroke_data(
         raise InvalidKeystrokeData
 
     keystrokes = keystroke_data.keystrokes
-    text = keystroke_data.text.replace('\r\n', '\n')
+    text = unicodedata.normalize("NFC", keystroke_data.text.replace("\r\n", "\n"))
     words = split_words(text)
+    cp_to_grapheme, grapheme_count = build_cp_to_grapheme(text)
 
     raw_character_times: list[float] = []
     wpm_character_times: list[float] = []
@@ -707,7 +742,7 @@ def process_keystroke_data(
                         raw_times[i - 1] += raw_times[i]
                         raw_times[i] = 0
 
-            raw_times_for_word = raw_times
+            raw_times_for_word = merge_grapheme_times(list(raw_times), total_chars_before_word, cp_to_grapheme)
 
             # Actual WPM: contributor + delays
             for i in range(len(current_word)):
@@ -737,6 +772,10 @@ def process_keystroke_data(
                 actual_times_for_word.append(actual_time)
 
             raw_character_times.extend(raw_times_for_word)
+
+            actual_times_for_word = merge_grapheme_times(
+                actual_times_for_word, total_chars_before_word, cp_to_grapheme
+            )
 
             is_first_word = len(wpm_character_times) == 0
             first_char_time_is_zero = len(actual_times_for_word) > 0 and actual_times_for_word[0] == 0.0
@@ -844,7 +883,8 @@ def process_keystroke_data(
     keystroke_wpm = [point.wpm for point in keystrokes_wpm_graph_data]
     keystroke_raw_wpm = [point.raw for point in keystrokes_wpm_graph_data]
 
-    if not (len(wpm_character_times) == len(raw_character_times) == len(text)):
+    # Times are per grapheme, which is what WPM counts, not per codepoint.
+    if not (len(wpm_character_times) == len(raw_character_times) == grapheme_count):
         raise InvalidKeystrokeData
 
     return ProcessResult(
