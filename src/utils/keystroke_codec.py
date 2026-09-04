@@ -1,5 +1,6 @@
 """Keystroke codec decoder for compact format."""
 
+import unicodedata
 
 from utils.keystrokes import (
     Keystroke,
@@ -196,11 +197,24 @@ def decode_keystroke_data(raw: str) -> KeystrokeData:
 
         if action_code == '^':
             # Composition
+            #   {key}:{steps}:{times}        at expected_next_pos
+            #   {pos},{key}:{steps}:{times}  at an explicit position
+            # Digits followed by ',' are a position, otherwise they belong to the key.
+            comp_pos = expected_next_pos
+            if i < len(runes) and '0' <= runes[i] <= '9':
+                j = i
+                while j < len(runes) and '0' <= runes[j] <= '9':
+                    j += 1
+                if j < len(runes) and runes[j] == ',':
+                    comp_pos = int(runes[i:j])
+                    i = j + 1
+
             key_builder = ""
             while i < len(runes) and runes[i] != ':':
                 key_builder += runes[i]
                 i += 1
             i += 1  # skip ':'
+            key_builder = unicodedata.normalize("NFC", key_builder)
 
             steps_str = ""
             while i < len(runes) and runes[i] != ':':
@@ -214,14 +228,15 @@ def decode_keystroke_data(raw: str) -> KeystrokeData:
                 i += 1
 
             steps = steps_str.split(',') if steps_str else []
-            step_times = []
-            if times_str:
-                step_times = [0] + [int(t) for t in times_str.split(',') if t]
-            elif steps:
+            if not steps:
+                step_times = []
+            elif times_str:
+                step_times = [0] + [int(t) if t.lstrip('-').isdigit() else 0 for t in times_str.split(',')]
+            else:
                 step_times = [0]
 
-            action = KeystrokeComposition(i=expected_next_pos, key=key_builder, steps=steps, stepTimes=step_times)
-            input_val = insert_at(input_val, expected_next_pos, key_builder)
+            action = KeystrokeComposition(i=comp_pos, key=key_builder, steps=steps, stepTimes=step_times)
+            input_val = insert_at(input_val, comp_pos, key_builder)
 
         elif action_code == '+':
             if i >= len(runes):

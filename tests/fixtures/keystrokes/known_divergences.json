@@ -9,12 +9,6 @@
         "of": 2426
       }
     },
-    "codec/robby_jp_acc.json": {
-      "raises": "InvalidKeystrokeData"
-    },
-    "codec/robby_jp_gibberish.json": {
-      "raises": "InvalidKeystrokeData"
-    },
     "codec/surrogate_pair.json": {
       "graph_values": {
         "first_diverging_point": 2,
