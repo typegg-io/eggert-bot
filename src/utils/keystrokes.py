@@ -632,16 +632,16 @@ def process_keystroke_data(
             assign_initial_keystroke(insert_pos, keystroke_id)
             pending_post_delete_positions.discard(absolute_pos)
 
+            add_to_position_keystrokes(absolute_pos, keystroke_id, time_delta)
+
             for idx, char in enumerate(typed_chars):
-                pos = absolute_pos + idx
-                add_to_char_pool(char, keystroke_id, pos)
-                add_to_position_keystrokes(pos, keystroke_id, time_delta if idx == 0 else 0)
+                add_to_char_pool(char, keystroke_id, absolute_pos + idx)
 
                 adj_i = insert_pos + idx + buffer_offset
                 while len(input_val_contributors) <= adj_i:
                     input_val_contributors.append(-1)
                     input_val_delays.append([])
-                input_val_contributors.insert(adj_i, keystroke_id if idx == 0 else -1)
+                input_val_contributors.insert(adj_i, keystroke_id)
                 input_val_delays.insert(adj_i, list(pending_delays) if idx == 0 else [])
                 if idx == 0:
                     pending_delays.clear()
@@ -696,6 +696,13 @@ def process_keystroke_data(
             for i in range(len(current_word)):
                 absolute_pos = total_chars_before_word + i
                 expected_char = normalize_enter(current_word[i]).lower()
+
+                # Codepoints of one composition share a contributor and cost one keypress.
+                if (i > 0 and i < len(input_val_contributors)
+                        and input_val_contributors[i] >= 0
+                        and input_val_contributors[i] == input_val_contributors[i - 1]):
+                    raw_times[i] = 0
+                    continue
 
                 # Post-correction: use min time from keystrokes that typed the expected char
                 if absolute_pos in post_correction_positions:
@@ -796,6 +803,19 @@ def process_keystroke_data(
                         raw_times[i] = 0
 
             raw_times_for_word = merge_grapheme_times(list(raw_times), total_chars_before_word, cp_to_grapheme)
+
+            # Extra keystrokes shifted past the word boundary still belong to this word's
+            # typing time. Fold them into the last char's delays.
+            last_char_idx = len(current_word) - 1
+            for ci in range(len(current_word), len(input_val_contributors)):
+                cid = input_val_contributors[ci]
+                if cid >= 0 and 0 <= last_char_idx < len(input_val_delays):
+                    input_val_delays[last_char_idx].append(cid)
+                    input_val_contributors[ci] = -1
+            for ci in range(len(current_word), len(input_val_delays)):
+                if 0 <= last_char_idx < len(input_val_delays):
+                    input_val_delays[last_char_idx].extend(input_val_delays[ci])
+                input_val_delays[ci] = []
 
             # Actual WPM: contributor + delays
             for i in range(len(current_word)):

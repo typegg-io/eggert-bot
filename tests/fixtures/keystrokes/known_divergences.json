@@ -27,12 +27,6 @@
     "codec/robby_jp_gibberish.json": {
       "raises": "InvalidKeystrokeData"
     },
-    "codec/robby_jp_perfect.json": {
-      "graph_values": {
-        "first_diverging_point": 10,
-        "of": 25
-      }
-    },
     "codec/surrogate_pair.json": {
       "graph_values": {
         "first_diverging_point": 1,
@@ -74,7 +68,7 @@
       },
       "wpm": {
         "go": 130.22972767381714,
-        "python": 130.57848438109122
+        "python": 130.48117473705605
       }
     },
     "raw/m_enter_1.json": {
