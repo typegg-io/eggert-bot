@@ -1,5 +1,6 @@
 """Keystroke processing for raw WPM calculation."""
 
+import unicodedata
 from dataclasses import dataclass, field
 
 from utils.errors import InvalidKeystrokeData
@@ -135,6 +136,56 @@ def split_words(text: str) -> list[str]:
     return words
 
 
+def is_combining_mark(char: str) -> bool:
+    """Return whether a character is a non-spacing combining mark."""
+    return unicodedata.category(char) == "Mn"
+
+
+def grapheme_prefix_matches_nfd(prefix: str, word: str) -> bool:
+    """Compare NFD strings a grapheme at a time, tolerating diacritics typed in any order."""
+    i = w = 0
+    while i < len(prefix) and w < len(word):
+        i_end = i + 1
+        while i_end < len(prefix) and is_combining_mark(prefix[i_end]):
+            i_end += 1
+        w_end = w + 1
+        while w_end < len(word) and is_combining_mark(word[w_end]):
+            w_end += 1
+
+        i_count, w_count = i_end - i, w_end - w
+        if i_count > w_count:
+            return False
+
+        if prefix[i] != word[w]:
+            # Vietnamese Telex types dd for đ.
+            if (prefix[i], word[w]) not in (("d", "đ"), ("D", "Đ")):
+                return False
+
+        if i_count < w_count:
+            word_marks = word[w + 1:w_end]
+            if any(mark not in word_marks for mark in prefix[i + 1:i_end]):
+                return False
+        elif prefix[i + 1:i_end] != word[w + 1:w_end]:
+            return False
+
+        i, w = i_end, w_end
+
+    return True
+
+
+def prefix_matches_word(prefix: str, word: str) -> bool:
+    """Return whether a typed prefix still matches the word being typed into."""
+    if not word or not prefix:
+        return True
+    if prefix.isascii() and word.isascii():
+        length = min(len(prefix), len(word))
+        return prefix[:length] == word[:length]
+    return grapheme_prefix_matches_nfd(
+        unicodedata.normalize("NFD", prefix),
+        unicodedata.normalize("NFD", word),
+    )
+
+
 def normalize_for_comparison(s: str) -> str:
     """Normalize string for word completion comparison."""
     return s.replace('⏎', '\n').replace('\r\n', '\n')
@@ -188,6 +239,9 @@ def process_keystroke_data(
 
     correct_chars = 0
     penalties = 0
+    # input_val_correct[i] records whether input_val[i] matched the word when it was pressed.
+    input_val_correct: list[bool] = []
+    last_key_correct = True
     corrective = 0
     destructive = 0
 
@@ -269,6 +323,8 @@ def process_keystroke_data(
                     fat_finger_times[keystroke_id] = prev_time_delta + time_delta
 
             input_val = input_val[:i] + typed_char + input_val[i:]
+            last_key_correct = prefix_matches_word(input_val[:i + len(typed_char)], current_word)
+            input_val_correct[i:i] = [last_key_correct] * len(typed_char)
 
             adj_i = i + buffer_offset
             if adj_i >= len(input_val_contributors):
@@ -324,6 +380,17 @@ def process_keystroke_data(
             r_start = max(0, min(action.rStart, len(input_val)))
             r_end = max(0, min(action.rEnd, len(input_val)))
             typed_char = action.key
+
+            # Adding a diacritic to a base letter is composition, not a correction.
+            old_char = input_val[r_start] if r_start < len(input_val) else ""
+            is_composition = (
+                not action.redundant
+                and bool(old_char) and bool(typed_char)
+                and old_char != typed_char
+                and unicodedata.normalize("NFD", typed_char).startswith(
+                    unicodedata.normalize("NFD", old_char)
+                )
+            )
             absolute_pos = get_absolute_position(r_start)
             adj_start = r_start + buffer_offset
 
@@ -336,26 +403,17 @@ def process_keystroke_data(
                     pending_delays.append(keystroke_id)
                 destructive += 1
             else:
-                # Non-redundant: count corrective/destructive for deletion part
-                for del_pos in range(r_start, r_end):
-                    if del_pos < len(input_val):
-                        deleted_char = input_val[del_pos]
-                        if del_pos < len(current_word):
-                            expected_char = current_word[del_pos]
-                            if deleted_char != expected_char:
-                                corrective += 1
-                            else:
-                                destructive += 1
+                # Composition is not a correction, so it earns neither credit nor blame.
+                if not is_composition:
+                    for del_pos in range(r_start, r_end):
+                        if del_pos < len(input_val_correct) and input_val_correct[del_pos]:
+                            destructive += 1
                         else:
                             corrective += 1
-                # Count for insertion part
-                if r_start < len(current_word):
-                    if typed_char == current_word[r_start]:
+                    if prefix_matches_word(input_val[:r_start] + typed_char, current_word):
                         corrective += 1
                     else:
                         destructive += 1
-                else:
-                    destructive += 1
 
                 # Non-redundant: collect preserved IDs and modify arrays
                 adj_end = r_end + buffer_offset
@@ -377,7 +435,9 @@ def process_keystroke_data(
                 pending_delays.clear()
 
             if r_start <= r_end:
+                last_key_correct = prefix_matches_word(input_val[:r_start] + typed_char, current_word)
                 input_val = input_val[:r_start] + typed_char + input_val[r_end:]
+                input_val_correct[r_start:r_end] = [last_key_correct] * len(typed_char)
 
             # Add to charPool/positionKeystrokes for ALL REPLACEs when buffer update succeeds
             if r_start <= r_end and typed_char:
@@ -445,18 +505,13 @@ def process_keystroke_data(
 
             # Count corrective/destructive for each deleted character
             for del_pos in range(d_start, d_end):
-                if del_pos < len(input_val):
-                    deleted_char = input_val[del_pos]
-                    if del_pos < len(current_word):
-                        expected_char = current_word[del_pos]
-                        if deleted_char == expected_char:
-                            destructive += 1
-                        else:
-                            corrective += 1
-                    else:
-                        corrective += 1
+                if del_pos < len(input_val_correct) and input_val_correct[del_pos]:
+                    destructive += 1
+                else:
+                    corrective += 1
 
             input_val = input_val[:d_start] + input_val[d_end:]
+            del input_val_correct[d_start:d_end]
 
             adj_start = d_start + buffer_offset
             adj_end = d_end + buffer_offset
@@ -491,6 +546,8 @@ def process_keystroke_data(
             absolute_pos = get_absolute_position(insert_pos)
 
             input_val = input_val[:insert_pos] + typed_chars + input_val[insert_pos:]
+            last_key_correct = prefix_matches_word(input_val[:insert_pos + len(typed_chars)], current_word)
+            input_val_correct[insert_pos:insert_pos] = [last_key_correct] * len(typed_chars)
 
             for idx, char in enumerate(typed_chars):
                 pos = absolute_pos + idx
@@ -515,11 +572,11 @@ def process_keystroke_data(
             has_typo = input_val[:compare_len] != current_word[:compare_len]
 
         has_key = isinstance(action, (KeystrokeInsert, KeystrokeReplace, KeystrokeComposition))
-        if has_key:
-            if has_typo:
-                penalties += 1
-            else:
+        if has_key and current_word:
+            if last_key_correct:
                 correct_chars += 1
+            else:
+                penalties += 1
 
         # Typo tracking: record when transitioning from correct to incorrect state
         # Only for insert-type actions (not deletes/backspaces)
@@ -717,6 +774,7 @@ def process_keystroke_data(
                 )
 
             input_val = input_val[len(current_word):]
+            del input_val_correct[:len(current_word)]
             buffer_offset = 0
             input_val_contributors = input_val_contributors[len(current_word):]
             input_val_delays = input_val_delays[len(current_word):]
