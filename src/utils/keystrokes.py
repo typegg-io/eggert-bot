@@ -137,6 +137,14 @@ def split_words(text: str) -> list[str]:
     return words
 
 
+def is_partial_surrogate(typed: str, expected: str) -> bool:
+    """Return whether a replacement character stands in for a supplementary-plane character.
+
+    JSON decoding turns a lone surrogate into U+FFFD, so it has to match what it replaced.
+    """
+    return typed == "\ufffd" and ord(expected) > 0xFFFF
+
+
 def is_combining_mark(char: str) -> bool:
     """Return whether a character is a non-spacing combining mark."""
     return unicodedata.category(char) == "Mn"
@@ -160,14 +168,20 @@ def grapheme_prefix_matches_nfd(prefix: str, word: str) -> bool:
         if prefix[i] != word[w]:
             # Vietnamese Telex types dd for đ.
             if (prefix[i], word[w]) not in (("d", "đ"), ("D", "Đ")):
+                if i == len(prefix) - 1 and is_partial_surrogate(prefix[i], word[w]):
+                    break
                 return False
 
         if i_count < w_count:
             word_marks = word[w + 1:w_end]
             if any(mark not in word_marks for mark in prefix[i + 1:i_end]):
                 return False
-        elif prefix[i + 1:i_end] != word[w + 1:w_end]:
-            return False
+        else:
+            for j in range(1, i_count):
+                if prefix[i + j] != word[w + j]:
+                    if i + j == len(prefix) - 1 and is_partial_surrogate(prefix[i + j], word[w + j]):
+                        break
+                    return False
 
         i, w = i_end, w_end
 
@@ -418,24 +432,33 @@ def process_keystroke_data(
 
             # Tracking sequence logic for char_pool (matches Go implementation)
             if typed_char:
-                normalized_typed = normalize_enter(typed_char).lower()
+                normalized_typed = normalize_enter(typed_char[0])
                 expected_char = ""
                 if 0 <= absolute_pos < len(text):
-                    expected_char = normalize_enter(text[absolute_pos]).lower()
+                    expected_char = normalize_enter(text[absolute_pos])
 
-                exact_match = (0 <= absolute_pos < len(text) and normalized_typed == expected_char)
-                case_insensitive_match = (not exact_match and 0 <= absolute_pos < len(text) and
-                                          normalized_typed == expected_char)
+                in_text = 0 <= absolute_pos < len(text)
+                exact_match = in_text and (
+                    normalized_typed == expected_char
+                    or is_partial_surrogate(normalized_typed, expected_char)
+                )
+                case_insensitive_match = (
+                    not exact_match and in_text
+                    and normalized_typed.lower() == expected_char.lower()
+                )
 
                 if exact_match or case_insensitive_match:
                     # Rule 1: Correct position - add at absolute_pos
-                    add_to_char_pool(typed_char, keystroke_id, absolute_pos)
-                    tracking_sequence_pos = absolute_pos + 1
+                    for cp, char in enumerate(typed_char):
+                        add_to_char_pool(char, keystroke_id, absolute_pos + cp)
+                    tracking_sequence_pos = absolute_pos + len(typed_char)
                 elif (tracking_sequence_pos >= 0 and tracking_sequence_pos < len(text) and
-                      normalized_typed == normalize_enter(text[tracking_sequence_pos]).lower()):
+                      (normalized_typed.lower() == normalize_enter(text[tracking_sequence_pos]).lower()
+                       or is_partial_surrogate(normalized_typed, text[tracking_sequence_pos]))):
                     # Rule 2: Continues tracking sequence - add at tracking_sequence_pos
-                    add_to_char_pool(typed_char, keystroke_id, tracking_sequence_pos)
-                    tracking_sequence_pos += 1
+                    for cp, char in enumerate(typed_char):
+                        add_to_char_pool(char, keystroke_id, tracking_sequence_pos + cp)
+                    tracking_sequence_pos += len(typed_char)
                 else:
                     # Rule 3: Try to start new tracking sequence (don't add to char_pool)
                     match_pos = find_char_in_text(typed_char, 0)
