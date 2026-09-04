@@ -1,6 +1,7 @@
 from typing import Any
 
-from api.core import API_URL, request
+from api.core import request
+from config import API_URL
 from utils.errors import UnknownQuote
 from utils.logging import log
 
