@@ -38,7 +38,5 @@
       }
     }
   },
-  "excluded": {
-    "stall_flush_batch.json": "MemoryError after ~55s, Go processes it fine"
-  }
+  "excluded": {}
 }
