@@ -1,3 +1,4 @@
+from dateutil import parser
 from discord.ext import commands
 
 from commands.base import Command, enforce_daily_quote
@@ -8,7 +9,7 @@ from database.typegg.quotes import get_quote
 from database.typegg.races import get_race
 from database.typegg.users import get_quote_bests
 from graphs import segments as segment_graph
-from utils.dates import discord_date
+from utils.dates import discord_date, format_date
 from utils.errors import NoQuoteRaces
 from utils.keystrokes import get_keystroke_data
 from utils.messages import Field, Message, Page, usable_in
@@ -64,9 +65,7 @@ def format_segment(segment: dict, show_race: bool = False) -> str:
     # Build tooltip text
     if show_race and race_num:
         if timestamp:
-            from dateutil import parser
 
-            from utils.dates import format_date
 
             date = parser.parse(timestamp)
             formatted_date = format_date(date)
