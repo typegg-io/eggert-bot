@@ -1,346 +1,13 @@
 {
   "divergences": {
-    "codec/abstract_flaneur.json": {
-      "graph_sample": true,
-      "raw_wpm": {
-        "go": 107.42880833311737,
-        "python": 106.83088974207013
-      }
-    },
-    "codec/astro_handtyped_slow.ranked.json": {
-      "graph_sample": true,
-      "raw_wpm": {
-        "go": 195.40229885057468,
-        "python": 180.51766093945872
-      }
-    },
-    "codec/boundaries_5401.json": {
-      "graph_sample": true,
-      "raw_wpm": {
-        "go": 182.20171390903099,
-        "python": 179.89326159586932
-      }
-    },
     "codec/combining_chars_perfect.json": {
       "graph_sample": true
     },
     "codec/dasha_beans_dict_reconstructed.json": {
       "raises": "InvalidKeystrokeData"
     },
-    "codec/iht_rollover_01.ranked.json": {
-      "graph_sample": true,
-      "raw_wpm": {
-        "go": 435.7298474945533,
-        "python": 431.9654427645788
-      }
-    },
-    "codec/iht_rollover_02.ranked.json": {
-      "graph_sample": true,
-      "raw_wpm": {
-        "go": 387.34667527437057,
-        "python": 372.20843672456573
-      }
-    },
-    "codec/iht_rollover_03.ranked.json": {
-      "graph_sample": true,
-      "raw_wpm": {
-        "go": 489.79591836734687,
-        "python": 482.7031375703942
-      }
-    },
-    "codec/iht_rollover_04.ranked.json": {
-      "graph_sample": true,
-      "raw_wpm": {
-        "go": 447.0938897168405,
-        "python": 442.15180545320555
-      }
-    },
-    "codec/iht_rollover_05.ranked.json": {
-      "graph_sample": true,
-      "raw_wpm": {
-        "go": 421.9409282700422,
-        "python": 420.16806722689074
-      }
-    },
-    "codec/iht_rollover_06.ranked.json": {
-      "graph_sample": true,
-      "raw_wpm": {
-        "go": 461.8937644341802,
-        "python": 446.09665427509293
-      }
-    },
-    "codec/iht_rollover_07.ranked.json": {
-      "graph_sample": true,
-      "raw_wpm": {
-        "go": 459.7701149425288,
-        "python": 458.3651642475172
-      }
-    },
-    "codec/iht_rollover_08.ranked.json": {
-      "graph_sample": true,
-      "raw_wpm": {
-        "go": 451.8072289156626,
-        "python": 410.1161995898838
-      }
-    },
-    "codec/iht_rollover_09.ranked.json": {
-      "graph_sample": true,
-      "raw_wpm": {
-        "go": 463.67851622874804,
-        "python": 405.6795131845842
-      }
-    },
-    "codec/iht_rollover_10.ranked.json": {
-      "graph_sample": true,
-      "raw_wpm": {
-        "go": 416.3775156141568,
-        "python": 407.33197556008145
-      }
-    },
-    "codec/iht_rollover_12.ranked.json": {
-      "graph_sample": true,
-      "raw_wpm": {
-        "go": 315.45741324921136,
-        "python": 305.81039755351685
-      }
-    },
-    "codec/iht_rollover_13.ranked.json": {
-      "graph_sample": true,
-      "raw_wpm": {
-        "go": 407.6086956521739,
-        "python": 285.171102661597
-      }
-    },
-    "codec/iht_rollover_15.ranked.json": {
-      "graph_sample": true,
-      "raw_wpm": {
-        "go": 485.0444624090541,
-        "python": 474.6835443037975
-      }
-    },
-    "codec/iht_rollover_16.ranked.json": {
-      "graph_sample": true,
-      "raw_wpm": {
-        "go": 480,
-        "python": 454.89006823351025
-      }
-    },
-    "codec/iht_rollover_17.ranked.json": {
-      "graph_sample": true,
-      "raw_wpm": {
-        "go": 418.4100418410042,
-        "python": 352.73368606701945
-      }
-    },
-    "codec/iht_rollover_18.ranked.json": {
-      "graph_sample": true,
-      "raw_wpm": {
-        "go": 419.2872117400419,
-        "python": 415.5124653739613
-      }
-    },
-    "codec/iht_rollover_19.ranked.json": {
-      "graph_sample": true,
-      "raw_wpm": {
-        "go": 438.2761139517896,
-        "python": 423.1311706629055
-      }
-    },
-    "codec/iht_rollover_21.ranked.json": {
-      "graph_sample": true,
-      "raw_wpm": {
-        "go": 446.42857142857144,
-        "python": 367.19706242350065
-      }
-    },
-    "codec/joshu_3098.json": {
-      "graph_sample": true,
-      "raw_wpm": {
-        "go": 238.7558627499383,
-        "python": 235.0482393253785
-      }
-    },
-    "codec/joshu_bible_lamb.json": {
-      "graph_sample": true,
-      "raw_wpm": {
-        "go": 225.1819532469486,
-        "python": 223.36055634940473
-      }
-    },
-    "codec/jyin_1655.json": {
-      "graph_sample": true,
-      "raw_wpm": {
-        "go": 199.81204366370272,
-        "python": 198.48241855566457
-      }
-    },
-    "codec/keegan_15944.json": {
-      "graph_sample": true,
-      "raw_wpm": {
-        "go": 269.49152542372883,
-        "python": 239.45783132530119
-      }
-    },
-    "codec/keegan_15981.json": {
-      "graph_sample": true,
-      "raw_wpm": {
-        "go": 291.44178874325365,
-        "python": 259.43719972546324
-      }
-    },
-    "codec/keegan_15990.json": {
-      "graph_sample": true,
-      "raw_wpm": {
-        "go": 258.06451612903226,
-        "python": 225.609756097561
-      }
-    },
-    "codec/keegan_15992.json": {
-      "graph_sample": true,
-      "raw_wpm": {
-        "go": 270.70347284060546,
-        "python": 255.533762958812
-      }
-    },
-    "codec/keegan_16008.json": {
-      "graph_sample": true,
-      "raw_wpm": {
-        "go": 262.6582278481013,
-        "python": 249.00000000000003
-      }
-    },
-    "codec/keegan_1970.json": {
-      "graph_sample": true,
-      "raw_wpm": {
-        "go": 212.56122030680274,
-        "python": 206.61884988045801
-      }
-    },
-    "codec/keegan_4093.json": {
-      "graph_sample": true,
-      "raw_wpm": {
-        "go": 189.45179632648345,
-        "python": 187.57863433604027
-      }
-    },
-    "codec/keegan_5112.json": {
-      "graph_sample": true,
-      "raw_wpm": {
-        "go": 195.51996911024287,
-        "python": 192.3872941599928
-      }
-    },
-    "codec/keegan_5313.json": {
-      "graph_sample": true,
-      "raw_wpm": {
-        "go": 574.4125326370757,
-        "python": 2.5454713750173554
-      }
-    },
-    "codec/keegan_5888.json": {
-      "graph_sample": true,
-      "raw_wpm": {
-        "go": 187.22793746026053,
-        "python": 185.8362686027758
-      }
-    },
-    "codec/keegan_7789.json": {
-      "graph_sample": true,
-      "raw_wpm": {
-        "go": 188.24442289039766,
-        "python": 187.30818476029933
-      }
-    },
-    "codec/keegan_7842.json": {
-      "graph_sample": true,
-      "raw_wpm": {
-        "go": 182.73974219664018,
-        "python": 180.0457656511344
-      }
-    },
-    "codec/keegan_7876.json": {
-      "graph_sample": true,
-      "raw_wpm": {
-        "go": 249.6156281088903,
-        "python": 247.84482758620692
-      }
-    },
-    "codec/keegan_8581.json": {
-      "graph_sample": true,
-      "raw_wpm": {
-        "go": 338.88048411497726,
-        "python": 249.90702863518035
-      }
-    },
-    "codec/keegan_8827.json": {
-      "graph_sample": true,
-      "raw_wpm": {
-        "go": 378.94736842105266,
-        "python": 186.60584698320545
-      }
-    },
-    "codec/keegan_9200.json": {
-      "graph_sample": true,
-      "raw_wpm": {
-        "go": 227.42040285899932,
-        "python": 225.6608639587363
-      }
-    },
-    "codec/keegan_9390.json": {
-      "graph_sample": true,
-      "raw_wpm": {
-        "go": 164.81612855328063,
-        "python": 163.5932657653662
-      }
-    },
-    "codec/keegan_9460.json": {
-      "graph_sample": true,
-      "raw_wpm": {
-        "go": 252.05671276037108,
-        "python": 171.357172606652
-      }
-    },
-    "codec/keegan_9693.json": {
-      "graph_sample": true,
-      "raw_wpm": {
-        "go": 333.2514131236176,
-        "python": 320.4916095485701
-      }
-    },
-    "codec/keegan_9733.json": {
-      "graph_sample": true,
-      "raw_wpm": {
-        "go": 350.3649635036496,
-        "python": 288.7838418564675
-      }
-    },
-    "codec/keegan_9942.json": {
-      "graph_sample": true,
-      "raw_wpm": {
-        "go": 213.9514151994651,
-        "python": 204.8218476637508
-      }
-    },
-    "codec/keegan_ctrl_a_replace.json": {
-      "graph_sample": true,
-      "raw_wpm": {
-        "go": 229.62962962962962,
-        "python": 209.93227990970655
-      }
-    },
-    "codec/keegan_raw_spike.json": {
-      "graph_sample": true,
-      "raw_wpm": {
-        "go": 341.4911781445646,
-        "python": 259.852750108272
-      }
-    },
     "codec/korean_ime_typos.json": {
-      "graph_sample": true,
-      "raw_wpm": {
-        "go": 51.379638439581356,
-        "python": 50.27932960893855
-      }
+      "graph_sample": true
     },
     "codec/robby_jp_acc.json": {
       "raises": "InvalidKeystrokeData"
@@ -355,7 +22,7 @@
       "graph_sample": true,
       "raw_wpm": {
         "go": 50.4116955133591,
-        "python": 47.007207771858354
+        "python": 55.66895527927259
       },
       "wpm": {
         "go": 16.294606485253382,
@@ -369,18 +36,11 @@
         "python": 36.10248447204969
       }
     },
-    "raw/bible_lamb_jyin_log.json": {
-      "graph_sample": true,
-      "raw_wpm": {
-        "go": 188.03520792837827,
-        "python": 186.82491248432206
-      }
-    },
     "raw/broken_raw_1.json": {
       "graph_sample": true,
       "raw_wpm": {
         "go": 163.09594377169955,
-        "python": 160.3964106514543
+        "python": 163.31375998982472
       },
       "wpm": {
         "go": 130.22972767381714,
@@ -395,7 +55,7 @@
       "graph_sample": true,
       "raw_wpm": {
         "go": 180.18018018018017,
-        "python": 174.26662794074934
+        "python": 184.38844499078058
       },
       "wpm": {
         "go": 78.46214201647705,

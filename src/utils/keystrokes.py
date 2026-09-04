@@ -285,6 +285,10 @@ def process_keystroke_data(
     char_pool: dict[str, list[CharPoolEntry]] = {}
     position_keystrokes: dict[int, list[PositionKeystroke]] = {}
     post_correction_positions: set[int] = set()
+    # A position whose next insert inherits correction overhead, drained once claimed.
+    pending_post_delete_positions: set[int] = set()
+    # Keystrokes whose timeDelta includes delete-and-retype overhead.
+    correction_ks_ids: set[int] = set()
     fat_finger_times: dict[int, int] = {}
 
     correct_chars = 0
@@ -391,6 +395,10 @@ def process_keystroke_data(
             pending_delays.clear()
 
             # Always add to position_keystrokes at absolute_pos
+            if absolute_pos in pending_post_delete_positions:
+                correction_ks_ids.add(keystroke_id)
+                pending_post_delete_positions.discard(absolute_pos)
+
             add_to_position_keystrokes(absolute_pos, keystroke_id, time_delta)
 
             # Tracking sequence logic for char_pool (matches Go implementation)
@@ -499,6 +507,7 @@ def process_keystroke_data(
                 # Composition is not a correction, so it does not mark the position.
                 if not action.redundant and not is_composition and 0 <= absolute_pos < len(text):
                     post_correction_positions.add(absolute_pos)
+                    correction_ks_ids.add(keystroke_id)
 
                 normalized_typed = normalize_enter(typed_char).lower()
 
@@ -588,6 +597,7 @@ def process_keystroke_data(
             tail_pos = total_chars_before_word + d_start
             if 0 <= tail_pos < len(text):
                 post_correction_positions.add(tail_pos)
+                pending_post_delete_positions.add(tail_pos)
 
             # Reset tracking sequence on delete (buffer changed significantly)
             tracking_sequence_pos = -1
@@ -601,6 +611,8 @@ def process_keystroke_data(
             input_val = input_val[:insert_pos] + typed_chars + input_val[insert_pos:]
             last_key_correct = prefix_matches_word(input_val[:insert_pos + len(typed_chars)], current_word)
             input_val_correct[insert_pos:insert_pos] = [last_key_correct] * len(typed_chars)
+
+            pending_post_delete_positions.discard(absolute_pos)
 
             for idx, char in enumerate(typed_chars):
                 pos = absolute_pos + idx
@@ -670,13 +682,17 @@ def process_keystroke_data(
                     min_ks_id = -1
 
                     for pk in all_at_pos:
-                        if pk.ks_id in fat_finger_times or pk.ks_id in global_used_raw_ids:
+                        # time_delta <= 0 is a clean-start first key or an IME dependent codepoint.
+                        if (pk.ks_id in fat_finger_times or pk.ks_id in global_used_raw_ids
+                                or pk.time_delta <= 0):
                             continue
 
-                        typed_char = get_key_from_action(keystrokes[pk.ks_id].action)
-                        typed_normalized = normalize_enter(typed_char).lower()
+                        if pk.ks_id in correction_ks_ids:
+                            typed_char = get_key_from_action(keystrokes[pk.ks_id].action)
+                            if normalize_enter(typed_char).lower() != expected_char:
+                                continue
 
-                        if typed_normalized == expected_char and pk.time_delta < min_time:
+                        if pk.time_delta < min_time:
                             min_time = pk.time_delta
                             min_ks_id = pk.ks_id
 
