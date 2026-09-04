@@ -2,6 +2,7 @@
 line-length = 120
 target-version = "py312"
 src = ["src"]
+include = ["src/**/*.py", "tests/**/*.py", "tools/**/*.py"]
 extend-exclude = ["src/xtra", "src/sandbox.py", "src/server_sandbox.py"]
 
 # Do not add [tool.ruff.format]. The formatter rewrites the nested quotes in
