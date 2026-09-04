@@ -5,7 +5,8 @@ from discord.ext.commands import CheckFailure, CommandError
 
 from config import BOT_PREFIX as prefix, EIKO
 from utils.colors import PLUS, WARNING
-from utils.flags import Flags
+from utils.flags import Flags, get_flag_title
+from utils.urls import GG_PLUS_LINK
 
 
 @dataclass
@@ -16,7 +17,6 @@ class BotError(CommandError):
 
     @property
     def embed(self):
-        from utils.strings import get_flag_title
         title = self.title + (get_flag_title(self.flags) if self.flags is not None else "")
         return Embed(
             title=title,
@@ -276,8 +276,7 @@ class CommandOnCooldown(CommandError):
 
     @property
     def embed(self):
-        from utils.dates import now
-        from utils.strings import discord_date
+        from utils.dates import discord_date, now
 
         return Embed(
             title="Command On Cooldown",
@@ -291,7 +290,6 @@ class DailyLimitReached(CommandError):
 
     @property
     def embed(self):
-        from utils.strings import GG_PLUS_LINK
 
         return Embed(
             title="Daily Limit Reached",
@@ -349,7 +347,6 @@ class NotSubscribed(CommandError):
 
     @property
     def embed(self):
-        from utils.strings import GG_PLUS_LINK
         return Embed(
             title="Requires GG+",
             description=f"[Get GG+]({GG_PLUS_LINK}) to access " + self.feature + "!",

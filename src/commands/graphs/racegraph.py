@@ -8,10 +8,11 @@ from database.typegg.quotes import get_quote
 from database.typegg.races import get_race
 from database.typegg.users import get_quote_bests
 from graphs import race as race_graph
+from utils.dates import discord_date
 from utils.errors import NoQuoteRaces
 from utils.keystrokes import get_keystroke_data
 from utils.messages import Field, Message, Page, usable_in
-from utils.strings import GG_PLUS_LINKED, discord_date, format_duration, quote_display
+from utils.strings import GG_PLUS_LINKED, format_duration, quote_display
 
 info = {
     "name": "racegraph",

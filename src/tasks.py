@@ -13,11 +13,11 @@ from database.typegg.daily_quotes import add_daily_quote, add_daily_results, get
 from graphs import daily as daily_graph
 from utils import dates
 from utils.colors import DEFAULT_THEME
-from utils.dates import format_date, parse_date
+from utils.dates import discord_date, format_date, parse_date
 from utils.files import remove_file
 from utils.keystrokes import get_keystroke_data
 from utils.logging import log, log_error
-from utils.strings import discord_date, get_streak_emoji
+from utils.strings import get_streak_emoji
 
 STATUSES_FILE = SOURCE_DIR / "data" / "statuses.txt"
 SEASONAL_STATUSES = {

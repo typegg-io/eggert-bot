@@ -10,7 +10,8 @@ from config import BOT_PREFIX, STATS_CHANNEL_ID, TYPEGG_GUILD_ID
 from context import BotContext
 from utils import files
 from utils.colors import SUCCESS, WARNING
-from utils.strings import LOADING, get_flag_title
+from utils.flags import get_flag_title
+from utils.strings import LOADING
 from utils.urls import profile_url
 
 welcome_message = (

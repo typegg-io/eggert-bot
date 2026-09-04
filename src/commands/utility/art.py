@@ -8,10 +8,10 @@ from commands.base import Command
 from context import BotContext
 from database.bot import art as art_db
 from database.bot.users import get_user
+from utils.dates import discord_date
 from utils.errors import BotError, MissingArguments
 from utils.logging import ADMIN_ALIASES
 from utils.messages import Message, Page, paginate_data
-from utils.strings import discord_date
 
 info = {
     "name": "art",

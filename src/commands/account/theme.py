@@ -15,7 +15,8 @@ from utils.colors import DARK_THEME, DEFAULT_THEME, ERROR, GG_PLUS_THEME, LIGHT_
 from utils.errors import BotUserNotFound, MissingArguments, NotSubscribed
 from utils.files import remove_file
 from utils.messages import Button, Message, Page
-from utils.strings import GG_PLUS_LINK, GG_PLUS_LINKED
+from utils.strings import GG_PLUS_LINKED
+from utils.urls import GG_PLUS_LINK
 
 # Name + aliases
 elements = {

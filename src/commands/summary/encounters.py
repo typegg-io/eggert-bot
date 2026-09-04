@@ -9,11 +9,12 @@ from database.typegg.quotes import get_quote, get_quotes
 from database.typegg.races import get_races
 from graphs import encounters as encounters_graph, match as match_graph
 from utils.colors import ERROR
+from utils.dates import discord_date
 from utils.errors import BotError
 from utils.keystroke_codec import KeystrokeCodecError
 from utils.keystrokes import get_keystroke_data
 from utils.messages import Field, Message, Page
-from utils.strings import discord_date, quote_display, rank, username_with_flag
+from utils.strings import quote_display, rank, username_with_flag
 
 sorts = ["wins", "losses", "winrate", "wpm", "-winrate", "-wpm"]
 info = {

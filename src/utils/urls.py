@@ -3,6 +3,8 @@ from urllib.parse import urlparse
 
 from config import BOT_SUBDOMAIN, SITE_URL
 
+GG_PLUS_LINK = f"{SITE_URL}/plus"
+
 _SITE_HOST = urlparse(SITE_URL or "").netloc
 _SOLO_URL_RE = re.compile(
     rf"^https?://(?:[a-z0-9-]+\.)?{re.escape(_SITE_HOST)}/solo/(?P<quote_id>[^/?#]+)",

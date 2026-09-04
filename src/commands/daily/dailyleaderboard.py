@@ -7,9 +7,9 @@ from config import DAILY_QUOTE_CHANNEL_ID, DAILY_QUOTE_ROLE_ID
 from context import BotContext
 from database.bot.recent_quotes import set_recent_quote
 from utils import dates
-from utils.dates import format_date, parse_date
+from utils.dates import discord_date, format_date, parse_date
 from utils.messages import Message, Page, paginate_data, usable_in
-from utils.strings import discord_date, quote_display, rank, username_with_flag
+from utils.strings import quote_display, rank, username_with_flag
 from utils.urls import race_url
 
 info = {

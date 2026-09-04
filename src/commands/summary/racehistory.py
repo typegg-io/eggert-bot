@@ -4,8 +4,8 @@ from commands.base import Command
 from context import BotContext
 from database.typegg.quotes import get_quotes
 from database.typegg.races import get_races
+from utils.dates import discord_date
 from utils.messages import Message, paginate_data
-from utils.strings import discord_date
 
 info = {
     "name": "racehistory",

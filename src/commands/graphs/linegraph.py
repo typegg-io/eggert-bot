@@ -8,9 +8,9 @@ from context import BotContext
 from database.typegg.races import get_races
 from graphs import line
 from utils.errors import BotError
+from utils.flags import get_flag_title
 from utils.nwpm_model import calculate_nwpm, initialize_nwpm_model
 from utils.stats import calculate_quote_length, calculate_total_pp
-from utils.strings import get_flag_title
 
 metrics = {
     "pp": {

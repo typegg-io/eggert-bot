@@ -5,9 +5,10 @@ from discord.ext import commands
 from commands.base import Command
 from context import BotContext
 from database.bot.users import get_user, get_user_by_user_id
+from utils.dates import discord_date
 from utils.errors import BotError, ProfileNotFound
 from utils.messages import Message, Page
-from utils.strings import GG_PLUS_LINKED, discord_date
+from utils.strings import GG_PLUS_LINKED
 from utils.urls import profile_url
 
 info = {
