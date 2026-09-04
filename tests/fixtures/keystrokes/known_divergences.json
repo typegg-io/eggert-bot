@@ -29,16 +29,6 @@
         "python": 29.741251115296915
       }
     },
-    "codec/vietnamese_ime_perfect.json": {
-      "graph_values": {
-        "first_diverging_point": 30,
-        "of": 31
-      },
-      "wpm": {
-        "go": 57.301293900184845,
-        "python": 36.10248447204969
-      }
-    },
     "raw/bible_lamb_jyin_log.json": {
       "graph_values": {
         "first_diverging_point": 4706,
@@ -63,14 +53,6 @@
       "accuracy": {
         "go": 72.72727272727273,
         "python": 71.71717171717172
-      },
-      "graph_values": {
-        "first_diverging_point": 49,
-        "of": 50
-      },
-      "wpm": {
-        "go": 78.46214201647705,
-        "python": 72.74490785645006
       }
     }
   },
