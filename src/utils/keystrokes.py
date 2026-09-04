@@ -930,43 +930,10 @@ def process_keystroke_data(
             tracking_sequence_pos = -1
             current_word = words[word_index] if word_index < len(words) else ""
 
-    # === FIX FOR CASCADING SPACE KEYSTROKE BUG ===
-    # After all words are processed, there may be remaining unattributed keystrokes
-    # in input_val_contributors (e.g., a trailing space that cascaded from the previous word).
-    # We must attribute these to the running total so that sum(wpm_character_times) == last_timestamp.
-    if keystrokes_wpm_graph_data:
-        additional_time = 0.0
-
-        # attribute any remaining contributors
-        for contributor_id in input_val_contributors:
-            if contributor_id >= 0 and contributor_id not in global_used_actual_ids:
-                global_used_actual_ids.add(contributor_id)
-                additional_time += keystrokes[contributor_id].timeDelta
-
-        # attribute any remaining delays
-        for delay_ids in input_val_delays:
-            for delay_id in delay_ids:
-                if delay_id not in global_used_actual_ids:
-                    global_used_actual_ids.add(delay_id)
-                    additional_time += keystrokes[delay_id].timeDelta
-
-        # attribute any pending delays (from DELETEs that cleared the buffer without subsequent INSERTs)
-        for delay_id in pending_delays:
-            if delay_id not in global_used_actual_ids:
-                global_used_actual_ids.add(delay_id)
-                additional_time += keystrokes[delay_id].timeDelta
-
-        # add any remaining time to the running total and update last graph point.
-        # best-effort fallback when input is mangled beyond attribution
-        if additional_time > 0 and wpm_character_times:
-            wpm_character_times[-1] += additional_time
-            wpm_running_total += additional_time  # Update running total too
-
-            last_point = keystrokes_wpm_graph_data[-1]
-            text_len = len(wpm_character_times) - 1 if first_char_skipped else len(wpm_character_times)
-            total_time = wpm_running_total
-            last_point.wpm = calculate_wpm(text_len, total_time)
-            last_point.time = total_time
+    # A replay that never finished its words cannot be attributed, and Go refuses it rather
+    # than guessing.
+    if word_index < len(words):
+        raise InvalidKeystrokeData
 
     # wpm_character_times is the authoritative grapheme count. split_words can drop trailing
     # characters, so grapheme_count can differ.
