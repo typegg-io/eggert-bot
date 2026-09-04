@@ -1,7 +1,8 @@
 
-from api.daily_quotes import START_DATE
+from api.daily_quotes import START_DATE, get_daily_quote
 from database.typegg import db
 from utils import dates
+from utils.logging import log
 
 
 def add_daily_quote(daily_quote: dict):
@@ -70,8 +71,6 @@ def update_daily_results_pp(quote_id: str, pp_ratio: float):
 
 async def reimport_daily_results():
     """Re-fetch and replace the leaderboard results for every stored daily quote."""
-    from api.daily_quotes import get_daily_quote
-    from utils.logging import log
 
     day_numbers = [row["dayNumber"] for row in db.fetch("SELECT dayNumber FROM daily_quotes ORDER BY dayNumber")]
 

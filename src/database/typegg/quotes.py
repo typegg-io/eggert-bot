@@ -1,10 +1,12 @@
 import json
 from json import JSONDecodeError
 
-from api.quotes import get_all_quotes
+from api.quotes import calculate_metric, get_all_quotes
 from api.sources import get_all_sources
+from api.users import get_race
 from database.typegg import db
-from database.typegg.sources import get_source
+from database.typegg.daily_quotes import update_daily_results_pp, zero_daily_results_pp
+from database.typegg.sources import add_sources, get_source
 from utils.dates import normalize_datetime
 from utils.errors import UnknownQuote
 from utils.logging import log, log_server
@@ -133,7 +135,6 @@ def is_quote_id(quote_id: str):
 
 
 async def reimport_quotes():
-    from database.typegg.sources import add_sources
 
     log("Fetching sources")
     async for page_sources in get_all_sources():
@@ -191,7 +192,6 @@ async def update_quote(quote_id: str, updates: dict):
             new_ranked = updates["ranked"]
 
             if old_ranked != new_ranked:
-                from database.typegg.daily_quotes import update_daily_results_pp, zero_daily_results_pp
 
                 if new_ranked == 0:  # Ranked -> Unranked: Zero out pp values
                     db.run("""
@@ -202,7 +202,6 @@ async def update_quote(quote_id: str, updates: dict):
                     zero_daily_results_pp(quote_id)
                     log_server(f"Quote {quote_id} unranked: Zeroed out pp values")
                 elif new_ranked == 1:  # Unranked -> Ranked: Recalculate pp values
-                    from api.users import get_race
 
                     sample = db.fetch_one("""
                         SELECT userId, raceNumber, wpm
@@ -215,7 +214,6 @@ async def update_quote(quote_id: str, updates: dict):
                         race_data = await get_race(sample["userId"], sample["raceNumber"])
                         pp_ratio = race_data["pp"] / race_data["wpm"]
                     else:  # No local race to sample, use the calculate pp endpoint
-                        from api.quotes import calculate_metric
                         calc_result = await calculate_metric(quote_id, 200, "wpm")
                         pp_ratio = calc_result["pp"] / 200
 

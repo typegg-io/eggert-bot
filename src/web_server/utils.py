@@ -6,6 +6,8 @@ from aiohttp import web
 
 from api.core import API_URL
 from config import LANGUAGE_ROLE_IDS, SECRET, VERIFIED_ROLE_NAME
+from database.bot.users import update_gg_plus_status, update_theme
+from utils.colors import GG_PLUS_THEME
 from utils.logging import log_server
 
 # Request Utilities
@@ -163,8 +165,6 @@ async def update_nwpm_role(cog, guild: discord.Guild, discord_id: int, nwpm: flo
 
 async def assign_user_roles(cog, guild: discord.Guild, discord_id: int, user_id: str):
     """Fetch user profile and assign all roles (verified, nWPM, GG+)."""
-    from database.bot.users import update_gg_plus_status, update_theme
-    from utils.colors import GG_PLUS_THEME
 
     member = guild.get_member(discord_id)
     if not member:

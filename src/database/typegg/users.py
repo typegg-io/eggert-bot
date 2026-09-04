@@ -1,6 +1,11 @@
 import asyncio
 
+from api.core import request
+from api.users import get_profile
+from database.bot.users import get_all_linked_users
 from database.typegg import db
+from database.typegg.match_results import delete_match_results
+from database.typegg.quote_leaderboards import remove_user_from_leaderboards
 from utils.errors import ProfileNotFound
 from utils.flags import Flags
 from utils.logging import log
@@ -153,8 +158,6 @@ def delete_user(user_id: str):
 
 def delete_user_data(user_id: str):
     """Delete all data associated with a user, recomputing affected leaderboards."""
-    from database.typegg.match_results import delete_match_results
-    from database.typegg.quote_leaderboards import remove_user_from_leaderboards
 
     remove_user_from_leaderboards(user_id)
     delete_match_results(user_id)
@@ -186,10 +189,6 @@ async def reimport_users():
 
 
 async def reimport_nwpm():
-    from api.core import request
-    from api.users import get_profile
-    from database.bot.users import get_all_linked_users
-    from utils.errors import ProfileNotFound
 
     linked_users = get_all_linked_users()
 
