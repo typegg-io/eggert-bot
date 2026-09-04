@@ -546,9 +546,10 @@ def process_keystroke_data(
                 while len(input_val_contributors) < adj_start:
                     input_val_contributors.append(-1)
                     input_val_delays.append([])
+                # Only an insert or a composition claims pending delays. A replace leaves them
+                # for the next keystroke.
                 input_val_contributors[adj_start:adj_end] = [keystroke_id]
-                input_val_delays[adj_start:adj_end] = [preserved_ids + list(pending_delays)]
-                pending_delays.clear()
+                input_val_delays[adj_start:adj_end] = [preserved_ids]
 
             # A redundant replace rewrites the buffer, matching the TS frontend, but leaves the
             # correctness flags alone.

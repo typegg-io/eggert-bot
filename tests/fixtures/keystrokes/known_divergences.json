@@ -3,12 +3,6 @@
     "codec/dasha_beans_dict_reconstructed.json": {
       "raises": "InvalidKeystrokeData"
     },
-    "codec/keegan_7789.json": {
-      "graph_values": {
-        "first_diverging_point": 413,
-        "of": 2426
-      }
-    },
     "codec/surrogate_pair.json": {
       "graph_values": {
         "first_diverging_point": 2,
@@ -21,12 +15,6 @@
       "wpm": {
         "go": 16.294606485253382,
         "python": 29.741251115296915
-      }
-    },
-    "raw/bible_lamb_jyin_log.json": {
-      "graph_values": {
-        "first_diverging_point": 4706,
-        "of": 4990
       }
     },
     "raw/broken_raw_1.json": {

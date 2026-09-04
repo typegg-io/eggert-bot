@@ -184,10 +184,10 @@ def decode_keystroke_data(raw: str) -> KeystrokeData:
             potential_mod = runes[i]
             next_char = runes[i + 1]
             if potential_mod in ('L', 'R', 'S', 'C', 'V') and next_char in ('+', '>'):
-                modifier = potential_mod  # noqa: F841  parsed then dropped, confirm against Go before removing
+                modifier = potential_mod  # noqa: F841  only the Go encoder reads Mod, and this repo never encodes
                 i += 1
             elif potential_mod in ('X', 'M') and next_char in ('<', '-', '='):
-                delete_modifier = potential_mod  # noqa: F841  parsed then dropped, confirm against Go before removing
+                delete_modifier = potential_mod  # noqa: F841  only the Go encoder reads Mod, and this repo never encodes
                 i += 1
 
         action_code = runes[i]
