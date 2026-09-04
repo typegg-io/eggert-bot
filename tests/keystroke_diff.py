@@ -4,6 +4,7 @@ Imported by both tests/test_keystroke_parity.py and tests/fixtures/refresh_diver
 test and the manifest generator can never disagree about what counts as a divergence.
 """
 
+import gzip
 import json
 import os
 
@@ -33,6 +34,18 @@ def load_json(*parts):
 def load_golden():
     """Return the golden entries for every vendored fixture, excluding the unrunnable ones."""
     return [g for g in load_json("golden.json") if g["file"] not in EXCLUDED]
+
+
+def load_graph_golden():
+    """Return every graph point per fixture, or None when the full golden is not vendored."""
+    path = os.path.join(FIXTURE_DIR, "graph_golden.json.gz")
+    if not os.path.isfile(path):
+        return None
+    with gzip.open(path, "rt", encoding="utf-8") as f:
+        return {f"{g['format']}/{g['file']}": g["points"] for g in json.load(f)}
+
+
+GRAPH_POINTS = load_graph_golden()
 
 
 def load_manifest():
@@ -70,7 +83,37 @@ def compare(golden: dict) -> dict:
     points = result.keystrokesWpmGraphData
     if len(points) != golden["graph_points"]:
         found["graph_points"] = {"go": golden["graph_points"], "python": len(points)}
-    elif any(graph_point_differs(points[s["index"]], s) for s in golden["graph_sample"]):
-        found["graph_sample"] = True
+    else:
+        index = first_graph_divergence(golden, points)
+        if index is not None:
+            found["graph_values"] = {"first_diverging_point": index, "of": len(points)}
 
     return found
+
+
+def first_graph_divergence(golden: dict, points: list):
+    """Return the index of the first differing graph point, or None when they all match.
+
+    Falls back to the 25 sampled points when the full graph golden is not vendored.
+    """
+    key = f"{golden['format']}/{golden['file']}"
+    full = GRAPH_POINTS.get(key) if GRAPH_POINTS else None
+
+    if full is None:
+        for sample in golden["graph_sample"]:
+            if graph_point_differs(points[sample["index"]], sample):
+                return sample["index"]
+        return None
+
+    for i, expected in enumerate(full):
+        actual = (
+            points[i].charIndex, points[i].wordIndex, points[i].initialKeystrokeId,
+            points[i].time, points[i].wpm, points[i].raw,
+        )
+        for a, e in zip(actual, expected):
+            if e is None or a is None:
+                if e is not a:
+                    return i
+            elif abs(a - e) > TOLERANCE:
+                return i
+    return None
