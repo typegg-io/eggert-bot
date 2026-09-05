@@ -6,6 +6,7 @@ from context import BotContext
 from database.typegg.races import get_races
 from utils.errors import BotError, MissingArguments, NoRaces
 from utils.messages import Message, Page
+from utils.schemas import Profile
 
 info = {
     "name": "longestaverage",
@@ -114,7 +115,7 @@ def top_10_longest_averages(values, threshold) -> list[tuple[int, int, int]]:
     return results
 
 
-async def run(ctx: BotContext, profile: dict, wpm: float) -> None:
+async def run(ctx: BotContext, profile: Profile, wpm: float) -> None:
     """Send the 10 longest non-overlapping streaks averaging at least the given WPM."""
     race_list = await get_races(
         user_id=profile["userId"],

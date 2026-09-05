@@ -12,9 +12,10 @@ from database.typegg.quote_leaderboards import remove_user_from_leaderboards
 from utils.errors import ProfileNotFound
 from utils.flags import Flags
 from utils.logging import log
+from utils.schemas import Profile
 
 
-def create_user(profile: dict) -> None:
+def create_user(profile: Profile) -> None:
     """Insert a TypeGG user, ignoring one that already exists."""
     db.run("""
         INSERT INTO users

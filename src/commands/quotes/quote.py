@@ -11,7 +11,7 @@ from utils.colors import SUCCESS
 from utils.dates import discord_date, parse_date
 from utils.errors import BotError
 from utils.messages import Field, Message, Page, usable_in
-from utils.schemas import Theme
+from utils.schemas import Profile, Theme
 from utils.stats import calculate_total_pp
 from utils.strings import INCREASE, quote_display
 
@@ -252,7 +252,7 @@ def build_graph_page(quote_races: list, ranked: bool, theme: Theme) -> Page:
     return page
 
 
-async def run(ctx: BotContext, profile: dict, quote: dict) -> None:
+async def run(ctx: BotContext, profile: Profile, quote: dict) -> None:
     """Send a user's personal best, history and graph for one quote."""
     user_id = profile["userId"]
     quote_id = quote["quoteId"]

@@ -9,6 +9,7 @@ from database.typegg.users import get_quote_bests
 from graphs import quotestrength as qs_graph
 from utils.errors import NoRankedRaces
 from utils.messages import Message, Page
+from utils.schemas import Profile
 
 max_users = 5
 
@@ -50,7 +51,7 @@ def _quote_xy(quote, len_p10, len_p90, sorted_complexities) -> tuple[float, floa
     return x, y
 
 
-async def run(ctx: BotContext, profiles: list[dict]) -> None:
+async def run(ctx: BotContext, profiles: list[Profile]) -> None:
     """Send a compass placing each user by the quotes their pp comes from."""
     quote_list = get_quotes()
 

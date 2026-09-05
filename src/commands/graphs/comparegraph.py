@@ -11,6 +11,7 @@ from database.typegg.users import get_quote_bests
 from graphs import compare_bar, compare_histogram
 from utils.errors import BotError, MissingArguments, SameUsername
 from utils.messages import Field, Message, Page
+from utils.schemas import Profile
 from utils.strings import username_with_flag
 from utils.urls import compare_url
 
@@ -138,7 +139,13 @@ def max_positive_subarray_sum(buckets, diffs) -> tuple[int, float | None, float 
     return max_sum, buckets[best_start], buckets[best_end]
 
 
-async def comparegraph_main(ctx: BotContext, profile1: dict, profile2, min_length=None, max_length=None) -> None:
+async def comparegraph_main(
+    ctx: BotContext,
+    profile1: Profile,
+    profile2: Profile,
+    min_length=None,
+    max_length=None,
+) -> None:
     """Send a head-to-head graph of quote wins bucketed by difficulty."""
     quotes = get_quotes(min_length=min_length, max_length=max_length)
     quote_bests1 = get_quote_bests(profile1["userId"], as_dictionary=True, flags=ctx.flags)
@@ -272,8 +279,8 @@ async def comparegraph_main(ctx: BotContext, profile1: dict, profile2, min_lengt
 
 async def comparegraph_ranged(
     ctx: BotContext,
-    profile1: dict,
-    profile2: dict,
+    profile1: Profile,
+    profile2: Profile,
     min_difficulty: float,
     max_difficulty: float,
     metric: str,

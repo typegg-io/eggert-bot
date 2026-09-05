@@ -6,6 +6,7 @@ from commands.base import Command
 from context import BotContext
 from database.typegg.users import get_running_maximum_by_length
 from graphs.endurance import UserEnduranceData, render
+from utils.schemas import Profile
 
 max_users = 5
 
@@ -35,7 +36,7 @@ class Endurance(Command):
         await run(ctx, profiles)
 
 
-async def run(ctx: BotContext, profiles: list[dict]) -> None:
+async def run(ctx: BotContext, profiles: list[Profile]) -> None:
     """Send a graph of each user's running maximum WPM by quote length."""
     data = []
 

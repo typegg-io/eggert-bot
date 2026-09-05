@@ -7,6 +7,7 @@ import re
 from dateutil.relativedelta import relativedelta
 
 from utils.errors import InvalidArgument, InvalidNumber
+from utils.schemas import Profile
 from utils.urls import GG_PLUS_LINK, profile_url, race_url
 
 # Constants
@@ -294,7 +295,7 @@ def get_flag(user) -> str:
     return f":flag_{country.lower()}: " if country else ""
 
 
-def username_with_flag(profile: dict, link_user: bool = True) -> str:
+def username_with_flag(profile: Profile, link_user: bool = True) -> str:
     """Format username with country flag and optional GG+ badge, optionally linked."""
     flag = get_flag(profile)
     username = profile["username"]

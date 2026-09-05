@@ -9,6 +9,7 @@ from database.typegg.users import get_quote_bests
 from graphs import best as best_graph
 from utils.errors import NoRankedRaces
 from utils.messages import Message, Page
+from utils.schemas import Profile
 from utils.stats import calculate_total_pp
 
 max_users = 5
@@ -56,7 +57,7 @@ def get_optimization_level(pp_values) -> float:
     return 1 - deviation / pp_anchor
 
 
-async def run(ctx: BotContext, profiles: list[dict], n: int, metric: str) -> None:
+async def run(ctx: BotContext, profiles: list[Profile], n: int, metric: str) -> None:
     """Send a graph of each user's top n quote bests, with their totals."""
     top_scores = []
     username = profiles[0]["username"]

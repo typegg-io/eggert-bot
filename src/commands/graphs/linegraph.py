@@ -10,6 +10,7 @@ from graphs import line
 from utils.errors import BotError
 from utils.flags import get_flag_title
 from utils.nwpm_model import calculate_nwpm, initialize_nwpm_model
+from utils.schemas import Profile
 from utils.stats import calculate_quote_length, calculate_total_pp
 
 metrics = {
@@ -199,7 +200,7 @@ def get_nwpm_over_time(race_list: list[dict]) -> list[float]:
     return nwpm
 
 
-async def run(ctx: BotContext, metric: str, profiles: list[dict]) -> None:
+async def run(ctx: BotContext, metric: str, profiles: list[Profile]) -> None:
     """Send one line per user for the metric requested."""
     if metric == "nwpm":
         await initialize_nwpm_model()

@@ -7,6 +7,7 @@ from graphs.keystrokes import render
 from utils.data_structures import ScaledCounter
 from utils.keyboard_layouts import get_keymap
 from utils.messages import Field, Message, Page
+from utils.schemas import Profile
 
 keyboard_layouts = ["qwerty", "dvorak"]
 info = {
@@ -41,7 +42,7 @@ class Keystrokes(Command):
         await run(ctx, profile, keyboard_layout.lower())
 
 
-async def run(ctx: BotContext, profile: dict, keyboard_layout: str) -> None:
+async def run(ctx: BotContext, profile: Profile, keyboard_layout: str) -> None:
     """Send a keyboard heatmap with the user's most frequent characters."""
     username = profile["username"]
     keymap, keyboard_layout = get_keymap(keyboard_layout)

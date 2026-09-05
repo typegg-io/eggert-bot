@@ -13,6 +13,7 @@ from utils.dates import discord_date, format_date
 from utils.errors import NoQuoteRaces
 from utils.keystrokes import get_keystroke_data
 from utils.messages import Field, Message, Page, usable_in
+from utils.schemas import Profile
 from utils.stats import calculate_wpm
 from utils.strings import escape_formatting, get_segments, quote_display
 
@@ -159,7 +160,7 @@ def build_word_segments(text: str, delays: list, raw_delays: list) -> tuple[list
     return words, space_speed, newline_speed
 
 
-async def run(ctx: BotContext, profile: dict, race_number: int) -> None:
+async def run(ctx: BotContext, profile: Profile, race_number: int) -> None:
     """Send a bar graph of the race's segment and word speeds."""
     race = get_race(profile["userId"], race_number, get_keystrokes=True)
     quote = get_quote(race["quoteId"])

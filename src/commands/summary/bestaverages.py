@@ -7,6 +7,7 @@ from database.typegg.races import get_races
 from utils.dates import discord_date, parse_date
 from utils.errors import NotEnoughRaces, NumberGreaterThan
 from utils.messages import Message, Page
+from utils.schemas import Profile
 from utils.strings import date_range_display
 
 info = {
@@ -42,7 +43,7 @@ class BestAverages(Command):
         await run(ctx, profile, n, metric)
 
 
-async def run(ctx: BotContext, profile: dict, n: int, metric: str = "wpm") -> None:
+async def run(ctx: BotContext, profile: Profile, n: int, metric: str = "wpm") -> None:
     """Send the 10 best non-overlapping windows of n races, by speed or accuracy."""
     if n < 1:
         raise NumberGreaterThan

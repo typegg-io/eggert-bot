@@ -13,6 +13,7 @@ from utils.dates import discord_date
 from utils.errors import InvalidKeystrokeData
 from utils.keystrokes import get_keystroke_data
 from utils.messages import Message, Page
+from utils.schemas import Profile
 from utils.stats import get_pauseless_delays
 from utils.strings import quote_display, rank, username_with_flag
 
@@ -44,7 +45,7 @@ class MatchGraph(Command):
         await run(ctx, profile, race_number)
 
 
-async def run(ctx: BotContext, profile: dict, race_number: int) -> None:
+async def run(ctx: BotContext, profile: Profile, race_number: int) -> None:
     """Send a match graph, falling back to a race graph for a solo race."""
     race = await get_race(profile["userId"], race_number, get_keystrokes=True)
     set_recent_quote(ctx.channel.id, race["quoteId"])

@@ -8,6 +8,7 @@ from context import BotContext
 from database.typegg.users import get_quote_bests
 from graphs import histogram
 from utils.messages import Field, Message, Page
+from utils.schemas import Profile
 from utils.strings import username_with_flag
 
 metrics = {
@@ -66,7 +67,7 @@ class Histogram(Command):
         await run(ctx, profile, metric)
 
 
-def make_field(data: list[float], suffix: str, title: str = None, profile: dict = None) -> Field:
+def make_field(data: list[float], suffix: str, title: str = None, profile: Profile = None) -> Field:
     """Return the average, median, quartiles and deviation as an embed field."""
     if suffix == "ms":
         data = [v for v in data if v > 0]
@@ -88,7 +89,7 @@ def make_field(data: list[float], suffix: str, title: str = None, profile: dict 
     )
 
 
-async def run(ctx: BotContext, profile: dict, metric: str) -> None:
+async def run(ctx: BotContext, profile: Profile, metric: str) -> None:
     """Send a paginated histogram of one user's solo against multiplayer races."""
     user_id = profile["userId"]
     ctx.flags.gamemode = "solo"
@@ -142,7 +143,7 @@ async def run(ctx: BotContext, profile: dict, metric: str) -> None:
     await message.send()
 
 
-async def run_compare(ctx: BotContext, profile1: dict, profile2: dict, metric: str) -> None:
+async def run_compare(ctx: BotContext, profile1: Profile, profile2: Profile, metric: str) -> None:
     """Send a paginated histogram comparing two users across every metric."""
     quote_bests1 = get_quote_bests(profile1["userId"], columns=list(metrics.keys()), flags=ctx.flags)
     quote_bests2 = get_quote_bests(profile2["userId"], columns=list(metrics.keys()), flags=ctx.flags)

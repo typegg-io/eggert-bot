@@ -11,6 +11,7 @@ from database.typegg.users import get_quote_bests
 from utils.dates import count_unique_dates, get_start_end_dates, parse_date
 from utils.errors import NoRacesFiltered
 from utils.messages import Field, Message, Page
+from utils.schemas import Profile
 from utils.stats import calculate_quote_bests, calculate_quote_length, calculate_total_pp
 from utils.strings import date_range_display, format_duration
 
@@ -211,7 +212,7 @@ def build_stat_fields(profile, race_list, flags, all_time=False) -> list:
 
 async def run(
     ctx: BotContext,
-    profile: dict,
+    profile: Profile,
     date: datetime = None,
     period: str = None,
 ) -> None:

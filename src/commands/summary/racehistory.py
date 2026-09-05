@@ -6,6 +6,7 @@ from database.typegg.quotes import get_quotes
 from database.typegg.races import get_races
 from utils.dates import discord_date
 from utils.messages import Message, paginate_data
+from utils.schemas import Profile
 
 info = {
     "name": "racehistory",
@@ -32,7 +33,7 @@ class RaceHistory(Command):
         await run(ctx, profile)
 
 
-async def run(ctx: BotContext, profile: dict) -> None:
+async def run(ctx: BotContext, profile: Profile) -> None:
     """Send a user's last 100 races, paginated."""
     only_historical_pbs = (
         profile["userId"] != ctx.user["userId"] and

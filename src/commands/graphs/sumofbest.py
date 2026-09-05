@@ -13,6 +13,7 @@ from graphs import match as match_graph, segments as segment_graph
 from utils.errors import InvalidKeystrokeData, NoQuoteRaces
 from utils.keystrokes import calculate_wpm, get_keystroke_data, get_keystroke_wpm
 from utils.messages import Message, Page, usable_in
+from utils.schemas import Profile
 from utils.strings import format_duration, get_segments, quote_display
 
 info = {
@@ -54,7 +55,7 @@ class SumOfBest(Command):
         await run(ctx, profile, quote)
 
 
-async def run(ctx: BotContext, profile: dict, quote: dict) -> None:
+async def run(ctx: BotContext, profile: Profile, quote: dict) -> None:
     """Send a graph combining the user's fastest run of every segment."""
     quote_races = await get_races(
         profile["userId"],

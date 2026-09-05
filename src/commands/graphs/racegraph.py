@@ -12,6 +12,7 @@ from utils.dates import discord_date
 from utils.errors import NoQuoteRaces
 from utils.keystrokes import get_keystroke_data
 from utils.messages import Field, Message, Page, usable_in
+from utils.schemas import Profile
 from utils.strings import GG_PLUS_LINKED, format_duration, quote_display
 
 info = {
@@ -53,7 +54,7 @@ class RaceGraph(Command):
         await run(ctx, profile, race_number)
 
 
-async def run(ctx: BotContext, profile: dict, race_number: int) -> None:
+async def run(ctx: BotContext, profile: Profile, race_number: int) -> None:
     """Send a WPM over keystrokes graph for one race."""
     race = get_race(profile["userId"], race_number, get_keystrokes=True)
     quote = get_quote(race["quoteId"])

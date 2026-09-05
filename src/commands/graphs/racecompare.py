@@ -13,7 +13,7 @@ from utils.dates import discord_date
 from utils.errors import BotError, NoQuoteRaces
 from utils.keystrokes import get_keystroke_data
 from utils.messages import Message, Page, usable_in
-from utils.schemas import Theme
+from utils.schemas import Profile, Theme
 from utils.strings import quote_display, username_with_flag
 
 max_users = 5
@@ -57,13 +57,13 @@ class RaceCompare(Command):
             await run_self(ctx, quote, profiles[0])
 
 
-async def run(ctx: BotContext, quote: dict, profiles: list[dict]) -> None:
+async def run(ctx: BotContext, quote: dict, profiles: list[Profile]) -> None:
     """Compare quote bests across multiple users."""
     description = quote_display(quote, 1000, display_status=True) + "\n"
     themed_line = 0
 
     # Fetch all best races in parallel
-    async def fetch_user_best(profile: dict) -> dict:
+    async def fetch_user_best(profile: Profile) -> Profile:
         """Return the profile with its best race on the quote attached."""
         quote_best = get_quote_bests(
             profile["userId"], quote_id=quote["quoteId"],
@@ -102,7 +102,7 @@ async def run(ctx: BotContext, quote: dict, profiles: list[dict]) -> None:
     await message.send()
 
 
-async def run_self(ctx: BotContext, quote: dict, profile: dict) -> None:
+async def run_self(ctx: BotContext, quote: dict, profile: Profile) -> None:
     """Compare a user's best and recent races on the same quote."""
     description = quote_display(quote, 1000, display_status=True) + "\n"
 
@@ -178,7 +178,7 @@ async def get_race_keystrokes(user_id: str, race_number: int, raw: bool) -> dict
     return race
 
 
-def format_race(profile: dict, race: dict, label: str = None) -> str:
+def format_race(profile: Profile, race: dict, label: str = None) -> str:
     """Format race information with username, WPM, accuracy, and timestamp."""
     prefix = f"**{label}:** " if label else ""
     return (

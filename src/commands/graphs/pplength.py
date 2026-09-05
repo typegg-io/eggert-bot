@@ -7,6 +7,7 @@ from database.typegg.quotes import get_quotes
 from database.typegg.users import get_quote_bests
 from graphs import pplength
 from utils.flags import Flags
+from utils.schemas import Profile
 
 info = {
     "name": "pplength",
@@ -32,7 +33,7 @@ class PpLengthGraph(Command):
         await run(ctx, profile)
 
 
-async def run(ctx: BotContext, profile: dict) -> None:
+async def run(ctx: BotContext, profile: Profile) -> None:
     """Send a scatterplot of the user's ranked quote bests by length."""
     quote_bests = get_quote_bests(profile["userId"], flags=Flags(status="ranked"))
     quotes = get_quotes()

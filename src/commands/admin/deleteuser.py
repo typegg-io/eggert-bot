@@ -7,6 +7,7 @@ from database.typegg.users import delete_user_data
 from utils.colors import WARNING
 from utils.errors import ProfileNotFound
 from utils.messages import Message, Page
+from utils.schemas import Profile
 
 info = {
     "name": "deleteuser",
@@ -48,7 +49,7 @@ class DeleteUser(Command):
         await run(ctx, profile)
 
 
-async def run(ctx: BotContext, profile: dict) -> None:
+async def run(ctx: BotContext, profile: Profile) -> None:
     """Delete every stored race for a user, then confirm."""
     delete_user_data(profile["userId"])
 

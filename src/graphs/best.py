@@ -4,12 +4,12 @@ import numpy as np
 from matplotlib.colors import hex2color
 
 from graphs.core import apply_theme, filter_palette, generate_file_name, plt
-from utils.schemas import Theme
+from utils.schemas import Profile, Theme
 
 
 def render(
     username: str,
-    profiles: list[dict],
+    profiles: list[Profile],
     n: int,
     metric: str,
     theme: Theme,

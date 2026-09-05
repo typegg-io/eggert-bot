@@ -5,6 +5,7 @@ from context import BotContext
 from utils.colors import DEFAULT, PLUS
 from utils.dates import discord_date, format_date, now, parse_date
 from utils.messages import Field, Message, Page
+from utils.schemas import Profile
 from utils.strings import GG_PLUS, format_duration
 from utils.urls import profile_url
 
@@ -30,7 +31,7 @@ class Stats(Command):
         await run(ctx, profile)
 
 
-async def run(ctx: BotContext, profile: dict) -> None:
+async def run(ctx: BotContext, profile: Profile) -> None:
     """Send a profile's performance, speed and account stats."""
     join_date = parse_date(profile["joinDate"])
     today = now()

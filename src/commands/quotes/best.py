@@ -8,6 +8,7 @@ from database.typegg.users import get_quote_bests
 from utils import strings
 from utils.errors import NoRacesFiltered, NotSubscribed
 from utils.messages import Message, Page, paginate_data
+from utils.schemas import Profile
 from utils.strings import quote_display
 
 metrics = ["pp", "wpm"]
@@ -44,7 +45,7 @@ class Best(Command):
 
 async def run(
     ctx: BotContext,
-    profile: dict,
+    profile: Profile,
     metric: str,
     reverse: bool = True,
 ) -> None:

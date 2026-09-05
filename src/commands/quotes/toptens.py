@@ -4,6 +4,7 @@ from api.users import get_quote_rankings
 from commands.base import Command
 from context import BotContext
 from utils.messages import Field, Message, Page
+from utils.schemas import Profile
 from utils.strings import LOADING, ordinal_number
 
 info = {
@@ -30,7 +31,7 @@ class TopTens(Command):
         await run(ctx, profile)
 
 
-async def run(ctx: BotContext, profile: dict) -> None:
+async def run(ctx: BotContext, profile: Profile) -> None:
     """Send how many quote leaderboards a user places in, broken down by rank."""
     page = Page(
         title="Top Ten Appearances",

@@ -7,6 +7,7 @@ from database.typegg.users import get_quote_bests
 from utils.errors import BotError
 from utils.flags import Flags
 from utils.messages import Message, Page
+from utils.schemas import Profile
 from utils.strings import get_argument
 
 info = {
@@ -65,7 +66,7 @@ class Roles(Command):
             await claim_role(ctx, profile, key)
 
 
-async def list_roles(ctx: BotContext, profile: dict) -> None:
+async def list_roles(ctx: BotContext, profile: Profile) -> None:
     """Send every achievement role with the caller's progress towards it."""
     lines = []
     for key, role in ACHIEVEMENT_ROLES.items():
@@ -81,7 +82,7 @@ async def list_roles(ctx: BotContext, profile: dict) -> None:
     await message.send()
 
 
-async def claim_role(ctx: BotContext, profile: dict, key: str) -> None:
+async def claim_role(ctx: BotContext, profile: Profile, key: str) -> None:
     """Grant one achievement role, when the caller has earned it and does not already hold it."""
     role_info = ACHIEVEMENT_ROLES[key]
 

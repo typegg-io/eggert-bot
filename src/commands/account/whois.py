@@ -8,6 +8,7 @@ from database.bot.users import get_user, get_user_by_user_id
 from utils.dates import discord_date
 from utils.errors import BotError, ProfileNotFound
 from utils.messages import Message, Page
+from utils.schemas import Profile
 from utils.strings import GG_PLUS_LINKED
 from utils.urls import profile_url
 
@@ -61,7 +62,7 @@ class WhoIs(Command):
                 raise UnknownWhoIs
 
 
-async def run(ctx: BotContext, bot_profile: dict = None, site_profile: dict = None) -> None:
+async def run(ctx: BotContext, bot_profile: dict = None, site_profile: Profile = None) -> None:
     """Send whichever of the bot record and the site profile were found."""
     description = ""
 

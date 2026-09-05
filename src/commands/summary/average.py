@@ -6,6 +6,7 @@ from database.typegg.quotes import get_quotes
 from database.typegg.races import get_races
 from utils.errors import NumberGreaterThan
 from utils.messages import Field, Message, Page
+from utils.schemas import Profile
 from utils.strings import format_duration
 
 info = {
@@ -36,7 +37,7 @@ class Average(Command):
         await run(ctx, profile, n)
 
 
-async def run(ctx: BotContext, profile: dict, n: int) -> None:
+async def run(ctx: BotContext, profile: Profile, n: int) -> None:
     """Send the averaged speed, accuracy and difficulty of a user's last n races."""
     if n < 1:
         raise NumberGreaterThan

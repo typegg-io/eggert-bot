@@ -7,6 +7,7 @@ from database.typegg.quotes import get_quotes
 from database.typegg.users import get_quote_bests
 from utils.errors import MissingArguments
 from utils.messages import Message, Page
+from utils.schemas import Profile
 
 info = {
     "name": "quotesover",
@@ -35,7 +36,7 @@ class QuotesOver(Command):
         await run(ctx, profile, abs(ctx.flags.number), ctx.flags.metric)
 
 
-async def run(ctx: BotContext, profile: dict, threshold: int, metric: str) -> None:
+async def run(ctx: BotContext, profile: Profile, threshold: int, metric: str) -> None:
     """Send how many quote bests clear the threshold, and how hard they were."""
     quote_bests = get_quote_bests(
         profile["userId"],

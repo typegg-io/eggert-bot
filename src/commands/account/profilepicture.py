@@ -5,6 +5,7 @@ from discord.ext import commands
 from commands.base import Command
 from context import BotContext
 from utils.colors import ERROR
+from utils.schemas import Profile
 
 info = {
     "name": "profilepicture",
@@ -39,7 +40,7 @@ def no_profile_picture() -> Embed:
     )
 
 
-async def run(ctx: BotContext, profile: dict) -> None:
+async def run(ctx: BotContext, profile: Profile) -> None:
     """Post the profile's avatar URL, or an error when it has none."""
     avatar_url = profile["avatarUrl"]
     if not avatar_url:

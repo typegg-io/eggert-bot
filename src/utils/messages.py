@@ -13,6 +13,7 @@ from context import BotContext
 from utils import files
 from utils.colors import SUCCESS, WARNING
 from utils.flags import get_flag_title
+from utils.schemas import Profile
 from utils.strings import LOADING
 from utils.urls import profile_url
 
@@ -101,7 +102,7 @@ class Message(View):
         footer: str = "",
         footer_icon: str = None,
         color: int = None,
-        profile: dict = None,
+        profile: Profile = None,
         show_avatar: bool = True,
         thumbnail: str = None,
         jump_page: int = None,

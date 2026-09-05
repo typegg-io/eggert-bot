@@ -10,6 +10,7 @@ from context import BotContext
 from database.typegg.daily_quotes import get_daily_quote_id, get_today_result, get_user_results
 from utils import dates
 from utils.messages import Field, Message, Page, usable_in
+from utils.schemas import Profile
 from utils.strings import get_streak_emoji
 
 info = {
@@ -36,7 +37,7 @@ class DailyStats(Command):
         await run(ctx, profile)
 
 
-async def run(ctx: BotContext, profile: dict) -> None:
+async def run(ctx: BotContext, profile: Profile) -> None:
     """Send a user's daily streaks, participation rate, averages and placements."""
     daily_stats = profile["stats"]["dailyQuotes"]
     streak = daily_stats["streak"]

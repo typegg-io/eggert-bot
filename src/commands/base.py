@@ -20,6 +20,7 @@ from utils.colors import ERROR
 from utils.errors import DailyQuoteChannel, InvalidNumber, MissingUsername, NoRaces, NoRacesFiltered, NotSubscribed
 from utils.flags import Flags
 from utils.messages import command_milestone, privacy_warning
+from utils.schemas import Profile
 from utils.strings import get_argument, parse_number
 from utils.urls import parse_solo_url
 
@@ -100,7 +101,7 @@ class Command(commands.Cog):
         args: list | tuple,
         max_users: int = 5,
         auto_import: bool = True
-    ) -> list[dict]:
+    ) -> list[Profile]:
         """Deduplicate & clamp a list of usernames, then fetch & import each profile."""
         usernames = list(dict.fromkeys(args))
         usernames = usernames[:max_users] or [ctx.user["userId"]]
@@ -145,7 +146,7 @@ class Command(commands.Cog):
         username: str | None = None,
         races_required: bool | None = True,
         auto_import=True,
-    ) -> dict:
+    ) -> Profile:
         """Fetch a user's profile, and optionally imports their races."""
         username = self.get_username(ctx, username)
 
@@ -170,7 +171,7 @@ class Command(commands.Cog):
 
         return profile
 
-    async def import_user(self, ctx: BotContext, profile: dict) -> None:
+    async def import_user(self, ctx: BotContext, profile: Profile) -> None:
         """Import the profile's new races, rendering progress into the command's channel."""
         await import_races(ctx, profile, auto_import=True)
 

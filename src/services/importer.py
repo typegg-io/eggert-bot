@@ -16,6 +16,7 @@ from database.typegg.users import create_user, get_user
 from utils.dates import date_to_string, epoch, parse_date, string_to_date
 from utils.logging import log
 from utils.messages import Message, Page
+from utils.schemas import Profile
 from utils.stats import calculate_duration
 from utils.strings import LOADING, escape_formatting
 
@@ -47,7 +48,7 @@ async def import_new_quotes(new_quote_ids) -> None:
 
 async def run(
     ctx: BotContext | None = None,
-    profile: dict | None = None,
+    profile: Profile | None = None,
     user_id: str | None = None,
     auto_import: bool = False,
 ) -> None:

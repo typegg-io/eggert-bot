@@ -9,6 +9,7 @@ from graphs import improvement
 from utils.colors import ERROR
 from utils.dates import parse_date
 from utils.messages import Field, Message, Page
+from utils.schemas import Profile
 
 metrics = ["pp", "wpm"]
 info = {
@@ -57,7 +58,7 @@ def get_window_size(n: int, min_n: int = 25, max_n: int = 500) -> int:
     return window_size if window_size < n else 1
 
 
-async def multiplayer_improvement(ctx: BotContext, profile: dict, metric: str) -> None:
+async def multiplayer_improvement(ctx: BotContext, profile: Profile, metric: str) -> None:
     """Send an improvement graph over a user's quickplay races."""
     ctx.flags.gamemode = "quickplay"
     race_list = await get_races(
@@ -185,7 +186,7 @@ async def multiplayer_improvement(ctx: BotContext, profile: dict, metric: str) -
     await message.send()
 
 
-async def solo_improvement(ctx: BotContext, profile: dict, metric: str) -> None:
+async def solo_improvement(ctx: BotContext, profile: Profile, metric: str) -> None:
     """Send an improvement graph over a user's solo personal bests."""
     ctx.flags.gamemode = "solo"
     race_list = await get_races(

@@ -14,6 +14,7 @@ from utils.errors import BotError
 from utils.keystroke_codec import KeystrokeCodecError
 from utils.keystrokes import get_keystroke_data
 from utils.messages import Field, Message, Page
+from utils.schemas import Profile
 from utils.strings import quote_display, rank, username_with_flag
 
 sorts = ["wins", "losses", "winrate", "wpm", "-winrate", "-wpm"]
@@ -57,7 +58,7 @@ class Encounters(Command):
         await run(ctx, profiles[0], sort)
 
 
-async def run(ctx: BotContext, profile: dict, sort: str) -> None:
+async def run(ctx: BotContext, profile: Profile, sort: str) -> None:
     """Send every opponent a user has raced, sorted by the given key."""
     encounters = get_encounter_stats(profile["userId"], flags=ctx.flags)
 
@@ -171,7 +172,7 @@ async def run(ctx: BotContext, profile: dict, sort: str) -> None:
     return await message.send()
 
 
-async def run_head_to_head(ctx: BotContext, profile1: dict, profile2: dict) -> None:
+async def run_head_to_head(ctx: BotContext, profile1: Profile, profile2: Profile) -> None:
     """Send two users' record against each other, plus their closest and biggest races."""
     gamemode = ctx.flags.gamemode
     encounters = get_opponent_encounters(profile1["userId"], profile2["userId"], flags=ctx.flags)
@@ -263,7 +264,7 @@ async def run_head_to_head(ctx: BotContext, profile1: dict, profile2: dict) -> N
                 0 if divisor == 0 else profile["enStats"][key] / divisor
             )
 
-    def build_field(profile: dict) -> Field:
+    def build_field(profile: Profile) -> Field:
         """Format one side of the head to head comparison."""
         stats = profile["enStats"]
         biggest = stats["biggestWin"]
