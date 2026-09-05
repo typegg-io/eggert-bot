@@ -49,10 +49,10 @@ async def display_daily_quote(
     daily_quote: dict,
     title: str,
     show_leaderboard: bool = True,
-    show_champion=False,
-    color=None,
-    mention=False,
-    paginate=False,
+    show_champion: bool = False,
+    color: int | None = None,
+    mention: bool = False,
+    paginate: bool = False,
 ) -> None:
     """Send a daily quote and its leaderboard, to a command context or a bare channel."""
     quote = daily_quote["quote"]

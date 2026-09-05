@@ -143,8 +143,8 @@ async def comparegraph_main(
     ctx: BotContext,
     profile1: Profile,
     profile2: Profile,
-    min_length=None,
-    max_length=None,
+    min_length: int | None = None,
+    max_length: int | None = None,
 ) -> None:
     """Send a head-to-head graph of quote wins bucketed by difficulty."""
     quotes = get_quotes(min_length=min_length, max_length=max_length)
@@ -284,8 +284,8 @@ async def comparegraph_ranged(
     min_difficulty: float,
     max_difficulty: float,
     metric: str,
-    min_length=None,
-    max_length=None,
+    min_length: int | None = None,
+    max_length: int | None = None,
 ) -> None:
     """Send a detailed head-to-head graph over one difficulty range."""
     quotes = get_quotes(

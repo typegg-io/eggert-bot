@@ -1,6 +1,7 @@
 """The daily quote graph."""
 
 import numpy as np
+from matplotlib.axes import Axes
 
 from graphs.core import apply_theme, filter_palette, generate_file_name, plt
 from utils.schemas import Theme
@@ -39,7 +40,7 @@ def render(
     return file_name
 
 
-def apply_padding(ax, keystroke_wpms: list[list[float]]) -> None:
+def apply_padding(ax: Axes, keystroke_wpms: list[list[float]]) -> None:
     """Set Y-axis limits to reasonable WPM bounds with padding."""
     all_starts = []
     all_remaining = []

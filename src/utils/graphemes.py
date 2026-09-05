@@ -41,7 +41,7 @@ LF = 0x000A
 NOT_JAMO, JAMO_L, JAMO_V, JAMO_T, JAMO_LV, JAMO_LVT = range(6)
 
 
-def _starts(table) -> list[int]:
+def _starts(table: tuple[tuple[int, int], ...]) -> list[int]:
     """Return the lower bound of every range, for binary search."""
     return [lo for lo, _ in table]
 
@@ -52,7 +52,7 @@ _STARTS = {id(t): _starts(t) for t in (
 )}
 
 
-def in_table(table, code: int) -> bool:
+def in_table(table: tuple[tuple[int, int], ...], code: int) -> bool:
     """Return whether a codepoint falls inside one of a table's ranges."""
     starts = _STARTS[id(table)]
     i = bisect_right(starts, code) - 1

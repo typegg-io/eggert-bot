@@ -1,7 +1,7 @@
 import re
 
 import matplotlib.colors as mcolors
-from discord import Embed, File, Member
+from discord import Embed, File, Interaction, Member
 from discord.ext import commands
 
 from commands.base import Command
@@ -169,7 +169,7 @@ async def display_user_theme(ctx: BotContext, member: Member) -> None:
     embed.set_footer(text="Run \"-help theme\" to customize your theme!")
     file = File(file_name, filename=file_name)
 
-    async def copy_theme(interaction, theme: schemas.Theme) -> bool:
+    async def copy_theme(interaction: Interaction, theme: schemas.Theme) -> bool:
         """Copy the displayed theme onto the pressing user, and return whether it applied."""
         user_id = interaction.user.id
         bot_user = get_user(user_id)

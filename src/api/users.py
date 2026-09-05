@@ -63,7 +63,7 @@ async def get_races(
     )
 
 
-async def get_race(user_id: str, race_number: int, get_keystrokes=False) -> dict[str, Any]:
+async def get_race(user_id: str, race_number: int, get_keystrokes: bool = False) -> dict[str, Any]:
     """
     Calls GET /users/{userId}/races/{raceNumber}.
     Returns the JSON response as a dict.

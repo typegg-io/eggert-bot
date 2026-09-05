@@ -3,7 +3,7 @@
 from typing import NamedTuple
 from urllib.parse import unquote
 
-from discord import Embed, Forbidden
+from discord import Embed, Forbidden, Message
 from discord.ext import commands
 
 from api.quotes import get_quote as get_quote_api
@@ -145,7 +145,7 @@ class Command(commands.Cog):
         ctx: BotContext,
         username: str | None = None,
         races_required: bool | None = True,
-        auto_import=True,
+        auto_import: bool = True,
     ) -> Profile:
         """Fetch a user's profile, and optionally imports their races."""
         username = self.get_username(ctx, username)
@@ -176,7 +176,11 @@ class Command(commands.Cog):
         await import_races(ctx, profile, auto_import=True)
 
     async def await_confirmation(
-        self, ctx: BotContext, confirm_message="confirm", timeout=10, prompt_message=None
+        self,
+        ctx: BotContext,
+        confirm_message: str = "confirm",
+        timeout: int = 10,
+        prompt_message: Message | None = None,
     ) -> bool:
         """Waits for the user to send a specific confirmation message."""
 

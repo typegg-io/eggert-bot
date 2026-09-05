@@ -1,6 +1,7 @@
 """The GG+ status callback route."""
 
 from json import JSONDecodeError
+from typing import TYPE_CHECKING
 
 import discord
 from aiohttp import web
@@ -10,8 +11,11 @@ from utils.colors import DEFAULT_THEME, GG_PLUS_THEME
 from utils.logging import log_server
 from web_server.utils import error_response, validate_authorization
 
+if TYPE_CHECKING:
+    from web_server.server import WebServer
 
-async def update_gg_plus(cog, request: web.Request) -> web.Response:
+
+async def update_gg_plus(cog: "WebServer", request: web.Request) -> web.Response:
     """Update a user's GG+ subscription status in the database."""
 
     auth_error = validate_authorization(request)

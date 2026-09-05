@@ -1,6 +1,7 @@
 """The account verification route."""
 
 from datetime import UTC, datetime
+from typing import TYPE_CHECKING
 
 import jwt
 from aiohttp import web
@@ -12,8 +13,11 @@ from utils.colors import SUCCESS
 from utils.logging import log_server
 from web_server.utils import assign_user_roles, error_response
 
+if TYPE_CHECKING:
+    from web_server.server import WebServer
 
-async def verify_user(cog, request: web.Request) -> web.Response:
+
+async def verify_user(cog: "WebServer", request: web.Request) -> web.Response:
     """Verify a token, link the account, and assign its roles (POST /verify)."""
     data = await request.json()
     token = data.get("token")
