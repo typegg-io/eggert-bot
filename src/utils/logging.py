@@ -1,3 +1,5 @@
+"""Console and webhook logging, plus the performance timer."""
+
 import tempfile
 import time
 import traceback
@@ -20,13 +22,13 @@ ADMIN_ALIASES = {
 
 # Performance Timing
 
-def time_start():
+def time_start() -> None:
     """Start the performance timer."""
     global start
     start = time.time()
 
 
-def time_stop():
+def time_stop() -> None:
     """Stop the performance timer and print the elapsed time in milliseconds."""
     end = time.time() - start
     print(f"Took {end * 1000:,.0f}ms")
@@ -34,7 +36,7 @@ def time_stop():
 
 # Message Formatting
 
-def get_log_message(message):
+def get_log_message(message) -> str:
     """Format a Discord message into a log string with link, user info, and content."""
     message_link = "[DM]"
     if message.guild:
@@ -54,7 +56,7 @@ def get_log_message(message):
 
 # Logging Functions
 
-def send_log(webhook, message, file=None):
+def send_log(webhook, message, file=None) -> requests.Response:
     """Send a log message to a Discord webhook, optionally with a file attachment."""
     payload = {
         "content": message,
@@ -67,7 +69,7 @@ def send_log(webhook, message, file=None):
     return requests.post(webhook, json=payload)
 
 
-def log(message, file=None):
+def log(message, file=None) -> None:
     """Log a message to the console (staging) or Discord webhook (production)."""
     if STAGING:
         return print(message)
@@ -75,7 +77,7 @@ def log(message, file=None):
     send_log(MESSAGE_WEBHOOK, message, file)
 
 
-def log_server(message, file=None):
+def log_server(message, file=None) -> None:
     """Log a web server message to the console (staging) or dedicated webhook (production)."""
     if STAGING:
         return print(message)
@@ -83,7 +85,7 @@ def log_server(message, file=None):
     send_log(WEB_SERVER_WEBHOOK, message, file)
 
 
-def log_error(command_message, error):
+def log_error(command_message, error) -> None:
     """Log an error with traceback to console (staging) or Discord webhook (production)."""
     if STAGING:
         return traceback.print_exception(type(error), error, error.__traceback__)

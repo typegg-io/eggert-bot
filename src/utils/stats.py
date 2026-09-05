@@ -1,7 +1,9 @@
+"""Speed, length and performance formulas shared across commands."""
+
 import math
 
 
-def calculate_total_pp(quote_bests: list[dict] | list[float]):
+def calculate_total_pp(quote_bests: list[dict] | list[float]) -> float:
     """Returns the total performance given a list of quote bests or pp values."""
     if not quote_bests:
         return 0
@@ -14,7 +16,7 @@ def calculate_total_pp(quote_bests: list[dict] | list[float]):
         return sum(math.floor(q["pp"]) * (0.97 ** i) for i, q in enumerate(quote_bests[:250]))
 
 
-def calculate_quote_bests(race_list: list[dict]):
+def calculate_quote_bests(race_list: list[dict]) -> list[dict]:
     """Returns a list of quote bests given a list of races."""
     quote_dict = {}
 
@@ -28,24 +30,24 @@ def calculate_quote_bests(race_list: list[dict]):
     return quote_bests
 
 
-def calculate_quote_length(wpm, duration):
+def calculate_quote_length(wpm, duration) -> int:
     """Returns the length of a quote given WPM and duration values."""
     return int(round(wpm * duration / 12000) + 1)
 
 
-def calculate_wpm(duration, chars_typed):
+def calculate_wpm(duration, chars_typed) -> float:
     """Returns the WPM value given duration in ms and number of characters typed."""
     if duration == 0:
         return float("inf")
     return (12000 * chars_typed) / duration
 
 
-def calculate_duration(wpm, chars_typed):
+def calculate_duration(wpm, chars_typed) -> float:
     """Returns the ms duration given WPM and number of characters typed."""
     return (chars_typed * 12000) / wpm if wpm else 0
 
 
-def get_pauseless_delays(raw_delays: int):
+def get_pauseless_delays(raw_delays: int) -> list[float]:
     """Returns a list of delays for "pauseless WPM", estimating a run with no pauses based on the average speed."""
     average = sum(raw_delays) / max(len(raw_delays), 1)
     pauseless_delays = []

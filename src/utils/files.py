@@ -1,12 +1,16 @@
+"""Command module discovery and image cache cleanup."""
+
 import glob
 import importlib
 import os
+from collections.abc import Iterator
+from types import ModuleType
 
 from config import SOURCE_DIR
 from utils.logging import log
 
 
-def get_command_groups():
+def get_command_groups() -> list[str]:
     """Return a list of command groups."""
     groups = []
     for dir in os.listdir(SOURCE_DIR / "commands"):
@@ -16,7 +20,7 @@ def get_command_groups():
     return sorted(groups)
 
 
-def get_command_modules():
+def get_command_modules() -> Iterator[tuple[str, str, ModuleType]]:
     """Yield (group, file, module) for each command module."""
     for group in get_command_groups():
         for file in os.listdir(SOURCE_DIR / "commands" / group):
@@ -25,7 +29,7 @@ def get_command_modules():
                 yield group, file, module
 
 
-def remove_file(file_name: str):
+def remove_file(file_name: str) -> None:
     """Remove a file if it exists."""
     try:
         os.remove(file_name)
@@ -33,7 +37,7 @@ def remove_file(file_name: str):
         log(f"File {file_name} not found.")
 
 
-def clear_image_cache():
+def clear_image_cache() -> None:
     """Removes any lingering PNG files from the source directory."""
     for file in glob.glob("*.png"):
         try:

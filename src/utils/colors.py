@@ -1,3 +1,5 @@
+"""Embed colors and the built-in graph themes."""
+
 DEFAULT = 0x00AAD6
 SUCCESS = 0x198754
 WARNING = 0xFFC107

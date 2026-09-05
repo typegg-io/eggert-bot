@@ -1,3 +1,5 @@
+"""The pp to nWPM conversion model."""
+
 import json
 from bisect import bisect_left
 
@@ -19,7 +21,7 @@ nwpm_data = []  # Local copy of [pp, nWPM] data
 _initialized = False  # Track if model has been initialized
 
 
-async def update_nwpm_data():
+async def update_nwpm_data() -> None:
     """Update the pp nWPM point data used for calculating nWPM."""
     log("Updating pp nWPM points")
 
@@ -47,7 +49,7 @@ async def update_nwpm_data():
     log("Finished updating pp nWPM points")
 
 
-def clean_nwpm_data(data: list):
+def clean_nwpm_data(data: list) -> list[tuple[float, float]]:
     """Remove points that violate monotonicity (higher pp should always = higher nWPM)."""
     data.sort(key=lambda x: x[0])
     clean = []
@@ -61,7 +63,7 @@ def clean_nwpm_data(data: list):
     return clean
 
 
-def load_local_data():
+def load_local_data() -> None:
     """Load the JSON data to a local variable."""
     global nwpm_data
 
@@ -70,7 +72,7 @@ def load_local_data():
         nwpm_data = json.loads(raw)
 
 
-async def initialize_nwpm_model():
+async def initialize_nwpm_model() -> None:
     """Initialize the nWPM model, fetching data if empty."""
     global _initialized
 
@@ -88,7 +90,7 @@ async def initialize_nwpm_model():
     log("nWPM model initialized")
 
 
-def _interpolate(x, x0, y0, x1, y1):
+def _interpolate(x, x0, y0, x1, y1) -> float:
     """Simple linear interpolation."""
     if x1 == x0:
         return 0.5 * (y0 + y1)
@@ -96,7 +98,7 @@ def _interpolate(x, x0, y0, x1, y1):
     return y0 + t * (y1 - y0)
 
 
-def calculate_nwpm(total_pp: float):
+def calculate_nwpm(total_pp: float) -> float:
     """Estimate nWPM from a given PP value using linear interpolation."""
     pp_values, _ = zip(*nwpm_data)
     idx = bisect_left(pp_values, total_pp)

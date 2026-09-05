@@ -1,3 +1,5 @@
+"""String parsing, number formatting and Discord display helpers."""
+
 import json
 import math
 import re
@@ -67,7 +69,7 @@ ALIAS_LOOKUP = {
 
 # Argument & Parameter Parsing
 
-def get_argument(valid_options: list[str], param: str, _raise: bool = True):
+def get_argument(valid_options: list[str], param: str, _raise: bool = True) -> str | None:
     """Resolve a parameter to its original option using aliases, or raise InvalidArgument."""
     param = param.lower()
     if param in valid_options:
@@ -83,7 +85,7 @@ def get_argument(valid_options: list[str], param: str, _raise: bool = True):
     return original
 
 
-def get_key_by_alias(alias_dict, alias):
+def get_key_by_alias(alias_dict, alias) -> str | None:
     """Find the original key in an alias dictionary by checking all aliases."""
     for name, aliases in alias_dict.items():
         if alias in [name] + aliases:
@@ -93,7 +95,7 @@ def get_key_by_alias(alias_dict, alias):
 
 # Number Formatting
 
-def ordinal_number(number):
+def ordinal_number(number) -> str:
     """Convert a number to its ordinal string representation (e.g., 1st, 2nd, 3rd)."""
     suffix = {1: "st", 2: "nd", 3: "rd"}.get(number % 10, "th")
     if number % 100 in [11, 12, 13]:
@@ -101,7 +103,7 @@ def ordinal_number(number):
     return f"{number:,}{suffix}"
 
 
-def format_big_number(number, _):
+def format_big_number(number, _) -> int | str:
     """Format large numbers with K/M suffixes (e.g., 1500 -> 1.5K, 2000000 -> 2M)."""
     if number >= 1_000_000:
         return f"{round(number / 1_000_000, 1)}M".replace(".0", "")
@@ -110,7 +112,7 @@ def format_big_number(number, _):
     return int(number)
 
 
-def parse_number(value):
+def parse_number(value) -> int | float:
     """Parse a string into int or float, supporting commas and K/M suffixes."""
     s = str(value).strip().replace(",", "").lower()
 
@@ -143,7 +145,7 @@ def parse_wpm_range(s: str) -> tuple[float | None, float | None] | None:
     return None
 
 
-def rank(number):
+def rank(number) -> str:
     """Return a rank emoji for numbers 1-20, or bold number for others."""
     if 1 <= number <= 20:
         return RANK_EMOJIS[number - 1]
@@ -162,7 +164,7 @@ def get_streak_emoji(streak: int) -> str:
 
 # Date & Time Formatting
 
-def format_duration(seconds, round_seconds=True, show_seconds=True):
+def format_duration(seconds, round_seconds=True, show_seconds=True) -> str:
     """Format seconds into human-readable duration (e.g., '2d 3h 15m 42s')."""
     if not show_seconds:
         seconds = math.floor(seconds / 60) * 60
@@ -188,7 +190,7 @@ def format_duration(seconds, round_seconds=True, show_seconds=True):
     return f"{days}{hours}{minutes}{seconds_str}".strip()
 
 
-def date_range_display(start, end, tz):
+def date_range_display(start, end, tz) -> str:
     """Format a date range into a readable string, omitting redundant year/month info."""
     from utils.dates import format_date
 
@@ -222,7 +224,7 @@ def date_range_display(start, end, tz):
 
 # Text Formatting
 
-def escape_formatting(string, remove_backticks=True):
+def escape_formatting(string, remove_backticks=True) -> str:
     """Escape Discord markdown formatting characters in a string."""
     backtick_sub = "" if remove_backticks else "\\`"
     return (
@@ -236,7 +238,7 @@ def escape_formatting(string, remove_backticks=True):
     )
 
 
-def truncate_clean(text: str, max_chars: int, max_lines: int):
+def truncate_clean(text: str, max_chars: int, max_lines: int) -> str:
     """Truncate text to max chars/lines, avoiding mid-word cuts and escaping formatting."""
     truncated, _ = truncate_text(text, max_chars, max_lines)
     return escape_formatting(truncated, remove_backticks=False)
@@ -286,13 +288,13 @@ def clip_formatting(formatting: dict, max_index: int) -> dict:
 
 # User & Quote Displays
 
-def get_flag(user):
+def get_flag(user) -> str:
     """Return a country flag emoji if user has a country, otherwise empty string."""
     country = user.get("country", None)
     return f":flag_{country.lower()}: " if country else ""
 
 
-def username_with_flag(profile: dict, link_user: bool = True):
+def username_with_flag(profile: dict, link_user: bool = True) -> str:
     """Format username with country flag and optional GG+ badge, optionally linked."""
     flag = get_flag(profile)
     username = profile["username"]
@@ -317,7 +319,7 @@ def quote_display(
     display_submitted_by: bool = False,
     display_text: bool = True,
     text_highlight: str = None,
-):
+) -> str:
     """Format a quote dictionary into a rich display string for Discord embeds."""
     from utils.dates import discord_date
 
@@ -370,7 +372,7 @@ def quote_display(
     return display_string
 
 
-def apply_rich_text(text: str, formatting: dict[str, list[tuple[int, int]]]):
+def apply_rich_text(text: str, formatting: dict[str, list[tuple[int, int]]]) -> str:
     """
     Adds Discord markdown to text given formatting indexes.
     Separates formatting segments by zero-width spaces.
@@ -426,7 +428,7 @@ def apply_rich_text(text: str, formatting: dict[str, list[tuple[int, int]]]):
     return "".join(final)
 
 
-def highlight_text(text: str, text_highlight: str, max_chars: int = 120):
+def highlight_text(text: str, text_highlight: str, max_chars: int = 120) -> str:
     """Finds a query match in a text and highlights the matched section."""
     query_length = len(text_highlight)
     chars = max_chars - query_length
@@ -475,7 +477,7 @@ def highlight_text(text: str, text_highlight: str, max_chars: int = 120):
     return escape_formatting(highlighted).replace("\t", "**")
 
 
-def get_segments(text: str):
+def get_segments(text: str) -> list[str]:
     """Split a string into 10 approximately equal segments, without slicing between words."""
     # Create initial segments
     num_segments = 10
@@ -560,7 +562,7 @@ def get_segments(text: str):
     return text_segments
 
 
-def compact_pretty_print(data):
+def compact_pretty_print(data) -> str:
     """Returns a JSON string with top-level keys on new lines and nested values compacted."""
     lines = ["{"]
     sorted_items = sorted(data.items())

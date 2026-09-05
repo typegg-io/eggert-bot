@@ -1,14 +1,19 @@
+"""The keyboard layouts the keystroke heatmap can draw."""
+
 from dataclasses import dataclass
 
 
 @dataclass
 class K:
+    """One key on a rendered keyboard."""
+
     matches: str
     width: float = 1
     text: str | None = None
     fontsize: int = 12
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
+        """Derive the key's label from the characters it matches."""
         if self.text is None:
             if len(self.matches) >= 2 and self.matches.isalpha() and self.matches[0].upper() == self.matches[1]:
                 self.text = self.matches[1]
@@ -51,7 +56,8 @@ keymaps = {
 }
 
 
-def get_keymap(keymap: str | None = None) -> (list[list[K]], str):
+def get_keymap(keymap: str | None = None) -> tuple[list[list[K]], str]:
+    """Return a layout and its name, falling back to qwerty."""
     if keymap is None:
         keymap = "qwerty"
 

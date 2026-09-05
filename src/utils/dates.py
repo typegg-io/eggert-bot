@@ -1,3 +1,5 @@
+"""Date parsing, flooring, ranges and display formatting."""
+
 import re
 from datetime import UTC, datetime, timedelta
 from zoneinfo import ZoneInfo
@@ -23,12 +25,12 @@ _DATE_KEYWORDS = {"now", "today", "yesterday", "yd"}
 
 # Basic Date Utilities
 
-def now():
+def now() -> datetime:
     """Return the current UTC datetime."""
     return datetime.now(UTC)
 
 
-def epoch():
+def epoch() -> datetime:
     """Return the Unix epoch (January 1, 1970) as a UTC datetime."""
     return datetime(1970, 1, 1, tzinfo=UTC)
 
@@ -42,12 +44,12 @@ def normalize_datetime(date_string: str) -> str:
     return date_string
 
 
-def string_to_date(date_string: str, format: str = API_DATE_FORMAT):
+def string_to_date(date_string: str, format: str = API_DATE_FORMAT) -> datetime:
     """Convert a date string to a datetime object using the specified format."""
     return datetime.strptime(normalize_datetime(date_string), format)
 
 
-def date_to_string(date_object: datetime, format: str = API_DATE_FORMAT):
+def date_to_string(date_object: datetime, format: str = API_DATE_FORMAT) -> str:
     """Convert a datetime object to a string using the specified format."""
     return datetime.strftime(date_object, format)
 
@@ -68,12 +70,12 @@ def parse_date(date_string: str | None) -> datetime:
     return date
 
 
-def is_date_like(arg):
+def is_date_like(arg) -> bool:
     """Return whether a date string is date-like, for parameter parsing."""
     return arg.lower() in _DATE_KEYWORDS or bool(_DATE_RE.match(arg))
 
 
-def format_date(date):
+def format_date(date) -> str:
     """Format a datetime as a readable string (e.g., 'October 1st, 2025')."""
     month = date.strftime("%B")
     year = date.strftime("%Y")
@@ -82,7 +84,7 @@ def format_date(date):
     return f"{month} {ordinal_number(day)}, {year}"
 
 
-def get_timestamp_list(date_list):
+def get_timestamp_list(date_list) -> list[float]:
     """Convert a list of date strings to Unix timestamps."""
     return [
         datetime.strptime(normalize_datetime(date).rstrip("Z"), "%Y-%m-%d %H:%M:%S.%f").timestamp()
@@ -92,29 +94,29 @@ def get_timestamp_list(date_list):
 
 # Date Flooring Functions
 
-def floor_day(date):
+def floor_day(date) -> datetime:
     """Round a datetime down to the start of the day."""
     return date.replace(hour=0, minute=0, second=0, microsecond=0)
 
 
-def floor_week(date):
+def floor_week(date) -> datetime:
     """Round a datetime down to the start of the week (Monday)."""
     return (date - relativedelta(days=date.weekday())).replace(hour=0, minute=0, second=0, microsecond=0)
 
 
-def floor_month(date):
+def floor_month(date) -> datetime:
     """Round a datetime down to the start of the month."""
     return date.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
 
 
-def floor_year(date):
+def floor_year(date) -> datetime:
     """Round a datetime down to the start of the year."""
     return date.replace(month=1, day=1, hour=0, minute=0, second=0, microsecond=0)
 
 
 # Date Range Utilities
 
-def get_start_end_dates(date: datetime, period: str, tz: ZoneInfo):
+def get_start_end_dates(date: datetime, period: str, tz: ZoneInfo) -> tuple[datetime | None, datetime | None]:
     """Calculate start and end dates for a given period (day, week, month, or year)."""
     periods = {
         "day": (floor_day, relativedelta(days=1)),
@@ -135,7 +137,7 @@ def get_start_end_dates(date: datetime, period: str, tz: ZoneInfo):
     return None, None
 
 
-def count_unique_dates(start, end):
+def count_unique_dates(start, end) -> int:
     """Count the number of unique days between two date strings (inclusive)."""
     start_date = parse_date(start)
     end_date = parse_date(end)
@@ -149,7 +151,7 @@ def count_unique_dates(start, end):
     return len(unique_dates)
 
 
-def discord_date(date_string: str, style: str | None = "R"):
+def discord_date(date_string: str, style: str | None = "R") -> str:
     """Convert a date string or timestamp to Discord's date format tag."""
     try:
         timestamp = int(date_string)

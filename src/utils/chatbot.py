@@ -1,3 +1,5 @@
+"""The system prompt the chat command sends to Claude."""
+
 from pathlib import Path
 
 from utils.files import get_command_modules
@@ -10,6 +12,7 @@ _PROMPT_FILE = Path(__file__).resolve().parents[1] / "data" / "system_prompt.txt
 
 
 def build_system_prompt() -> str:
+    """Build the system prompt from the bot's command list and docs."""
     by_group = {}
     for group, file, module in get_command_modules():
         info = module.info
