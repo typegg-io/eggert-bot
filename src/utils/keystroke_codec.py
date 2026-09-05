@@ -13,12 +13,14 @@ from utils.keystrokes import (
 
 
 def normalize_newlines(s: str) -> str:
+    """Return the string with the newline glyph and CRLF collapsed to LF."""
     s = s.replace('⏎', '\n')
     s = s.replace('\r\n', '\n')
     return s
 
 
 def find_word_break(s: str) -> int:
+    """Return the index of the first space or newline, or -1."""
     for i, c in enumerate(s):
         if c in (' ', '\n', '⏎'):
             return i
@@ -26,6 +28,7 @@ def find_word_break(s: str) -> int:
 
 
 def simulate_word_completion(input_val: str, text: str, completed_chars: int) -> tuple[str, int]:
+    """Consume every whole word the input matches, returning the leftover and the new count."""
     remaining_text = text[completed_chars:]
     if len(remaining_text) == 0:
         return input_val, completed_chars
@@ -66,6 +69,7 @@ def simulate_word_completion(input_val: str, text: str, completed_chars: int) ->
 
 
 def insert_at(s: str, pos: int, insert: str) -> str:
+    """Return the string with insert placed at pos, clamping pos to bounds."""
     if pos < 0:
         pos = 0
     if pos > len(s):
@@ -74,6 +78,7 @@ def insert_at(s: str, pos: int, insert: str) -> str:
 
 
 def delete_range(s: str, start: int, end: int) -> str:
+    """Return the string with the range removed, clamping the bounds."""
     if start < 0:
         start = 0
     if end > len(s):
@@ -84,6 +89,7 @@ def delete_range(s: str, start: int, end: int) -> str:
 
 
 def replace_range(s: str, start: int, end: int, replacement: str) -> str:
+    """Return the string with the range swapped for replacement, clamping the bounds."""
     if start < 0:
         start = 0
     if end > len(s):
@@ -92,6 +98,7 @@ def replace_range(s: str, start: int, end: int, replacement: str) -> str:
 
 
 def read_key_until_delimiter(runes: str, i: int) -> tuple[str, int]:
+    """Return the key starting at i and the index that follows it."""
     if i >= len(runes):
         return "", i
     if runes[i] == '|':
@@ -352,4 +359,4 @@ def decode_keystroke_data(raw: str) -> KeystrokeData:
 
 
 class KeystrokeCodecError(ValueError):
-    pass
+    """Raised when encoded keystroke data cannot be decoded."""

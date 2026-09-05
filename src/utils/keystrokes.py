@@ -13,18 +13,24 @@ TRANSPOSITION_THRESHOLD_MS = 7
 
 @dataclass
 class KeystrokeInsert:
+    """A keystroke that inserts a key at an index."""
+
     i: int
     key: str
 
 
 @dataclass
 class KeystrokeDelete:
+    """A keystroke that deletes a range."""
+
     dStart: int
     dEnd: int
 
 
 @dataclass
 class KeystrokeReplace:
+    """A keystroke that replaces a range with a key."""
+
     rStart: int
     rEnd: int
     redundant: bool | None = None
@@ -33,6 +39,8 @@ class KeystrokeReplace:
 
 @dataclass
 class KeystrokeComposition:
+    """A keystroke built from a sequence of composition steps."""
+
     i: int
     key: str
     steps: list[str] = field(default_factory=list)
@@ -44,6 +52,8 @@ KeystrokeAction = KeystrokeInsert | KeystrokeDelete | KeystrokeReplace | Keystro
 
 @dataclass
 class Keystroke:
+    """One keystroke: its action and when it happened."""
+
     action: KeystrokeAction
     time: int
     timeDelta: int
@@ -51,6 +61,8 @@ class Keystroke:
 
 @dataclass
 class KeystrokeData:
+    """One race's quote text and the keystrokes typed against it."""
+
     text: str
     keystrokes: list[Keystroke]
     isStickyStart: bool = False
@@ -58,24 +70,32 @@ class KeystrokeData:
 
 @dataclass
 class KeystrokeTiming:
+    """A keystroke ID paired with the delay that preceded it."""
+
     ks_id: int
     time_delta: int
 
 
 @dataclass
 class CharPoolEntry:
+    """A typed character, and the position it was typed at."""
+
     ks_id: int
     typed_at_pos: int
 
 
 @dataclass
 class PositionKeystroke:
+    """A keystroke that landed on one text position."""
+
     ks_id: int
     time_delta: int
 
 
 @dataclass
 class GraphDataPoint:
+    """One point on the WPM over keystrokes graph."""
+
     charIndex: int
     wordIndex: int
     initialKeystrokeId: int
@@ -86,6 +106,8 @@ class GraphDataPoint:
 
 @dataclass
 class Typo:
+    """A typo, located by word and by index within the text."""
+
     word_index: int
     typo_index: int
     word: str
@@ -93,6 +115,8 @@ class Typo:
 
 @dataclass
 class ProcessResult:
+    """Everything one processed race yields."""
+
     keystrokesWpmGraphData: list[GraphDataPoint]
     rawCharacterTimes: list[float]
     wpmCharacterTimes: list[float]
@@ -105,6 +129,7 @@ class ProcessResult:
 
 
 def normalize_enter(char: str) -> str:
+    """Return the character with any newline spelling collapsed to LF."""
     if char in ('⏎', '\r\n', '\r'):
         return '\n'
     return char
@@ -240,12 +265,14 @@ def normalize_for_comparison(s: str) -> str:
 
 
 def calculate_wpm(chars: int, time_ms: float) -> float:
+    """Return the WPM for a character count over a duration in ms."""
     if time_ms <= 0:
         return 0.0
     return (chars / 5) * (60000 / time_ms)
 
 
 def get_key_from_action(action: KeystrokeAction) -> str:
+    """Return the key an action typed, or an empty string for a delete."""
     if isinstance(action, KeystrokeInsert):
         return action.key
     elif isinstance(action, KeystrokeReplace):
@@ -260,6 +287,7 @@ def process_keystroke_data(
     is_multiplayer: bool = False,
     reaction_time: float = 0
 ) -> ProcessResult:
+    """Replay a race's keystrokes and return its speeds, typos and graph data."""
     if not keystroke_data.text:
         raise InvalidKeystrokeData
 
@@ -344,9 +372,10 @@ def process_keystroke_data(
     pending_delays: list[int] = []
 
     def get_absolute_position(relative_position: int) -> int:
+        """Return a position within the current word as a text index."""
         return total_chars_before_word + relative_position
 
-    def assign_initial_keystroke(relative_position: int, ks_id: int):
+    def assign_initial_keystroke(relative_position: int, ks_id: int) -> None:
         """Record the keystroke that first reached a position, ignoring dirty input."""
         if prev_input_dirty:
             return
@@ -355,13 +384,15 @@ def process_keystroke_data(
             initial_keystroke_assigned[position] = True
             char_initial_keystroke_ids[position] = ks_id
 
-    def add_to_char_pool(char: str, ks_id: int, typed_at_pos: int):
+    def add_to_char_pool(char: str, ks_id: int, typed_at_pos: int) -> None:
+        """Record a typed character so a later typo can be attributed to it."""
         normalized = normalize_enter(char).lower()
         if normalized not in char_pool:
             char_pool[normalized] = []
         char_pool[normalized].append(CharPoolEntry(ks_id=ks_id, typed_at_pos=typed_at_pos))
 
-    def add_to_position_keystrokes(pos: int, ks_id: int, time_delta: int):
+    def add_to_position_keystrokes(pos: int, ks_id: int, time_delta: int) -> None:
+        """Record a keystroke against the text position it landed on."""
         if pos not in position_keystrokes:
             position_keystrokes[pos] = []
         position_keystrokes[pos].append(PositionKeystroke(ks_id=ks_id, time_delta=time_delta))
@@ -984,7 +1015,7 @@ def get_keystroke_data(
     return processed_data
 
 
-def get_keystroke_wpm(delays: list[int], adjusted: bool = True):
+def get_keystroke_wpm(delays: list[int], adjusted: bool = True) -> list[float]:
     """
     Returns a list of WPM over keystrokes given a list of ms delays.
     adjusted = True will always eliminate the first delay.

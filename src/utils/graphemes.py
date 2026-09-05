@@ -41,7 +41,7 @@ LF = 0x000A
 NOT_JAMO, JAMO_L, JAMO_V, JAMO_T, JAMO_LV, JAMO_LVT = range(6)
 
 
-def _starts(table):
+def _starts(table) -> list[int]:
     """Return the lower bound of every range, for binary search."""
     return [lo for lo, _ in table]
 
