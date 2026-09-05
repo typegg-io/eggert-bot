@@ -1,3 +1,5 @@
+"""The leaderboard endpoints."""
+
 from typing import Any
 
 from api.core import request

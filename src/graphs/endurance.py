@@ -1,3 +1,5 @@
+"""The peak WPM by quote length graph."""
+
 from dataclasses import dataclass
 
 from graphs.core import apply_log_ticks, apply_theme, filter_palette, generate_file_name, plt
@@ -6,6 +8,8 @@ from utils.strings import format_big_number
 
 @dataclass
 class UserEnduranceData:
+    """One user's peak WPM at each quote length."""
+
     username: str
     wpm_values: list[float]
     length_values: list[int]
@@ -15,7 +19,8 @@ def render(
     first_username: str,
     data: list[UserEnduranceData],
     theme: dict,
-):
+) -> str:
+    """Render each user's endurance curve and return the file name."""
     fig, ax = plt.subplots()
     filter_palette(ax, theme["line"])
 

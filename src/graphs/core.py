@@ -1,3 +1,5 @@
+"""Theming, colormaps and axis helpers shared by every graph."""
+
 import sys
 import textwrap
 from datetime import UTC, datetime
@@ -37,7 +39,8 @@ CUSTOM_COLORMAPS = [
 ]
 
 
-def load_custom_colormaps():
+def load_custom_colormaps() -> None:
+    """Register every colormap this bot ships that matplotlib does not."""
     for name, colors in CUSTOM_COLORMAPS:
         if name not in plt.colormaps():
             matplotlib.colormaps.register(LinearSegmentedColormap.from_list(name, colors))
@@ -47,13 +50,19 @@ load_custom_colormaps()
 
 
 class LineHandler(HandlerLine2D):
-    def create_artists(self, legend, orig_handle, xdescent, ydescent, width, height, fontsize, trans):
+    """A legend handler drawing a plain line swatch."""
+
+    def create_artists(self, legend, orig_handle, xdescent, ydescent, width, height, fontsize, trans) -> list:
+        """Return a single line in the handle's color."""
         line = plt.Line2D([0, 21], [3.5, 3.5], color=orig_handle.get_color())
         return [line]
 
 
 class CollectionHandler(HandlerLineCollection):
-    def create_artists(self, legend, artist, xdescent, ydescent, width, height, fontsize, trans):
+    """A legend handler drawing a colormapped line swatch."""
+
+    def create_artists(self, legend, artist, xdescent, ydescent, width, height, fontsize, trans) -> list:
+        """Return a line collection carrying the artist's colormap."""
         x = np.linspace(0, width, self.get_numpoints(legend) + 1)
         y = np.zeros(self.get_numpoints(legend) + 1) + height / 2. - ydescent
         points = np.array([x, y]).T.reshape(-1, 1, 2)
@@ -68,7 +77,7 @@ def apply_theme(
     legend_loc: int | str | None = "upper left",
     force_legend: bool = False,
     themed_line: int = 0,
-):
+) -> None:
     """Apply a theme to all graph elements."""
     # Backgrounds
     background_color = theme["background"]
@@ -203,7 +212,7 @@ def apply_theme(
         ax.add_artist(plus_ab)
 
 
-def get_line_colormap(ax: Axes, line_index: int, colormap_name: str):
+def get_line_colormap(ax: Axes, line_index: int, colormap_name: str) -> LineCollection:
     """Returns a line collection object with a colormap applied."""
     cmap = plt.get_cmap(colormap_name)
     line = ax.get_lines()[line_index]
@@ -219,7 +228,7 @@ def get_line_colormap(ax: Axes, line_index: int, colormap_name: str):
     return lc
 
 
-def interpolate_segments(x, y):
+def interpolate_segments(x, y) -> tuple[list[float], list[float]]:
     """Returns a list of interpolated X and Y segments."""
     x_segments = []
     y_segments = []
@@ -250,7 +259,7 @@ def interpolate_segments(x, y):
     return x_segments, y_segments
 
 
-def apply_date_ticks(ax: Axes, timestamps: list[float]):
+def apply_date_ticks(ax: Axes, timestamps: list[float]) -> None:
     """Applies date ticks evenly spaced on the X-axis."""
     min_timestamp = min(timestamps)
     max_timestamp = max(timestamps)
@@ -267,24 +276,24 @@ def apply_date_ticks(ax: Axes, timestamps: list[float]):
     ax.set_xlim(min_timestamp - padding, max_timestamp + padding)
 
 
-def get_luminance(r, g, b):
+def get_luminance(r, g, b) -> float:
     """Returns the luminance of RGB values."""
     return 0.2126 * r + 0.7152 * g + 0.0722 * b
 
 
-def color_distance(color1, color2):
+def color_distance(color1, color2) -> float:
     """Returns the distance between two colors."""
     rgb1 = to_rgb(color1)
     rgb2 = to_rgb(color2)
     return np.linalg.norm(np.array(rgb1) - np.array(rgb2))
 
 
-def generate_file_name(prefix: str):
+def generate_file_name(prefix: str) -> str:
     """Returns a unique file name with a prefix."""
     return f"{prefix}_{round(dates.now().timestamp() * 1000)}.png"
 
 
-def filter_palette(ax: Axes, line_color: str):
+def filter_palette(ax: Axes, line_color: str) -> None:
     """Filters the current graph palette to avoid color clashing with a line color."""
     if line_color in plt.colormaps():
         return
@@ -295,7 +304,7 @@ def filter_palette(ax: Axes, line_color: str):
     ]))
 
 
-def apply_log_ticks(ax: Axes, max_value: int):
+def apply_log_ticks(ax: Axes, max_value: int) -> None:
     """Applies ticks by log scale on the X-axis."""
     ax.set_xscale("log")
 

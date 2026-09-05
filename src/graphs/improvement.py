@@ -1,3 +1,5 @@
+"""The improvement over time and over races graphs."""
+
 import numpy as np
 from matplotlib.colors import hex2color
 from matplotlib.ticker import FuncFormatter
@@ -14,7 +16,8 @@ def render_over_time(
     dates: list[str],
     window_size: int,
     dnf_indices: list[int] = None,
-):
+) -> str:
+    """Render a metric over dates and return the file name."""
     fig, ax = plt.subplots()
     values = np.asarray(values)
 
@@ -84,7 +87,8 @@ def render_over_races(
     theme: dict,
     window_size: int,
     dnf_indices: list[int] = None,
-):
+) -> str:
+    """Render a metric over race numbers and return the file name."""
     fig, ax = plt.subplots()
     ax2 = ax.twinx()
 
@@ -145,7 +149,8 @@ def render_text(
     metric: str,
     quote_id: str,
     theme: dict,
-):
+) -> str:
+    """Render a metric over one quote's races and return the file name."""
     fig, ax = plt.subplots()
     values = np.array(values)
 

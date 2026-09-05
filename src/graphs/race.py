@@ -1,3 +1,5 @@
+"""The WPM over keystrokes race graph."""
+
 from collections import defaultdict
 
 import numpy as np
@@ -14,7 +16,8 @@ def render(
     username: str,
     title: str,
     theme: dict,
-):
+) -> str:
+    """Render one race's WPM over keystrokes and return the file name."""
     fig, ax = plt.subplots()
     filter_palette(ax, theme["line"])
 
@@ -81,7 +84,7 @@ def render(
     return file_name
 
 
-def apply_padding(ax: Axes, keystroke_wpms: list[list[float]]):
+def apply_padding(ax: Axes, keystroke_wpms: list[list[float]]) -> None:
     """Set Y-axis limits to reasonable WPM bounds with padding."""
     starts = []
     rest = []

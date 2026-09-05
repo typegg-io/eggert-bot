@@ -1,3 +1,6 @@
+"""The quote endpoints."""
+
+from collections.abc import AsyncIterator
 from typing import Any
 
 from api.core import request
@@ -59,7 +62,7 @@ async def get_quote(quote_id: str, distinct: bool = True) -> dict[str, Any]:
     )
 
 
-async def get_all_quotes():
+async def get_all_quotes() -> AsyncIterator[list[dict]]:
     """Async generator that yields one page of quotes at a time."""
     page = 1
     first_page = await get_quotes(status="any", per_page=200)
@@ -76,7 +79,7 @@ async def get_all_quotes():
         page += 1
 
 
-async def calculate_metric(quote_id: str, value: float, metric: str = "pp"):
+async def calculate_metric(quote_id: str, value: float, metric: str = "pp") -> dict[str, Any]:
     """
     Calls GET /quotes/{quoteId}/calculate
     Returns the JSON response as a dict.

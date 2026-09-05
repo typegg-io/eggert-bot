@@ -1,10 +1,12 @@
+"""The head-to-head encounter history graph."""
+
 import numpy as np
 from matplotlib.collections import LineCollection
 
 from graphs.core import apply_theme, generate_file_name, plt
 
 
-def moving_average(y, window=20):
+def moving_average(y, window=20) -> np.ndarray:
     """Computes a moving average, ignoring zero values."""
     y = np.asarray(y, dtype=float)
 
@@ -33,7 +35,8 @@ def render(
     difficulties: list[float],
     title: str,
     theme: dict,
-):
+) -> str:
+    """Render two users' encounter history and return the file name."""
     x = np.array(range(1, len(data) + 1))
     p1_wpm = np.array([match["userWpm"] for match in data])
     p2_wpm = np.array([match["opponentWpm"] for match in data])
@@ -49,7 +52,7 @@ def render(
     diff_avg = moving_average(difficulties, window)
     diff_x_avg = range(window, len(x) + 1) if len(diff_avg) < len(x) else x
 
-    def plot_colored_path(ax, x_vals, y_vals, raw_wpm, base_color, zorder):
+    def plot_colored_path(ax, x_vals, y_vals, raw_wpm, base_color, zorder) -> None:
         """Create a line that becomes marked during DNFs."""
         points = np.array([x_vals, y_vals]).T.reshape(-1, 1, 2)
         segments = np.concatenate([points[:-1], points[1:]], axis=1)

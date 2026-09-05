@@ -1,3 +1,4 @@
+"""The keyboard heatmap."""
 
 import matplotlib.colors as mcolors
 import matplotlib.patches as patches
@@ -16,7 +17,8 @@ def render(
     keypresses: dict[str, int],
     keymap: list[list[K]],
     theme: dict,
-):
+) -> str:
+    """Render a keyboard heatmap and return the file name."""
     colors = [
         (0, "#FFEA8C"),
         (0.2, "#FFBE0B"),

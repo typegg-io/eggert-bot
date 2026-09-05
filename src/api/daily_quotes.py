@@ -1,3 +1,5 @@
+"""The daily quote endpoint."""
+
 from datetime import timedelta
 from typing import Any
 

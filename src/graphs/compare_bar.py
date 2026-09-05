@@ -1,3 +1,5 @@
+"""The head-to-head bar graph of quote wins by difficulty."""
+
 import math
 
 import numpy as np
@@ -14,7 +16,8 @@ def render(
     gains2: dict[int, int],
     defaults: dict[int, int],
     theme: dict,
-):
+) -> str:
+    """Render quote wins bucketed by difficulty and return the file name."""
     difficulty_range = sorted(list(gains1.keys() | gains2.keys()))
     min_difficulty = 1
     max_difficulty = math.ceil(max(max(difficulty_range), 7) + 0.5)
@@ -77,7 +80,7 @@ def render(
     return file_name
 
 
-def apply_colormap(ax, gains1, gains2, defaults, difficulties, theme):
+def apply_colormap(ax, gains1, gains2, defaults, difficulties, theme) -> None:
     """Apply colormap to a bar graph by creating a masked gradient background."""
     cmap = plt.get_cmap(theme["line"])
 

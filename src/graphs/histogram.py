@@ -1,3 +1,5 @@
+"""The metric distribution histogram."""
+
 import numpy as np
 
 from graphs.core import apply_theme, generate_file_name, plt
@@ -10,7 +12,8 @@ def render(
     solo_values: list[float],
     multi_values: list[float],
     theme: dict,
-):
+) -> str:
+    """Render a solo against multiplayer histogram and return the file name."""
     fig, ax = plt.subplots()
     color = theme["line"]
     solo_values = np.array(solo_values)
@@ -68,7 +71,8 @@ def render_compare(
     values2: list[float],
     metric: dict,
     theme: dict,
-):
+) -> str:
+    """Render a histogram comparing two users and return the file name."""
     COLOR1 = "#e41a1c"  # red
     COLOR2 = "#377eb8"  # blue
 
@@ -117,5 +121,6 @@ def render_compare(
     return file_name
 
 
-def invert_color(color: str):
+def invert_color(color: str) -> str:
+    """Return the color with every channel inverted."""
     return f"#{0xFFFFFF ^ int(color.lstrip("#"), 16):06x}"

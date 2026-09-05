@@ -1,3 +1,5 @@
+"""The race endpoint."""
+
 from typing import Any
 from urllib.parse import quote
 

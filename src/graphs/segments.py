@@ -1,3 +1,5 @@
+"""The segment and word speed bar graph."""
+
 import numpy as np
 from matplotlib import patches
 
@@ -9,7 +11,8 @@ def render(
     title: str,
     x_label: str,
     theme: dict,
-):
+) -> str:
+    """Render a bar per segment and return the file name."""
     fig, ax = plt.subplots()
 
     x = list(range(1, len(segments) + 1))
@@ -40,7 +43,7 @@ def render(
     return file
 
 
-def apply_colormap(ax, theme, x_values, wpm_values, raw_values, width, y_limit):
+def apply_colormap(ax, theme, x_values, wpm_values, raw_values, width, y_limit) -> None:
     """Apply a colormap gradient to bars, masking areas outside bars with background."""
     cmap = plt.get_cmap(theme["line"])
     background = theme["graph_background"]

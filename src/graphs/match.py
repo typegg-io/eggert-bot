@@ -1,3 +1,5 @@
+"""The multiplayer match graph."""
+
 import numpy as np
 
 from graphs.core import apply_theme, filter_palette, generate_file_name, plt
@@ -9,7 +11,8 @@ def render(
     title: str,
     theme: dict,
     themed_line: int = 0,
-):
+) -> str:
+    """Render every racer's WPM over keystrokes and return the file name."""
     fig, ax = plt.subplots()
     filter_palette(ax, theme["line"])
 

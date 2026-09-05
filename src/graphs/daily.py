@@ -1,3 +1,5 @@
+"""The daily quote graph."""
+
 import numpy as np
 
 from graphs.core import apply_theme, filter_palette, generate_file_name, plt
@@ -8,7 +10,8 @@ def render(
     title: str,
     theme: dict,
     themed_line: int = 0,
-):
+) -> str:
+    """Render the day's leaderboard races and return the file name."""
     fig, ax = plt.subplots()
     filter_palette(ax, theme["line"])
     keystroke_wpms = []
@@ -35,7 +38,7 @@ def render(
     return file_name
 
 
-def apply_padding(ax, keystroke_wpms: list[list[float]]):
+def apply_padding(ax, keystroke_wpms: list[list[float]]) -> None:
     """Set Y-axis limits to reasonable WPM bounds with padding."""
     all_starts = []
     all_remaining = []

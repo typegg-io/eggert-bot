@@ -1,4 +1,7 @@
+"""The shared request helper every other API module calls."""
+
 import asyncio
+from typing import Any
 
 import aiohttp
 from aiohttp import ContentTypeError
@@ -12,7 +15,7 @@ AUTH_HEADERS = {
 }
 
 
-def get_params(raw_params):
+def get_params(raw_params) -> dict:
     """Prepare and return API parameters."""
     params = {}
     for key, value in (raw_params or {}).items():
@@ -30,7 +33,7 @@ async def request(
     json_data: dict = None,
     exceptions: dict = None,
     method: str = "GET",
-):
+) -> dict[str, Any]:
     """
     Send an asynchronous aiohttp request given a URL, parameters, and headers.
 
@@ -46,7 +49,8 @@ async def request(
     json_data = get_params(json_data)
     method = method.lower()
 
-    async def do_request():
+    async def do_request() -> tuple[int, dict[str, Any], str]:
+        """Return the status, body and message of one attempt."""
         async with aiohttp.ClientSession() as session:
             async with session.request(
                 method,

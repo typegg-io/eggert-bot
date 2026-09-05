@@ -1,3 +1,5 @@
+"""The head-to-head histogram of two users' quote bests."""
+
 import numpy as np
 
 from graphs.core import apply_theme, generate_file_name, plt
@@ -10,7 +12,8 @@ def render(
     gains2: list[float],
     metric: str,
     theme: dict,
-):
+) -> str:
+    """Render two users' quote bests as a histogram and return the file name."""
     fig, (ax1, ax2) = plt.subplots(1, 2)
 
     color = theme["line"]
@@ -62,7 +65,7 @@ def render(
     return file_name
 
 
-def apply_colormap(ax, counts, groups, extent, theme):
+def apply_colormap(ax, counts, groups, extent, theme) -> None:
     """Apply colormap to histogram bars by creating a masked gradient background."""
     cmap = plt.get_cmap(theme["line"])
 

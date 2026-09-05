@@ -1,3 +1,5 @@
+"""The peak score by quote length graph."""
+
 from dataclasses import dataclass
 
 import numpy as np
@@ -10,6 +12,8 @@ BUCKETS = 60
 
 @dataclass
 class UserLengthData:
+    """One user's peak score at each quote length."""
+
     username: str
     values: list[float]
     lengths: list[int]
@@ -37,7 +41,8 @@ def render(
     data: list[UserLengthData],
     metric: str,
     theme: dict,
-):
+) -> str:
+    """Render each user's length curve and return the file name."""
     fig, ax = plt.subplots()
     filter_palette(ax, theme["line"])
 

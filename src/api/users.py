@@ -1,3 +1,5 @@
+"""The user endpoints."""
+
 from typing import Any
 from urllib.parse import quote
 
@@ -6,7 +8,7 @@ from config import API_URL
 from utils.errors import ProfileNotFound, RaceNotFound
 
 
-async def get_profile(user_id: str):
+async def get_profile(user_id: str) -> dict[str, Any]:
     """
     Calls GET /users/{userId}.
     Returns the JSON response as a dict.

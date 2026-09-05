@@ -1,3 +1,5 @@
+"""The metric over time line graph."""
+
 from matplotlib.ticker import FuncFormatter
 
 from graphs.core import apply_date_ticks, apply_theme, filter_palette, generate_file_name, interpolate_segments, plt
@@ -11,7 +13,8 @@ def render(
     title: str,
     y_label: str,
     theme: dict,
-):
+) -> str:
+    """Render one line per user for a metric and return the file name."""
     fig, ax = plt.subplots()
     filter_palette(ax, theme["line"])
 

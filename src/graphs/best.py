@@ -1,3 +1,4 @@
+"""The top n quote bests graph."""
 
 import numpy as np
 from matplotlib.colors import hex2color
@@ -11,7 +12,8 @@ def render(
     n: int,
     metric: str,
     theme: dict,
-):
+) -> str:
+    """Render each user's top n quote bests and return the file name."""
     fig, ax = plt.subplots()
     filter_palette(ax, theme["line"])
     themed_line = 0

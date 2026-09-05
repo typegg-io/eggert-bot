@@ -1,3 +1,5 @@
+"""The pp against quote length scatterplot."""
+
 from graphs.core import apply_log_ticks, apply_theme, filter_palette, generate_file_name, plt
 from utils.strings import format_big_number
 
@@ -7,7 +9,8 @@ def render(
     quotes: list[dict],
     quote_bests: list[dict],
     theme: dict,
-):
+) -> str:
+    """Render pp against quote length and return the file name."""
     fig, ax = plt.subplots()
     color = theme["line"]
     filter_palette(ax, color)

@@ -1,3 +1,5 @@
+"""Signed links that verify a Discord account against the site."""
+
 from datetime import UTC, datetime
 
 import jwt
@@ -5,7 +7,7 @@ import jwt
 from config import SECRET, SITE_URL
 
 
-def generate_jwt(discord_id: str):
+def generate_jwt(discord_id: str) -> str:
     """Generates a JWT containing a Discord ID. Expires after 10 minutes."""
     issued_at = int(datetime.now(UTC).timestamp())
     expiration = issued_at + 600
@@ -19,7 +21,7 @@ def generate_jwt(discord_id: str):
     return token
 
 
-def generate_link(discord_id: str):
+def generate_link(discord_id: str) -> str:
     """Creates a verification URL containing a signed JWT for the user."""
     jwt_token = generate_jwt(discord_id)
     return f"{SITE_URL}/verify?token=" + jwt_token

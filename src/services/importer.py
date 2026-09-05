@@ -22,11 +22,13 @@ from utils.strings import LOADING, escape_formatting
 _active_imports: set[str] = set()
 
 
-async def import_new_quotes(new_quote_ids):
+async def import_new_quotes(new_quote_ids) -> None:
+    """Add every quote the database is missing, pulling its source first."""
     source_ids = set(get_sources().keys())
     log("New quotes found: " + ", ".join(new_quote_ids))
 
-    async def process_quote(quote_id):
+    async def process_quote(quote_id) -> None:
+        """Add one quote, adding its source first when that is missing too."""
         quote = await get_quote(quote_id)
         source_id = quote["source"]["sourceId"]
 
@@ -48,7 +50,7 @@ async def run(
     profile: dict | None = None,
     user_id: str | None = None,
     auto_import: bool = False,
-):
+) -> None:
     """Import a user's new races, rendering progress when given a context."""
     background_import = ctx is None
     auto_import = auto_import and not background_import
@@ -211,7 +213,7 @@ async def run(
         _active_imports.discard(user_id)
 
 
-async def get_total_races(user_id):
+async def get_total_races(user_id) -> int:
     """Get the true latest race number by iterating backwards through races."""
     page = 1
     per_page = 20

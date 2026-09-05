@@ -1,3 +1,6 @@
+"""The source endpoints."""
+
+from collections.abc import AsyncIterator
 from typing import Any
 from urllib.parse import quote
 
@@ -41,7 +44,7 @@ async def get_source(source_id: str) -> dict[str, Any]:
     return await request(f"{API_URL}/v1/sources/{quote(source_id, safe="")}")
 
 
-async def get_all_sources():
+async def get_all_sources() -> AsyncIterator[list[dict]]:
     """Async generator that yields one page of sources at a time."""
     page = 1
     first_page = await get_sources(per_page=1000)
