@@ -1,18 +1,12 @@
-"""Discord users in users.db: linkage, themes, settings and command counts."""
+"""Discord users in users.db: linkage, themes, settings and the command log."""
 
 import json
 import sqlite3
-from collections import Counter
 
 from database.bot import db
 from utils import dates
 from utils.colors import DEFAULT_THEME
 from utils.schemas import Theme
-
-
-def _parse_counts(commands_json: str) -> dict[str, int]:
-    """Parse the commands JSON string and return the counts dict."""
-    return json.loads(commands_json).get("counts", {})
 
 
 def add_user(discord_id: str) -> dict:
@@ -21,6 +15,7 @@ def add_user(discord_id: str) -> dict:
         "discordId": discord_id,
         "userId": None,
         "theme": json.dumps(DEFAULT_THEME),
+        # Frozen pre-command_log archive. Nothing writes it after this insert.
         "commands": json.dumps({
             "counts": {},
             "server": 0,
@@ -87,42 +82,48 @@ def get_user_ids() -> list[int]:
     return [int(user[0]) for user in users]
 
 
-def get_command_usage(user_id: int) -> dict[str, int]:
+def get_command_usage(discord_id: int | str) -> dict[str, int]:
     """Return command counts for a single user."""
-    results = db.fetch("SELECT commands FROM users WHERE discordId = ?", [user_id])
-    return _parse_counts(results[0]["commands"]) if results else {}
+    results = db.fetch("""
+        SELECT command, COUNT(*) AS total FROM command_log
+        WHERE discordId = ?
+        GROUP BY command
+    """, [str(discord_id)])
+
+    return {row["command"]: row["total"] for row in results}
 
 
 def get_all_command_usage() -> dict[str, int]:
     """Return total command counts across all users."""
-    all_commands = db.fetch("SELECT commands FROM users")
-    counter = Counter()
+    results = db.fetch("""
+        SELECT command, COUNT(*) AS total FROM command_log
+        GROUP BY command
+    """)
 
-    for user in all_commands:
-        counter.update(_parse_counts(user["commands"]))
-
-    return dict(counter)
+    return {row["command"]: row["total"] for row in results}
 
 
-def get_command_usage_by_user() -> list[dict]:
-    """Return a list of per-user command counts."""
-    all_commands = db.fetch("SELECT discordId, commands FROM users")
-    return [
-        {"discord_id": user["discordId"], "commands": _parse_counts(user["commands"])}
-        for user in all_commands
-    ]
+def get_command_leaderboard(command_name: str) -> list[dict]:
+    """Return every user who has run a command, most usages first."""
+    results = db.fetch("""
+        SELECT discordId, COUNT(*) AS total FROM command_log
+        WHERE command = ?
+        GROUP BY discordId
+        ORDER BY total DESC
+    """, [command_name])
+
+    return [{"discord_id": row["discordId"], "usages": row["total"]} for row in results]
 
 
 def get_top_users_by_command_usage() -> list[dict]:
     """Return users sorted by total command usage."""
-    users = db.fetch("SELECT discordId, commands FROM users")
+    results = db.fetch("""
+        SELECT discordId, COUNT(*) AS total FROM command_log
+        GROUP BY discordId
+        ORDER BY total DESC
+    """)
 
-    top_users = [{
-        "discord_id": user["discordId"],
-        "total_commands": sum(_parse_counts(user["commands"]).values()),
-    } for user in users]
-
-    return sorted(top_users, key=lambda u: u["total_commands"], reverse=True)
+    return [{"discord_id": row["discordId"], "total_commands": row["total"]} for row in results]
 
 
 def get_theme(discord_id: int) -> Theme | None:
@@ -132,32 +133,17 @@ def get_theme(discord_id: int) -> Theme | None:
     return json.loads(results[0]["theme"]) if results else None
 
 
-def update_commands(discord_id: str, command_name: str, origin: str) -> None:
-    """
-    Increments a user's command count.
-    Args:
-        discord_id: Discord ID of the user
-        command_name: Name of the command used
-        origin: Origin of the command ('server', 'dm')
-    """
-    user_commands = db.fetch("""
-        SELECT commands FROM users
-        WHERE discordId = ?
-    """, [discord_id])[0][0]
-
-    user_commands = json.loads(user_commands)
-
-    if command_name in user_commands["counts"]:
-        user_commands["counts"][command_name] += 1
-    else:
-        user_commands["counts"][command_name] = 1
-    user_commands[origin] += 1
-
+def log_command(discord_id: str, user_id: str | None, command_name: str, origin: str) -> None:
+    """Record one command invocation."""
     db.run("""
-        UPDATE users
-        SET commands = ?
-        WHERE discordId = ?
-    """, [json.dumps(user_commands), discord_id])
+        INSERT INTO command_log (discordId, userId, command, origin, timestamp)
+        VALUES (?, ?, ?, ?, ?)
+    """, [str(discord_id), user_id, command_name, origin, dates.now().timestamp()])
+
+
+def get_command_count() -> int:
+    """Return the total number of commands ever run."""
+    return db.fetch_one("SELECT COUNT(*) AS total FROM command_log")["total"]
 
 
 def update_theme(discord_id: str, theme: Theme) -> None:
@@ -282,30 +268,15 @@ def get_discord_id(user_id: str) -> str | None:
 
 def migrate_command_name(old_name: str, new_name: str) -> int:
     """Migrate command usage data from an old command name to a new one."""
-    all_users = db.fetch("SELECT discordId, commands FROM users")
-    affected_count = 0
+    affected_count = db.fetch_one("""
+        SELECT COUNT(DISTINCT discordId) AS total FROM command_log
+        WHERE command = ?
+    """, [old_name])["total"]
 
-    for user in all_users:
-        commands_data = json.loads(user["commands"])
-        counts = commands_data.get("counts", {})
-
-        # Check if old command name exists
-        if old_name in counts:
-            old_count = counts.pop(old_name)
-
-            # If new name already exists, merge the counts
-            if new_name in counts:
-                counts[new_name] += old_count
-            else:
-                counts[new_name] = old_count
-
-            # Update the database
-            db.run("""
-                UPDATE users
-                SET commands = ?
-                WHERE discordId = ?
-            """, [json.dumps(commands_data), user["discordId"]])
-
-            affected_count += 1
+    db.run("""
+        UPDATE command_log
+        SET command = ?
+        WHERE command = ?
+    """, [new_name, old_name])
 
     return affected_count

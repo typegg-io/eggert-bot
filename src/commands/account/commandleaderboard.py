@@ -5,8 +5,8 @@ from commands.base import Command
 from context import BotContext
 from database.bot.users import (
     get_all_command_usage,
+    get_command_leaderboard,
     get_command_usage,
-    get_command_usage_by_user,
     get_top_users_by_command_usage,
 )
 from utils.errors import BotUserNotFound, UnknownCommand, UserNotAdmin
@@ -64,19 +64,12 @@ class CommandLeaderboard(Command):
 
 async def command_leaderboard(ctx: BotContext, command_name: str) -> None:
     """Display a leaderboard of users by usage count for a given command."""
-    all_commands = get_command_usage_by_user()
-
-    command_usage = [user for user in all_commands if command_name in user["commands"]]
-    total_usages = sum(user["commands"][command_name] for user in command_usage)
-    sorted_usage = sorted(
-        command_usage,
-        key=lambda user: user["commands"][command_name],
-        reverse=True,
-    )
+    command_usage = get_command_leaderboard(command_name)
+    total_usages = sum(user["usages"] for user in command_usage)
 
     description_lines = [
-        f"{i + 1}. <@{user["discord_id"]}> - {user["commands"][command_name]:,}"
-        for i, user in enumerate(sorted_usage[:10])
+        f"{i + 1}. <@{user["discord_id"]}> - {user["usages"]:,}"
+        for i, user in enumerate(command_usage[:10])
     ]
     description = "\n".join(description_lines) or ""
 

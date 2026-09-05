@@ -1,11 +1,9 @@
-import json
-
 from discord.ext import commands
 
 from command_info import CommandInfo
 from commands.base import Command
 from context import BotContext
-from database.bot.users import get_user, get_user_by_user_id
+from database.bot.users import get_command_usage, get_user, get_user_by_user_id
 from utils.dates import discord_date
 from utils.errors import BotError, ProfileNotFound
 from utils.messages import Message, Page
@@ -89,7 +87,7 @@ async def run(ctx: BotContext, bot_profile: dict = None, site_profile: Profile =
         description += "### TypeGG: Account not linked\n"
 
     if bot_profile:
-        commands_used = json.loads(bot_profile["commands"])["counts"]
+        commands_used = get_command_usage(bot_profile["discordId"])
         top_commands = sorted(commands_used.items(), key=lambda x: -x[1])
         total_commands = sum([c[1] for c in top_commands])
         top_commands_str = "".join([f"{i + 1}. {c[0]} ({c[1]:,})\n" for i, c in enumerate(top_commands[:3])])

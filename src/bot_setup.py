@@ -21,7 +21,7 @@ from config import (
     TYPEGG_GUILD_ID,
 )
 from context import BotContext
-from database.bot.users import get_all_command_usage, get_user, get_user_ids, update_commands
+from database.bot.users import get_command_count, get_user, get_user_ids, log_command
 from database.typegg.quotes import is_quote_id
 from utils.dates import is_date_like, parse_date
 from utils.errors import BotLocked, InvalidNumber, UserBanned
@@ -34,7 +34,7 @@ from utils.urls import parse_solo_url
 from web_server.utils import assign_user_roles
 
 users = get_user_ids()
-total_commands = sum(get_all_command_usage().values())
+total_commands = get_command_count()
 
 _locked = False
 
@@ -302,7 +302,7 @@ def register_bot_checks(bot) -> None:
         global total_commands
 
         command_origin = "server" if ctx.guild else "dm"
-        update_commands(ctx.author.id, ctx.command.name, command_origin)
+        log_command(ctx.author.id, ctx.user["userId"], ctx.command.name, command_origin)
 
         total_commands += 1
         if total_commands % 50_000 == 0:
