@@ -1,3 +1,5 @@
+"""The global command error handler cog."""
+
 import importlib
 
 import discord
@@ -22,11 +24,15 @@ from utils.messages import check_channel_permissions
 
 
 class ErrorHandler(commands.Cog):
-    def __init__(self, bot):
+    """Cog that turns a command error into the embed it carries."""
+
+    def __init__(self, bot) -> None:
+        """Hold the bot the handler reports errors for."""
         self.bot = bot
 
     @commands.Cog.listener()
-    async def on_command_error(self, ctx, error):
+    async def on_command_error(self, ctx, error) -> None:
+        """Turn a command error into the embed it carries."""
         error = getattr(error, "original", error)
 
         if isinstance(error, UserBanned):
@@ -78,11 +84,12 @@ class ErrorHandler(commands.Cog):
         log_error(log_message, error)
 
 
-async def setup(bot):
+async def setup(bot) -> None:
     """Register the cog in the bot."""
     await bot.add_cog(ErrorHandler(bot))
 
 
-async def send_error(ctx, embed):
+async def send_error(ctx, embed) -> None:
+    """Send an error embed, defaulting its color to red."""
     embed.color = embed.color or ERROR
     await ctx.send(embed=embed)

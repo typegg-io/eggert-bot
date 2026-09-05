@@ -1,3 +1,5 @@
+"""Scheduled work: daily quote posting and status rotation."""
+
 import asyncio
 import random
 
@@ -28,7 +30,7 @@ SEASONAL_STATUSES = {
 }
 
 
-def get_status(today):
+def get_status(today) -> Game | None:
     """Return a random status message, seasonal during holidays."""
     for (month, day), text in SEASONAL_STATUSES.items():
         try:
@@ -45,21 +47,27 @@ def get_status(today):
 
 
 class BackgroundTasks(commands.Cog):
-    def __init__(self, bot):
+    """Cog that runs the bot's minute loop and its status loop."""
+
+    def __init__(self, bot) -> None:
+        """Start the minute loop and the status loop."""
         self.bot = bot
         self.tasks_loop.start()
         self.status_loop.start()
 
-    def cog_unload(self):
+    def cog_unload(self) -> None:
+        """Cancel the minute loop when the cog unloads."""
         self.tasks_loop.cancel()
 
     @tasks.loop(count=1)
-    async def status_loop(self):
+    async def status_loop(self) -> None:
+        """Set the bot's status once the bot is ready."""
         await self.bot.wait_until_ready()
         await self.bot.change_presence(activity=get_status(dates.now()))
 
     @tasks.loop(minutes=1)
-    async def tasks_loop(self):
+    async def tasks_loop(self) -> None:
+        """Run the daily quote work at its scheduled minutes."""
         now = dates.now()
 
         if now.hour == 20 and now.minute == 0:
@@ -74,15 +82,17 @@ class BackgroundTasks(commands.Cog):
             await import_daily_quotes()
 
     @tasks_loop.error
-    async def tasks_loop_error(self, error):
+    async def tasks_loop_error(self, error) -> None:
+        """Log anything the minute loop raises."""
         log_error("Tasks Loop", error)
 
 
-async def setup(bot):
+async def setup(bot) -> None:
+    """Register the background tasks cog."""
     await bot.add_cog(BackgroundTasks(bot))
 
 
-async def daily_quote_results(bot: commands.Bot):
+async def daily_quote_results(bot: commands.Bot) -> None:
     """Sends out the previous daily quote's results."""
     channel = bot.get_channel(DAILY_QUOTE_CHANNEL_ID)
 
@@ -117,7 +127,7 @@ async def daily_quote_results(bot: commands.Bot):
     remove_file(file_name)
 
 
-async def daily_quote_ping(bot: commands.Bot):
+async def daily_quote_ping(bot: commands.Bot) -> None:
     """Sends out a ping with daily quote information."""
     channel = bot.get_channel(DAILY_QUOTE_CHANNEL_ID)
 
@@ -135,7 +145,7 @@ async def daily_quote_ping(bot: commands.Bot):
     )
 
 
-async def daily_quote_reminder(bot: commands.Bot):
+async def daily_quote_reminder(bot: commands.Bot) -> None:
     """Sends out a DM reminder to anyone on a daily streak who hasn't completed the daily quote."""
     guild = bot.get_guild(TYPEGG_GUILD_ID)
     role = guild.get_role(DAILY_QUOTE_ROLE_ID)
@@ -174,7 +184,7 @@ async def daily_quote_reminder(bot: commands.Bot):
                 pass
 
 
-async def import_daily_quotes():
+async def import_daily_quotes() -> None:
     """Imports all the recent daily quotes."""
     missing_days = get_missing_days()
     for number in missing_days:

@@ -1,3 +1,5 @@
+"""The bootstrap: build the bot, wire its extensions, and run it."""
+
 import asyncio
 
 import discord
@@ -22,7 +24,8 @@ bot.remove_command("help")
 
 
 @bot.event
-async def on_ready():
+async def on_ready() -> None:
+    """Load the commands and extensions once, on the first connect."""
     if getattr(bot, "_setup_complete", False):
         log("Reconnected.")
         return

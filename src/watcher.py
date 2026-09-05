@@ -1,3 +1,5 @@
+"""Hot reload for staging, watching the source directory for changes."""
+
 import asyncio
 import hashlib
 import importlib
@@ -12,18 +14,23 @@ from watchdog.observers import Observer
 from config import SOURCE_DIR
 
 
-def _get_command_class():
+def _get_command_class() -> type:
+    """Return the Command base class without importing it at module scope."""
     return sys.modules["commands.base"].Command
 
 
 class ReloadHandler(FileSystemEventHandler):
-    def __init__(self, bot, loop):
+    """Watchdog handler that reloads a changed module and the cogs behind it."""
+
+    def __init__(self, bot, loop) -> None:
+        """Hold the bot, the loop and the hashes that debounce a change."""
         self.bot = bot
         self.loop = loop
         self.debounce_timers = {}
         self.file_hashes: dict[str, str] = {}
 
-    def on_modified(self, event):
+    def on_modified(self, event) -> None:
+        """Queue a reload when a Python file's contents actually change."""
         path = Path(event.src_path)
 
         if event.is_directory:
@@ -51,7 +58,8 @@ class ReloadHandler(FileSystemEventHandler):
         self.debounce_timers[event.src_path] = timer
         timer.start()
 
-    def _handle_change(self, path: Path):
+    def _handle_change(self, path: Path) -> None:
+        """Route a changed path to the cog or module reloader."""
         try:
             parts = path.relative_to(SOURCE_DIR).parts
         except ValueError:
@@ -71,7 +79,7 @@ class ReloadHandler(FileSystemEventHandler):
             )
 
 
-async def reload_cog(bot, group, name):
+async def reload_cog(bot, group, name) -> None:
     """Reload a specific command cog."""
     module_path = f"commands.{group}.{name}"
     try:
@@ -94,7 +102,7 @@ async def reload_cog(bot, group, name):
         print(f"[Watcher] ✗ Failed to reload {group}/{name}: {e}")
 
 
-def module_depends_on(module, dependency_path):
+def module_depends_on(module, dependency_path) -> bool:
     """Check if a module directly imports from a given module path."""
     for value in module.__dict__.values():
         if isinstance(value, types.ModuleType):
@@ -107,7 +115,7 @@ def module_depends_on(module, dependency_path):
     return False
 
 
-def find_all_dependents(module_path, visited=None):
+def find_all_dependents(module_path, visited=None) -> set[str]:
     """Recursively find all loaded project modules that depend on module_path."""
     if visited is None:
         visited = set()
@@ -128,7 +136,7 @@ def find_all_dependents(module_path, visited=None):
     return dependents
 
 
-async def reload_module_and_cogs(bot, module_path):
+async def reload_module_and_cogs(bot, module_path) -> None:
     """Reload a non-command module and any cogs that transitively depend on it."""
     if module_path not in sys.modules:
         print(f"[Watcher] Module {module_path} not imported, skipping")
@@ -191,7 +199,8 @@ async def reload_module_and_cogs(bot, module_path):
     print(f"[Watcher] ✓ Reloaded {reloaded}/{len(cogs_to_reload)} dependent cog(s)")
 
 
-def start_watcher(bot, loop):
+def start_watcher(bot, loop) -> None:
+    """Start the file watcher on a daemon thread."""
     observer = Observer()
     observer.schedule(ReloadHandler(bot, loop), path=SOURCE_DIR, recursive=True)
     thread = threading.Thread(target=observer.start, daemon=True)

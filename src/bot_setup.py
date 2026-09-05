@@ -1,3 +1,5 @@
+"""The bot subclass, flag parsing, global checks and event handlers."""
+
 import asyncio
 import re
 from zoneinfo import ZoneInfo
@@ -37,12 +39,14 @@ total_commands = sum(get_all_command_usage().values())
 _locked = False
 
 
-def set_lockdown(state: bool):
+def set_lockdown(state: bool) -> None:
+    """Put the bot into or out of lockdown."""
     global _locked
     _locked = state
 
 
-def is_locked():
+def is_locked() -> bool:
+    """Return whether the bot is in lockdown."""
     return _locked
 
 
@@ -58,7 +62,8 @@ class Eggert(commands.Bot):
     ctx.raw_args       - original tokens after the command name, before any stripping
     """
 
-    async def get_context(self, message, *, cls=BotContext):
+    async def get_context(self, message, *, cls=BotContext) -> BotContext:
+        """Return the context, with flags stripped and parsed off the message."""
         if message.content.startswith(BOT_PREFIX):
             original_content = message.content
             cmd_name = message.content.split()[0][len(BOT_PREFIX):]
@@ -162,7 +167,7 @@ def parse_flags(content: str) -> tuple[Flags, str, dict[str, str]]:
     return flags, cleaned_command, explicit_flags
 
 
-async def load_commands(bot):
+async def load_commands(bot) -> None:
     """Load all command cogs into the bot."""
 
     for group, file, module in get_command_modules():
@@ -172,17 +177,18 @@ async def load_commands(bot):
                 break
 
 
-def register_bot_checks(bot):
+def register_bot_checks(bot) -> None:
     """Register global bot checks and event handlers."""
 
     @bot.check
-    async def lockdown_check(ctx: BotContext):
+    async def lockdown_check(ctx: BotContext) -> bool:
+        """Block everyone but the owners while the bot is locked."""
         if _locked and ctx.author.id not in [EIKO, KEEGAN]:
             raise BotLocked
         return True
 
     @bot.check
-    async def set_user(ctx: BotContext):
+    async def set_user(ctx: BotContext) -> bool:
         """Attach a user to the context and block banned users."""
         if not check_channel_permissions(ctx):
             return False
@@ -195,13 +201,14 @@ def register_bot_checks(bot):
             raise UserBanned("Banned user attempted to use a command")
         return True
 
-    async def forward_to_site(message):
+    async def forward_to_site(message) -> None:
         """Forward a general channel message to the site's chat."""
         user = get_user(str(message.author.id), auto_insert=False)
         linked = user and user.get("userId")
         guild = message.guild
 
-        def replace_mention(m):
+        def replace_mention(m) -> str:
+            """Return a user mention as a TypeGG ID or a plain name."""
             uid = int(m.group(1))
             mentioned_user = get_user(str(uid), auto_insert=False)
             if mentioned_user:
@@ -209,12 +216,14 @@ def register_bot_checks(bot):
             member = guild.get_member(uid) if guild else None
             return f"@{member.name}" if member else "@unknown"
 
-        def replace_role(m):
+        def replace_role(m) -> str:
+            """Return a role mention as a plain name."""
             rid = int(m.group(1))
             role = guild.get_role(rid) if guild else None
             return f"@{role.name}" if role else "@unknown"
 
-        def replace_channel(m):
+        def replace_channel(m) -> str:
+            """Return a channel mention as a plain name."""
             cid = int(m.group(1))
             channel = guild.get_channel(cid) if guild else None
             return f"#{channel.name}" if channel else "#unknown"
@@ -245,7 +254,7 @@ def register_bot_checks(bot):
             )
 
     @bot.event
-    async def on_message(message):
+    async def on_message(message) -> discord.Message | None:
         """Global message handler."""
 
         if message.author.bot:
@@ -273,7 +282,7 @@ def register_bot_checks(bot):
         await bot.process_commands(message)
 
     @bot.event
-    async def on_message_edit(before: discord.Message, after: discord.Message):
+    async def on_message_edit(before: discord.Message, after: discord.Message) -> None:
         """Re-process edited messages as commands."""
         if before.content == after.content:
             return
@@ -288,7 +297,8 @@ def register_bot_checks(bot):
         await bot.process_commands(after)
 
     @bot.event
-    async def on_command_completion(ctx: BotContext):
+    async def on_command_completion(ctx: BotContext) -> None:
+        """Record the command, and announce every 50,000th one."""
         global total_commands
 
         command_origin = "server" if ctx.guild else "dm"
@@ -301,7 +311,7 @@ def register_bot_checks(bot):
                 await channel.send(embed=command_milestone(ctx.author.id, total_commands))
 
     @bot.event
-    async def on_member_join(member: discord.Member):
+    async def on_member_join(member: discord.Member) -> None:
         """Reassign roles to linked users who rejoin the server."""
         if member.guild.id != TYPEGG_GUILD_ID:
             return

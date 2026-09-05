@@ -1,3 +1,5 @@
+"""Environment variables, Discord IDs and paths every module reads."""
+
 import os
 from pathlib import Path
 
@@ -70,7 +72,7 @@ CHAT_WEBHOOK_URLS = {
 CHAT_CHANNEL_UNIVERSES = {cid: code for code, cid in CHAT_CHANNEL_IDS.items() if cid}
 
 
-def normalize_universe(code):
+def normalize_universe(code) -> str:
     """Return a valid universe code, defaulting to 'en' for missing/unknown values."""
     return code if code in UNIVERSE_CODES else DEFAULT_UNIVERSE
 
