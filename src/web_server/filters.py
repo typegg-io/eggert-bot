@@ -1,3 +1,5 @@
+"""The Jinja filters the templates use."""
+
 import re
 
 from markupsafe import Markup, escape
@@ -8,10 +10,12 @@ _GG_PLUS_PLACEHOLDER = "\x00GG:{}\x00"
 
 
 def _gg_badge(url: str) -> str:
+    """Return the GG+ badge anchor for a link."""
     return f'<a href="{url}" class="plus-badge" target="_blank">GG+</a>'
 
 
 def discord_md(text: str) -> Markup:
+    """Render a subset of Discord markdown as safe HTML."""
     text = _GG_PLUS_LINKED.sub(lambda m: _GG_PLUS_PLACEHOLDER.format(m.group(1)), text)
     text = text.replace(_GG_PLUS_EMOJI, _GG_PLUS_PLACEHOLDER.format("https://typegg.io/plus"))
     text = re.sub(r'\\(.)', r'\1', text)

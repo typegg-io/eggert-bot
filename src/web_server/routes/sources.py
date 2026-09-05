@@ -1,3 +1,5 @@
+"""The source create, patch and delete routes."""
+
 from json import JSONDecodeError
 
 from aiohttp import web
@@ -7,7 +9,7 @@ from utils.logging import log_server
 from web_server.utils import error_response, validate_authorization
 
 
-async def create_source(request: web.Request):
+async def create_source(request: web.Request) -> web.Response:
     """Create a new source (POST /sources)."""
     auth_error = validate_authorization(request)
     if auth_error:
@@ -39,7 +41,7 @@ async def create_source(request: web.Request):
         return error_response(f"Failed to create source: {e}", 500)
 
 
-async def patch_source(request: web.Request):
+async def patch_source(request: web.Request) -> web.Response:
     """Update a source (PATCH /sources/{sourceId})."""
     auth_error = validate_authorization(request)
     if auth_error:
@@ -71,7 +73,7 @@ async def patch_source(request: web.Request):
         return error_response(f"Failed to update source: {e}", 500)
 
 
-async def remove_source(request: web.Request):
+async def remove_source(request: web.Request) -> web.Response:
     """Delete a source (DELETE /sources/{sourceId})."""
     auth_error = validate_authorization(request)
     if auth_error:

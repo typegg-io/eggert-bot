@@ -1,3 +1,5 @@
+"""The aiohttp middlewares wrapping every request."""
+
 import aiohttp_jinja2
 from aiohttp import web
 
@@ -7,7 +9,7 @@ from utils.strings import compact_pretty_print
 
 
 @web.middleware
-async def request_logging_middleware(request, handler):
+async def request_logging_middleware(request, handler) -> web.StreamResponse:
     """Log all incoming requests."""
     if request.path.startswith(("/static/", "/assets/")) or request.path == "/member-count":
         return await handler(request)
@@ -37,7 +39,8 @@ async def request_logging_middleware(request, handler):
 
 
 @web.middleware
-async def security_headers_middleware(request, handler):
+async def security_headers_middleware(request, handler) -> web.StreamResponse:
+    """Attach the content security and framing headers to a response."""
     resp = await handler(request)
 
     csp = (
@@ -57,7 +60,8 @@ async def security_headers_middleware(request, handler):
 
 
 @web.middleware
-async def error_middleware(request, handler):
+async def error_middleware(request, handler) -> web.StreamResponse:
+    """Render an error page for anything a handler raises."""
     try:
         return await handler(request)
 

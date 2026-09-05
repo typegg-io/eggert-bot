@@ -1,3 +1,5 @@
+"""The aiohttp web server cog and its routing table."""
+
 from functools import partial
 
 import aiohttp_jinja2
@@ -24,7 +26,8 @@ from web_server.routes.verify import verify_user
 class WebServer(commands.Cog):
     """Cog to manage the aiohttp web server and its background tasks."""
 
-    def __init__(self, bot):
+    def __init__(self, bot) -> None:
+        """Build the application, register every route, and start the server."""
         self.bot = bot
         self.app = web.Application(
             middlewares=[request_logging_middleware, error_middleware, security_headers_middleware]
@@ -76,19 +79,22 @@ class WebServer(commands.Cog):
         self.bot.loop.create_task(self.start_web_server())
 
     @commands.Cog.listener()
-    async def on_member_join(self, member):
+    async def on_member_join(self, member) -> None:
+        """Count a member joining the TypeGG guild."""
         if member.guild.id == TYPEGG_GUILD_ID:
             self.member_count += 1
 
     @commands.Cog.listener()
-    async def on_member_remove(self, member):
+    async def on_member_remove(self, member) -> None:
+        """Count a member leaving the TypeGG guild."""
         if member.guild.id == TYPEGG_GUILD_ID:
             self.member_count -= 1
 
-    async def cog_unload(self):
+    async def cog_unload(self) -> None:
+        """Stop the web server when the cog unloads."""
         await self.stop_web_server()
 
-    async def start_web_server(self):
+    async def start_web_server(self) -> None:
         """Start the web server."""
         self.runner = web.AppRunner(self.app)
         await self.runner.setup()
@@ -97,7 +103,7 @@ class WebServer(commands.Cog):
 
         log_server("Web server started on port 8888")
 
-    async def stop_web_server(self):
+    async def stop_web_server(self) -> None:
         """Stop the web server."""
         if self.runner:
             await self.runner.cleanup()
@@ -105,5 +111,6 @@ class WebServer(commands.Cog):
         log_server("Web server stopped")
 
 
-async def setup(bot):
+async def setup(bot) -> None:
+    """Register the web server cog."""
     await bot.add_cog(WebServer(bot))

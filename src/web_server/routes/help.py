@@ -1,3 +1,5 @@
+"""The public help page route."""
+
 import aiohttp_jinja2
 from aiohttp import web
 
@@ -8,7 +10,8 @@ HIDDEN_GROUPS = {"unlisted", "admin"}
 
 
 @aiohttp_jinja2.template("help.html")
-async def help_page(request: web.Request):
+async def help_page(request: web.Request) -> dict:
+    """Return the template context listing every visible command."""
     groups = [g for g in get_command_groups() if g not in HIDDEN_GROUPS]
 
     modules_by_group = {g: [] for g in groups}

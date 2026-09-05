@@ -1,3 +1,5 @@
+"""The GG+ status callback route."""
+
 from json import JSONDecodeError
 
 import discord
@@ -9,7 +11,7 @@ from utils.logging import log_server
 from web_server.utils import error_response, validate_authorization
 
 
-async def update_gg_plus(cog, request: web.Request):
+async def update_gg_plus(cog, request: web.Request) -> web.Response:
     """Update a user's GG+ subscription status in the database."""
 
     auth_error = validate_authorization(request)

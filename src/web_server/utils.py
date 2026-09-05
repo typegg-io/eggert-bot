@@ -1,3 +1,5 @@
+"""Request validation and the Discord role updates the routes trigger."""
+
 import asyncio
 
 import aiohttp
@@ -11,13 +13,13 @@ from utils.logging import log_server
 
 # Request Utilities
 
-def error_response(message: str, status: int = 500):
+def error_response(message: str, status: int = 500) -> web.Response:
     """Create a JSON error response."""
     log_server(f"Error response ({status}): {message}")
     return web.json_response({"error": message}, status=status)
 
 
-def validate_authorization(request: web.Request):
+def validate_authorization(request: web.Request) -> web.Response | None:
     """Validate the Authorization header with Bearer token, returns error response or None."""
     auth_header = request.headers.get("Authorization")
     if not auth_header:
@@ -72,14 +74,14 @@ COUNTRY_LANGUAGE_ROLES = {
 }
 
 
-def get_language_key(country):
+def get_language_key(country) -> str | None:
     """Get the supported language key for an ISO country code, or None."""
     if not country:
         return None
     return COUNTRY_LANGUAGE_ROLES.get(country.lower())
 
 
-async def assign_language_role(guild: discord.Guild, discord_id: int, country: str):
+async def assign_language_role(guild: discord.Guild, discord_id: int, country: str) -> None:
     """Assign a language role based on the user's country, if it maps to one."""
     key = get_language_key(country)
     if not key:
@@ -109,7 +111,7 @@ async def assign_language_role(guild: discord.Guild, discord_id: int, country: s
         raise RuntimeError(f"Failed to assign language role to {member.name}: {e}")
 
 
-def get_nwpm_role_name(nwpm):
+def get_nwpm_role_name(nwpm) -> str | None:
     """Get the role name for a given nWPM value."""
     if nwpm is None:
         return None
@@ -120,7 +122,7 @@ def get_nwpm_role_name(nwpm):
     return f"{lower_bound}-{upper_bound}"
 
 
-async def update_nwpm_role(cog, guild: discord.Guild, discord_id: int, nwpm: float):
+async def update_nwpm_role(cog, guild: discord.Guild, discord_id: int, nwpm: float) -> None:
     """Update a given user's nWPM role."""
     member = guild.get_member(discord_id)
     if not member:
@@ -162,7 +164,7 @@ async def update_nwpm_role(cog, guild: discord.Guild, discord_id: int, nwpm: flo
         raise RuntimeError(f"Failed to update nWPM role for {member.name}: {e}")
 
 
-async def assign_user_roles(cog, guild: discord.Guild, discord_id: int, user_id: str):
+async def assign_user_roles(cog, guild: discord.Guild, discord_id: int, user_id: str) -> None:
     """Fetch user profile and assign all roles (verified, nWPM, GG+)."""
 
     member = guild.get_member(discord_id)

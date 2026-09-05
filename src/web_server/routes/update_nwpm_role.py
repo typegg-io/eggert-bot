@@ -1,3 +1,5 @@
+"""The nWPM role callback route."""
+
 from json import JSONDecodeError
 
 import discord
@@ -8,7 +10,7 @@ from utils.logging import log_server
 from web_server.utils import error_response, get_nwpm_role_name, validate_authorization
 
 
-async def update_nwpm_role(cog, request: web.Request):
+async def update_nwpm_role(cog, request: web.Request) -> web.Response:
     """Update a given user's nWPM role."""
 
     # Verify authorization

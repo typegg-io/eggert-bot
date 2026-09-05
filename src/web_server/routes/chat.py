@@ -1,3 +1,5 @@
+"""The site chat bridge route."""
+
 import aiohttp
 from aiohttp import web
 
@@ -9,7 +11,7 @@ GLOBAL_EMOTE = "<:gc1:1489646936813469767>" + "<:gc2:1489646971965935617> "
 GLOBAL_EMOTE_PLUS = "<:gc_gg1:1493934783078596669>" + "<:gc_gg2:1493934844441395354> "
 
 
-async def receive_message(request: web.Request):
+async def receive_message(request: web.Request) -> web.Response:
     """Forward a site chat message to Discord (POST /chat/receive)."""
     auth_error = validate_authorization(request)
     if auth_error:

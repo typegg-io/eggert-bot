@@ -1,3 +1,5 @@
+"""The quote create, patch and delete routes."""
+
 from json import JSONDecodeError
 
 from aiohttp import web
@@ -8,7 +10,7 @@ from utils.logging import log_server
 from web_server.utils import error_response, validate_authorization
 
 
-async def create_quote(request: web.Request):
+async def create_quote(request: web.Request) -> web.Response:
     """Create a new quote (POST /quotes)."""
     auth_error = validate_authorization(request)
     if auth_error:
@@ -40,7 +42,7 @@ async def create_quote(request: web.Request):
         return error_response(f"Failed to create quote: {e}", 500)
 
 
-async def patch_quote(request: web.Request):
+async def patch_quote(request: web.Request) -> web.Response:
     """Update a quote (PATCH /quotes/{quoteId})."""
     auth_error = validate_authorization(request)
     if auth_error:
@@ -75,7 +77,7 @@ async def patch_quote(request: web.Request):
         return error_response(f"Failed to update quote: {e}", 500)
 
 
-async def remove_quote(request: web.Request):
+async def remove_quote(request: web.Request) -> web.Response:
     """Delete a quote (DELETE /quotes/{quoteId})."""
     auth_error = validate_authorization(request)
     if auth_error:

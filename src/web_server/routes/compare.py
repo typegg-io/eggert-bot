@@ -1,3 +1,5 @@
+"""The public compare page route."""
+
 import aiohttp_jinja2
 from aiohttp import web
 
@@ -10,7 +12,8 @@ from utils.urls import race_url
 
 
 @aiohttp_jinja2.template("compare.html")
-async def compare_page(request: web.Request):
+async def compare_page(request: web.Request) -> dict:
+    """Return the template context comparing two users' quote bests."""
     username1 = request.match_info.get("username1")
     username2 = request.match_info.get("username2")
 

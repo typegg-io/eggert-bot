@@ -1,3 +1,5 @@
+"""The user import and delete routes."""
+
 import asyncio
 
 from aiohttp import web
@@ -8,7 +10,7 @@ from utils.logging import log_error, log_server
 from web_server.utils import error_response, validate_authorization
 
 
-async def import_user(request: web.Request):
+async def import_user(request: web.Request) -> web.Response:
     """Import a user's latest races in the background (POST /users/{userId}/import)."""
     auth_error = validate_authorization(request)
     if auth_error:
@@ -16,7 +18,8 @@ async def import_user(request: web.Request):
 
     user_id = request.match_info.get("userId")
 
-    async def run_import():
+    async def run_import() -> None:
+        """Import the user's races, logging anything that goes wrong."""
         try:
             await download(user_id=user_id)
             log_server(f"Imported races for user {user_id}")
@@ -31,7 +34,7 @@ async def import_user(request: web.Request):
     }, status=202)
 
 
-async def delete_user(request: web.Request):
+async def delete_user(request: web.Request) -> web.Response:
     """Delete a user, removing all their data (DELETE /users/{userId})."""
     auth_error = validate_authorization(request)
     if auth_error:
