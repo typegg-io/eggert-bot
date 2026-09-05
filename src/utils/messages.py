@@ -1,3 +1,5 @@
+"""The paginated embed message and the button views commands send."""
+
 import asyncio
 import os
 from collections.abc import Callable
@@ -103,7 +105,8 @@ class Message(View):
         show_avatar: bool = True,
         thumbnail: str = None,
         jump_page: int = None,
-    ):
+    ) -> None:
+        """Build a message from one page or a list of pages."""
         self.ctx = ctx
         self.pages = pages or []
         if page:
@@ -132,7 +135,7 @@ class Message(View):
 
         # self.build_embeds()
 
-    def build_embeds(self):
+    def build_embeds(self) -> None:
         """Assembles the embed(s) for the message."""
         for i, page in enumerate(self.pages):
             title = page.title if page.title else self.title
@@ -174,7 +177,7 @@ class Message(View):
             else:
                 self.add_buttons()
 
-    def add_profile(self, embed):
+    def add_profile(self, embed) -> None:
         """Adds profile avatar and author section to the embed."""
         username = self.profile["username"]
         display_name = self.profile.get("displayName", None) or username
@@ -193,18 +196,19 @@ class Message(View):
             icon_url=author_icon,
         )
 
-    def update_footer(self, embed, text):
+    def update_footer(self, embed, text) -> None:
         """Appends footer text to the embed."""
         footer_text = f"{embed.footer.text}\n" if embed.footer.text else ""
         embed.set_footer(text=footer_text + text)
 
-    def update_navigation_buttons(self):
+    def update_navigation_buttons(self) -> None:
+        """Disable the arrows that would leave the page range."""
         self.first_button.disabled = self.page_index == 0
         self.previous_button.disabled = self.page_index == 0
         self.next_button.disabled = self.page_index == self.page_count - 1
         self.last_button.disabled = self.page_index == self.page_count - 1
 
-    def add_navigation_buttons(self):
+    def add_navigation_buttons(self) -> None:
         """Adds pagination buttons to the embed."""
         self.first_button = DiscordButton(label="\u25c0\u25c0", style=ButtonStyle.secondary)
         self.previous_button = DiscordButton(label="\u25c0", style=ButtonStyle.primary)
@@ -225,31 +229,36 @@ class Message(View):
         self.add_item(self.next_button)
         self.add_item(self.last_button)
 
-    async def first(self, interaction):
+    async def first(self, interaction) -> None:
+        """Jump to the first page."""
         if self.page_index > 0:
             self.page_index = 0
             self.update_navigation_buttons()
             await self.update_embed(interaction)
 
-    async def previous(self, interaction):
+    async def previous(self, interaction) -> None:
+        """Move back one page."""
         if self.page_index > 0:
             self.page_index -= 1
             self.update_navigation_buttons()
             await self.update_embed(interaction)
 
-    async def next(self, interaction):
+    async def next(self, interaction) -> None:
+        """Move forward one page."""
         if self.page_index < self.page_count - 1:
             self.page_index += 1
             self.update_navigation_buttons()
             await self.update_embed(interaction)
 
-    async def last(self, interaction):
+    async def last(self, interaction) -> None:
+        """Jump to the last page."""
         if self.page_index < self.page_count - 1:
             self.page_index = self.page_count - 1
             self.update_navigation_buttons()
             await self.update_embed(interaction)
 
-    async def jump(self, interaction):
+    async def jump(self, interaction) -> None:
+        """Jump to the page the jump button points at."""
         if self.page_index != self.jump_page:
             self.page_index = self.jump_page
             self.update_navigation_buttons()
@@ -257,7 +266,7 @@ class Message(View):
         else:
             await interaction.response.defer()
 
-    def add_buttons(self):
+    def add_buttons(self) -> None:
         """Adds buttons with custom names (non-paginated layout)."""
         for i, page in enumerate(self.pages):
             style = ButtonStyle.primary if i == self.page_index else ButtonStyle.secondary
@@ -265,8 +274,11 @@ class Message(View):
             button.callback = self.make_callback(i)
             self.add_item(button)
 
-    def make_callback(self, index):
-        async def callback(interaction):
+    def make_callback(self, index) -> Callable:
+        """Return the callback that switches to the page at index."""
+
+        async def callback(interaction) -> None:
+            """Switch to this page, rendering its image if needed."""
             if self.ctx.author.id != interaction.user.id or index == self.page_index:
                 return await interaction.response.defer()
 
@@ -293,7 +305,7 @@ class Message(View):
 
         return callback
 
-    def update_image(self):
+    def update_image(self) -> None:
         """Sets an image for the current page if a render() function is present."""
         index = self.page_index
         if index not in self.cache:
@@ -303,7 +315,7 @@ class Message(View):
 
         self.embeds[index].set_image(url=f"attachment://{self.cache[index]}")
 
-    async def update_embed(self, interaction):
+    async def update_embed(self, interaction) -> None:
         """Updates the embed and buttons for a given page."""
         if self.ctx.author.id != interaction.user.id:
             if not interaction.response.is_done():
@@ -326,7 +338,7 @@ class Message(View):
         else:
             await interaction.response.edit_message(**kwargs)
 
-    async def send(self):
+    async def send(self) -> None:
         """Sends the constructed message with buttons and embeds."""
         self.build_embeds()
 
@@ -341,7 +353,7 @@ class Message(View):
             kwargs["files"] = [file]
         self.message = await self.ctx.send(**kwargs)
 
-    async def edit(self, page_index: int = None):
+    async def edit(self, page_index: int = None) -> None:
         """Edits the current message with updated page data."""
         if page_index is not None:
             self.page_index = page_index
@@ -362,16 +374,18 @@ class Message(View):
 
         await self.message.edit(**kwargs)
 
-    def start(self):
+    def start(self) -> asyncio.Task:
         """Returns a fire-and-forget message, used for skeleton commands."""
 
-        async def runner():
+        async def runner() -> None:
+            """Send the message without awaiting the caller."""
             await self.send()
             # await self.edit()
 
         return asyncio.create_task(runner())
 
-    async def on_timeout(self):
+    async def on_timeout(self) -> None:
+        """Strip the buttons and delete any rendered images."""
         await super().on_timeout()
         try:
             if len(self.pages) > 1:
@@ -384,7 +398,9 @@ class Message(View):
 
 
 class Button(View):
-    def __init__(self, label: str, callback: Callable, message: str):
+    """A view holding a single button."""
+
+    def __init__(self, label: str, callback: Callable, message: str) -> None:
         """
         A view with a single button.
 
@@ -400,10 +416,12 @@ class Button(View):
         self.message = None
         self.add_item(self.make_button())
 
-    def make_button(self):
+    def make_button(self) -> DiscordButton:
+        """Return the button, wired to the view's callback."""
         button = DiscordButton(label=self.label, style=ButtonStyle.primary)
 
-        async def callback(interaction):
+        async def callback(interaction) -> None:
+            """Run the callback and acknowledge the press."""
             result = self.callback_func(interaction)
             if asyncio.iscoroutine(result):
                 result = await result
@@ -414,7 +432,8 @@ class Button(View):
         button.callback = callback
         return button
 
-    async def on_timeout(self):
+    async def on_timeout(self) -> None:
+        """Strip the button when the view expires."""
         if self.message:
             try:
                 await self.message.edit(view=None)
@@ -428,7 +447,7 @@ def paginate_data(
     page_count: int = 10,
     per_page: int = 10,
     flag_title: bool = True,
-):
+) -> list[Page]:
     """
     Splits a list of data into multiple Page objects.
 
@@ -453,7 +472,8 @@ def paginate_data(
     return pages
 
 
-def command_milestone(author, milestone):
+def command_milestone(author, milestone) -> Embed:
+    """Return the embed announcing a user's command milestone."""
     return Embed(
         title="Command Milestone! :tada:",
         description=f"<@{author}> just ran the {milestone:,}th command!",
@@ -461,7 +481,8 @@ def command_milestone(author, milestone):
     )
 
 
-def privacy_warning():
+def privacy_warning() -> Embed:
+    """Return the embed warning about publicly exposed race data."""
     return Embed(
         title=":warning: Privacy Warning :warning:",
         description=(
@@ -473,7 +494,7 @@ def privacy_warning():
     )
 
 
-def usable_in(*channel_ids):
+def usable_in(*channel_ids) -> Callable:
     """
     Decorator to mark commands as usable in specific channels.
 
@@ -483,7 +504,8 @@ def usable_in(*channel_ids):
             ...
     """
 
-    def decorator(func):
+    def decorator(func) -> Callable:
+        """Record the allowed channels on the command function."""
         if not hasattr(func, 'allowed_channels'):
             func.allowed_channels = set()
         func.allowed_channels.update(channel_ids)

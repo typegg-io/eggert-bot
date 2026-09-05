@@ -1,3 +1,5 @@
+"""The bot's exception types, each carrying the embed it displays."""
+
 from dataclasses import dataclass
 
 from discord import Embed
@@ -11,12 +13,14 @@ from utils.urls import GG_PLUS_LINK
 
 @dataclass
 class BotError(CommandError):
+    """An error that carries its own title and text."""
     title: str
     text: str
     flags: Flags | None = None
 
     @property
-    def embed(self):
+    def embed(self) -> Embed:
+        """Return the embed, appending the flag title when flags are set."""
         title = self.title + (get_flag_title(self.flags) if self.flags is not None else "")
         return Embed(
             title=title,
@@ -27,7 +31,8 @@ class BotError(CommandError):
 class MissingArguments(CommandError):
     """Raised when one or more parameters are missing from command arguments."""
 
-    def embed(self, info, show_tip=False):
+    def embed(self, info, show_tip=False) -> Embed:
+        """Return the usage embed for a command, with an optional link tip."""
         # Commands that take no arguments omit "parameters" entirely.
         usage = f"{prefix}{info["name"]} {info.get("parameters", "")}".rstrip()
         embed = Embed(
@@ -53,7 +58,8 @@ class InvalidArgument(CommandError):
     options: list[str]
 
     @property
-    def embed(self):
+    def embed(self) -> Embed:
+        """Return the embed shown for this error."""
         return Embed(
             title="Invalid Argument",
             description="Argument can be: " + ", ".join([f"`{option}`" for option in self.options]),
@@ -70,7 +76,8 @@ class ProfileNotFound(ErrorWithUsername):
     """Raised when a TypeGG profile is not found."""
 
     @property
-    def embed(self):
+    def embed(self) -> Embed:
+        """Return the embed shown for this error."""
         return Embed(
             title="User Not Found",
             description=f"User `{self.username.replace("`", "")}` not found",
@@ -81,7 +88,8 @@ class NoRaces(ErrorWithUsername):
     """Raised when a TypeGG profile has no races."""
 
     @property
-    def embed(self):
+    def embed(self) -> Embed:
+        """Return the embed shown for this error."""
         return Embed(
             title="No Races",
             description=f"User `{self.username.replace("`", "")}` has no races",
@@ -92,7 +100,8 @@ class NoRankedRaces(ErrorWithUsername):
     """Raised when a TypeGG profile has no ranked races."""
 
     @property
-    def embed(self):
+    def embed(self) -> Embed:
+        """Return the embed shown for this error."""
         return Embed(
             title="No Ranked Races",
             description=f"User `{self.username.replace("`", "")}` has no ranked races",
@@ -103,7 +112,8 @@ class NoRacesFiltered(ErrorWithUsername):
     """Raised when a TypeGG profile has no races with the current filters."""
 
     @property
-    def embed(self):
+    def embed(self) -> Embed:
+        """Return the embed shown for this error."""
         return Embed(
             title="No Filtered Races",
             description=f"User `{self.username.replace("`", "")}` has no races with these filters",
@@ -114,7 +124,8 @@ class NoQuoteRaces(ErrorWithUsername):
     """Raised when a user has no races on a specific quote."""
 
     @property
-    def embed(self):
+    def embed(self) -> Embed:
+        """Return the embed shown for this error."""
         return Embed(
             title="No Quote Races",
             description=f"User `{self.username.replace("`", "")}` has no races on this quote",
@@ -167,7 +178,8 @@ class UnexpectedError(CommandError):
     error_type: str
 
     @property
-    def embed(self):
+    def embed(self) -> Embed:
+        """Return the embed shown for this error."""
         return Embed(
             title="Unexpected Error",
             description=(
@@ -183,7 +195,8 @@ class BotUserNotFound(CommandError):
     discord_id: str
 
     @property
-    def embed(self):
+    def embed(self) -> Embed:
+        """Return the embed shown for this error."""
         return Embed(
             title="User Not Found",
             description=f"<@{self.discord_id}> has never used the bot",
@@ -191,6 +204,8 @@ class BotUserNotFound(CommandError):
 
 
 class DiscordUserNotFound(CommandError):
+    """Raised when a Discord user is not found."""
+
     embed = Embed(
         title="User Not Found",
     )
@@ -202,7 +217,8 @@ class UnknownQuote(CommandError):
     quote_id: str
 
     @property
-    def embed(self):
+    def embed(self) -> Embed:
+        """Return the embed shown for this error."""
         return Embed(
             title="Unknown Quote",
             description=f"Quote `{self.quote_id.replace("`", "")}` not found",
@@ -228,11 +244,13 @@ class DailyQuoteChannel(CommandError):
 
 @dataclass
 class APIError(CommandError):
+    """Raised when the TypeGG API returns an error status."""
     status: int
     message: str
 
     @property
-    def embed(self):
+    def embed(self) -> Embed:
+        """Return the embed shown for this error."""
         return Embed(
             title="API Error",
             description=(
@@ -249,7 +267,8 @@ class RaceNotFound(CommandError):
     race_number: int
 
     @property
-    def embed(self):
+    def embed(self) -> Embed:
+        """Return the embed shown for this error."""
         return Embed(
             title="Race Not Found",
             description=(
@@ -272,10 +291,12 @@ class InvalidRange(CommandError):
 
 @dataclass
 class CommandOnCooldown(CommandError):
+    """Raised when a user runs a command before its cooldown expires."""
     retry_after: float
 
     @property
-    def embed(self):
+    def embed(self) -> Embed:
+        """Return the embed shown for this error."""
         from utils.dates import discord_date, now
 
         return Embed(
@@ -289,8 +310,8 @@ class DailyLimitReached(CommandError):
     """Raised when a user has reached their daily usage limit."""
 
     @property
-    def embed(self):
-
+    def embed(self) -> Embed:
+        """Return the embed shown for this error."""
         return Embed(
             title="Daily Limit Reached",
             description=(
@@ -310,10 +331,12 @@ class InvalidNumber(CommandError):
 
 @dataclass
 class NumberGreaterThan(CommandError):
+    """Raised when a number is not above the required minimum."""
     n: int = 0
 
     @property
-    def embed(self):
+    def embed(self) -> Embed:
+        """Return the embed shown for this error."""
         return Embed(
             title="Invalid Number",
             description=f"Number must be greater than {self.n}",
@@ -343,10 +366,12 @@ class MigrationActive(CommandError):
 
 @dataclass
 class NotSubscribed(CommandError):
+    """Raised when a command requires GG+ and the user lacks it."""
     feature: str = "this feature"
 
     @property
-    def embed(self):
+    def embed(self) -> Embed:
+        """Return the embed shown for this error."""
         return Embed(
             title="Requires GG+",
             description=f"[Get GG+]({GG_PLUS_LINK}) to access " + self.feature + "!",
@@ -355,6 +380,8 @@ class NotSubscribed(CommandError):
 
 
 class NotEnoughRaces(CommandError):
+    """Raised when a user has fewer races than the command needs."""
+
     embed = Embed(
         title="Not Enough Races",
         description="User has not completed this many races",
@@ -362,6 +389,8 @@ class NotEnoughRaces(CommandError):
 
 
 class MessageTooLong(CommandError):
+    """Raised when a message exceeds Discord's character limit."""
+
     embed = Embed(
         title="Message Too Long",
         description="The maximum number of characters\nfor a message has been exceeded"
@@ -369,6 +398,8 @@ class MessageTooLong(CommandError):
 
 
 class DiscordServerError(CommandError):
+    """Raised when Discord's servers cannot be reached."""
+
     embed = Embed(
         title="Discord Server Error",
         description=(
@@ -379,6 +410,8 @@ class DiscordServerError(CommandError):
 
 
 class InvalidKeystrokeData(CommandError):
+    """Raised when a race's keystroke data cannot be decoded."""
+
     embed = Embed(
         title="Invalid Keystroke Data",
         description=(
