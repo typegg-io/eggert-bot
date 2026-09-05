@@ -3,6 +3,7 @@
 from dataclasses import dataclass
 
 from graphs.core import apply_log_ticks, apply_theme, filter_palette, generate_file_name, plt
+from utils.schemas import Theme
 from utils.strings import format_big_number
 
 
@@ -18,7 +19,7 @@ class UserEnduranceData:
 def render(
     first_username: str,
     data: list[UserEnduranceData],
-    theme: dict,
+    theme: Theme,
 ) -> str:
     """Render each user's endurance curve and return the file name."""
     fig, ax = plt.subplots()

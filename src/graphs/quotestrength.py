@@ -4,9 +4,10 @@ import numpy as np
 from matplotlib.colors import LinearSegmentedColormap
 
 from graphs.core import GRAPH_PALETTE, apply_theme, generate_file_name, plt
+from utils.schemas import Theme
 
 
-def render(users: list[dict], theme: dict, heatmap_points: list[tuple[float, float]] | None = None) -> str:
+def render(users: list[dict], theme: Theme, heatmap_points: list[tuple[float, float]] | None = None) -> str:
     """Render each user's strength compass and return the file name."""
     fig, ax = plt.subplots(figsize=(6, 6), constrained_layout=True)
 

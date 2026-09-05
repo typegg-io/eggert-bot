@@ -8,6 +8,7 @@ from matplotlib.ticker import FuncFormatter
 
 from graphs.core import generate_file_name, plt
 from utils.keyboard_layouts import K
+from utils.schemas import Theme
 from utils.strings import format_big_number
 
 
@@ -16,7 +17,7 @@ def render(
     keyboard_layout: str,
     keypresses: dict[str, int],
     keymap: list[list[K]],
-    theme: dict,
+    theme: Theme,
 ) -> str:
     """Render a keyboard heatmap and return the file name."""
     colors = [

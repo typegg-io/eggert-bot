@@ -3,12 +3,13 @@
 import numpy as np
 
 from graphs.core import apply_theme, filter_palette, generate_file_name, plt
+from utils.schemas import Theme
 
 
 def render(
     score_list: list[dict],
     title: str,
-    theme: dict,
+    theme: Theme,
     themed_line: int = 0,
 ) -> str:
     """Render the day's leaderboard races and return the file name."""

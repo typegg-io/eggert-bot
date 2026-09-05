@@ -3,6 +3,7 @@
 import numpy as np
 
 from graphs.core import apply_theme, generate_file_name, plt
+from utils.schemas import Theme
 
 
 def render(
@@ -11,7 +12,7 @@ def render(
     username2: str,
     gains2: list[float],
     metric: str,
-    theme: dict,
+    theme: Theme,
 ) -> str:
     """Render two users' quote bests as a histogram and return the file name."""
     fig, (ax1, ax2) = plt.subplots(1, 2)

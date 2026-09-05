@@ -4,6 +4,7 @@ from matplotlib.ticker import FuncFormatter
 
 from graphs.core import apply_date_ticks, apply_theme, filter_palette, generate_file_name, interpolate_segments, plt
 from utils.dates import get_timestamp_list, now
+from utils.schemas import Theme
 from utils.strings import format_big_number
 
 
@@ -12,7 +13,7 @@ def render(
     lines: list[dict],
     title: str,
     y_label: str,
-    theme: dict,
+    theme: Theme,
 ) -> str:
     """Render one line per user for a metric and return the file name."""
     fig, ax = plt.subplots()

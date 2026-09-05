@@ -5,6 +5,7 @@ from dataclasses import dataclass
 import numpy as np
 
 from graphs.core import apply_log_ticks, apply_theme, filter_palette, generate_file_name, plt
+from utils.schemas import Theme
 from utils.strings import format_big_number
 
 BUCKETS = 60
@@ -40,7 +41,7 @@ def render(
     username: str,
     data: list[UserLengthData],
     metric: str,
-    theme: dict,
+    theme: Theme,
 ) -> str:
     """Render each user's length curve and return the file name."""
     fig, ax = plt.subplots()

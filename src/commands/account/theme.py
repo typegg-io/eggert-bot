@@ -10,7 +10,7 @@ from context import BotContext
 from database.bot.users import get_theme, get_user, update_theme
 from graphs import sample
 from graphs.core import plt
-from utils import strings
+from utils import schemas, strings
 from utils.colors import DARK_THEME, DEFAULT_THEME, ERROR, GG_PLUS_THEME, LIGHT_THEME
 from utils.errors import BotUserNotFound, MissingArguments, NotSubscribed
 from utils.files import remove_file
@@ -169,7 +169,7 @@ async def display_user_theme(ctx: BotContext, member: Member) -> None:
     embed.set_footer(text="Run \"-help theme\" to customize your theme!")
     file = File(file_name, filename=file_name)
 
-    async def copy_theme(interaction, theme: dict) -> bool:
+    async def copy_theme(interaction, theme: schemas.Theme) -> bool:
         """Copy the displayed theme onto the pressing user, and return whether it applied."""
         user_id = interaction.user.id
         bot_user = get_user(user_id)

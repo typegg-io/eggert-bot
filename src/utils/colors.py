@@ -1,5 +1,7 @@
 """Embed colors and the built-in graph themes."""
 
+from utils.schemas import Theme
+
 DEFAULT = 0x00AAD6
 SUCCESS = 0x198754
 WARNING = 0xFFC107
@@ -7,7 +9,7 @@ ERROR = 0xFF0000
 PLUS = 0xFF27BE
 
 # Bot themes
-DEFAULT_THEME = {
+DEFAULT_THEME: Theme = {
     "embed": DEFAULT,
     "axis": "#8E8E8E",
     "background": "#00031B",
@@ -21,7 +23,7 @@ DEFAULT_THEME = {
     "crosses": "#FF0000",
 }
 
-LIGHT_THEME = {
+LIGHT_THEME: Theme = {
     "embed": DEFAULT,
     "axis": "#000000",
     "background": "#FFFFFF",
@@ -35,7 +37,7 @@ LIGHT_THEME = {
     "crosses": "#FF0000",
 }
 
-DARK_THEME = {
+DARK_THEME: Theme = {
     "embed": DEFAULT,
     "axis": "#777777",
     "background": "#111111",
@@ -49,7 +51,7 @@ DARK_THEME = {
     "crosses": "#FF0000",
 }
 
-GG_PLUS_THEME = {
+GG_PLUS_THEME: Theme = {
     "embed": 0xFF279A,
     "axis": "#A67FA0",
     "background": "#1A0416",

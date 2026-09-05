@@ -7,6 +7,7 @@ from collections import Counter
 from database.bot import db
 from utils import dates
 from utils.colors import DEFAULT_THEME
+from utils.schemas import Theme
 
 
 def _parse_counts(commands_json: str) -> dict[str, int]:
@@ -124,7 +125,7 @@ def get_top_users_by_command_usage() -> list[dict]:
     return sorted(top_users, key=lambda u: u["total_commands"], reverse=True)
 
 
-def get_theme(discord_id: int) -> dict | None:
+def get_theme(discord_id: int) -> Theme | None:
     """Returns a user's theme if they exist."""
     results = db.fetch("SELECT theme FROM users WHERE discordId = ?", [discord_id])
 
@@ -159,7 +160,7 @@ def update_commands(discord_id: str, command_name: str, origin: str) -> None:
     """, [json.dumps(user_commands), discord_id])
 
 
-def update_theme(discord_id: str, theme: dict) -> None:
+def update_theme(discord_id: str, theme: Theme) -> None:
     """Replace a user's saved theme."""
     db.run("""
         UPDATE users

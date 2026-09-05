@@ -4,13 +4,14 @@ import numpy as np
 from matplotlib import patches
 
 from graphs.core import apply_theme, generate_file_name, plt
+from utils.schemas import Theme
 
 
 def render(
     segments: list[dict],
     title: str,
     x_label: str,
-    theme: dict,
+    theme: Theme,
 ) -> str:
     """Render a bar per segment and return the file name."""
     fig, ax = plt.subplots()

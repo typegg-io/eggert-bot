@@ -17,6 +17,7 @@ from matplotlib.offsetbox import AnnotationBbox, OffsetImage
 
 from config import ROOT_DIR, STAGING
 from utils import dates
+from utils.schemas import Theme
 
 if STAGING:
     matplotlib.use("Agg")
@@ -73,7 +74,7 @@ class CollectionHandler(HandlerLineCollection):
 
 
 def apply_theme(
-    ax: Axes, theme: dict,
+    ax: Axes, theme: Theme,
     legend_loc: int | str | None = "upper left",
     force_legend: bool = False,
     themed_line: int = 0,

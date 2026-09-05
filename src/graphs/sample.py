@@ -1,9 +1,10 @@
 """The sample graph a theme preview renders."""
 
 from graphs.core import apply_theme, generate_file_name, plt
+from utils.schemas import Theme
 
 
-def render(theme: dict) -> str:
+def render(theme: Theme) -> str:
     """Render the theme preview graph and return the file name."""
     x = [i for i in range(100)]
     y = x

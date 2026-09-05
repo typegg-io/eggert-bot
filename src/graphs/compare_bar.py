@@ -7,6 +7,7 @@ from matplotlib import patches
 from matplotlib.ticker import FixedLocator
 
 from graphs.core import apply_theme, generate_file_name, plt
+from utils.schemas import Theme
 
 
 def render(
@@ -15,7 +16,7 @@ def render(
     username2: str,
     gains2: dict[int, int],
     defaults: dict[int, int],
-    theme: dict,
+    theme: Theme,
 ) -> str:
     """Render quote wins bucketed by difficulty and return the file name."""
     difficulty_range = sorted(list(gains1.keys() | gains2.keys()))

@@ -4,6 +4,7 @@ import numpy as np
 from matplotlib.collections import LineCollection
 
 from graphs.core import apply_theme, generate_file_name, plt
+from utils.schemas import Theme
 
 
 def moving_average(y, window=20) -> np.ndarray:
@@ -34,7 +35,7 @@ def render(
     data: list[dict],
     difficulties: list[float],
     title: str,
-    theme: dict,
+    theme: Theme,
 ) -> str:
     """Render two users' encounter history and return the file name."""
     x = np.array(range(1, len(data) + 1))

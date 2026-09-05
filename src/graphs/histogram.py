@@ -4,6 +4,7 @@ import numpy as np
 
 from graphs.core import apply_theme, generate_file_name, plt
 from utils.colors import DEFAULT_THEME
+from utils.schemas import Theme
 
 
 def render(
@@ -11,7 +12,7 @@ def render(
     metric: dict,
     solo_values: list[float],
     multi_values: list[float],
-    theme: dict,
+    theme: Theme,
 ) -> str:
     """Render a solo against multiplayer histogram and return the file name."""
     fig, ax = plt.subplots()
@@ -70,7 +71,7 @@ def render_compare(
     username2: str,
     values2: list[float],
     metric: dict,
-    theme: dict,
+    theme: Theme,
 ) -> str:
     """Render a histogram comparing two users and return the file name."""
     COLOR1 = "#e41a1c"  # red

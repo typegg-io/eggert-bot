@@ -7,6 +7,7 @@ from matplotlib.axes import Axes
 
 from graphs.core import apply_theme, filter_palette, generate_file_name, plt
 from utils.keystrokes import Typo
+from utils.schemas import Theme
 
 
 def render(
@@ -15,7 +16,7 @@ def render(
     typos: list[Typo],
     username: str,
     title: str,
-    theme: dict,
+    theme: Theme,
 ) -> str:
     """Render one race's WPM over keystrokes and return the file name."""
     fig, ax = plt.subplots()

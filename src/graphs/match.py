@@ -4,12 +4,13 @@ import numpy as np
 
 from graphs.core import apply_theme, filter_palette, generate_file_name, plt
 from graphs.race import apply_padding
+from utils.schemas import Theme
 
 
 def render(
     race_data: list[dict],
     title: str,
-    theme: dict,
+    theme: Theme,
     themed_line: int = 0,
 ) -> str:
     """Render every racer's WPM over keystrokes and return the file name."""

@@ -4,6 +4,7 @@ import numpy as np
 from matplotlib.colors import hex2color
 
 from graphs.core import apply_theme, filter_palette, generate_file_name, plt
+from utils.schemas import Theme
 
 
 def render(
@@ -11,7 +12,7 @@ def render(
     profiles: list[dict],
     n: int,
     metric: str,
-    theme: dict,
+    theme: Theme,
 ) -> str:
     """Render each user's top n quote bests and return the file name."""
     fig, ax = plt.subplots()

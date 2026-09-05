@@ -6,13 +6,14 @@ from matplotlib.ticker import FuncFormatter
 
 from graphs.core import apply_date_ticks, apply_theme, generate_file_name, interpolate_segments, plt
 from utils.dates import get_timestamp_list
+from utils.schemas import Theme
 from utils.strings import format_big_number
 
 
 def render_over_time(
     values: list[float],
     metric: str,
-    theme: dict,
+    theme: Theme,
     dates: list[str],
     window_size: int,
     dnf_indices: list[int] = None,
@@ -84,7 +85,7 @@ def render_over_races(
     values: list[float],
     difficulties: list[float],
     metric: str,
-    theme: dict,
+    theme: Theme,
     window_size: int,
     dnf_indices: list[int] = None,
 ) -> str:
@@ -148,7 +149,7 @@ def render_text(
     values: list[float],
     metric: str,
     quote_id: str,
-    theme: dict,
+    theme: Theme,
 ) -> str:
     """Render a metric over one quote's races and return the file name."""
     fig, ax = plt.subplots()

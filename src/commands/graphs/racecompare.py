@@ -13,6 +13,7 @@ from utils.dates import discord_date
 from utils.errors import BotError, NoQuoteRaces
 from utils.keystrokes import get_keystroke_data
 from utils.messages import Message, Page, usable_in
+from utils.schemas import Theme
 from utils.strings import quote_display, username_with_flag
 
 max_users = 5
@@ -190,7 +191,7 @@ def create_comparison_page(
     title: str,
     description: str,
     race_data: list[dict],
-    theme: dict,
+    theme: Theme,
     themed_line: int = 0
 ) -> Page:
     """Create a comparison page with race data."""

@@ -11,6 +11,7 @@ from utils.colors import SUCCESS
 from utils.dates import discord_date, parse_date
 from utils.errors import BotError
 from utils.messages import Field, Message, Page, usable_in
+from utils.schemas import Theme
 from utils.stats import calculate_total_pp
 from utils.strings import INCREASE, quote_display
 
@@ -218,7 +219,7 @@ def build_history_page(quote_races: list[dict], ranked: bool) -> Page:
     return page
 
 
-def build_graph_page(quote_races: list, ranked: bool, theme: dict) -> Page:
+def build_graph_page(quote_races: list, ranked: bool, theme: Theme) -> Page:
     """Build the page graphing every race a user has run on a quote."""
     metric = "pp" if ranked else "wpm"
     pp, wpm = zip(*[(race["pp"], race["wpm"]) for race in quote_races])
