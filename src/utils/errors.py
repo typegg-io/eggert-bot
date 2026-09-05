@@ -31,7 +31,7 @@ class BotError(CommandError):
 class MissingArguments(CommandError):
     """Raised when one or more parameters are missing from command arguments."""
 
-    def embed(self, info, show_tip=False) -> Embed:
+    def usage_embed(self, info: dict, show_tip: bool = False) -> Embed:
         """Return the usage embed for a command, with an optional link tip."""
         # Commands that take no arguments omit "parameters" entirely.
         usage = f"{prefix}{info["name"]} {info.get("parameters", "")}".rstrip()
@@ -134,42 +134,62 @@ class NoQuoteRaces(ErrorWithUsername):
 
 class UserBanned(CheckFailure):
     """Raised when a banned user attempts to run a command."""
-    embed = Embed(
-        title="You Are Banned",
-        description="You are banned from using commands",
-    )
+
+    @property
+    def embed(self) -> Embed:
+        """Return the embed shown for this error."""
+        return Embed(
+            title="You Are Banned",
+            description="You are banned from using commands",
+        )
 
 
 class UserNotAdmin(CheckFailure):
     """Raised when a non-admin user attempts to run an admin-only command."""
-    embed = Embed(
-        title="Admin Command",
-        description="You lack the permissions to use this command",
-    )
+
+    @property
+    def embed(self) -> Embed:
+        """Return the embed shown for this error."""
+        return Embed(
+            title="Admin Command",
+            description="You lack the permissions to use this command",
+        )
 
 
 class UserNotOwner(CheckFailure):
     """Raised when a non-owner attempts to run an owner-only command."""
-    embed = Embed(
-        title="Owner Command",
-        description="You lack the permissions to use this command",
-    )
+
+    @property
+    def embed(self) -> Embed:
+        """Return the embed shown for this error."""
+        return Embed(
+            title="Owner Command",
+            description="You lack the permissions to use this command",
+        )
 
 
 class SameUsername(CommandError):
     """Raised when two passed usernames are the same."""
-    embed = Embed(
-        title="Same Username",
-        description="You must provide two unique usernames to compare",
-    )
+
+    @property
+    def embed(self) -> Embed:
+        """Return the embed shown for this error."""
+        return Embed(
+            title="Same Username",
+            description="You must provide two unique usernames to compare",
+        )
 
 
 class UnknownCommand(CommandError):
     """Raised when an unknown command is referenced."""
-    embed = Embed(
-        title="Command Not Found",
-        description=f"`{prefix}help` for a list of commands",
-    )
+
+    @property
+    def embed(self) -> Embed:
+        """Return the embed shown for this error."""
+        return Embed(
+            title="Command Not Found",
+            description=f"`{prefix}help` for a list of commands",
+        )
 
 
 @dataclass
@@ -206,9 +226,12 @@ class BotUserNotFound(CommandError):
 class DiscordUserNotFound(CommandError):
     """Raised when a Discord user is not found."""
 
-    embed = Embed(
-        title="User Not Found",
-    )
+    @property
+    def embed(self) -> Embed:
+        """Return the embed shown for this error."""
+        return Embed(
+            title="User Not Found",
+        )
 
 
 @dataclass
@@ -227,19 +250,27 @@ class UnknownQuote(CommandError):
 
 class InvalidDate(CommandError):
     """Raised when a date string is improperly formatted."""
-    embed = Embed(
-        title="Invalid Date",
-        description="Unrecognized date format",
-    )
+
+    @property
+    def embed(self) -> Embed:
+        """Return the embed shown for this error."""
+        return Embed(
+            title="Invalid Date",
+            description="Unrecognized date format",
+        )
 
 
 class DailyQuoteChannel(CommandError):
     """Raised when a non-daily command is sent in the daily quote channel."""
-    embed = Embed(
-        title="Daily Channel",
-        description="Only daily commands can be used in this channel\n"
-                    f"Use <#{1337196592905846864}> for other commands",
-    )
+
+    @property
+    def embed(self) -> Embed:
+        """Return the embed shown for this error."""
+        return Embed(
+            title="Daily Channel",
+            description="Only daily commands can be used in this channel\n"
+                        f"Use <#{1337196592905846864}> for other commands",
+        )
 
 
 @dataclass
@@ -280,13 +311,17 @@ class RaceNotFound(CommandError):
 
 class InvalidRange(CommandError):
     """Raised when a range string is improperly formatted."""
-    embed = Embed(
-        title="Invalid Range",
-        description=(
-            "Range string should be formatted as:\n"
-            "`<number1>-<number2>` (numbers must be unique)"
-        ),
-    )
+
+    @property
+    def embed(self) -> Embed:
+        """Return the embed shown for this error."""
+        return Embed(
+            title="Invalid Range",
+            description=(
+                "Range string should be formatted as:\n"
+                "`<number1>-<number2>` (numbers must be unique)"
+            ),
+        )
 
 
 @dataclass
@@ -323,10 +358,14 @@ class DailyLimitReached(CommandError):
 
 class InvalidNumber(CommandError):
     """Raised when a number string is improperly formatted."""
-    embed = Embed(
-        title="Invalid Number",
-        description="Unrecognized number format",
-    )
+
+    @property
+    def embed(self) -> Embed:
+        """Return the embed shown for this error."""
+        return Embed(
+            title="Invalid Number",
+            description="Unrecognized number format",
+        )
 
 
 @dataclass
@@ -345,23 +384,31 @@ class NumberGreaterThan(CommandError):
 
 class BotLocked(CheckFailure):
     """Raised when the bot is in lockdown mode."""
-    embed = Embed(
-        title=":rotating_light: Bot Locked",
-        description="The bot is currently in lockdown mode",
-        color=WARNING,
-    )
+
+    @property
+    def embed(self) -> Embed:
+        """Return the embed shown for this error."""
+        return Embed(
+            title=":rotating_light: Bot Locked",
+            description="The bot is currently in lockdown mode",
+            color=WARNING,
+        )
 
 
 class MigrationActive(CommandError):
     """Raised when a migration is currently in progress."""
-    embed = Embed(
-        title="Migration in Progress",
-        description=(
-            "The bot is currently undergoing a data migration\n"
-            "Commands are temporarily disabled during this time"
-        ),
-        color=WARNING,
-    )
+
+    @property
+    def embed(self) -> Embed:
+        """Return the embed shown for this error."""
+        return Embed(
+            title="Migration in Progress",
+            description=(
+                "The bot is currently undergoing a data migration\n"
+                "Commands are temporarily disabled during this time"
+            ),
+            color=WARNING,
+        )
 
 
 @dataclass
@@ -382,40 +429,52 @@ class NotSubscribed(CommandError):
 class NotEnoughRaces(CommandError):
     """Raised when a user has fewer races than the command needs."""
 
-    embed = Embed(
-        title="Not Enough Races",
-        description="User has not completed this many races",
-    )
+    @property
+    def embed(self) -> Embed:
+        """Return the embed shown for this error."""
+        return Embed(
+            title="Not Enough Races",
+            description="User has not completed this many races",
+        )
 
 
 class MessageTooLong(CommandError):
     """Raised when a message exceeds Discord's character limit."""
 
-    embed = Embed(
-        title="Message Too Long",
-        description="The maximum number of characters\nfor a message has been exceeded"
-    )
+    @property
+    def embed(self) -> Embed:
+        """Return the embed shown for this error."""
+        return Embed(
+            title="Message Too Long",
+            description="The maximum number of characters\nfor a message has been exceeded"
+        )
 
 
 class DiscordServerError(CommandError):
     """Raised when Discord's servers cannot be reached."""
 
-    embed = Embed(
-        title="Discord Server Error",
-        description=(
-            "Failed to connect to Discord servers\n"
-            "Please try again"
-        ),
-    )
+    @property
+    def embed(self) -> Embed:
+        """Return the embed shown for this error."""
+        return Embed(
+            title="Discord Server Error",
+            description=(
+                "Failed to connect to Discord servers\n"
+                "Please try again"
+            ),
+        )
 
 
 class InvalidKeystrokeData(CommandError):
     """Raised when a race's keystroke data cannot be decoded."""
 
-    embed = Embed(
-        title="Invalid Keystroke Data",
-        description=(
-            "The format of this keystroke data is corrupt.\n"
-            f"If this replay happened very recently, contact <@{EIKO}>!"
-        ),
-    )
+    @property
+    def embed(self) -> Embed:
+        """Return the embed shown for this error."""
+        return Embed(
+            title="Invalid Keystroke Data",
+            description=(
+                "The format of this keystroke data is corrupt.\n"
+                f"If this replay happened very recently, contact <@{EIKO}>!"
+            ),
+        )

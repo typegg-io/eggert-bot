@@ -45,7 +45,7 @@ class ErrorHandler(commands.Cog):
         if isinstance(error, (commands.MissingRequiredArgument, MissingArguments, MissingUsername)):
             module_path = ctx.command.callback.__module__
             command_info = importlib.import_module(module_path).info
-            missing_arguments = MissingArguments().embed(
+            missing_arguments = MissingArguments().usage_embed(
                 command_info,
                 show_tip=isinstance(error, MissingUsername),
             )
@@ -55,14 +55,14 @@ class ErrorHandler(commands.Cog):
             return await send_error(ctx, CommandOnCooldown(error.retry_after).embed)
 
         if isinstance(error, commands.UserNotFound):
-            return await send_error(ctx, DiscordUserNotFound.embed)
+            return await send_error(ctx, DiscordUserNotFound().embed)
 
         if isinstance(error, discord.DiscordServerError):
-            return await send_error(ctx, DiscordServerErrorEmbed.embed)
+            return await send_error(ctx, DiscordServerErrorEmbed().embed)
 
         if isinstance(error, discord.HTTPException):
             if error.code == 50035 and "Must be 2000 or fewer in length" in str(error):
-                return await send_error(ctx, MessageTooLong.embed)
+                return await send_error(ctx, MessageTooLong().embed)
 
         if hasattr(error, "embed"):
             return await send_error(ctx, error.embed)
@@ -70,12 +70,12 @@ class ErrorHandler(commands.Cog):
         # Ignore other channel permission failures
         if isinstance(error, commands.CheckFailure):
             if ctx.channel.id == DAILY_QUOTE_CHANNEL_ID:
-                await send_error(ctx, DailyQuoteChannel.embed)
+                await send_error(ctx, DailyQuoteChannel().embed)
             return
 
         if isinstance(error, commands.CommandNotFound):
             if check_channel_permissions(ctx):
-                return await send_error(ctx, UnknownCommand.embed)
+                return await send_error(ctx, UnknownCommand().embed)
             return
 
         await send_error(ctx, UnexpectedError(type(error).__name__).embed)

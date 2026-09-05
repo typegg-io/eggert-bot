@@ -11,7 +11,7 @@ def test_missing_arguments_renders_for_every_command(command_modules):
     failed = []
     for group, file, module in command_modules:
         try:
-            MissingArguments().embed(module.info, show_tip=True)
+            MissingArguments().usage_embed(module.info, show_tip=True)
         except Exception as error:
             failed.append(f"{group}/{file}: {type(error).__name__}: {error}")
     assert failed == []
@@ -19,11 +19,11 @@ def test_missing_arguments_renders_for_every_command(command_modules):
 
 def test_usage_line_has_no_trailing_space_without_parameters():
     """A command with no parameters still renders a clean usage line."""
-    embed = MissingArguments().embed({"name": "ping"})
+    embed = MissingArguments().usage_embed({"name": "ping"})
     assert "`-ping`" in embed.description
 
 
 def test_usage_line_includes_parameters_when_present():
     """The parameter string is appended when the command declares one."""
-    embed = MissingArguments().embed({"name": "stats", "parameters": "[username]"})
+    embed = MissingArguments().usage_embed({"name": "stats", "parameters": "[username]"})
     assert "`-stats [username]`" in embed.description
