@@ -61,10 +61,13 @@ info = {
 
 
 class Theme(Command):
+    """Change the colors the bot renders a user's graphs and embeds with."""
+
     ignore_flags = True
 
     @commands.command(aliases=info["aliases"])
     async def theme(self, ctx: BotContext, element: str | None, color: str | None):
+        """Apply a named preset, set one element's color, or display a user's current theme."""
         if not element:
             return await display_user_theme(ctx, ctx.author)
 
@@ -124,7 +127,8 @@ class Theme(Command):
         await run(ctx)
 
 
-async def run(ctx: BotContext):
+async def run(ctx: BotContext) -> None:
+    """Store the caller's theme and send a rendered sample of it."""
     update_theme(str(ctx.author.id), ctx.user["theme"])
 
     page = Page(
@@ -141,7 +145,8 @@ async def run(ctx: BotContext):
     await message.send()
 
 
-async def display_user_theme(ctx: BotContext, member: Member):
+async def display_user_theme(ctx: BotContext, member: Member) -> None:
+    """Send a member's theme, with a button that copies it for GG+ subscribers."""
     user_theme = get_theme(member.id)
     if not user_theme:
         raise BotUserNotFound(member.id)
@@ -164,7 +169,8 @@ async def display_user_theme(ctx: BotContext, member: Member):
     embed.set_footer(text="Run \"-help theme\" to customize your theme!")
     file = File(file_name, filename=file_name)
 
-    async def copy_theme(interaction, theme: dict):
+    async def copy_theme(interaction, theme: dict) -> bool:
+        """Copy the displayed theme onto the pressing user, and return whether it applied."""
         user_id = interaction.user.id
         bot_user = get_user(user_id)
 
@@ -192,7 +198,8 @@ async def display_user_theme(ctx: BotContext, member: Member):
     remove_file(file_name)
 
 
-def parse_color(string):
+def parse_color(string) -> int | None:
+    """Return a color name or hex string as an integer, or None when it parses as neither."""
     color = None
     try:
         hex_string = mcolors.to_hex(mcolors.to_rgb(string))
@@ -206,7 +213,8 @@ def parse_color(string):
     return color
 
 
-def invalid_element():
+def invalid_element() -> Embed:
+    """Return the embed shown when the named theme element does not exist."""
     return Embed(
         title="Invalid Element",
         description="Element must be: " + ", ".join([f"`{element}`" for element in elements]),
@@ -214,7 +222,8 @@ def invalid_element():
     )
 
 
-def invalid_color():
+def invalid_color() -> Embed:
+    """Return the embed shown when a color fails to parse."""
     return Embed(
         title="Invalid Color",
         description="Color must be a valid hex code",
@@ -222,7 +231,8 @@ def invalid_color():
     )
 
 
-def invalid_opacity():
+def invalid_opacity() -> Embed:
+    """Return the embed shown when an opacity falls outside 0 to 1."""
     return Embed(
         title="Invalid Opacity",
         description="Opacity must be a value between 0 and 1",
@@ -230,7 +240,8 @@ def invalid_opacity():
     )
 
 
-def colormap_reserved():
+def colormap_reserved() -> Embed:
+    """Return the embed shown when a colormap is reserved."""
     return Embed(
         title="Colormap Reserved",
         description="This colormap is reserved",

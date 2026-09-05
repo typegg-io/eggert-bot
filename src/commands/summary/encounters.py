@@ -34,10 +34,13 @@ info = {
 
 
 class Encounters(Command):
+    """List the opponents a user has faced in multiplayer."""
+
     supported_flags = {"metric", "gamemode", "status", "language"}
 
     @commands.command(aliases=info["aliases"])
     async def encounters(self, ctx: BotContext, *args: str):
+        """Dispatch to the head to head view when a second username is given."""
         if ctx.explicit_flags.get("metric"):
             args = args + (ctx.explicit_flags["metric"],)
 
@@ -54,7 +57,8 @@ class Encounters(Command):
         await run(ctx, profiles[0], sort)
 
 
-async def run(ctx: BotContext, profile: dict, sort: str):
+async def run(ctx: BotContext, profile: dict, sort: str) -> None:
+    """Send every opponent a user has raced, sorted by the given key."""
     encounters = get_encounter_stats(profile["userId"], flags=ctx.flags)
 
     total_encounters = sum(en["totalEncounters"] for en in encounters)
@@ -167,7 +171,8 @@ async def run(ctx: BotContext, profile: dict, sort: str):
     return await message.send()
 
 
-async def run_head_to_head(ctx: BotContext, profile1: dict, profile2: dict):
+async def run_head_to_head(ctx: BotContext, profile1: dict, profile2: dict) -> None:
+    """Send two users' record against each other, plus their closest and biggest races."""
     gamemode = ctx.flags.gamemode
     encounters = get_opponent_encounters(profile1["userId"], profile2["userId"], flags=ctx.flags)
     quote_list = get_quotes()
@@ -258,7 +263,8 @@ async def run_head_to_head(ctx: BotContext, profile1: dict, profile2: dict):
                 0 if divisor == 0 else profile["enStats"][key] / divisor
             )
 
-    def build_field(profile: dict):
+    def build_field(profile: dict) -> Field:
+        """Format one side of the head to head comparison."""
         stats = profile["enStats"]
         biggest = stats["biggestWin"]
 
@@ -289,7 +295,8 @@ async def run_head_to_head(ctx: BotContext, profile1: dict, profile2: dict):
             inline=True,
         )
 
-    async def load_race_data(match: dict):
+    async def load_race_data(match: dict) -> list:
+        """Fetch both users' races in one match and decode their keystrokes."""
         races = await get_races(match_id=match["matchId"], get_keystrokes=True, flags=ctx.flags)
 
         race_data = []
@@ -312,7 +319,8 @@ async def run_head_to_head(ctx: BotContext, profile1: dict, profile2: dict):
 
         return race_data
 
-    def build_race_description(race_data: list, quote: dict):
+    def build_race_description(race_data: list, quote: dict) -> str:
+        """Format one match as a quote display followed by the finishing order."""
         race_data.sort(key=lambda r: -r["wpm"])
         rankings = "".join(
             f"{rank(i + 1)} {r["displayName"]} - {r["wpm"]:,.2f} WPM "

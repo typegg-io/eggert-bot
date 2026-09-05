@@ -16,11 +16,14 @@ info = {
 
 
 class Unadmin(Command):
+    """Remove a user's bot admin rights."""
+
     ignore_flags = True
 
     @commands.command(aliases=info["aliases"])
     @is_bot_owner()
     async def unadmin(self, ctx: BotContext, user: discord.User):
+        """Revoke the named user's bot admin rights."""
         user_id = user.id
         get_user(user_id)
         unadmin_user(user_id)

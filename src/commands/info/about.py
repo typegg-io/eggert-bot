@@ -15,10 +15,13 @@ info = {
 
 
 class About(Command):
+    """Display information about the bot."""
+
     ignore_flags = True
 
     @commands.command(aliases=info["aliases"])
     async def about(self, ctx: BotContext):
+        """Send the bot's description, author and current admin list."""
         message = Message(ctx, Page(
             title="Eggert",
             description=(

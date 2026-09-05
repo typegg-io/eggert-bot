@@ -18,11 +18,14 @@ info = {
 
 
 class Update(Command):
+    """Pull the latest changes and restart the bot."""
+
     ignore_flags = True
 
     @commands.command(aliases=info["aliases"])
     @is_bot_owner()
     async def update(self, ctx: BotContext):
+        """Pull from origin, report the output, then restart. Does nothing on staging."""
         if STAGING:
             return
 

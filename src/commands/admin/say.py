@@ -14,11 +14,14 @@ info = {
 
 
 class Say(Command):
+    """Post a message to the stats channel as the bot."""
+
     ignore_flags = True
 
     @commands.command(aliases=info["aliases"])
     @is_bot_owner()
     async def say(self, ctx: BotContext):
+        """Send the arguments to the stats channel."""
         if not ctx.raw_args:
             return
 

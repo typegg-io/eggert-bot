@@ -26,14 +26,18 @@ info = {
 
 
 class DailyStats(Command):
+    """Display a user's daily quote history."""
+
     @commands.command(aliases=info["aliases"])
     @usable_in(DAILY_QUOTE_CHANNEL_ID)
     async def dailystats(self, ctx: BotContext, username: str = None):
+        """Resolve the username, then render their daily quote stats."""
         profile = await self.get_profile(ctx, username)
         await run(ctx, profile)
 
 
-async def run(ctx: BotContext, profile: dict):
+async def run(ctx: BotContext, profile: dict) -> None:
+    """Send a user's daily streaks, participation rate, averages and placements."""
     daily_stats = profile["stats"]["dailyQuotes"]
     streak = daily_stats["streak"]
     results = get_user_results(profile["userId"])

@@ -19,15 +19,19 @@ info = {
 
 
 class TopTens(Command):
+    """Count the quote top 10s a user appears in."""
+
     supported_flags = {"status"}
 
     @commands.command(aliases=info["aliases"])
     async def toptens(self, ctx: BotContext, username: str = None):
+        """Resolve the username, then count their top 10 appearances."""
         profile = await self.get_profile(ctx, username)
         await run(ctx, profile)
 
 
-async def run(ctx: BotContext, profile: dict):
+async def run(ctx: BotContext, profile: dict) -> None:
+    """Send how many quote leaderboards a user places in, broken down by rank."""
     page = Page(
         title="Top Ten Appearances",
         description=(

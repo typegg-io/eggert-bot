@@ -20,10 +20,13 @@ info = {
 
 
 class Help(Command):
+    """List every available command, or explain one of them."""
+
     ignore_flags = True
 
     @commands.command(aliases=info["aliases"])
     async def help(self, ctx: BotContext):
+        """Dispatch to the command index or to one command's usage."""
         command = " ".join(ctx.raw_args)
         if not command:
             return await help_main(ctx)
@@ -31,7 +34,8 @@ class Help(Command):
         return await help_command(ctx, command)
 
 
-async def help_main(ctx: BotContext):
+async def help_main(ctx: BotContext) -> None:
+    """Send the command index, one field per group."""
     description = (
         f"Use `{prefix}help <command>` to get information about a specific command.\n"
         f"Use `{prefix}ask <query>` to ask Eggert about anything bot or TypeGG related.\n\n"
@@ -99,7 +103,8 @@ async def help_main(ctx: BotContext):
     await message.send()
 
 
-async def help_command(ctx: BotContext, command_name: str):
+async def help_command(ctx: BotContext, command_name: str) -> None:
+    """Send one command's description, parameters and aliases."""
     command = None
     for group, file, module in get_command_modules():
         command_info = module.info

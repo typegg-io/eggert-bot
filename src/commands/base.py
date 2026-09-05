@@ -1,3 +1,5 @@
+"""The base class and shared helpers every command file builds on."""
+
 from typing import NamedTuple
 from urllib.parse import unquote
 
@@ -23,12 +25,14 @@ from utils.urls import parse_solo_url
 
 
 class ParseResult(NamedTuple):
+    """The leftover args, username and argument that `extract_params` pulls apart."""
+
     remaining: list
     username: str | None
     argument: str | None
 
 
-def enforce_daily_quote(ctx: BotContext, quote_id: str):
+def enforce_daily_quote(ctx: BotContext, quote_id: str) -> None:
     """In the daily quote channel, only allow commands acting on the current daily quote."""
     if ctx.channel.id == DAILY_QUOTE_CHANNEL_ID and quote_id != get_daily_quote_id():
         raise DailyQuoteChannel
@@ -39,10 +43,12 @@ class Command(commands.Cog):
 
     supported_flags: set[str] = set()
 
-    def __init__(self, bot):
+    def __init__(self, bot) -> None:
+        """Store the bot instance the cog was loaded onto."""
         self.bot = bot
 
-    async def cog_before_invoke(self, ctx: BotContext):
+    async def cog_before_invoke(self, ctx: BotContext) -> None:
+        """Warn about flags this command does not support, then reset them to their defaults."""
         if hasattr(self, "ignore_flags"):
             return
 
@@ -63,12 +69,13 @@ class Command(commands.Cog):
                 if hasattr(ctx.flags, name):
                     setattr(ctx.flags, name, getattr(defaults, name))
 
-    async def celebrate_milestone(self, ctx: BotContext, milestone: int):
+    async def celebrate_milestone(self, ctx: BotContext, milestone: int) -> None:
+        """Announce a user's command count milestone in the stats channel."""
         channel = self.bot.get_channel(STATS_CHANNEL_ID)
         if channel:
             await channel.send(embed=command_milestone(ctx.author.id, milestone))
 
-    def _get_db_user_gg_plus(self, user_id: str):
+    def _get_db_user_gg_plus(self, user_id: str) -> bool | None:
         """Fetch the GG+ status from the database (synchronous)."""
         user = get_user_by_user_id(user_id)
         return user["isGgPlus"] if user else None
@@ -93,7 +100,7 @@ class Command(commands.Cog):
         args: list | tuple,
         max_users: int = 5,
         auto_import: bool = True
-    ):
+    ) -> list[dict]:
         """Deduplicate & clamp a list of usernames, then fetch & import each profile."""
         usernames = list(dict.fromkeys(args))
         usernames = usernames[:max_users] or [ctx.user["userId"]]
@@ -114,7 +121,7 @@ class Command(commands.Cog):
 
         return profiles
 
-    def get_username(self, ctx: BotContext, username: str | None):
+    def get_username(self, ctx: BotContext, username: str | None) -> str:
         """Resolve None or 'me' to the current user's ID, or return the provided username."""
         if username is None or username == "me":
             if ctx.user["userId"] is None:
@@ -122,7 +129,7 @@ class Command(commands.Cog):
             return ctx.user["userId"]
         return username
 
-    def get_usernames(self, ctx: BotContext, username1: str | None, username2: str | None):
+    def get_usernames(self, ctx: BotContext, username1: str | None, username2: str | None) -> tuple[str, str]:
         """Resolves None/'me' to current user's ID and returns both usernames."""
         if username2 is None or username2 == "me":
             username1, username2 = username2, username1
@@ -138,7 +145,7 @@ class Command(commands.Cog):
         username: str | None = None,
         races_required: bool | None = True,
         auto_import=True,
-    ):
+    ) -> dict:
         """Fetch a user's profile, and optionally imports their races."""
         username = self.get_username(ctx, username)
 
@@ -163,13 +170,17 @@ class Command(commands.Cog):
 
         return profile
 
-    async def import_user(self, ctx: BotContext, profile: dict):
+    async def import_user(self, ctx: BotContext, profile: dict) -> None:
+        """Import the profile's new races, rendering progress into the command's channel."""
         await import_races(ctx, profile, auto_import=True)
 
-    async def await_confirmation(self, ctx: BotContext, confirm_message="confirm", timeout=10, prompt_message=None):
+    async def await_confirmation(
+        self, ctx: BotContext, confirm_message="confirm", timeout=10, prompt_message=None
+    ) -> bool:
         """Waits for the user to send a specific confirmation message."""
 
-        def check(message):
+        def check(message) -> bool:
+            """Return whether this message is the confirmation the command is waiting on."""
             return (
                 message.author == ctx.author
                 and message.channel == ctx.channel
@@ -191,7 +202,7 @@ class Command(commands.Cog):
                 )
             return False
 
-    async def send_privacy_warning(self, ctx: BotContext):
+    async def send_privacy_warning(self, ctx: BotContext) -> None:
         """Sends out a one-time privacy warning DM."""
         embed = privacy_warning()
         try:
@@ -206,7 +217,7 @@ class Command(commands.Cog):
         quote_id: str | None = None,
         user_id: str | None = None,
         from_api: bool | None = False,
-    ):
+    ) -> dict:
         """Fetches a quote from database or API, optionally pass a user ID to take their latest quote ID."""
         if quote_id is None and user_id is not None:
             latest_race = get_latest_race(user_id)
@@ -228,8 +239,8 @@ class Command(commands.Cog):
         set_recent_quote(ctx.channel.id, quote_id)
         return quote
 
-    async def get_race_number(self, profile, race_number):
-
+    async def get_race_number(self, profile, race_number) -> int:
+        """Resolve a race number, defaulting to the latest and counting backwards when negative."""
         # Fetch the API's true latest race number, fall back to the latest stored race
         total_races = await get_total_races(profile["userId"])
         if not total_races:
@@ -248,7 +259,8 @@ class Command(commands.Cog):
 
         return int(race_number)
 
-    def check_gg_plus(self, ctx: BotContext, feature: str = None):
+    def check_gg_plus(self, ctx: BotContext, feature: str = None) -> None:
+        """Raise unless the invoking user has a GG+ subscription."""
         if not ctx.user["isGgPlus"]:
             if feature:
                 raise NotSubscribed(feature)

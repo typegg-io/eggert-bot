@@ -29,11 +29,14 @@ info = {
 
 
 class DailyGraph(Command):
+    """Graph WPM over keystrokes for the top 10 daily quote finishers."""
+
     supported_flags = {"number", "date"}
 
     @commands.command(aliases=info["aliases"])
     @usable_in(DAILY_QUOTE_CHANNEL_ID)
     async def dailygraph(self, ctx: BotContext):
+        """Fetch the daily quote named by the number or date flag, then graph it."""
         try:
             daily_quote = await get_daily_quote(number=int(ctx.flags.number), results=100, get_keystrokes=True)
         except TypeError:
@@ -42,7 +45,8 @@ class DailyGraph(Command):
         await run(ctx, daily_quote)
 
 
-async def run(ctx: BotContext, daily_quote: dict):
+async def run(ctx: BotContext, daily_quote: dict) -> None:
+    """Send the top 10 graph, plus a page centred on the caller when they placed."""
     quote = get_quote(daily_quote["quote"]["quoteId"])
     set_recent_quote(ctx.channel.id, quote["quoteId"])
     leaderboard = daily_quote.get("leaderboard") or []
@@ -50,7 +54,8 @@ async def run(ctx: BotContext, daily_quote: dict):
     if not leaderboard:
         raise BotError("No Results", "No daily scores to display")
 
-    def build_score_list(entries):
+    def build_score_list(entries) -> list[dict]:
+        """Decode each entry's keystrokes and attach the resulting WPM series."""
         scores = []
         for score in entries:
             score = dict(score)

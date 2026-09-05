@@ -21,10 +21,13 @@ info = {
 
 
 class Week(Command):
+    """Display a user's races in one week."""
+
     supported_flags = {"gamemode", "status", "language", "date"}
 
     @commands.command(aliases=info["aliases"])
     async def week(self, ctx: BotContext, *args: str):
+        """Resolve the date, stepping back one week when invoked as `-yesterweek`."""
         date = ctx.flags.date
 
         if ctx.invoked_with in ["yesterweek", "yw", "lw"]:

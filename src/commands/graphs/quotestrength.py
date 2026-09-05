@@ -31,13 +31,17 @@ info = {
 
 
 class QuoteStrength(Command):
+    """Graph a compass showing where a user's pp comes from."""
+
     @commands.command(aliases=info["aliases"])
     async def quotestrength(self, ctx: BotContext, *args: str):
+        """Graph the strength compass for each user named."""
         profiles = await self.get_profiles(ctx, args, max_users)
         await run(ctx, profiles)
 
 
-def _quote_xy(quote, len_p10, len_p90, sorted_complexities):
+def _quote_xy(quote, len_p10, len_p90, sorted_complexities) -> tuple[float, float]:
+    """Return a quote's compass position on the length and complexity axes."""
     log_len = np.log(len(quote["text"]))
     raw = (log_len - len_p10) / (len_p90 - len_p10) * 2 - 1
     x = float(np.tanh(raw * 1.2))
@@ -46,7 +50,8 @@ def _quote_xy(quote, len_p10, len_p90, sorted_complexities):
     return x, y
 
 
-async def run(ctx: BotContext, profiles: list[dict]):
+async def run(ctx: BotContext, profiles: list[dict]) -> None:
+    """Send a compass placing each user by the quotes their pp comes from."""
     quote_list = get_quotes()
 
     ranked_quotes = [q for q in quote_list.values() if q.get("ranked")]

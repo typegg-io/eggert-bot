@@ -23,11 +23,14 @@ info = {
 
 
 class CalculatePp(Command):
+    """Convert between WPM and pp on a quote."""
+
     supported_flags = {"metric", "number", "quote_id"}
 
     @commands.command(aliases=info["aliases"])
     @usable_in(DAILY_QUOTE_CHANNEL_ID)
     async def calculatepp(self, ctx: BotContext):
+        """Convert the value given to the opposite metric on the quote."""
         self.check_gg_plus(ctx)
 
         if ctx.flags.number is None:

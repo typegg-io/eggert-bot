@@ -28,10 +28,13 @@ UnknownWhoIs = BotError(
 
 
 class WhoIs(Command):
+    """Display what the bot knows about a TypeGG or Discord user."""
+
     ignore_flags = True
 
     @commands.command(aliases=info["aliases"])
     async def whois(self, ctx: BotContext, *args: str):
+        """Resolve the argument as a TypeGG username first, then as a Discord user."""
         if not args:
             user_string = str(ctx.author.id)
         else:
@@ -58,7 +61,8 @@ class WhoIs(Command):
                 raise UnknownWhoIs
 
 
-async def run(ctx: BotContext, bot_profile: dict = None, site_profile: dict = None):
+async def run(ctx: BotContext, bot_profile: dict = None, site_profile: dict = None) -> None:
+    """Send whichever of the bot record and the site profile were found."""
     description = ""
 
     if site_profile:

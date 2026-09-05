@@ -19,10 +19,13 @@ info = {
 
 
 class Unlink(Command):
+    """Remove the link between a Discord account and a TypeGG account."""
+
     ignore_flags = True
 
     @commands.command(aliases=info["aliases"])
     async def unlink(self, ctx: BotContext):
+        """Confirm with the caller, then drop the link and its Discord roles."""
         if not ctx.user["userId"]:
             return await ctx.send(embed=not_verified())
 
@@ -56,7 +59,8 @@ class Unlink(Command):
         ))
 
 
-async def unverify_user(bot_instance: Eggert, discord_id: str):
+async def unverify_user(bot_instance: Eggert, discord_id: str) -> None:
+    """Strip the verification roles a linked account earned in the TypeGG guild."""
     guild = bot_instance.get_guild(TYPEGG_GUILD_ID)
     if not guild:
         log(f"Guild with ID {TYPEGG_GUILD_ID} not found")
@@ -103,7 +107,8 @@ async def unverify_user(bot_instance: Eggert, discord_id: str):
         log(f"Failed to remove roles from {member.name}: {e}")
 
 
-def not_verified():
+def not_verified() -> Embed:
+    """Return the embed shown when the caller has no link to remove."""
     return Embed(
         title="Not Verified",
         description="Your account has not yet been verified.",

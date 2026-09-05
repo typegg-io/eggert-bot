@@ -17,11 +17,14 @@ info = {
 
 
 class DeleteUser(Command):
+    """Delete a user's data from the bot's database."""
+
     ignore_flags = True
 
     @commands.command(aliases=info["aliases"])
     @is_bot_admin()
     async def deleteuser(self, ctx: BotContext, username: str):
+        """Confirm with the caller, then delete the named user."""
         try:
             profile = await self.get_profile(ctx, username)
         except ProfileNotFound:
@@ -45,7 +48,8 @@ class DeleteUser(Command):
         await run(ctx, profile)
 
 
-async def run(ctx: BotContext, profile: dict):
+async def run(ctx: BotContext, profile: dict) -> None:
+    """Delete every stored race for a user, then confirm."""
     delete_user_data(profile["userId"])
 
     message = Message(ctx, Page(

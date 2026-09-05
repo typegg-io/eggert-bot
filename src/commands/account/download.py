@@ -17,9 +17,12 @@ info = {
 
 
 class Download(Command):
+    """Import a user's new races into the database."""
+
     ignore_flags = True
 
     @commands.command(aliases=info["aliases"])
     async def download(self, ctx: BotContext, username: str = None):
+        """Resolve the username without importing, then run the importer with progress."""
         profile = await self.get_profile(ctx, username, auto_import=False)
         await run(ctx, profile)

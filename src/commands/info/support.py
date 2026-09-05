@@ -16,10 +16,13 @@ info = {
 
 
 class Support(Command):
+    """Display what a GG+ subscription includes."""
+
     ignore_flags = True
 
     @commands.command(aliases=info["aliases"])
     async def support(self, ctx: BotContext):
+        """Send the GG+ perks, pricing and upgrade link."""
         page = Page(
             description=(
                 f"### [Upgrade to {GG_PLUS}](https://typegg.io/plus)\n"

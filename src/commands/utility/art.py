@@ -39,10 +39,13 @@ info = {
 
 
 class Art(Command):
+    """View and submit community art."""
+
     ignore_flags = True
 
     @commands.command(aliases=info["aliases"])
     async def art(self, ctx: BotContext):
+        """Dispatch to the gallery subcommand the first argument names."""
         args = " ".join(ctx.raw_args)
         if not args:
             await show_random_art(ctx)
@@ -75,7 +78,7 @@ class Art(Command):
             await show_art_by_title(ctx, args)
 
 
-async def show_random_art(ctx: BotContext):
+async def show_random_art(ctx: BotContext) -> None:
     """Display a random piece of art."""
     art = art_db.get_random_art()
 
@@ -93,7 +96,7 @@ async def show_random_art(ctx: BotContext):
     await display_art(ctx, art)
 
 
-async def add_art(ctx: BotContext, args: str):
+async def add_art(ctx: BotContext, args: str) -> None:
     """Add a new piece of art."""
     if not ctx.message.attachments:
         raise BotError(
@@ -131,7 +134,7 @@ async def add_art(ctx: BotContext, args: str):
     await message.send()
 
 
-async def show_art_by_title(ctx: BotContext, title: str):
+async def show_art_by_title(ctx: BotContext, title: str) -> None:
     """Show a specific piece of art by title (with fuzzy matching)."""
     art = art_db.get_art_by_title(title)
 
@@ -153,21 +156,23 @@ async def show_art_by_title(ctx: BotContext, title: str):
     await display_art(ctx, art)
 
 
-async def list_art(ctx: BotContext, author_id: str = None):
+async def list_art(ctx: BotContext, author_id: str = None) -> None:
     """Display a list of all art in the gallery, optionally filtered by author."""
     if author_id:
         all_art = art_db.get_art_by_author(author_id)
         header = f"**By:** <@{author_id}>\n"
         empty = f"<@{author_id}> hasn't submitted any art yet!"
 
-        def formatter(art):
+        def formatter(art) -> str:
+            """Format one artist's entry with its title and date."""
             return f"**{art["title"]}** - {discord_date(art["timestamp"], "D")}\n"
     else:
         all_art = art_db.get_all_art()
         header = ""
         empty = "No art has been submitted yet!"
 
-        def formatter(art):
+        def formatter(art) -> str:
+            """Format a gallery entry with its title, artist and date."""
             return (
                 f"**{art["title"]}** | "
                 f"By: <@{art["author_id"]}> - "
@@ -191,7 +196,7 @@ async def list_art(ctx: BotContext, author_id: str = None):
     await message.send()
 
 
-async def display_art(ctx: BotContext, art: dict):
+async def display_art(ctx: BotContext, art: dict) -> None:
     """Display a single piece of art."""
     page = Page(
         title=art["title"],
@@ -206,7 +211,7 @@ async def display_art(ctx: BotContext, art: dict):
     await message.send()
 
 
-async def rename_art_command(ctx: BotContext, args: str):
+async def rename_art_command(ctx: BotContext, args: str) -> None:
     """Rename an existing piece of art (admins or the original artist)."""
     try:
         tokens = shlex.split(args)
@@ -242,7 +247,7 @@ async def rename_art_command(ctx: BotContext, args: str):
     await message.send()
 
 
-async def update_art_command(ctx: BotContext, title: str):
+async def update_art_command(ctx: BotContext, title: str) -> None:
     """Replace the image of an existing piece of art (admins or the original artist)."""
     if not ctx.message.attachments:
         raise BotError(
@@ -278,7 +283,7 @@ async def update_art_command(ctx: BotContext, title: str):
     await message.send()
 
 
-async def delete_art_command(ctx: BotContext, title: str):
+async def delete_art_command(ctx: BotContext, title: str) -> None:
     """Delete a piece of art (admins or the original artist)."""
     art = art_db.get_art_by_title(title)
 

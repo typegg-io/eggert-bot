@@ -27,10 +27,13 @@ info = {
 
 
 class BestAverages(Command):
+    """Display a user's 10 best averages over n consecutive races."""
+
     supported_flags = {"raw", "gamemode", "status", "language", "number"}
 
     @commands.command(aliases=info["aliases"])
     async def bestaverages(self, ctx: BotContext, *args: str):
+        """Default to 25 quickplay races, then rank the best non-overlapping windows."""
         ctx.flags.gamemode = ctx.flags.gamemode or "quickplay"
         n = int(abs(ctx.flags.number)) if ctx.flags.number is not None else 25
         params = self.extract_params(args, ["accuracy"])
@@ -39,7 +42,8 @@ class BestAverages(Command):
         await run(ctx, profile, n, metric)
 
 
-async def run(ctx: BotContext, profile: dict, n: int, metric: str = "wpm"):
+async def run(ctx: BotContext, profile: dict, n: int, metric: str = "wpm") -> None:
+    """Send the 10 best non-overlapping windows of n races, by speed or accuracy."""
     if n < 1:
         raise NumberGreaterThan
 

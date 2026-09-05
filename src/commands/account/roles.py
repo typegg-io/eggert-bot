@@ -30,6 +30,7 @@ ACHIEVEMENT_ROLES = {
 
 
 def check_masochist(user_id: str) -> tuple[int, int]:
+    """Return how many of the masochist quotes a user has completed, and how many there are."""
     quote_bests = get_quote_bests(user_id, columns=["quoteId"], flags=Flags(status="any"))
     completed_ids = {qb["quoteId"] for qb in quote_bests}
     completed = len(MASOCHIST_QUOTE_IDS & completed_ids)
@@ -42,10 +43,13 @@ ROLE_CHECKS = {
 
 
 class Roles(Command):
+    """List the achievement roles and a user's progress, or claim one."""
+
     ignore_flags = True
 
     @commands.command(aliases=info["aliases"])
     async def roles(self, ctx: BotContext, role_name: str = None):
+        """List every achievement role, or claim the one named."""
         if not ctx.guild:
             raise BotError("Server Only", "This command can only be used in the server.")
 
@@ -61,7 +65,8 @@ class Roles(Command):
             await claim_role(ctx, profile, key)
 
 
-async def list_roles(ctx: BotContext, profile: dict):
+async def list_roles(ctx: BotContext, profile: dict) -> None:
+    """Send every achievement role with the caller's progress towards it."""
     lines = []
     for key, role in ACHIEVEMENT_ROLES.items():
         completed, total = ROLE_CHECKS[key](profile["userId"])
@@ -76,7 +81,8 @@ async def list_roles(ctx: BotContext, profile: dict):
     await message.send()
 
 
-async def claim_role(ctx: BotContext, profile: dict, key: str):
+async def claim_role(ctx: BotContext, profile: dict, key: str) -> None:
+    """Grant one achievement role, when the caller has earned it and does not already hold it."""
     role_info = ACHIEVEMENT_ROLES[key]
 
     discord_role = discord.utils.get(ctx.guild.roles, name=role_info["role_name"])

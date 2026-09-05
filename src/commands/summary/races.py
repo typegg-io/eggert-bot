@@ -28,15 +28,19 @@ info = {
 
 
 class Races(Command):
+    """Display a full stat summary of a user's races."""
+
     supported_flags = {"gamemode", "status", "language"}
 
     @commands.command(aliases=info["aliases"])
     async def races(self, ctx: BotContext, *args: str):
+        """Resolve the username, then render their all time summary."""
         profile = await self.get_profile(ctx, args[0] if args else None)
         await run(ctx, profile)
 
 
-def build_stat_fields(profile, race_list, flags, all_time=False):
+def build_stat_fields(profile, race_list, flags, all_time=False) -> list:
+    """Build the performance, speed, activity and quote fields for a set of races."""
     quote_list = get_quotes()
     multiplayer = flags.gamemode in ["quickplay", "lobby"]
 
@@ -210,7 +214,8 @@ async def run(
     profile: dict,
     date: datetime = None,
     period: str = None,
-):
+) -> None:
+    """Send a stat summary for a user's races, over all time or one period."""
     flags = ctx.flags
     start_date, end_date = get_start_end_dates(date, period, ctx.user["timezone"])
 

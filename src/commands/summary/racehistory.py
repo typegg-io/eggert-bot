@@ -21,15 +21,19 @@ info = {
 
 
 class RaceHistory(Command):
+    """Display a user's recent races."""
+
     supported_flags = {"gamemode", "status", "language"}
 
     @commands.command(aliases=info["aliases"])
     async def racehistory(self, ctx: BotContext, username: str = None):
+        """Resolve the username, then render their recent races."""
         profile = await self.get_profile(ctx, username)
         await run(ctx, profile)
 
 
-async def run(ctx: BotContext, profile: dict):
+async def run(ctx: BotContext, profile: dict) -> None:
+    """Send a user's last 100 races, paginated."""
     only_historical_pbs = (
         profile["userId"] != ctx.user["userId"] and
         ctx.flags.gamemode not in ["quickplay", "lobby"]
@@ -45,7 +49,8 @@ async def run(ctx: BotContext, profile: dict):
 
     quote_list = get_quotes()
 
-    def formatter(race):
+    def formatter(race) -> str:
+        """Format one race as a single line, or as a DNF."""
         if race["wpm"] == 0:
             desc = "DNF - "
         else:

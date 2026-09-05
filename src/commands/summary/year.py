@@ -21,10 +21,13 @@ info = {
 
 
 class Year(Command):
+    """Display a user's races in one year."""
+
     supported_flags = {"gamemode", "status", "language", "date"}
 
     @commands.command(aliases=info["aliases"])
     async def year(self, ctx: BotContext, *args: str):
+        """Resolve the date, stepping back one year when invoked as `-yesteryear`."""
         date = ctx.flags.date
 
         if ctx.invoked_with in ["yesteryear", "yy", "ly"]:

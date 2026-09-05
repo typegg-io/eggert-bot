@@ -21,10 +21,13 @@ info = {
 
 
 class Search(Command):
+    """Search every quote for matching text."""
+
     ignore_flags = True
 
     @commands.command(aliases=info["aliases"])
     async def search(self, ctx: BotContext):
+        """Require a query, then render the matching quotes."""
         query = " ".join(ctx.raw_args)
 
         if not query:
@@ -33,7 +36,8 @@ class Search(Command):
         await run(ctx, query)
 
 
-async def run(ctx: BotContext, query: str):
+async def run(ctx: BotContext, query: str) -> None:
+    """Send the quotes matching a query, paginated, with the query highlighted."""
     results = await get_quotes(
         search=query,
         min_length=len(query),
@@ -56,7 +60,8 @@ async def run(ctx: BotContext, query: str):
 
     set_recent_quote(ctx.channel.id, quotes[0]["quoteId"])
     per_page = 5
-    def entry_formatter(quote):
+    def entry_formatter(quote) -> str:
+        """Format one search hit with the query highlighted in its text."""
         return quote_display(
             quote,
             max_text_chars=150,

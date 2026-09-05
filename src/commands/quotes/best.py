@@ -28,10 +28,13 @@ info = {
 
 
 class Best(Command):
+    """Display a user's best 100 quotes."""
+
     supported_flags = {"metric", "raw", "gamemode", "status", "language", "number_range"}
 
     @commands.command(aliases=info["aliases"])
     async def best(self, ctx: BotContext, username: str = None):
+        """Resolve the username, then render their quote bests in descending order."""
         if ctx.flags.metric == "pp" and ctx.flags.raw and not ctx.user["isGgPlus"]:
             raise NotSubscribed("raw pp stats")
 
@@ -44,7 +47,8 @@ async def run(
     profile: dict,
     metric: str,
     reverse: bool = True,
-):
+) -> None:
+    """Send a user's 100 best or worst quotes, paginated."""
     min_wpm, max_wpm = ctx.flags.number_range or (None, None)
     quotes = get_quotes()
     sources = get_sources()
@@ -61,7 +65,8 @@ async def run(
     if not quote_bests:
         raise NoRacesFiltered(profile["username"])
 
-    def entry_formatter(data):
+    def entry_formatter(data) -> str:
+        """Format one quote best as a quote display followed by the score."""
         quote = dict(quotes[data["quoteId"]])
         quote["source"] = sources[quote["sourceId"]]
         pp_display = f"{data["pp"]:,.2f} pp - "

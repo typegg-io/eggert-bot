@@ -30,11 +30,14 @@ info = {
 
 
 class RaceGraph(Command):
+    """Graph WPM over keystrokes for a single race."""
+
     supported_flags = {"number", "quote_id"}
 
     @commands.command(aliases=info["aliases"])
     @usable_in(DAILY_QUOTE_CHANNEL_ID)
     async def racegraph(self, ctx: BotContext, *args: str):
+        """Graph the race number given, or the user's best race on a quote."""
         ctx.flags.status = None
         profile = await self.get_profile(ctx, args[0] if args else None)
 
@@ -50,7 +53,8 @@ class RaceGraph(Command):
         await run(ctx, profile, race_number)
 
 
-async def run(ctx: BotContext, profile: dict, race_number: int):
+async def run(ctx: BotContext, profile: dict, race_number: int) -> None:
+    """Send a WPM over keystrokes graph for one race."""
     race = get_race(profile["userId"], race_number, get_keystrokes=True)
     quote = get_quote(race["quoteId"])
     set_recent_quote(ctx.channel.id, race["quoteId"])

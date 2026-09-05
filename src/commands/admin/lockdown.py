@@ -14,11 +14,14 @@ info = {
 
 
 class Lockdown(Command):
+    """Toggle lockdown mode, which disables commands for non-owners."""
+
     ignore_flags = True
 
     @commands.command(aliases=info["aliases"])
     @is_bot_owner()
     async def lockdown(self, ctx: BotContext):
+        """Flip lockdown mode and report the new state."""
         state = not is_locked()
         set_lockdown(state)
 

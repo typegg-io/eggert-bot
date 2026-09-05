@@ -30,11 +30,14 @@ info = {
 
 
 class Quote(Command):
+    """Display a user's stats on one quote."""
+
     supported_flags = {"number", "quote_id"}
 
     @commands.command(aliases=info["aliases"])
     @usable_in(DAILY_QUOTE_CHANNEL_ID)
     async def quote(self, ctx: BotContext, *args: str):
+        """Resolve the quote from a flag, a race number, or the caller's latest race."""
         ctx.flags.status = None
         profile = await self.get_profile(ctx, args[0] if args else None)
 
@@ -49,14 +52,15 @@ class Quote(Command):
         await run(ctx, profile, quote)
 
 
-def get_quote_best_rank(quote_bests: list[dict], race_id: str):
+def get_quote_best_rank(quote_bests: list[dict], race_id: str) -> int | None:
     """Returns the rank of a score given a list of quote bests."""
     for i, race in enumerate(quote_bests):
         if race["raceId"] == race_id:
             return i + 1
 
 
-def score_display(score, show_pp=True):
+def score_display(score, show_pp=True) -> str:
+    """Format one score as a single line, with or without its pp."""
     if show_pp:
         return (
             f"{score["pp"]:,.2f} pp ({score["wpm"]:,.2f} WPM) - "
@@ -66,7 +70,8 @@ def score_display(score, show_pp=True):
     return f"{score["wpm"]:,.2f} WPM - {discord_date(score["timestamp"])}"
 
 
-def build_personal_best_page(quote: dict, quote_races: list[dict], user_id: str):
+def build_personal_best_page(quote: dict, quote_races: list[dict], user_id: str) -> Page:
+    """Build the personal best page for a ranked quote, showing how the latest race moved it."""
     description = quote_display(quote, max_text_chars=1000, display_status=True) + "\n"
     page = Page(description=description, button_name="Personal Best")
 
@@ -127,7 +132,8 @@ def build_personal_best_page(quote: dict, quote_races: list[dict], user_id: str)
         return page
 
 
-def build_unranked_personal_best_page(quote: dict, quote_races: list[dict]):
+def build_unranked_personal_best_page(quote: dict, quote_races: list[dict]) -> Page:
+    """Build the personal best page for an unranked quote, which has no pp to report."""
     description = quote_display(quote, max_text_chars=1000, display_status=True) + "\n"
     page = Page(description=description, button_name="Personal Best")
 
@@ -167,8 +173,11 @@ def build_unranked_personal_best_page(quote: dict, quote_races: list[dict]):
         return page
 
 
-def build_history_page(quote_races: list[dict], ranked: bool):
-    def quote_history(scores):
+def build_history_page(quote_races: list[dict], ranked: bool) -> Page:
+    """Build the page listing a user's 10 best and 10 most recent races on a quote."""
+
+    def quote_history(scores) -> str:
+        """Format up to 10 scores as a numbered list."""
         history = ""
         for i in range(min(len(scores), 10)):
             score = scores[i]
@@ -209,7 +218,8 @@ def build_history_page(quote_races: list[dict], ranked: bool):
     return page
 
 
-def build_graph_page(quote_races: list, ranked: bool, theme: dict):
+def build_graph_page(quote_races: list, ranked: bool, theme: dict) -> Page:
+    """Build the page graphing every race a user has run on a quote."""
     metric = "pp" if ranked else "wpm"
     pp, wpm = zip(*[(race["pp"], race["wpm"]) for race in quote_races])
 
@@ -241,7 +251,8 @@ def build_graph_page(quote_races: list, ranked: bool, theme: dict):
     return page
 
 
-async def run(ctx: BotContext, profile: dict, quote: dict):
+async def run(ctx: BotContext, profile: dict, quote: dict) -> None:
+    """Send a user's personal best, history and graph for one quote."""
     user_id = profile["userId"]
     quote_id = quote["quoteId"]
     is_ranked = quote["ranked"]

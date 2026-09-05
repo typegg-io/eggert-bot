@@ -24,11 +24,14 @@ info = {
 
 
 class Translate(Command):
+    """Translate text between keyboard layouts."""
+
     ignore_flags = True
 
     @commands.command(aliases=info["aliases"])
     @usable_in(GENERAL_CHANNEL_ID)
     async def translate(self, ctx: BotContext):
+        """Retype the text as if it were typed on the other layout."""
         args = ctx.raw_args
         if not args:
             raise MissingArguments
@@ -80,6 +83,7 @@ class Translate(Command):
 
 
 def get_keylist(keystrokes: list[list[K]]) -> list[str | None]:
+    """Flatten a layout into four characters per key, padding with None."""
     keylist = []
 
     for keyrow in keystrokes:

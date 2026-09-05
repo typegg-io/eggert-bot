@@ -22,10 +22,13 @@ info = {
 
 
 class Average(Command):
+    """Display the average stats of a user's last n races."""
+
     supported_flags = {"gamemode", "status", "language", "number"}
 
     @commands.command(aliases=info["aliases"])
     async def average(self, ctx: BotContext, *args: str):
+        """Default to the last 25 quickplay races, then average them."""
         ctx.flags.gamemode = ctx.flags.gamemode or "quickplay"
         n = int(abs(ctx.flags.number)) if ctx.flags.number is not None else 25
         profile = await self.get_profile(ctx, args[0] if args else None)
@@ -33,7 +36,8 @@ class Average(Command):
         await run(ctx, profile, n)
 
 
-async def run(ctx: BotContext, profile: dict, n: int):
+async def run(ctx: BotContext, profile: dict, n: int) -> None:
+    """Send the averaged speed, accuracy and difficulty of a user's last n races."""
     if n < 1:
         raise NumberGreaterThan
 

@@ -16,11 +16,14 @@ info = {
 
 
 class Ban(Command):
+    """Ban a user from using bot commands."""
+
     ignore_flags = True
 
     @commands.command(aliases=info["aliases"])
     @is_bot_admin()
     async def ban(self, ctx: BotContext, user: discord.User):
+        """Ban the named user, refusing to ban the caller."""
         user_id = user.id
         get_user(user_id)
 

@@ -26,10 +26,13 @@ info = {
 
 
 class CommandLeaderboard(Command):
+    """Display command usage counts, by user or by command."""
+
     ignore_flags = True
 
     @commands.command(aliases=info["aliases"])
     async def commandleaderboard(self, ctx: BotContext):
+        """Read the argument as a command name, a Discord user, or the overall keyword."""
         arg = " ".join(ctx.raw_args)
         if not arg:
             return await user_command_leaderboard(ctx, ctx.author.id)
@@ -59,7 +62,7 @@ class CommandLeaderboard(Command):
                 raise UnknownCommand
 
 
-async def command_leaderboard(ctx: BotContext, command_name: str):
+async def command_leaderboard(ctx: BotContext, command_name: str) -> None:
     """Display a leaderboard of users by usage count for a given command."""
     all_commands = get_command_usage_by_user()
 
@@ -88,7 +91,8 @@ async def command_leaderboard(ctx: BotContext, command_name: str):
     await message.send()
 
 
-def format_user_leaderboard(top_users: list[dict]):
+def format_user_leaderboard(top_users: list[dict]) -> tuple[str, int]:
+    """Format the top 20 users by total command count, with the total alongside."""
     description = "**Overall**\n\n"
     total_usages = sum(user["total_commands"] for user in top_users)
     for i, user in enumerate(top_users[:20]):
@@ -96,7 +100,8 @@ def format_user_leaderboard(top_users: list[dict]):
     return description, total_usages
 
 
-def format_command_leaderboard(command_usage: dict, discord_id: int | str):
+def format_command_leaderboard(command_usage: dict, discord_id: int | str) -> tuple[str, int]:
+    """Format the 10 most used commands, with the total alongside."""
     description = f"<@{discord_id}>\n\n" if discord_id != "all" else "**Overall**\n\n"
     total_usages = sum(command_usage.values())
     most_used_commands = sorted(command_usage.items(), key=lambda x: x[1], reverse=True)
@@ -106,7 +111,7 @@ def format_command_leaderboard(command_usage: dict, discord_id: int | str):
     return description, total_usages
 
 
-async def user_command_leaderboard(ctx: BotContext, discord_id: int | str):
+async def user_command_leaderboard(ctx: BotContext, discord_id: int | str) -> None:
     """Display a leaderboard of command usage count by user, or overall."""
     if discord_id == "users":
         title = "Top Command Users"

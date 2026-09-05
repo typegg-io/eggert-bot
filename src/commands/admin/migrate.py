@@ -30,11 +30,14 @@ info = {
 
 
 class Migrate(Command):
+    """Re-import a category of data from the TypeGG API."""
+
     ignore_flags = True
 
     @commands.command(aliases=info["aliases"])
     @is_bot_admin()
     async def migrate(self, ctx: BotContext, *category_list: str):
+        """Validate each category, then run the migrations in the background."""
         if not category_list:
             raise MissingArguments
 

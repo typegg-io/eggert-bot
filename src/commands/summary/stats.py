@@ -21,13 +21,17 @@ info = {
 
 
 class Stats(Command):
+    """Display a TypeGG account's headline stats."""
+
     @commands.command(aliases=info["aliases"])
     async def stats(self, ctx: BotContext, username: str = None):
+        """Resolve the username without requiring races, then render their profile."""
         profile = await self.get_profile(ctx, username, races_required=False)
         await run(ctx, profile)
 
 
-async def run(ctx: BotContext, profile: dict):
+async def run(ctx: BotContext, profile: dict) -> None:
+    """Send a profile's performance, speed and account stats."""
     join_date = parse_date(profile["joinDate"])
     today = now()
     is_anniversary = join_date.month == today.month and join_date.day == today.day

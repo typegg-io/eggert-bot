@@ -27,8 +27,11 @@ info = {
 
 
 class Keystrokes(Command):
+    """Graph a keystroke heatmap across all of a user's races."""
+
     @commands.command(aliases=info["aliases"])
     async def keystrokes(self, ctx: BotContext, *args: str):
+        """Graph the heatmap on the layout given, or the one on the user's profile."""
         args, username, keyboard_layout = self.extract_params(args, keyboard_layouts)
         profile = await self.get_profile(ctx, username)
 
@@ -38,7 +41,8 @@ class Keystrokes(Command):
         await run(ctx, profile, keyboard_layout.lower())
 
 
-async def run(ctx: BotContext, profile: dict, keyboard_layout: str):
+async def run(ctx: BotContext, profile: dict, keyboard_layout: str) -> None:
+    """Send a keyboard heatmap with the user's most frequent characters."""
     username = profile["username"]
     keymap, keyboard_layout = get_keymap(keyboard_layout)
     keypresses = get_keypresses(profile["userId"])
@@ -85,6 +89,7 @@ REPLACEMENT_CHARACTERS = {
 
 
 def get_keypresses(user_id: str) -> ScaledCounter:
+    """Return every character the user has typed, weighted by race count."""
     keypresses = ScaledCounter()
     quote_frequencies = get_quote_race_counts(user_id)
 

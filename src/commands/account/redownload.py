@@ -22,11 +22,14 @@ info = {
 
 
 class ReDownload(Command):
+    """Delete and re-import a user's race data."""
+
     ignore_flags = True
 
     @commands.cooldown(1, 600, commands.BucketType.user)
     @commands.command(aliases=info["aliases"])
     async def redownload(self, ctx: BotContext, username: str = None):
+        """Confirm with the caller, wipe their races, then import them again."""
         try:
             is_admin = ctx.author.id in ADMIN_ALIASES.keys()
             profile = await self.get_profile(ctx, username)

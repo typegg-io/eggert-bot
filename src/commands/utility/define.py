@@ -19,10 +19,13 @@ info = {
 
 
 class Define(Command):
+    """Look up the definitions of a word."""
+
     ignore_flags = True
 
     @commands.command(aliases=info["aliases"])
     async def define(self, ctx: BotContext):
+        """Send every definition the dictionary API returns for the word."""
         if not ctx.raw_args:
             raise MissingArguments
 

@@ -30,11 +30,14 @@ info = {
 
 
 class SumOfBest(Command):
+    """Graph a theoretical best race built from a user's fastest segments."""
+
     supported_flags = {"gamemode", "number", "quote_id"}
 
     @commands.command(aliases=info["aliases"])
     @usable_in(DAILY_QUOTE_CHANNEL_ID)
     async def sumofbest(self, ctx: BotContext, *args: str):
+        """Graph the sum of best for the quote given, or the user's last race."""
         self.check_gg_plus(ctx)
 
         ctx.flags.status = None
@@ -51,7 +54,8 @@ class SumOfBest(Command):
         await run(ctx, profile, quote)
 
 
-async def run(ctx: BotContext, profile: dict, quote: dict):
+async def run(ctx: BotContext, profile: dict, quote: dict) -> None:
+    """Send a graph combining the user's fastest run of every segment."""
     quote_races = await get_races(
         profile["userId"],
         quote_id=quote["quoteId"],

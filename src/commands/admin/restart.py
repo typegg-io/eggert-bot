@@ -16,11 +16,14 @@ info = {
 
 
 class Restart(Command):
+    """Restart the bot process."""
+
     ignore_flags = True
 
     @commands.command(aliases=info["aliases"])
     @is_bot_owner()
     async def restart(self, ctx: BotContext):
+        """Restart the systemd unit, doing nothing on staging."""
         if STAGING:
             return
 

@@ -36,7 +36,7 @@ info = {
 }
 
 
-def parse_ranges(raw_args):
+def parse_ranges(raw_args) -> tuple[tuple[float, float] | None, tuple[int, int] | None]:
     """Extract difficulty and length ranges from raw args, classified by lower bound."""
     difficulty = None
     length = None
@@ -59,15 +59,19 @@ def parse_ranges(raw_args):
     return difficulty, length
 
 
-def length_label(min_length, max_length):
+def length_label(min_length, max_length) -> str:
+    """Return a character-length range formatted for a title."""
     return f"{min_length:,}-{max_length:,} chars"
 
 
 class CompareGraph(Command):
+    """Compare two users' quote bests across difficulty levels."""
+
     supported_flags = {"metric", "raw", "gamemode", "status", "language", "number_range"}
 
     @commands.command(aliases=info["aliases"])
     async def comparegraph(self, ctx: BotContext, *args: str):
+        """Pick the overall or ranged comparison based on the ranges given."""
         if not args:
             raise MissingArguments
 
@@ -93,7 +97,10 @@ class CompareGraph(Command):
 
 
 class NoCommonTexts(BotError):
-    def __init__(self, flags=None):
+    """Raised when two users have no quotes in common."""
+
+    def __init__(self, flags=None) -> None:
+        """Build the error with the flags that produced the empty overlap."""
         super().__init__(
             "No Common Texts",
             "Users do not have any texts in common",
@@ -101,13 +108,15 @@ class NoCommonTexts(BotError):
         )
 
 
-def difficulty_range(lower, upper):
+def difficulty_range(lower, upper) -> str:
+    """Return a difficulty range formatted with a star."""
     lower = round(lower, 2)
     upper = round(upper, 2)
     return f"{lower:.10g} - {upper:.10g}★"
 
 
-def max_positive_subarray_sum(buckets, diffs):
+def max_positive_subarray_sum(buckets, diffs) -> tuple[int, float | None, float | None]:
+    """Return the largest run of positive differences and the buckets it spans."""
     max_sum = 0
     current_sum = 0
     start = 0
@@ -129,7 +138,8 @@ def max_positive_subarray_sum(buckets, diffs):
     return max_sum, buckets[best_start], buckets[best_end]
 
 
-async def comparegraph_main(ctx: BotContext, profile1: dict, profile2, min_length=None, max_length=None):
+async def comparegraph_main(ctx: BotContext, profile1: dict, profile2, min_length=None, max_length=None) -> None:
+    """Send a head-to-head graph of quote wins bucketed by difficulty."""
     quotes = get_quotes(min_length=min_length, max_length=max_length)
     quote_bests1 = get_quote_bests(profile1["userId"], as_dictionary=True, flags=ctx.flags)
     quote_bests2 = get_quote_bests(profile2["userId"], as_dictionary=True, flags=ctx.flags)
@@ -269,7 +279,8 @@ async def comparegraph_ranged(
     metric: str,
     min_length=None,
     max_length=None,
-):
+) -> None:
+    """Send a detailed head-to-head graph over one difficulty range."""
     quotes = get_quotes(
         min_difficulty=min_difficulty,
         max_difficulty=max_difficulty,
@@ -295,14 +306,16 @@ async def comparegraph_ranged(
         if diff == 0.0
     ), key=lambda x: x[1], default=None)
 
-    def display_gain(value, decimals=2):
+    def display_gain(value, decimals=2) -> str:
+        """Return a value signed, so a gain reads as positive."""
         gain = f"{value:,.{decimals}f}"
         if value >= 0:
             gain = "+" + gain
 
         return gain
 
-    def make_field(profile, quotes_greater, gain, average_gain, max_gap, metric1, metric2, metric):
+    def make_field(profile, quotes_greater, gain, average_gain, max_gap, metric1, metric2, metric) -> Field:
+        """Return one user's side of the comparison as an embed field."""
         if metric == "wpm":
             metric = metric.upper()
 

@@ -19,15 +19,19 @@ info = {
 
 
 class ProfilePicture(Command):
+    """Display a user's TypeGG profile picture."""
+
     ignore_flags = True
 
     @commands.command(aliases=info["aliases"])
     async def profilepicture(self, ctx: BotContext, username: str | None = None):
+        """Resolve the username without requiring races, then post their avatar."""
         profile = await self.get_profile(ctx, username, races_required=False)
         await run(ctx, profile)
 
 
-def no_profile_picture():
+def no_profile_picture() -> Embed:
+    """Return the embed shown when a user has no avatar set."""
     return Embed(
         title="No Profile Picture",
         description="User does not have a profile picture",
@@ -35,7 +39,8 @@ def no_profile_picture():
     )
 
 
-async def run(ctx: BotContext, profile: dict):
+async def run(ctx: BotContext, profile: dict) -> None:
+    """Post the profile's avatar URL, or an error when it has none."""
     avatar_url = profile["avatarUrl"]
     if not avatar_url:
         return await ctx.send(embed=no_profile_picture())

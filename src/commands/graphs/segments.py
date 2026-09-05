@@ -32,11 +32,14 @@ info = {
 
 
 class Segments(Command):
+    """Graph WPM segments across a race."""
+
     supported_flags = {"number", "quote_id"}
 
     @commands.command(aliases=info["aliases"])
     @usable_in(DAILY_QUOTE_CHANNEL_ID)
     async def segments(self, ctx: BotContext, *args: str):
+        """Graph the race number given, or the user's best race on a quote."""
         ctx.flags.status = None
         profile = await self.get_profile(ctx, args[0] if args else None)
 
@@ -156,7 +159,8 @@ def build_word_segments(text: str, delays: list, raw_delays: list) -> tuple[list
     return words, space_speed, newline_speed
 
 
-async def run(ctx: BotContext, profile: dict, race_number: int):
+async def run(ctx: BotContext, profile: dict, race_number: int) -> None:
+    """Send a bar graph of the race's segment and word speeds."""
     race = get_race(profile["userId"], race_number, get_keystrokes=True)
     quote = get_quote(race["quoteId"])
     set_recent_quote(ctx.channel.id, race["quoteId"])

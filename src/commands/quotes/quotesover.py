@@ -21,10 +21,13 @@ info = {
 
 
 class QuotesOver(Command):
+    """Count how many quotes a user has above a threshold."""
+
     supported_flags = {"metric", "raw", "gamemode", "status", "language", "number"}
 
     @commands.command(aliases=info["aliases"])
     async def quotesover(self, ctx: BotContext, *args: str):
+        """Require a threshold, then count the user's quote bests above it."""
         if ctx.flags.number is None:
             raise MissingArguments
 
@@ -32,7 +35,8 @@ class QuotesOver(Command):
         await run(ctx, profile, abs(ctx.flags.number), ctx.flags.metric)
 
 
-async def run(ctx: BotContext, profile: dict, threshold: int, metric: str):
+async def run(ctx: BotContext, profile: dict, threshold: int, metric: str) -> None:
+    """Send how many quote bests clear the threshold, and how hard they were."""
     quote_bests = get_quote_bests(
         profile["userId"],
         columns=["quoteId", metric],

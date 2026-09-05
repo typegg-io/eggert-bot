@@ -21,10 +21,13 @@ info = {
 
 
 class Day(Command):
+    """Display a user's races on one day."""
+
     supported_flags = {"gamemode", "status", "language", "date"}
 
     @commands.command(aliases=info["aliases"])
     async def day(self, ctx: BotContext, *args: str):
+        """Resolve the date, stepping back one day when invoked as `-yesterday`."""
         date = ctx.flags.date
 
         if ctx.invoked_with in ["yesterday", "yd"]:

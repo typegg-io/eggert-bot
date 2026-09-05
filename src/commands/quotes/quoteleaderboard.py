@@ -21,11 +21,14 @@ info = {
 
 
 class QuoteLeaderboard(Command):
+    """Display the top 10 leaderboard for one quote."""
+
     supported_flags = {"quote_id"}
 
     @commands.command(aliases=info["aliases"])
     @usable_in(DAILY_QUOTE_CHANNEL_ID)
     async def quoteleaderboard(self, ctx: BotContext):
+        """Resolve the quote from the flag or the channel's most recent one, then render it."""
         if ctx.flags.quote_id is None:
             ctx.flags.quote_id = get_recent_quote(ctx.channel.id)
         quote = await self.get_quote(ctx, ctx.flags.quote_id, from_api=True)
@@ -33,7 +36,8 @@ class QuoteLeaderboard(Command):
         await run(ctx, quote)
 
 
-async def run(ctx: BotContext, quote: dict):
+async def run(ctx: BotContext, quote: dict) -> None:
+    """Send a quote and the 10 fastest races on it."""
     description = quote_display(
         quote,
         display_author=True,

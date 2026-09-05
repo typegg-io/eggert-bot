@@ -16,15 +16,19 @@ info = {
 
 
 class RenameCommand(Command):
+    """Move stored command usage counts from one command name to another."""
+
     ignore_flags = True
 
     @commands.command(aliases=info["aliases"])
     @is_bot_owner()
     async def renamecommand(self, ctx: BotContext, old_name: str, new_name: str):
+        """Migrate the usage counts, then report how many records moved."""
         await run(ctx, old_name, new_name)
 
 
-async def run(ctx: BotContext, old_name: str, new_name: str):
+async def run(ctx: BotContext, old_name: str, new_name: str) -> None:
+    """Merge one command's usage counts into another, then confirm."""
     affected = migrate_command_name(old_name, new_name)
 
     message = Message(ctx, Page(

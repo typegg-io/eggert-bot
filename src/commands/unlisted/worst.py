@@ -15,10 +15,13 @@ info = {
 
 
 class Worst(Command):
+    """Display a user's worst 100 quotes."""
+
     supported_flags = {"metric", "raw", "gamemode", "status", "language", "number_range"}
 
     @commands.command(aliases=info["aliases"])
     async def worst(self, ctx: BotContext, username: str = None):
+        """Run the `-best` renderer in ascending order."""
         if ctx.flags.metric == "pp" and ctx.flags.raw and not ctx.user["isGgPlus"]:
             raise NotSubscribed("raw pp stats")
 

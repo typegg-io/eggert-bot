@@ -21,15 +21,19 @@ info = {
 
 
 class Thonk(Command):
+    """Generate a random thonk emote."""
+
     ignore_flags = True
 
     @commands.command(aliases=info["aliases"])
     async def thonk(self, ctx: BotContext):
+        """Read an optional seed from the raw args, then render a thonk."""
         seed = " ".join(ctx.raw_args).replace("`", "") if ctx.raw_args else None
         await run(ctx, seed)
 
 
-async def run(ctx: BotContext, seed: str | None):
+async def run(ctx: BotContext, seed: str | None) -> None:
+    """Render a thonk from the given seed, or a random one, and send it."""
     if not seed:
         seed = str(random.randint(0, 1_000_000_000))
 
@@ -42,5 +46,6 @@ async def run(ctx: BotContext, seed: str | None):
     files.remove_file(file_name)
 
 
-async def setup(bot):
+async def setup(bot) -> None:
+    """Register the cog through the discord.py extension loader."""
     await bot.add_cog(Thonk(bot))

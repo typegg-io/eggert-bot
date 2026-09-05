@@ -21,10 +21,13 @@ info = {
 
 
 class Month(Command):
+    """Display a user's races in one month."""
+
     supported_flags = {"gamemode", "status", "language", "date"}
 
     @commands.command(aliases=info["aliases"])
     async def month(self, ctx: BotContext, *args: str):
+        """Resolve the date, stepping back one month when invoked as `-yestermonth`."""
         date = ctx.flags.date
 
         if ctx.invoked_with in ["yestermonth", "ym", "lm"]:

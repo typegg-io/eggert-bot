@@ -75,10 +75,13 @@ info = {
 
 
 class LineGraph(Command):
+    """Graph a metric over time for up to five users."""
+
     supported_flags = {"metric", "raw", "gamemode", "status", "language"}
 
     @commands.command(aliases=info["aliases"])
     async def linegraph(self, ctx: BotContext, *args: str):
+        """Read the metric from the alias or the arguments, then graph it."""
         invoke = ctx.invoked_with.lower()
         params = self.extract_params(args, extract=metrics.keys())
         metric = params.argument or ctx.flags.metric
@@ -90,7 +93,8 @@ class LineGraph(Command):
         await run(ctx, metric, profiles)
 
 
-def get_total_pp_over_time(race_list: list[dict]):
+def get_total_pp_over_time(race_list: list[dict]) -> list[float]:
+    """Return the user's total pp after each race."""
     quote_bests = {}
     best_pps = []
     total_pp = []
@@ -122,7 +126,8 @@ def get_total_pp_over_time(race_list: list[dict]):
     return total_pp
 
 
-def get_best_over_time(race_list: list[dict], key: str):
+def get_best_over_time(race_list: list[dict], key: str) -> list[float]:
+    """Return the running maximum of one race column."""
     values = []
     best = race_list[0][key]
 
@@ -135,7 +140,8 @@ def get_best_over_time(race_list: list[dict], key: str):
     return values
 
 
-def get_quotes_over_time(race_list: list[dict]):
+def get_quotes_over_time(race_list: list[dict]) -> list[int]:
+    """Return the count of distinct quotes typed after each race."""
     quotes_typed = []
     unique_quotes = set()
 
@@ -146,7 +152,8 @@ def get_quotes_over_time(race_list: list[dict]):
     return quotes_typed
 
 
-def get_characters_over_time(race_list: list[dict]):
+def get_characters_over_time(race_list: list[dict]) -> list[int]:
+    """Return the running total of characters typed."""
     characters_typed = []
     total = 0
 
@@ -158,7 +165,8 @@ def get_characters_over_time(race_list: list[dict]):
     return characters_typed
 
 
-def get_nwpm_over_time(race_list: list[dict]):
+def get_nwpm_over_time(race_list: list[dict]) -> list[float]:
+    """Return the user's normalized WPM after each race."""
     quote_bests = {}
     best_pps = []
     nwpm = []
@@ -191,7 +199,8 @@ def get_nwpm_over_time(race_list: list[dict]):
     return nwpm
 
 
-async def run(ctx: BotContext, metric: str, profiles: list[dict]):
+async def run(ctx: BotContext, metric: str, profiles: list[dict]) -> None:
+    """Send one line per user for the metric requested."""
     if metric == "nwpm":
         await initialize_nwpm_model()
 

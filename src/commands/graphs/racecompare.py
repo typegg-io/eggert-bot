@@ -32,11 +32,14 @@ info = {
 
 
 class RaceCompare(Command):
+    """Overlay several users' best races on one quote."""
+
     supported_flags = {"raw", "gamemode", "quote_id"}
 
     @commands.command(aliases=info["aliases"])
     @usable_in(DAILY_QUOTE_CHANNEL_ID)
     async def racecompare(self, ctx: BotContext, *args: str):
+        """Compare the named users on a quote, or one user against themselves."""
         ctx.flags.status = None
         profiles = await self.get_profiles(ctx, args, max_users)
 
@@ -53,13 +56,14 @@ class RaceCompare(Command):
             await run_self(ctx, quote, profiles[0])
 
 
-async def run(ctx: BotContext, quote: dict, profiles: list[dict]):
+async def run(ctx: BotContext, quote: dict, profiles: list[dict]) -> None:
     """Compare quote bests across multiple users."""
     description = quote_display(quote, 1000, display_status=True) + "\n"
     themed_line = 0
 
     # Fetch all best races in parallel
     async def fetch_user_best(profile: dict) -> dict:
+        """Return the profile with its best race on the quote attached."""
         quote_best = get_quote_bests(
             profile["userId"], quote_id=quote["quoteId"],
             order_by="wpm", flags=ctx.flags,
@@ -97,7 +101,7 @@ async def run(ctx: BotContext, quote: dict, profiles: list[dict]):
     await message.send()
 
 
-async def run_self(ctx: BotContext, quote: dict, profile: dict):
+async def run_self(ctx: BotContext, quote: dict, profile: dict) -> None:
     """Compare a user's best and recent races on the same quote."""
     description = quote_display(quote, 1000, display_status=True) + "\n"
 

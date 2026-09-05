@@ -16,11 +16,14 @@ info = {
 
 
 class Admin(Command):
+    """Add a user as a bot admin."""
+
     ignore_flags = True
 
     @commands.command(aliases=info["aliases"])
     @is_bot_owner()
     async def admin(self, ctx: BotContext, user: discord.User):
+        """Grant the named user bot admin rights."""
         user_id = user.id
         get_user(user_id)
         admin_user(user_id)

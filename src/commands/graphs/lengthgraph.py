@@ -25,15 +25,19 @@ info = {
 
 
 class LengthGraph(Command):
+    """Graph peak pp or WPM at each quote length."""
+
     supported_flags = {"metric"}
 
     @commands.command(aliases=info["aliases"])
     async def lengthgraph(self, ctx: BotContext, *args: str):
+        """Graph the length curve for each user named."""
         profiles = await self.get_profiles(ctx, args, max_users)
         await run(ctx, profiles)
 
 
-async def run(ctx: BotContext, profiles: list):
+async def run(ctx: BotContext, profiles: list) -> None:
+    """Send a graph of each user's best score at every quote length."""
     metric = ctx.flags.metric
     data = []
     username = profiles[0]["username"]

@@ -21,10 +21,13 @@ info = {
 
 
 class Settings(Command):
+    """Change a user's personal bot settings."""
+
     ignore_flags = True
 
     @commands.command(aliases=info["aliases"])
     async def settings(self, ctx: BotContext, setting: str, value: str):
+        """Validate the setting and value, store it, then confirm."""
         setting = get_argument(settings, setting)
 
         if setting == "timezone":
@@ -48,7 +51,8 @@ class Settings(Command):
         await message.send()
 
 
-def resolve_timezone(value: str):
+def resolve_timezone(value: str) -> zoneinfo.ZoneInfo:
+    """Return the IANA timezone matching a name, case insensitively."""
     value = value.strip()
 
     # IANA

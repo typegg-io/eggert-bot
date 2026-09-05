@@ -1,3 +1,5 @@
+from collections.abc import Callable
+
 import numpy as np
 from discord.ext import commands
 
@@ -51,17 +53,21 @@ info = {
 
 
 class Histogram(Command):
+    """Graph a solo against multiplayer histogram for a metric."""
+
     supported_flags = {"metric", "raw", "status", "language"}
 
     @commands.command(aliases=info["aliases"])
     async def histogram(self, ctx: BotContext, *args: str):
+        """Graph the requested metric for one user."""
         params = self.extract_params(args, metrics.keys())
         metric = params.argument or ctx.flags.metric
         profile = await self.get_profile(ctx, params.username)
         await run(ctx, profile, metric)
 
 
-def make_field(data: list[float], suffix: str, title: str = None, profile: dict = None):
+def make_field(data: list[float], suffix: str, title: str = None, profile: dict = None) -> Field:
+    """Return the average, median, quartiles and deviation as an embed field."""
     if suffix == "ms":
         data = [v for v in data if v > 0]
         precision = 0
@@ -82,7 +88,8 @@ def make_field(data: list[float], suffix: str, title: str = None, profile: dict 
     )
 
 
-async def run(ctx: BotContext, profile: dict, metric: str):
+async def run(ctx: BotContext, profile: dict, metric: str) -> None:
+    """Send a paginated histogram of one user's solo against multiplayer races."""
     user_id = profile["userId"]
     ctx.flags.gamemode = "solo"
     solo_quote_bests = get_quote_bests(user_id, columns=metrics.keys(), flags=ctx.flags)
@@ -90,7 +97,8 @@ async def run(ctx: BotContext, profile: dict, metric: str):
     multi_quote_bests = get_quote_bests(user_id, columns=metrics.keys(), flags=ctx.flags)
     ctx.flags.gamemode = None
 
-    def make_render(solo_values: list[float], multi_values: list[float], column: str):
+    def make_render(solo_values: list[float], multi_values: list[float], column: str) -> Callable:
+        """Return a renderer for one metric's page."""
         return lambda: histogram.render(
             profile["username"],
             metrics[column] | {"name": column},
@@ -134,12 +142,13 @@ async def run(ctx: BotContext, profile: dict, metric: str):
     await message.send()
 
 
-async def run_compare(ctx: BotContext, profile1: dict, profile2: dict, metric: str):
+async def run_compare(ctx: BotContext, profile1: dict, profile2: dict, metric: str) -> None:
     """Send a paginated histogram comparing two users across every metric."""
     quote_bests1 = get_quote_bests(profile1["userId"], columns=list(metrics.keys()), flags=ctx.flags)
     quote_bests2 = get_quote_bests(profile2["userId"], columns=list(metrics.keys()), flags=ctx.flags)
 
-    def make_render(values1: list[float], values2: list[float], column: str):
+    def make_render(values1: list[float], values2: list[float], column: str) -> Callable:
+        """Return a renderer for one metric's comparison page."""
         return lambda: histogram.render_compare(
             profile1["username"],
             values1,

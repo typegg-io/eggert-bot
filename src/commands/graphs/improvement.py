@@ -26,10 +26,13 @@ info = {
 
 
 class Improvement(Command):
+    """Graph a user's pp or WPM improvement over races."""
+
     supported_flags = {"metric", "raw", "status", "language"}
 
     @commands.command(aliases=info["aliases"])
     async def improvement(self, ctx: BotContext, *args: str):
+        """Pick the solo or multiplayer graph, then draw it for one user."""
         solo = ctx.invoked_with == "simp"
         metric = "pp" if solo else "wpm"
 
@@ -48,12 +51,14 @@ class Improvement(Command):
             await multiplayer_improvement(ctx, profile, metric)
 
 
-def get_window_size(n: int, min_n: int = 25, max_n: int = 500):
+def get_window_size(n: int, min_n: int = 25, max_n: int = 500) -> int:
+    """Return a moving-average window scaled to the race count."""
     window_size = int(min(max_n, max(min_n, np.sqrt(n) * 5)))
     return window_size if window_size < n else 1
 
 
-async def multiplayer_improvement(ctx: BotContext, profile: dict, metric: str):
+async def multiplayer_improvement(ctx: BotContext, profile: dict, metric: str) -> None:
+    """Send an improvement graph over a user's quickplay races."""
     ctx.flags.gamemode = "quickplay"
     race_list = await get_races(
         user_id=profile["userId"],
@@ -180,7 +185,8 @@ async def multiplayer_improvement(ctx: BotContext, profile: dict, metric: str):
     await message.send()
 
 
-async def solo_improvement(ctx: BotContext, profile: dict, metric: str):
+async def solo_improvement(ctx: BotContext, profile: dict, metric: str) -> None:
+    """Send an improvement graph over a user's solo personal bests."""
     ctx.flags.gamemode = "solo"
     race_list = await get_races(
         user_id=profile["userId"],

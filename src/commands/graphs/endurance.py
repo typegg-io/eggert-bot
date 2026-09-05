@@ -26,13 +26,17 @@ info = {
 
 
 class Endurance(Command):
+    """Graph peak WPM achieved at each quote length."""
+
     @commands.command(aliases=info["aliases"])
     async def endurance(self, ctx: BotContext, *args: str):
+        """Graph the endurance curve for each user named."""
         profiles = await self.get_profiles(ctx, args, max_users)
         await run(ctx, profiles)
 
 
-async def run(ctx: BotContext, profiles: list[dict]):
+async def run(ctx: BotContext, profiles: list[dict]) -> None:
+    """Send a graph of each user's running maximum WPM by quote length."""
     data = []
 
     for profile in profiles:

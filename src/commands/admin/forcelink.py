@@ -24,11 +24,14 @@ info = {
 
 
 class ForceLink(Command):
+    """Link a Discord user to a TypeGG account without verification."""
+
     ignore_flags = True
 
     @commands.command(aliases=info["aliases"])
     @is_bot_admin()
     async def forcelink(self, ctx: BotContext, user: discord.User, typegg_user_id: str):
+        """Mint a short lived token and post it to the verification endpoint."""
         discord_id = str(user.id)
         get_user(discord_id)
 

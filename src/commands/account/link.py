@@ -18,10 +18,13 @@ info = {
 
 
 class Link(Command):
+    """Link a Discord account to a TypeGG account."""
+
     ignore_flags = True
 
     @commands.command(aliases=info["aliases"])
     async def link(self, ctx: BotContext):
+        """DM the caller a verification link, or link directly when staging."""
         if STAGING and ctx.raw_args:  # Skip verification process for development
             profile = await self.get_profile(ctx, ctx.raw_args[0])
             link_user(ctx.author.id, profile["userId"])
@@ -50,7 +53,8 @@ class Link(Command):
             return await ctx.send(embed=dms_disabled())
 
 
-def already_verified():
+def already_verified() -> Embed:
+    """Return the embed shown when the caller is already linked."""
     return Embed(
         title="Already Verified",
         description="Your account is already linked.\n"
@@ -59,7 +63,8 @@ def already_verified():
     )
 
 
-def dms_disabled():
+def dms_disabled() -> Embed:
+    """Return the embed shown when the verification DM cannot be delivered."""
     return Embed(
         title="Message Failed",
         description="Failed to send a direct message. Please enable\n"

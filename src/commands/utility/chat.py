@@ -31,6 +31,7 @@ _history: OrderedDict[tuple, list] = OrderedDict()
 
 
 def get_client() -> anthropic.AsyncAnthropic:
+    """Return the shared Anthropic client, building it on first use."""
     global _client
     if _client is None:
         _client = anthropic.AsyncAnthropic(api_key=ANTHROPIC_API_KEY)
@@ -38,11 +39,14 @@ def get_client() -> anthropic.AsyncAnthropic:
 
 
 class Chat(Command):
+    """Answer a question about TypeGG or the bot."""
+
     ignore_flags = True
 
     @commands.command(aliases=info["aliases"])
     @usable_in(1397687954117361745)
     async def chat(self, ctx: BotContext):
+        """Answer the question, enforcing the free daily limit for non-plus users."""
         question = " ".join(ctx.raw_args)
         is_gg_plus = ctx.user["isGgPlus"]
         if not is_gg_plus:

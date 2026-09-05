@@ -27,11 +27,14 @@ info = {
 
 
 class DailyLeaderboard(Command):
+    """Display the leaderboard for a daily quote."""
+
     supported_flags = {"number", "date"}
 
     @commands.command(aliases=info["aliases"])
     @usable_in(DAILY_QUOTE_CHANNEL_ID)
     async def dailyleaderboard(self, ctx: BotContext):
+        """Fetch the daily quote named by the number or date flag, then paginate its leaderboard."""
         try:
             daily_quote = await get_daily_quote(number=int(ctx.flags.number), results=100)
         except TypeError:
@@ -50,7 +53,8 @@ async def display_daily_quote(
     color=None,
     mention=False,
     paginate=False,
-):
+) -> None:
+    """Send a daily quote and its leaderboard, to a command context or a bare channel."""
     quote = daily_quote["quote"]
     quote_id = quote["quoteId"]
     leaderboard = daily_quote["leaderboard"]
@@ -60,7 +64,8 @@ async def display_daily_quote(
     set_recent_quote(channel_id, quote_id)
 
     if show_champion:
-        def entry_formatter(data):
+        def entry_formatter(data) -> str:
+            """Format one podium entry as a single line."""
             return (
                 f"{username_with_flag(data)} - "
                 f"{data["wpm"]:,.2f} WPM ({data["accuracy"]:.2%}) - {data["pp"]:,.0f} pp\n"
@@ -72,7 +77,8 @@ async def display_daily_quote(
             f"{quote_description}"
         )
 
-    def format_row(data):
+    def format_row(data) -> str:
+        """Format one leaderboard row, bolded when it belongs to the caller."""
         index, score = data["index"], data["score"]
         bold = "**" if (
             hasattr(ctx, "user") and
@@ -132,7 +138,8 @@ async def display_daily_quote(
     await message.send()
 
 
-def daily_quote_display(daily_quote: dict):
+def daily_quote_display(daily_quote: dict) -> str:
+    """Format a daily quote's text, metadata and closing time."""
     end_date = daily_quote["endDate"]
     end = "Ends" if parse_date(end_date) > dates.now() else "Ended"
 

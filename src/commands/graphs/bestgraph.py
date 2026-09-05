@@ -31,10 +31,13 @@ info = {
 
 
 class BestGraph(Command):
+    """Graph a user's top n quote PBs ordered by pp."""
+
     supported_flags = {"metric", "raw", "gamemode", "status", "language", "number"}
 
     @commands.command(aliases=info["aliases"])
     async def bestgraph(self, ctx: BotContext, *args: str):
+        """Read n from the alias or the number flag, then graph each user's top scores."""
         if ctx.invoked_with.isnumeric():
             n = int(ctx.invoked_with)
         else:
@@ -43,7 +46,7 @@ class BestGraph(Command):
         await run(ctx, profiles, n, ctx.flags.metric)
 
 
-def get_optimization_level(pp_values):
+def get_optimization_level(pp_values) -> float:
     """Returns an optimization level for a list of values based on curvature."""
     anchor_percentile = 98  # Ignoring "farm" outliers
     pp = np.array(pp_values, dtype=float)
@@ -53,7 +56,8 @@ def get_optimization_level(pp_values):
     return 1 - deviation / pp_anchor
 
 
-async def run(ctx: BotContext, profiles: list[dict], n: int, metric: str):
+async def run(ctx: BotContext, profiles: list[dict], n: int, metric: str) -> None:
+    """Send a graph of each user's top n quote bests, with their totals."""
     top_scores = []
     username = profiles[0]["username"]
     quote_list = get_quotes()

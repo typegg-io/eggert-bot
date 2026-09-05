@@ -20,10 +20,13 @@ info = {
 
 
 class LongestAverage(Command):
+    """Display the longest run of races a user held a WPM average over."""
+
     supported_flags = {"raw", "gamemode", "status", "language", "number"}
 
     @commands.command(aliases=info["aliases"])
     async def longestaverage(self, ctx: BotContext, *args: str):
+        """Require a WPM threshold, then find the longest runs that clear it."""
         ctx.flags.gamemode = ctx.flags.gamemode or "quickplay"
 
         if ctx.flags.number is None:
@@ -33,7 +36,7 @@ class LongestAverage(Command):
         await run(ctx, profile, abs(ctx.flags.number))
 
 
-def get_longest_average(values, threshold):
+def get_longest_average(values, threshold) -> tuple[int, int, int] | None:
     """
     Find the longest contiguous subarray whose average is at
     least threshold, using prefix sums and a monotonic stack.
@@ -69,7 +72,7 @@ def get_longest_average(values, threshold):
     return best_start, best_end, max_len
 
 
-def top_10_longest_averages(values, threshold):
+def top_10_longest_averages(values, threshold) -> list[tuple[int, int, int]]:
     """Repeatedly find and remove the longest average streak to collect up to 10 non-overlapping results."""
     remaining = values[:]
     offset_map = list(range(len(values)))
@@ -111,7 +114,8 @@ def top_10_longest_averages(values, threshold):
     return results
 
 
-async def run(ctx: BotContext, profile: dict, wpm: float):
+async def run(ctx: BotContext, profile: dict, wpm: float) -> None:
+    """Send the 10 longest non-overlapping streaks averaging at least the given WPM."""
     race_list = await get_races(
         user_id=profile["userId"],
         flags=ctx.flags,

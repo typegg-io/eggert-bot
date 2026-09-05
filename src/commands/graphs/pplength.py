@@ -23,13 +23,17 @@ info = {
 
 
 class PpLengthGraph(Command):
+    """Graph a scatterplot of pp personal bests against quote length."""
+
     @commands.command(aliases=info["aliases"])
     async def pplength(self, ctx: BotContext, username: str = None):
+        """Graph one user's pp against quote length."""
         profile = await self.get_profile(ctx, username)
         await run(ctx, profile)
 
 
-async def run(ctx: BotContext, profile: dict):
+async def run(ctx: BotContext, profile: dict) -> None:
+    """Send a scatterplot of the user's ranked quote bests by length."""
     quote_bests = get_quote_bests(profile["userId"], flags=Flags(status="ranked"))
     quotes = get_quotes()
 

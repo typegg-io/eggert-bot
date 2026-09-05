@@ -14,11 +14,14 @@ info = {
 
 
 class Echo(Command):
+    """Repeat a message as the bot."""
+
     ignore_flags = True
 
     @commands.command(aliases=info["aliases"])
     @is_bot_admin()
     async def echo(self, ctx: BotContext):
+        """Send the arguments back, deleting the invocation outside DMs."""
         if not ctx.raw_args:
             return
 

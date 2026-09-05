@@ -140,11 +140,14 @@ info = {
 
 
 class Leaderboard(Command):
+    """Display a global leaderboard for one of many categories."""
+
     supported_flags = {"metric", "gamemode", "number", "quote_id"}
 
     @commands.command(aliases=info["aliases"])
     @usable_in(DAILY_QUOTE_CHANNEL_ID)
     async def leaderboard(self, ctx: BotContext, category: str = "pp", *args):
+        """Resolve the category, then dispatch to the API, multiplayer, custom or quote renderer."""
         in_daily_channel = ctx.channel.id == DAILY_QUOTE_CHANNEL_ID
 
         if ctx.flags.quote_id is not None:
@@ -195,12 +198,13 @@ class Leaderboard(Command):
         await run(ctx, category_info)
 
 
-def entry_formatter(data):
+def entry_formatter(data) -> str:
+    """Format one API leaderboard row, bolded when it belongs to the caller."""
     bold = "**" if data["highlight"] else ""
     return f"{rank(data["rank"])} {bold}{username_with_flag(data)} - {data["category"]["formatter"](data)}{bold}\n"
 
 
-def is_statusless(leaderboard: str):
+def is_statusless(leaderboard: str) -> bool:
     """Returns whether a leaderboard is not based on quote status (ranked/unranked)."""
     return leaderboard in [
         "wins", "level", "nwpm", "views",
@@ -210,7 +214,8 @@ def is_statusless(leaderboard: str):
     ]
 
 
-async def run(ctx: BotContext, category: dict):
+async def run(ctx: BotContext, category: dict) -> None:
+    """Send a leaderboard the API serves, behind a skeleton message."""
     gamemode = ctx.flags.gamemode or "any"
     title = f"{category["title"]} Leaderboard"
 
@@ -260,7 +265,7 @@ async def run(ctx: BotContext, category: dict):
     await message.edit()
 
 
-async def run_custom(ctx: BotContext, category: dict, args: tuple = ()):
+async def run_custom(ctx: BotContext, category: dict, args: tuple = ()) -> None:
     """Displays a custom leaderboard generated from the database."""
     title = f"{category["title"]} Leaderboard"
 
@@ -287,7 +292,8 @@ async def run_custom(ctx: BotContext, category: dict, args: tuple = ()):
         leaderboard = get_top_submitters()
         for i in range(len(leaderboard)):
             leaderboard[i] = dict(leaderboard[i]) | {"rank": i + 1}
-        def formatter(quote):
+        def formatter(quote) -> str:
+            """Format one quote submitter row."""
             return f"{rank(quote["rank"])} {quote["submittedByUsername"]} - {quote["submissions"]:,}\n"
         pages = paginate_data(leaderboard, formatter, page_count=5, per_page=20)
 
@@ -323,7 +329,8 @@ async def run_custom(ctx: BotContext, category: dict, args: tuple = ()):
                 "highlight": entry["userId"] == ctx.user["userId"],
             })
 
-        def qo_formatter(entry):
+        def qo_formatter(entry) -> str:
+            """Format one quotes over row."""
             bold = "**" if entry["highlight"] else ""
             return f"{rank(entry["rank"])} {bold}{username_with_flag(entry)} - {entry["count"]:,}{bold}\n"
 
@@ -343,7 +350,8 @@ async def run_custom(ctx: BotContext, category: dict, args: tuple = ()):
             for i, entry in enumerate(leaderboard_data)
         ]
 
-        def daily_formatter(entry):
+        def daily_formatter(entry) -> str:
+            """Format one daily quote placement row."""
             bold = "**" if entry["highlight"] else ""
             return f"{rank(entry["rank"])} {bold}{username_with_flag(entry)} - {entry["count"]:,}{bold}\n"
 
@@ -365,7 +373,8 @@ async def run_custom(ctx: BotContext, category: dict, args: tuple = ()):
             for i, entry in enumerate(leaderboard_data)
         ]
 
-        def chars_formatter(entry):
+        def chars_formatter(entry) -> str:
+            """Format one quote characters typed row."""
             bold = "**" if entry["highlight"] else ""
             return f"{rank(entry["rank"])} {bold}{username_with_flag(entry)} - {entry["quoteCharsTyped"]:,}{bold}\n"
 
@@ -385,7 +394,8 @@ async def run_custom(ctx: BotContext, category: dict, args: tuple = ()):
     await message.edit()
 
 
-async def run_multiplayer(ctx: BotContext, category: dict):
+async def run_multiplayer(ctx: BotContext, category: dict) -> None:
+    """Send a multiplayer leaderboard, behind a skeleton message."""
     title = f"{category["title"]} Leaderboard"
     skeleton_page = Page(
         title=title,
@@ -410,7 +420,8 @@ async def run_multiplayer(ctx: BotContext, category: dict):
         for item in results["items"]
     ]
 
-    def mp_formatter(user):
+    def mp_formatter(user) -> str:
+        """Format one multiplayer leaderboard row."""
         bold = "**" if user["highlight"] else ""
         return f"{rank(user["rank"])} {bold}{username_with_flag(user)} - {category["formatter"](user)}{bold}\n"
 

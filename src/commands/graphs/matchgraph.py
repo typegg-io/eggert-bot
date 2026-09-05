@@ -31,17 +31,21 @@ info = {
 
 
 class MatchGraph(Command):
+    """Graph rankings and WPM over keystrokes for a multiplayer match."""
+
     supported_flags = {"number"}
 
     @commands.command(aliases=info["aliases"])
     async def matchgraph(self, ctx: BotContext, username: str = None):
+        """Graph the user's most recent match, or the one the number flag names."""
         profile = await self.get_profile(ctx, username)
         race_number = await self.get_race_number(profile, ctx.flags.number)
 
         await run(ctx, profile, race_number)
 
 
-async def run(ctx: BotContext, profile: dict, race_number: int):
+async def run(ctx: BotContext, profile: dict, race_number: int) -> None:
+    """Send a match graph, falling back to a race graph for a solo race."""
     race = await get_race(profile["userId"], race_number, get_keystrokes=True)
     set_recent_quote(ctx.channel.id, race["quoteId"])
     match = race.get("match")

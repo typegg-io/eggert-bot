@@ -14,11 +14,14 @@ info = {
 
 
 class Database(Command):
+    """Display row counts for the main database tables."""
+
     ignore_flags = True
 
     @commands.command(aliases=info["aliases"])
     @is_bot_owner()
     async def database(self, ctx: BotContext):
+        """Send the race, user, quote and source row counts."""
         race_rows = get_row_count("races")
         user_rows = get_row_count("users")
         quote_rows = get_row_count("quotes")

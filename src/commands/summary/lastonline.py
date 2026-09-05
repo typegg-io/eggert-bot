@@ -19,8 +19,11 @@ info = {
 
 
 class LastOnline(Command):
+    """Display when a user was last active."""
+
     @commands.command(aliases=info["aliases"])
     async def lastonline(self, ctx: BotContext, username: str = None):
+        """Send how long ago the profile was last seen, and the exact time."""
         profile = await self.get_profile(ctx, username)
         last_online = parse_date(profile["lastSeen"]).timestamp()
         duration = now().timestamp() - last_online

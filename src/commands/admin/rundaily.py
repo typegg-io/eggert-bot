@@ -15,11 +15,14 @@ info = {
 
 
 class RunDaily(Command):
+    """Trigger the daily quote messages by hand."""
+
     ignore_flags = True
 
     @commands.command(aliases=info["aliases"])
     @is_bot_owner()
     async def rundaily(self, ctx: BotContext):
+        """Send the daily results and ping, reporting each step's outcome."""
         status = []
 
         try:

@@ -23,10 +23,13 @@ info = {
 
 
 class Calculator(Command):
+    """Evaluate a mathematical expression."""
+
     ignore_flags = True
 
     @commands.command(aliases=info["aliases"])
     async def calculator(self, ctx: BotContext):
+        """Evaluate the expression through mathjs and send the result."""
         if not ctx.raw_args:
             raise MissingArguments
 
