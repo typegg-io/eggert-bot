@@ -1,3 +1,5 @@
+"""typegg.db schema. Importing this module creates any missing tables and indexes."""
+
 from database.typegg import db
 
 db.run("""

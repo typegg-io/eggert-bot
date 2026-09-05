@@ -1,4 +1,7 @@
+"""Imported races, the largest table in typegg.db."""
+
 import json
+import sqlite3
 import zlib
 
 from database.typegg import db
@@ -8,7 +11,7 @@ from utils.errors import RaceNotFound
 from utils.flags import Flags
 
 
-def race_insert(race):
+def race_insert(race) -> tuple:
     """Return a race tuple for parameterized inserting."""
     timestamp = normalize_datetime(race["timestamp"])
     if "Z" not in timestamp:
@@ -32,7 +35,7 @@ def race_insert(race):
     )
 
 
-def add_races(races):
+def add_races(races) -> None:
     """Batch insert user races."""
     db.run_many(f"""
         INSERT OR IGNORE INTO races
@@ -40,7 +43,7 @@ def add_races(races):
     """, [race_insert(race) for race in races])
 
 
-def decompress_keystroke_data(rows):
+def decompress_keystroke_data(rows) -> list[dict]:
     """Decompress keystroke data in race rows."""
     result = []
     for row in rows:
@@ -72,7 +75,7 @@ async def get_races(
     flags: Flags | None = None,
     get_keystrokes: bool | None = False,
     only_historical_pbs: bool | None = False,
-):
+) -> list[sqlite3.Row] | list[dict]:
     """Fetch races for a user with optional filters."""
     columns = list(columns) if columns else ["*"]
     flags = flags or Flags()
@@ -199,7 +202,7 @@ async def get_races(
     return race_list
 
 
-def get_latest_race(user_id: str):
+def get_latest_race(user_id: str) -> sqlite3.Row | None:
     """Returns a user's latest imported race."""
     result = db.fetch_one("""
         SELECT * FROM races
@@ -212,7 +215,8 @@ def get_latest_race(user_id: str):
     return result
 
 
-def get_race(user_id: str, number: int, get_keystrokes: bool = False):
+def get_race(user_id: str, number: int, get_keystrokes: bool = False) -> dict:
+    """Return one race by number, raising if the user never ran it."""
     result = db.fetch_one("""
         SELECT * FROM races
         WHERE userId = ?
@@ -230,12 +234,12 @@ def get_race(user_id: str, number: int, get_keystrokes: bool = False):
     return race
 
 
-def delete_races(user_id: str):
+def delete_races(user_id: str) -> None:
     """Deletes all of a user's races."""
     db.run("DELETE FROM races WHERE userId = ?", [user_id])
 
 
-def get_quote_race_counts(user_id: str):
+def get_quote_race_counts(user_id: str) -> list[sqlite3.Row]:
     """Returns a user's quotes by race count."""
     results = db.fetch("""
         SELECT q.text, COUNT(q.text) as races

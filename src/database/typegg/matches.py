@@ -1,8 +1,10 @@
+"""Multiplayer match rows."""
+
 from database.typegg import db
 from utils.dates import normalize_datetime
 
 
-def match_insert(match):
+def match_insert(match) -> tuple:
     """Return a match tuple for parameterized inserting."""
     return (
         match["matchId"],
@@ -13,7 +15,7 @@ def match_insert(match):
     )
 
 
-def add_matches(match_players):
+def add_matches(match_players) -> None:
     """Batch insert matches."""
     db.run_many(f"""
         INSERT OR IGNORE INTO matches

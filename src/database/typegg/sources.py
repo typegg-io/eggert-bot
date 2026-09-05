@@ -1,7 +1,11 @@
+"""The books, songs and films quotes are drawn from."""
+
+import sqlite3
+
 from database.typegg import db
 
 
-def source_insert(source):
+def source_insert(source) -> tuple:
     """Return a source tuple for parameterized inserting."""
     return (
         source["sourceId"],
@@ -13,7 +17,7 @@ def source_insert(source):
     )
 
 
-def add_sources(sources):
+def add_sources(sources) -> None:
     """Batch insert or update sources."""
     db.run_many("""
         INSERT INTO sources VALUES (?,?,?,?,?,?)
@@ -26,14 +30,16 @@ def add_sources(sources):
     """, [source_insert(source) for source in sources])
 
 
-def add_source(source):
+def add_source(source) -> None:
+    """Insert a single source."""
     db.run(f"""
         INSERT OR IGNORE INTO sources
         VALUES ({",".join(["?"] * 6)})
     """, source_insert(source))
 
 
-def get_sources(as_dictionary=True):
+def get_sources(as_dictionary=True) -> dict[str, sqlite3.Row] | list[sqlite3.Row]:
+    """Return every source, keyed by source ID unless a list is asked for."""
     results = db.fetch("SELECT * FROM sources")
 
     if as_dictionary:
@@ -42,12 +48,12 @@ def get_sources(as_dictionary=True):
     return results
 
 
-def get_source(source_id: str):
+def get_source(source_id: str) -> sqlite3.Row | None:
     """Return a single source entry."""
     return db.fetch_one("SELECT * FROM sources WHERE sourceId = ?", [source_id])
 
 
-def update_source(source_id: str, updates: dict):
+def update_source(source_id: str, updates: dict) -> bool:
     """Update a source's fields. Only updates provided fields."""
     if not updates:
         return False
@@ -74,7 +80,7 @@ def update_source(source_id: str, updates: dict):
     return True
 
 
-def delete_source(source_id: str):
+def delete_source(source_id: str) -> None:
     """
     Delete a source by ID.
     Cascades to delete quotes, races, and keystroke_data.

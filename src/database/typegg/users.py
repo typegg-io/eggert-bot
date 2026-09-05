@@ -1,4 +1,7 @@
+"""Imported TypeGG users and the aggregate queries built on their races."""
+
 import asyncio
+import sqlite3
 
 from api.core import request
 from api.users import get_profile
@@ -11,18 +14,21 @@ from utils.flags import Flags
 from utils.logging import log
 
 
-def create_user(profile: dict):
+def create_user(profile: dict) -> None:
+    """Insert a TypeGG user, ignoring one that already exists."""
     db.run("""
         INSERT INTO users
         VALUES (?, date('now'), ?, ?)
     """, [profile["userId"], profile["username"], profile["country"]])
 
 
-def get_user(user_id: str):
+def get_user(user_id: str) -> sqlite3.Row | None:
+    """Return a TypeGG user row, or None if it was never imported."""
     return db.fetch_one("SELECT * FROM users WHERE userId = ?", [user_id])
 
 
-def get_user_lookup():
+def get_user_lookup() -> dict[str, dict]:
+    """Return every user's username and country, keyed by user ID."""
     user_list = db.fetch("SELECT userId, username, country FROM users")
     user_dict = {
         user["userId"]: {
@@ -47,7 +53,7 @@ def get_quote_bests(
     limit: int | None = None,
     as_dictionary: bool | None = False,
     flags: Flags | None = None,
-):
+) -> dict[str, sqlite3.Row] | list[sqlite3.Row]:
     """Returns quote bests for a user, with available filters."""
     columns = list(columns) if columns else ["*"]
     flags = flags or Flags()
@@ -152,11 +158,12 @@ def get_quote_bests(
     return results
 
 
-def delete_user(user_id: str):
+def delete_user(user_id: str) -> None:
+    """Delete a user and everything imported for them."""
     db.run("DELETE FROM users WHERE userId = ?", [user_id])
 
 
-def delete_user_data(user_id: str):
+def delete_user_data(user_id: str) -> None:
     """Delete all data associated with a user, recomputing affected leaderboards."""
 
     remove_user_from_leaderboards(user_id)
@@ -164,7 +171,8 @@ def delete_user_data(user_id: str):
     delete_user(user_id)
 
 
-async def reimport_users():
+async def reimport_users() -> None:
+    """Refetch every user from the API and update the local copies."""
     from services.importer import run as download
 
     user_list = db.fetch("SELECT userId FROM users")
@@ -188,7 +196,8 @@ async def reimport_users():
                     log(f"[user migrate] Skipping user {user_id} after {max_retries} failed attempts")
 
 
-async def reimport_nwpm():
+async def reimport_nwpm() -> None:
+    """Recalculate every user's normalised WPM from local races."""
 
     linked_users = get_all_linked_users()
 
@@ -207,7 +216,8 @@ async def reimport_nwpm():
             log(f"[nwpm migrate] Failed for {user_id}: {e.__class__.__name__}: {e}")
 
 
-def get_best_by_length(user_id: str, metric: str = "pp"):
+def get_best_by_length(user_id: str, metric: str = "pp") -> list[sqlite3.Row]:
+    """Return each user's best race per quote length."""
     col = "r.pp" if metric == "pp" else "r.wpm"
     return db.fetch(f"""
         SELECT MAX({col}) AS value, LENGTH(q.text) AS length
@@ -219,7 +229,8 @@ def get_best_by_length(user_id: str, metric: str = "pp"):
     """, [user_id])
 
 
-def get_running_maximum_by_length(user_id: str):
+def get_running_maximum_by_length(user_id: str) -> list[sqlite3.Row]:
+    """Return each user's best race at or below every quote length."""
     return db.fetch("""
         WITH text_bests_with_length AS (
             SELECT MAX(r.wpm) AS wpm, LENGTH(q.text) AS length
@@ -243,7 +254,8 @@ def get_running_maximum_by_length(user_id: str):
     """, [user_id])
 
 
-def get_quote_chars_typed(limit: int = 20):
+def get_quote_chars_typed(limit: int = 20) -> list[sqlite3.Row]:
+    """Return the total characters each user has typed."""
     return db.fetch("""
         SELECT r.userId, SUM(LENGTH(q.text)) AS quoteCharsTyped
         FROM (SELECT DISTINCT userId, quoteId FROM races) r
@@ -260,7 +272,7 @@ def get_quotes_over_leaderboard(
     metric: str = "wpm",
     limit: int = 100,
     flags: Flags | None = None,
-):
+) -> list[sqlite3.Row]:
     """Returns users with the most quotes over a threshold."""
     flags = flags or Flags()
 

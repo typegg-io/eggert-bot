@@ -1,3 +1,5 @@
+"""Connection and query helpers for typegg.db."""
+
 import os
 import sqlite3
 
@@ -23,7 +25,7 @@ writer.execute("PRAGMA journal_mode = WAL")
 writer.execute("PRAGMA cache_size = -100000")
 
 
-def _execute_fetch(query: str, params: list, one: bool):
+def _execute_fetch(query: str, params: list, one: bool) -> sqlite3.Row | list[sqlite3.Row] | None:
     """Execute a read-only query and return one row or all rows."""
     cursor = reader.cursor()
     try:
@@ -33,17 +35,17 @@ def _execute_fetch(query: str, params: list, one: bool):
         cursor.close()
 
 
-def fetch(query: str, params: list | None = None):
+def fetch(query: str, params: list | None = None) -> list[sqlite3.Row]:
     """Fetch all rows from a read-only query."""
     return _execute_fetch(query, params or [], one=False)
 
 
-def fetch_one(query: str, params: list | None = None):
+def fetch_one(query: str, params: list | None = None) -> sqlite3.Row | None:
     """Fetch a single row from a read-only query."""
     return _execute_fetch(query, params or [], one=True)
 
 
-async def fetch_async(query, params=None):
+async def fetch_async(query, params=None) -> list[aiosqlite.Row]:
     """Asynchronously fetch all rows from a read-only query."""
     async with aiosqlite.connect(file) as db:
         db.row_factory = aiosqlite.Row
@@ -51,7 +53,7 @@ async def fetch_async(query, params=None):
             return await cursor.fetchall()
 
 
-def run(query: str, params: list | None = None):
+def run(query: str, params: list | None = None) -> None:
     """Execute a write query (INSERT, UPDATE, DELETE) with commit."""
     cursor = writer.cursor()
 
@@ -62,7 +64,7 @@ def run(query: str, params: list | None = None):
         cursor.close()
 
 
-def run_many(query, data):
+def run_many(query, data) -> None:
     """Execute a write query on multiple sets of parameters with commit."""
     cursor = writer.cursor()
     try:
@@ -72,7 +74,7 @@ def run_many(query, data):
         cursor.close()
 
 
-def run_transaction(statements: list[tuple]):
+def run_transaction(statements: list[tuple]) -> None:
     """Execute multiple write queries atomically in a single transaction."""
     cursor = writer.cursor()
     try:
@@ -86,6 +88,6 @@ def run_transaction(statements: list[tuple]):
         cursor.close()
 
 
-def get_row_count(table):
+def get_row_count(table) -> int:
     """Return the total number of rows from a given table."""
     return fetch_one(f"SELECT COUNT(*) FROM {table}")[0]

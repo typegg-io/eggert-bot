@@ -1,3 +1,6 @@
+"""Daily quotes and their per-user results."""
+
+import sqlite3
 
 from api.daily_quotes import START_DATE, get_daily_quote
 from database.typegg import db
@@ -5,7 +8,8 @@ from utils import dates
 from utils.logging import log
 
 
-def add_daily_quote(daily_quote: dict):
+def add_daily_quote(daily_quote: dict) -> None:
+    """Insert a daily quote for a day number."""
     db.run(f"""
         INSERT OR IGNORE INTO daily_quotes
         VALUES ({",".join(["?"] * 6)})
@@ -19,7 +23,8 @@ def add_daily_quote(daily_quote: dict):
     ])
 
 
-def daily_result_insert(day_number: int, rank: int, result: dict):
+def daily_result_insert(day_number: int, rank: int, result: dict) -> tuple:
+    """Return a daily result tuple for parameterized inserting."""
     return (
         day_number,
         rank,
@@ -43,7 +48,7 @@ def daily_result_insert(day_number: int, rank: int, result: dict):
     )
 
 
-def add_daily_results(day_number: int, results: list[dict]):
+def add_daily_results(day_number: int, results: list[dict]) -> None:
     """Batch insert daily quote results."""
     db.run_many(f"""
         INSERT OR IGNORE INTO daily_quote_results
@@ -51,7 +56,7 @@ def add_daily_results(day_number: int, results: list[dict]):
     """, [daily_result_insert(day_number, i + 1, result) for i, result in enumerate(results)])
 
 
-def zero_daily_results_pp(quote_id: str):
+def zero_daily_results_pp(quote_id: str) -> None:
     """Zero out pp values for a quote's daily results."""
     db.run("""
         UPDATE daily_quote_results
@@ -60,7 +65,7 @@ def zero_daily_results_pp(quote_id: str):
     """, [quote_id])
 
 
-def update_daily_results_pp(quote_id: str, pp_ratio: float):
+def update_daily_results_pp(quote_id: str, pp_ratio: float) -> None:
     """Recalculate pp values for a quote's daily results from a wpm:pp ratio."""
     db.run("""
         UPDATE daily_quote_results
@@ -69,7 +74,7 @@ def update_daily_results_pp(quote_id: str, pp_ratio: float):
     """, [pp_ratio, pp_ratio, quote_id])
 
 
-async def reimport_daily_results():
+async def reimport_daily_results() -> None:
     """Re-fetch and replace the leaderboard results for every stored daily quote."""
 
     day_numbers = [row["dayNumber"] for row in db.fetch("SELECT dayNumber FROM daily_quotes ORDER BY dayNumber")]
@@ -85,19 +90,22 @@ async def reimport_daily_results():
             log(f"[daily migrate] Failed for day #{number}: {e.__class__.__name__}: {e}")
 
 
-def update_daily_quote_id(quote_id: str):
+def update_daily_quote_id(quote_id: str) -> None:
+    """Set the quote ID served as today's daily."""
     db.run("""
         INSERT OR REPLACE INTO daily_quote_id (id, quoteId)
         VALUES (1, ?)
     """, [quote_id])
 
 
-def get_daily_quote_id():
+def get_daily_quote_id() -> str | None:
+    """Return today's daily quote ID, if one is set."""
     row = db.fetch_one("SELECT quoteId FROM daily_quote_id WHERE id = 1")
     return row["quoteId"] if row else None
 
 
-def get_missing_days():
+def get_missing_days() -> list[int]:
+    """Return the day numbers that have no daily quote yet."""
     results = db.fetch("SELECT dayNumber FROM daily_quotes")
     day_numbers = {row[0] for row in results}
     completed_days = (dates.now() - START_DATE).days
@@ -106,7 +114,7 @@ def get_missing_days():
     return missing_numbers
 
 
-def get_daily_rank_leaderboard(max_rank: int, exact: bool = False, limit: int = 100):
+def get_daily_rank_leaderboard(max_rank: int, exact: bool = False, limit: int = 100) -> list[sqlite3.Row]:
     """Count how many times each user finished within (or exactly at) max_rank on a daily quote."""
     operator = "=" if exact else "<="
     return db.fetch(f"""
@@ -119,11 +127,12 @@ def get_daily_rank_leaderboard(max_rank: int, exact: bool = False, limit: int = 
     """, [max_rank, limit])
 
 
-def get_user_results(user_id: str):
+def get_user_results(user_id: str) -> list[sqlite3.Row]:
+    """Return every daily quote result for a user."""
     return db.fetch("SELECT * FROM daily_quote_results WHERE userId = ?", [user_id])
 
 
-def get_today_result(user_id: str, quote_id: str):
+def get_today_result(user_id: str, quote_id: str) -> sqlite3.Row | None:
     """Fetch the user's best race on today's daily quote."""
     today = dates.floor_day(dates.now()).strftime("%Y-%m-%d")
     return db.fetch_one("""

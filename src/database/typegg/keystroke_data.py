@@ -1,10 +1,14 @@
+"""Raw keystroke payloads, stored per race and optionally zlib compressed."""
+
 import json
 import zlib
+from collections.abc import AsyncIterator
 
 from database.typegg import db
 
 
-def keystroke_data_insert(race):
+def keystroke_data_insert(race) -> tuple:
+    """Return a keystroke data tuple for parameterized inserting."""
     return (
         race["raceId"],
         json.dumps(race["keystrokeData"]),
@@ -12,7 +16,7 @@ def keystroke_data_insert(race):
     )
 
 
-def add_keystroke_data(races):
+def add_keystroke_data(races) -> None:
     """Batch insert keystroke data."""
 
     db.run_many("""
@@ -21,7 +25,7 @@ def add_keystroke_data(races):
     """, [keystroke_data_insert(race) for race in races])
 
 
-def _decompress(row):
+def _decompress(row) -> str | bytes | None:
     """Decompress a keystroke data row if needed."""
     if row is None:
         return None
@@ -31,7 +35,7 @@ def _decompress(row):
     return keystroke_data
 
 
-def get_keystroke_data(race_id: str):
+def get_keystroke_data(race_id: str) -> list | dict:
     """Get keystroke data by race ID, decompressed."""
     result = db.fetch_one("""
         SELECT keystrokeData FROM keystroke_data
@@ -41,13 +45,13 @@ def get_keystroke_data(race_id: str):
     return json.loads(result["keystrokeData"])
 
 
-def get_uncompressed_count():
+def get_uncompressed_count() -> int:
     """Get the count of uncompressed keystroke data rows."""
     result = db.fetch_one("SELECT COUNT(*) FROM keystroke_data WHERE compressed = 0")
     return result[0] if result else 0
 
 
-def compress_batch(batch_size: int = 1000):
+def compress_batch(batch_size: int = 1000) -> int:
     """Compress a batch of uncompressed keystroke data. Returns count compressed."""
     rows = db.fetch("""
         SELECT raceId, keystrokeData FROM keystroke_data
@@ -68,7 +72,7 @@ def compress_batch(batch_size: int = 1000):
     return len(rows)
 
 
-async def compress_all(batch_size: int = 1000):
+async def compress_all(batch_size: int = 1000) -> AsyncIterator[tuple[int, int]]:
     """Compress all uncompressed keystroke data rows in batches. Yields progress."""
     total = get_uncompressed_count()
     compressed = 0

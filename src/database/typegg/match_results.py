@@ -1,8 +1,12 @@
+"""Per-player results and head-to-head encounters from multiplayer matches."""
+
+import sqlite3
+
 from database.typegg import db
 from utils.flags import Flags
 
 
-def match_result_insert(match_player):
+def match_result_insert(match_player) -> tuple:
     """Return a match player tuple for parameterized inserting."""
     return (
         match_player["matchId"],
@@ -22,7 +26,7 @@ def match_result_insert(match_player):
     )
 
 
-def add_match_results(match_players):
+def add_match_results(match_players) -> None:
     """Batch insert match players."""
     db.run_many(f"""
         INSERT OR IGNORE INTO match_results
@@ -30,7 +34,7 @@ def add_match_results(match_players):
     """, [match_result_insert(player) for player in match_players])
 
 
-def get_encounter_stats(user_id: str, flags: Flags = None):
+def get_encounter_stats(user_id: str, flags: Flags = None) -> list[sqlite3.Row]:
     """Get all opponents a user has faced in multiplayer matches with head-to-head stats."""
     conditions = ["userId = ?", "opponentUsername != ''"]
     params = [user_id]
@@ -77,7 +81,8 @@ def get_encounter_stats(user_id: str, flags: Flags = None):
     return results
 
 
-def get_match_stats(user_id: str, flags: Flags = None):
+def get_match_stats(user_id: str, flags: Flags = None) -> list[sqlite3.Row]:
+    """Return per-match aggregate stats for a user."""
     conditions = ["userId = ?"]
     params = [user_id]
 
@@ -114,7 +119,7 @@ def get_match_stats(user_id: str, flags: Flags = None):
     return results
 
 
-def get_opponent_encounters(user_id: str, opponent_id: str, flags: Flags = None):
+def get_opponent_encounters(user_id: str, opponent_id: str, flags: Flags = None) -> list[sqlite3.Row]:
     """Get all finished encounters between two users."""
     conditions = ["userId = ?", "opponentId = ?"]
     params = [user_id, opponent_id]
@@ -150,6 +155,6 @@ def get_opponent_encounters(user_id: str, opponent_id: str, flags: Flags = None)
     return matches
 
 
-def delete_match_results(user_id: str):
+def delete_match_results(user_id: str) -> None:
     """Deletes all of a user's match results."""
     db.run("DELETE FROM match_results WHERE userId = ?", [user_id])

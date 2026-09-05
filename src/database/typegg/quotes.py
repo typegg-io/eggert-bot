@@ -1,4 +1,7 @@
+"""Imported quotes and their sources."""
+
 import json
+import sqlite3
 from json import JSONDecodeError
 
 from api.quotes import calculate_metric, get_all_quotes
@@ -12,7 +15,7 @@ from utils.errors import UnknownQuote
 from utils.logging import log, log_server
 
 
-def quote_insert(quote):
+def quote_insert(quote) -> tuple:
     """Return a quote tuple for parameterized inserting."""
     formatting = quote.get("formatting")
     if formatting is not None and not isinstance(formatting, str):
@@ -33,7 +36,7 @@ def quote_insert(quote):
     )
 
 
-def add_quotes(quotes):
+def add_quotes(quotes) -> None:
     """Batch insert or update quotes."""
     db.run_many("""
         INSERT INTO quotes VALUES (?,?,?,?,?,?,?,?,?,?,?)
@@ -51,7 +54,8 @@ def add_quotes(quotes):
     """, [quote_insert(quote) for quote in quotes])
 
 
-def add_quote(quote):
+def add_quote(quote) -> None:
+    """Insert a single quote."""
     db.run(f"""
         INSERT OR IGNORE INTO quotes
         VALUES ({",".join(["?"] * 11)})
@@ -64,7 +68,7 @@ def get_quotes(
     max_difficulty: float = None,
     min_length: int = None,
     max_length: int = None,
-):
+) -> list[dict] | dict[str, dict]:
     """Returns a list or dictionary of existing quotes."""
     conditions = []
     params = []
@@ -105,7 +109,7 @@ def get_quotes(
     return parsed
 
 
-def get_quote(quote_id: str):
+def get_quote(quote_id: str) -> dict:
     """Return a single quote entry with source information."""
     quote = db.fetch_one("""
         SELECT * FROM quotes q
@@ -128,13 +132,14 @@ def get_quote(quote_id: str):
     return quote
 
 
-def is_quote_id(quote_id: str):
+def is_quote_id(quote_id: str) -> bool:
     """Returns a boolean whether a quote ID exists or not."""
     result = db.fetch("SELECT 1 FROM quotes WHERE quoteId = ?", [quote_id])
     return bool(result)
 
 
-async def reimport_quotes():
+async def reimport_quotes() -> None:
+    """Refetch every quote from the API and update the local copies."""
 
     log("Fetching sources")
     async for page_sources in get_all_sources():
@@ -145,7 +150,8 @@ async def reimport_quotes():
         add_quotes(page_quotes)
 
 
-def get_top_submitters():
+def get_top_submitters() -> list[sqlite3.Row]:
+    """Return the 100 users who submitted the most ranked quotes."""
     top = db.fetch("""
         SELECT submittedByUsername, COUNT(*) as submissions
         FROM quotes
@@ -158,7 +164,8 @@ def get_top_submitters():
     return top
 
 
-def get_ranked_quote_count():
+def get_ranked_quote_count() -> int:
+    """Return how many quotes are ranked."""
     result = db.fetch_one("""
         SELECT COUNT(*) AS total FROM quotes
         WHERE ranked = 1
@@ -167,7 +174,8 @@ def get_ranked_quote_count():
     return result["total"]
 
 
-def get_ranked_quote_chars():
+def get_ranked_quote_chars() -> int:
+    """Return the total character count across ranked quotes."""
     result = db.fetch_one("""
         SELECT SUM(LENGTH(text)) AS total FROM quotes
         WHERE ranked = 1
@@ -176,7 +184,7 @@ def get_ranked_quote_chars():
     return result["total"]
 
 
-async def update_quote(quote_id: str, updates: dict):
+async def update_quote(quote_id: str, updates: dict) -> None:
     """
     Update a quote's fields. Only updates provided fields.
     Returns a list of userIds that need reimporting, if ranked changed.
@@ -252,7 +260,7 @@ async def update_quote(quote_id: str, updates: dict):
     """, params)
 
 
-def delete_quote(quote_id: str):
+def delete_quote(quote_id: str) -> None:
     """
     Delete a quote by ID.
     Cascades to delete races and keystroke_data via ON DELETE CASCADE.
