@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+
+{% block head %}
+<meta name="robots" content="noindex, nofollow">
+<link rel="stylesheet" href="/static/css/dashboard.css">
+{% endblock %}
+
+{% block title %}
+Usage Dashboard
+{% endblock %}
+
+{% block content %}
+<div class="dashboard" id="dashboard">
+    <div class="tile-row" id="tiles"></div>
+
+    <section class="panel">
+        <div class="panel-head">
+            <h2>Commands per day</h2>
+            <div class="range-buttons" id="range-buttons">
+                <button type="button" data-days="30">30d</button>
+                <button type="button" data-days="90" class="active">90d</button>
+                <button type="button" data-days="365">1y</button>
+            </div>
+        </div>
+        <div class="chart" id="daily-chart"></div>
+    </section>
+
+    <div class="panel-row">
+        <section class="panel">
+            <div class="panel-head"><h2>Active users</h2></div>
+            <div class="chart" id="active-chart"></div>
+        </section>
+
+        <section class="panel">
+            <div class="panel-head"><h2>Top commands</h2></div>
+            <div class="bar-list" id="top-commands"></div>
+        </section>
+    </div>
+
+    <section class="panel">
+        <div class="panel-head"><h2>Command mix by week</h2></div>
+        <div class="chart" id="mix-chart"></div>
+        <div class="legend" id="mix-legend"></div>
+    </section>
+
+    <section class="panel">
+        <div class="panel-head"><h2>New users per week</h2></div>
+        <div class="chart" id="new-users-chart"></div>
+    </section>
+
+    <p class="updated" id="updated">Loading...</p>
+</div>
+
+<script src="/static/js/dashboard.js" defer></script>
+{% endblock %}

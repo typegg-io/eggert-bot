@@ -1,29 +1,6 @@
 """Tests for the command_log table and the helpers that read it."""
 
-import sqlite3
-
-import pytest
-
-from database.bot import db, users
-
-
-@pytest.fixture
-def scratch_db(tmp_path, monkeypatch):
-    """Point users.db queries at an empty database carrying the real schema."""
-    schema = db.connection.execute("""
-        SELECT sql FROM sqlite_master
-        WHERE sql IS NOT NULL AND name NOT LIKE 'sqlite_%'
-    """).fetchall()
-
-    connection = sqlite3.connect(tmp_path / "users.db")
-    connection.row_factory = sqlite3.Row
-    for (statement,) in schema:
-        connection.execute(statement)
-    connection.commit()
-
-    monkeypatch.setattr(db, "connection", connection)
-    yield connection
-    connection.close()
+from database.bot import users
 
 
 def log(discord_id, command, origin="server", user_id=None):

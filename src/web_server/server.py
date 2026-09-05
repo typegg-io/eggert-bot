@@ -13,6 +13,7 @@ from web_server.filters import FILTERS
 from web_server.middleware import error_middleware, request_logging_middleware, security_headers_middleware
 from web_server.routes.chat import receive_message
 from web_server.routes.compare import compare_page
+from web_server.routes.dashboard import dashboard_page, dashboard_stats
 from web_server.routes.help import help_page
 from web_server.routes.member_count import member_count
 from web_server.routes.quotes import create_quote, patch_quote, remove_quote
@@ -54,6 +55,8 @@ class WebServer(commands.Cog):
         self.app.router.add_post("/users/{userId}/import", import_user)
         self.app.router.add_delete("/users/{userId}", delete_user)
         self.app.router.add_get("/help", help_page)
+        self.app.router.add_get("/dashboard", partial(dashboard_page, self))
+        self.app.router.add_get("/dashboard/stats", dashboard_stats)
         self.app.router.add_get("/compare/{username1}/vs/{username2}", compare_page)
         self.app.router.add_get("/member-count", partial(member_count, self))
 
