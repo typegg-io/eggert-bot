@@ -2,17 +2,18 @@ import subprocess
 
 from discord.ext import commands
 
+from command_info import CommandInfo
 from commands.base import Command
 from commands.checks import is_bot_owner
 from config import STAGING
 from context import BotContext
 from utils.messages import Message, Page
 
-info = {
-    "name": "restart",
-    "aliases": [],
-    "description": "Restarts the bot process.",
-}
+info = CommandInfo(
+    name="restart",
+    aliases=[],
+    description="Restarts the bot process.",
+)
 
 
 class Restart(Command):
@@ -20,7 +21,7 @@ class Restart(Command):
 
     ignore_flags = True
 
-    @commands.command(aliases=info["aliases"])
+    @commands.command(aliases=info.aliases)
     @is_bot_owner()
     async def restart(self, ctx: BotContext):
         """Restart the systemd unit, doing nothing on staging."""

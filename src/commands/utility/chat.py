@@ -3,6 +3,7 @@ from collections import OrderedDict
 import anthropic
 from discord.ext import commands
 
+from command_info import CommandInfo
 from commands.base import Command
 from config import ANTHROPIC_API_KEY, KEEGAN
 from context import BotContext
@@ -13,15 +14,15 @@ from utils.errors import DailyLimitReached
 from utils.messages import Message, Page, usable_in
 from utils.strings import EGGERT
 
-info = {
-    "name": "chat",
-    "aliases": ["ask", "ai"],
-    "description": "Ask Eggert a question about TypeGG or the bot.",
-    "parameters": "<question>",
-    "examples": [
+info = CommandInfo(
+    name="chat",
+    aliases=["ask", "ai"],
+    description="Ask Eggert a question about TypeGG or the bot.",
+    parameters="<question>",
+    examples=[
         "-ask how does pp work?",
     ],
-}
+)
 
 FREE_DAILY_LIMIT = 20
 MAX_CONTEXTS = 500  # max unique (user, channel) pairs kept in memory
@@ -43,7 +44,7 @@ class Chat(Command):
 
     ignore_flags = True
 
-    @commands.command(aliases=info["aliases"])
+    @commands.command(aliases=info.aliases)
     @usable_in(1397687954117361745)
     async def chat(self, ctx: BotContext):
         """Answer the question, enforcing the free daily limit for non-plus users."""

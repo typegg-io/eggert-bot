@@ -1,6 +1,7 @@
 
 from discord.ext import commands
 
+from command_info import CommandInfo
 from commands.base import Command
 from context import BotContext
 from database.typegg.races import get_latest_race
@@ -11,14 +12,14 @@ from utils.logging import ADMIN_ALIASES
 from utils.messages import Message, Page
 from utils.strings import escape_formatting
 
-info = {
-    "name": "redownload",
-    "aliases": ["reimport", "ri"],
-    "description": "Deletes and re-imports your race data.\n"
-                   "Use if your stats seem incorrect or corrupted.\n"
-                   "Has a 10 minute cooldown.",
-    "examples": ["-ri"],
-}
+info = CommandInfo(
+    name="redownload",
+    aliases=["reimport", "ri"],
+    description="Deletes and re-imports your race data.\n"
+                "Use if your stats seem incorrect or corrupted.\n"
+                "Has a 10 minute cooldown.",
+    examples=["-ri"],
+)
 
 
 class ReDownload(Command):
@@ -27,7 +28,7 @@ class ReDownload(Command):
     ignore_flags = True
 
     @commands.cooldown(1, 600, commands.BucketType.user)
-    @commands.command(aliases=info["aliases"])
+    @commands.command(aliases=info.aliases)
     async def redownload(self, ctx: BotContext, username: str = None):
         """Confirm with the caller, wipe their races, then import them again."""
         try:

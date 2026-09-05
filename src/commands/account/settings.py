@@ -2,6 +2,7 @@ import zoneinfo
 
 from discord.ext import commands
 
+from command_info import CommandInfo
 from commands.base import Command
 from context import BotContext
 from database.bot.users import update_timezone
@@ -10,14 +11,14 @@ from utils.messages import Message, Page
 from utils.strings import get_argument
 
 settings = {"timezone"}
-info = {
-    "name": "settings",
-    "aliases": ["set"],
-    "description": "Change your personal bot settings:\n"
-                   "\\- `timezone` (IANA format, defaults to UTC)",
-    "parameters": "<setting> <value>",
-    "examples": ["-set timezone America/New_York"],
-}
+info = CommandInfo(
+    name="settings",
+    aliases=["set"],
+    description="Change your personal bot settings:\n"
+                "\\- `timezone` (IANA format, defaults to UTC)",
+    parameters="<setting> <value>",
+    examples=["-set timezone America/New_York"],
+)
 
 
 class Settings(Command):
@@ -25,7 +26,7 @@ class Settings(Command):
 
     ignore_flags = True
 
-    @commands.command(aliases=info["aliases"])
+    @commands.command(aliases=info.aliases)
     async def settings(self, ctx: BotContext, setting: str, value: str):
         """Validate the setting and value, store it, then confirm."""
         setting = get_argument(settings, setting)

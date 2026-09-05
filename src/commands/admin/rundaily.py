@@ -1,17 +1,18 @@
 from discord.ext import commands
 
+from command_info import CommandInfo
 from commands.base import Command
 from commands.checks import is_bot_owner
 from context import BotContext
 from tasks import daily_quote_ping, daily_quote_results, import_daily_quotes
 from utils.messages import Message, Page
 
-info = {
-    "name": "rundaily",
-    "aliases": [],
-    "description": "Manually triggers the daily quote messages",
-    "parameters": "",
-}
+info = CommandInfo(
+    name="rundaily",
+    aliases=[],
+    description="Manually triggers the daily quote messages",
+    parameters="",
+)
 
 
 class RunDaily(Command):
@@ -19,7 +20,7 @@ class RunDaily(Command):
 
     ignore_flags = True
 
-    @commands.command(aliases=info["aliases"])
+    @commands.command(aliases=info.aliases)
     @is_bot_owner()
     async def rundaily(self, ctx: BotContext):
         """Send the daily results and ping, reporting each step's outcome."""

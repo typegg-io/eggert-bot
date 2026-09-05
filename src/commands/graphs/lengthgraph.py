@@ -1,6 +1,7 @@
 from discord import File
 from discord.ext import commands
 
+from command_info import CommandInfo
 from commands.base import Command
 from context import BotContext
 from database.typegg.users import get_best_by_length
@@ -8,20 +9,20 @@ from graphs import length
 
 max_users = 5
 
-info = {
-    "name": "lengthgraph",
-    "aliases": ["leng"],
-    "description": "Displays peak pp (or WPM) at each quote length.\n"
-                   "Shows how your performance varies across short and long quotes.\n"
-                   f"Supports up to {max_users} users.",
-    "parameters": f"[username1] ... [username{max_users}]",
-    "examples": [
+info = CommandInfo(
+    name="lengthgraph",
+    aliases=["leng"],
+    description="Displays peak pp (or WPM) at each quote length.\n"
+                "Shows how your performance varies across short and long quotes.\n"
+                f"Supports up to {max_users} users.",
+    parameters=f"[username1] ... [username{max_users}]",
+    examples=[
         "-leng",
         "-leng eiko",
         "-leng eiko me",
         "-leng eiko -wpm",
     ],
-}
+)
 
 
 class LengthGraph(Command):
@@ -29,7 +30,7 @@ class LengthGraph(Command):
 
     supported_flags = {"metric"}
 
-    @commands.command(aliases=info["aliases"])
+    @commands.command(aliases=info.aliases)
     async def lengthgraph(self, ctx: BotContext, *args: str):
         """Graph the length curve for each user named."""
         profiles = await self.get_profiles(ctx, args, max_users)

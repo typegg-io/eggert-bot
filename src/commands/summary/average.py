@@ -1,5 +1,6 @@
 from discord.ext import commands
 
+from command_info import CommandInfo
 from commands.base import Command
 from context import BotContext
 from database.typegg.quotes import get_quotes
@@ -9,17 +10,17 @@ from utils.messages import Field, Message, Page
 from utils.schemas import Profile
 from utils.strings import format_duration
 
-info = {
-    "name": "average",
-    "aliases": ["avg", "a", "rsa", "rawsa"],
-    "description": "Displays the average stats of a user's last n races.",
-    "parameters": "[username] [n:25]",
-    "examples": [
+info = CommandInfo(
+    name="average",
+    aliases=["avg", "a", "rsa", "rawsa"],
+    description="Displays the average stats of a user's last n races.",
+    parameters="[username] [n:25]",
+    examples=[
         "-a",
         "-a eiko",
         "-a eiko 50",
     ],
-}
+)
 
 
 class Average(Command):
@@ -27,7 +28,7 @@ class Average(Command):
 
     supported_flags = {"gamemode", "status", "language", "number"}
 
-    @commands.command(aliases=info["aliases"])
+    @commands.command(aliases=info.aliases)
     async def average(self, ctx: BotContext, *args: str):
         """Default to the last 25 quickplay races, then average them."""
         ctx.flags.gamemode = ctx.flags.gamemode or "quickplay"

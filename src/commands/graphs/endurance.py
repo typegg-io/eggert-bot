@@ -2,6 +2,7 @@
 from discord import File
 from discord.ext import commands
 
+from command_info import CommandInfo
 from commands.base import Command
 from context import BotContext
 from database.typegg.users import get_running_maximum_by_length
@@ -10,26 +11,26 @@ from utils.schemas import Profile
 
 max_users = 5
 
-info = {
-    "name": "endurance",
-    "aliases": ["end"],
-    "description": "Displays peak WPM achieved at each quote length.\n"
-                   "Shows your ability to maintain speed across longer quotes.\n"
-                   f"Supports up to {max_users} users.",
-    "parameters": f"[username1] ... [username{max_users}]",
-    "examples": [
+info = CommandInfo(
+    name="endurance",
+    aliases=["end"],
+    description="Displays peak WPM achieved at each quote length.\n"
+                "Shows your ability to maintain speed across longer quotes.\n"
+                f"Supports up to {max_users} users.",
+    parameters=f"[username1] ... [username{max_users}]",
+    examples=[
         "-end",
         "-end eiko",
         "-end eiko me",
     ],
-    "author": 231721357484752896,
-}
+    author=231721357484752896,
+)
 
 
 class Endurance(Command):
     """Graph peak WPM achieved at each quote length."""
 
-    @commands.command(aliases=info["aliases"])
+    @commands.command(aliases=info.aliases)
     async def endurance(self, ctx: BotContext, *args: str):
         """Graph the endurance curve for each user named."""
         profiles = await self.get_profiles(ctx, args, max_users)

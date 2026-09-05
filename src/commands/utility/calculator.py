@@ -4,22 +4,23 @@ import aiohttp
 from discord import Embed
 from discord.ext import commands
 
+from command_info import CommandInfo
 from commands.base import Command
 from context import BotContext
 from utils.colors import ERROR
 from utils.errors import MissingArguments
 from utils.messages import Message, Page
 
-info = {
-    "name": "calculator",
-    "aliases": ["cc", "eval", "math"],
-    "description": "Evaluates a mathematical expression.\nUses https://api.mathjs.org/",
-    "parameters": "[expression]",
-    "examples": [
+info = CommandInfo(
+    name="calculator",
+    aliases=["cc", "eval", "math"],
+    description="Evaluates a mathematical expression.\nUses https://api.mathjs.org/",
+    parameters="[expression]",
+    examples=[
         "-cc 2 + 2",
         "-cc 1000 / 3",
     ],
-}
+)
 
 
 class Calculator(Command):
@@ -27,7 +28,7 @@ class Calculator(Command):
 
     ignore_flags = True
 
-    @commands.command(aliases=info["aliases"])
+    @commands.command(aliases=info.aliases)
     async def calculator(self, ctx: BotContext):
         """Evaluate the expression through mathjs and send the result."""
         if not ctx.raw_args:

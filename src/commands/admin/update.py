@@ -4,17 +4,18 @@ import subprocess
 from discord import Embed
 from discord.ext import commands
 
+from command_info import CommandInfo
 from commands.base import Command
 from commands.checks import is_bot_owner
 from config import ROOT_DIR, STAGING
 from context import BotContext
 from utils.messages import Message, Page
 
-info = {
-    "name": "update",
-    "aliases": [],
-    "description": "Pulls the latest changes and restarts the bot.",
-}
+info = CommandInfo(
+    name="update",
+    aliases=[],
+    description="Pulls the latest changes and restarts the bot.",
+)
 
 
 class Update(Command):
@@ -22,7 +23,7 @@ class Update(Command):
 
     ignore_flags = True
 
-    @commands.command(aliases=info["aliases"])
+    @commands.command(aliases=info.aliases)
     @is_bot_owner()
     async def update(self, ctx: BotContext):
         """Pull from origin, report the output, then restart. Does nothing on staging."""

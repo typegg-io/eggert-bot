@@ -1,18 +1,19 @@
 from discord.ext import commands
 
+from command_info import CommandInfo
 from commands.base import Command
 from commands.checks import is_bot_owner
 from context import BotContext
 from database.bot.users import migrate_command_name
 from utils.messages import Message, Page
 
-info = {
-    "name": "renamecommand",
-    "aliases": [],
-    "description": "Migrates command usage data from an old command name to a new one.\n"
-                   "Merges counts if the new name already exists for a user.",
-    "parameters": "<old_name> <new_name>",
-}
+info = CommandInfo(
+    name="renamecommand",
+    aliases=[],
+    description="Migrates command usage data from an old command name to a new one.\n"
+                "Merges counts if the new name already exists for a user.",
+    parameters="<old_name> <new_name>",
+)
 
 
 class RenameCommand(Command):
@@ -20,7 +21,7 @@ class RenameCommand(Command):
 
     ignore_flags = True
 
-    @commands.command(aliases=info["aliases"])
+    @commands.command(aliases=info.aliases)
     @is_bot_owner()
     async def renamecommand(self, ctx: BotContext, old_name: str, new_name: str):
         """Migrate the usage counts, then report how many records moved."""

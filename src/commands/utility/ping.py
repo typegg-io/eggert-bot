@@ -1,17 +1,18 @@
 from discord.ext import commands
 
+from command_info import CommandInfo
 from commands.base import Command
 from context import BotContext
 from utils.messages import Message, Page
 
-info = {
-    "name": "ping",
-    "aliases": ["p"],
-    "description": "Displays the bot's latency.",
-    "examples": [
+info = CommandInfo(
+    name="ping",
+    aliases=["p"],
+    description="Displays the bot's latency.",
+    examples=[
         "-ping",
     ],
-}
+)
 
 
 class Ping(Command):
@@ -19,7 +20,7 @@ class Ping(Command):
 
     ignore_flags = True
 
-    @commands.command(aliases=info["aliases"])
+    @commands.command(aliases=info.aliases)
     async def ping(self, ctx: BotContext):
         """Send the bot's current latency in milliseconds."""
         latency = round(self.bot.latency * 1000)

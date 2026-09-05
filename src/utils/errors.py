@@ -5,6 +5,7 @@ from dataclasses import dataclass
 from discord import Embed
 from discord.ext.commands import CheckFailure, CommandError
 
+from command_info import CommandInfo
 from config import BOT_PREFIX as prefix, EIKO
 from utils.colors import PLUS, WARNING
 from utils.flags import Flags, get_flag_title
@@ -31,15 +32,13 @@ class BotError(CommandError):
 class MissingArguments(CommandError):
     """Raised when one or more parameters are missing from command arguments."""
 
-    def usage_embed(self, info: dict, show_tip: bool = False) -> Embed:
+    def usage_embed(self, info: CommandInfo, show_tip: bool = False) -> Embed:
         """Return the usage embed for a command, with an optional link tip."""
-        # Commands that take no arguments omit "parameters" entirely.
-        usage = f"{prefix}{info["name"]} {info.get("parameters", "")}".rstrip()
         embed = Embed(
             title="Missing Argument",
             description=(
                 "One or more arguments is missing\n"
-                f"Usage: `{usage}`"
+                f"Usage: `{info.usage}`"
             ),
         )
         if show_tip:

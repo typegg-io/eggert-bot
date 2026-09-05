@@ -1,5 +1,6 @@
 from discord.ext import commands
 
+from command_info import CommandInfo
 from commands.base import Command
 from commands.checks import is_bot_admin
 from context import BotContext
@@ -9,12 +10,12 @@ from utils.errors import ProfileNotFound
 from utils.messages import Message, Page
 from utils.schemas import Profile
 
-info = {
-    "name": "deleteuser",
-    "aliases": ["du"],
-    "description": "Deletes a user from the bot's database",
-    "parameters": "<username>",
-}
+info = CommandInfo(
+    name="deleteuser",
+    aliases=["du"],
+    description="Deletes a user from the bot's database",
+    parameters="<username>",
+)
 
 
 class DeleteUser(Command):
@@ -22,7 +23,7 @@ class DeleteUser(Command):
 
     ignore_flags = True
 
-    @commands.command(aliases=info["aliases"])
+    @commands.command(aliases=info.aliases)
     @is_bot_admin()
     async def deleteuser(self, ctx: BotContext, username: str):
         """Confirm with the caller, then delete the named user."""

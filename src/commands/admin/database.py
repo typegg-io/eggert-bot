@@ -1,16 +1,17 @@
 from discord.ext import commands
 
+from command_info import CommandInfo
 from commands.base import Command
 from commands.checks import is_bot_owner
 from context import BotContext
 from database.typegg.db import get_row_count
 from utils.messages import Message, Page
 
-info = {
-    "name": "database",
-    "aliases": ["db"],
-    "description": "Display database table stats",
-}
+info = CommandInfo(
+    name="database",
+    aliases=["db"],
+    description="Display database table stats",
+)
 
 
 class Database(Command):
@@ -18,7 +19,7 @@ class Database(Command):
 
     ignore_flags = True
 
-    @commands.command(aliases=info["aliases"])
+    @commands.command(aliases=info.aliases)
     @is_bot_owner()
     async def database(self, ctx: BotContext):
         """Send the race, user, quote and source row counts."""

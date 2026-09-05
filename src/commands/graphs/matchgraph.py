@@ -3,6 +3,7 @@ from copy import deepcopy
 from discord.ext import commands
 
 from api.users import get_race
+from command_info import CommandInfo
 from commands.base import Command
 from commands.graphs.racegraph import run as run_racegraph
 from context import BotContext
@@ -17,18 +18,18 @@ from utils.schemas import Profile
 from utils.stats import get_pauseless_delays
 from utils.strings import quote_display, rank, username_with_flag
 
-info = {
-    "name": "matchgraph",
-    "aliases": ["mg"],
-    "description": "Displays rankings and WPM over keystrokes for a multiplayer match.\n"
-                   "Defaults to the user's most recent match.",
-    "parameters": "[username] [race_number]",
-    "examples": [
+info = CommandInfo(
+    name="matchgraph",
+    aliases=["mg"],
+    description="Displays rankings and WPM over keystrokes for a multiplayer match.\n"
+                "Defaults to the user's most recent match.",
+    parameters="[username] [race_number]",
+    examples=[
         "-mg",
         "-mg eiko",
         "-mg eiko 1500",
     ],
-}
+)
 
 
 class MatchGraph(Command):
@@ -36,7 +37,7 @@ class MatchGraph(Command):
 
     supported_flags = {"number"}
 
-    @commands.command(aliases=info["aliases"])
+    @commands.command(aliases=info.aliases)
     async def matchgraph(self, ctx: BotContext, username: str = None):
         """Graph the user's most recent match, or the one the number flag names."""
         profile = await self.get_profile(ctx, username)

@@ -1,5 +1,6 @@
 from discord.ext import commands
 
+from command_info import CommandInfo
 from commands.base import Command, enforce_daily_quote
 from config import DAILY_QUOTE_CHANNEL_ID
 from context import BotContext
@@ -9,15 +10,15 @@ from utils.messages import Message, Page, usable_in
 from utils.strings import quote_display, rank, username_with_flag
 from utils.urls import race_url
 
-info = {
-    "name": "quoteleaderboard",
-    "aliases": ["qlb", "10"],
-    "description": "Displays the top 10 leaderboard for a specific quote.",
-    "parameters": "<quote_id>",
-    "examples": [
+info = CommandInfo(
+    name="quoteleaderboard",
+    aliases=["qlb", "10"],
+    description="Displays the top 10 leaderboard for a specific quote.",
+    parameters="<quote_id>",
+    examples=[
         "-10 piykyai_3408",
     ],
-}
+)
 
 
 class QuoteLeaderboard(Command):
@@ -25,7 +26,7 @@ class QuoteLeaderboard(Command):
 
     supported_flags = {"quote_id"}
 
-    @commands.command(aliases=info["aliases"])
+    @commands.command(aliases=info.aliases)
     @usable_in(DAILY_QUOTE_CHANNEL_ID)
     async def quoteleaderboard(self, ctx: BotContext):
         """Resolve the quote from the flag or the channel's most recent one, then render it."""

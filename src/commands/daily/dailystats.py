@@ -4,6 +4,7 @@ import numpy as np
 from discord.ext import commands
 
 from api.daily_quotes import START_DATE
+from command_info import CommandInfo
 from commands.base import Command
 from config import DAILY_QUOTE_CHANNEL_ID
 from context import BotContext
@@ -13,23 +14,23 @@ from utils.messages import Field, Message, Page, usable_in
 from utils.schemas import Profile
 from utils.strings import get_streak_emoji
 
-info = {
-    "name": "dailystats",
-    "aliases": ["ds"],
-    "description": "Displays stats about a user's daily quote history.\n"
-                   "Includes streaks, participation rate, average pp/WPM, and top placements.",
-    "parameters": "[username]",
-    "examples": [
+info = CommandInfo(
+    name="dailystats",
+    aliases=["ds"],
+    description="Displays stats about a user's daily quote history.\n"
+                "Includes streaks, participation rate, average pp/WPM, and top placements.",
+    parameters="[username]",
+    examples=[
         "-ds",
         "-ds joshu",
     ],
-}
+)
 
 
 class DailyStats(Command):
     """Display a user's daily quote history."""
 
-    @commands.command(aliases=info["aliases"])
+    @commands.command(aliases=info.aliases)
     @usable_in(DAILY_QUOTE_CHANNEL_ID)
     async def dailystats(self, ctx: BotContext, username: str = None):
         """Resolve the username, then render their daily quote stats."""

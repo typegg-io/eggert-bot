@@ -1,5 +1,6 @@
 from discord.ext import commands
 
+from command_info import CommandInfo
 from commands.base import Command
 from context import BotContext
 from database.typegg.quotes import get_quotes
@@ -10,21 +11,21 @@ from utils.messages import Message, Page
 from utils.schemas import Profile
 from utils.strings import date_range_display
 
-info = {
-    "name": "bestaverages",
-    "aliases": ["ba"],
-    "description": "Displays a user's top 10 best WPM averages of n consecutive races.\n"
-                   "Averages are non-overlapping.\n"
-                   "Use `acc` to show best accuracy averages.",
-    "parameters": "[username] [n:25] [acc]",
-    "examples": [
+info = CommandInfo(
+    name="bestaverages",
+    aliases=["ba"],
+    description="Displays a user's top 10 best WPM averages of n consecutive races.\n"
+                "Averages are non-overlapping.\n"
+                "Use `acc` to show best accuracy averages.",
+    parameters="[username] [n:25] [acc]",
+    examples=[
         "-ba",
         "-ba eiko",
         "-ba eiko 50",
         "-ba eiko 50 acc",
     ],
-    "privacy": True,
-}
+    privacy=True,
+)
 
 
 class BestAverages(Command):
@@ -32,7 +33,7 @@ class BestAverages(Command):
 
     supported_flags = {"raw", "gamemode", "status", "language", "number"}
 
-    @commands.command(aliases=info["aliases"])
+    @commands.command(aliases=info.aliases)
     async def bestaverages(self, ctx: BotContext, *args: str):
         """Default to 25 quickplay races, then rank the best non-overlapping windows."""
         ctx.flags.gamemode = ctx.flags.gamemode or "quickplay"

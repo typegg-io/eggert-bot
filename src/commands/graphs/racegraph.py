@@ -1,5 +1,6 @@
 from discord.ext import commands
 
+from command_info import CommandInfo
 from commands.base import Command, enforce_daily_quote
 from config import DAILY_QUOTE_CHANNEL_ID
 from context import BotContext
@@ -15,19 +16,19 @@ from utils.messages import Field, Message, Page, usable_in
 from utils.schemas import Profile
 from utils.strings import GG_PLUS_LINKED, format_duration, quote_display
 
-info = {
-    "name": "racegraph",
-    "aliases": ["rg", "r"],
-    "description": "Displays a WPM over keystrokes graph for a given race.\n"
-                   "Pass a quote ID to show the user's best race on that quote.",
-    "parameters": "[username] [race_number/quote_id]",
-    "examples": [
+info = CommandInfo(
+    name="racegraph",
+    aliases=["rg", "r"],
+    description="Displays a WPM over keystrokes graph for a given race.\n"
+                "Pass a quote ID to show the user's best race on that quote.",
+    parameters="[username] [race_number/quote_id]",
+    examples=[
         "-r",
         "-r eiko",
         "-r eiko 1500",
         "-r eiko piykyai_3408",
     ],
-}
+)
 
 
 class RaceGraph(Command):
@@ -35,7 +36,7 @@ class RaceGraph(Command):
 
     supported_flags = {"number", "quote_id"}
 
-    @commands.command(aliases=info["aliases"])
+    @commands.command(aliases=info.aliases)
     @usable_in(DAILY_QUOTE_CHANNEL_ID)
     async def racegraph(self, ctx: BotContext, *args: str):
         """Graph the race number given, or the user's best race on a quote."""

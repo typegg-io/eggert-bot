@@ -4,6 +4,7 @@ from dateutil import parser
 from discord.ext import commands
 
 from api.quotes import calculate_metric
+from command_info import CommandInfo
 from commands.base import Command, enforce_daily_quote
 from commands.graphs.segments import build_segments, format_segment
 from config import DAILY_QUOTE_CHANNEL_ID
@@ -16,18 +17,18 @@ from utils.messages import Message, Page, usable_in
 from utils.schemas import Profile
 from utils.strings import format_duration, get_segments, quote_display
 
-info = {
-    "name": "sumofbest",
-    "aliases": ["sob", ":sob:", "😭"],
-    "description": "Displays a theoretical best race by combining your fastest segments.\n"
-                   "Pass a quote ID to view a specific quote.",
-    "parameters": "[quote_id] [username]",
-    "examples": [
+info = CommandInfo(
+    name="sumofbest",
+    aliases=["sob", ":sob:", "😭"],
+    description="Displays a theoretical best race by combining your fastest segments.\n"
+                "Pass a quote ID to view a specific quote.",
+    parameters="[quote_id] [username]",
+    examples=[
         "-sob",
         "-sob piykyai_3408",
     ],
-    "plus": True,
-}
+    plus=True,
+)
 
 
 class SumOfBest(Command):
@@ -35,7 +36,7 @@ class SumOfBest(Command):
 
     supported_flags = {"gamemode", "number", "quote_id"}
 
-    @commands.command(aliases=info["aliases"])
+    @commands.command(aliases=info.aliases)
     @usable_in(DAILY_QUOTE_CHANNEL_ID)
     async def sumofbest(self, ctx: BotContext, *args: str):
         """Graph the sum of best for the quote given, or the user's last race."""

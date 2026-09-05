@@ -1,18 +1,19 @@
 import discord
 from discord.ext import commands
 
+from command_info import CommandInfo
 from commands.base import Command
 from commands.checks import is_bot_owner
 from context import BotContext
 from database.bot.users import get_user, unadmin_user
 from utils.messages import Message, Page
 
-info = {
-    "name": "unadmin",
-    "aliases": [],
-    "description": "Removes a user's bot admin status",
-    "parameters": "<user>",
-}
+info = CommandInfo(
+    name="unadmin",
+    aliases=[],
+    description="Removes a user's bot admin status",
+    parameters="<user>",
+)
 
 
 class Unadmin(Command):
@@ -20,7 +21,7 @@ class Unadmin(Command):
 
     ignore_flags = True
 
-    @commands.command(aliases=info["aliases"])
+    @commands.command(aliases=info.aliases)
     @is_bot_owner()
     async def unadmin(self, ctx: BotContext, user: discord.User):
         """Revoke the named user's bot admin rights."""

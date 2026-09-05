@@ -4,6 +4,7 @@ from difflib import get_close_matches
 
 from discord.ext import commands
 
+from command_info import CommandInfo
 from commands.base import Command
 from context import BotContext
 from database.bot import art as art_db
@@ -13,10 +14,10 @@ from utils.errors import BotError, MissingArguments
 from utils.logging import ADMIN_ALIASES
 from utils.messages import Message, Page, paginate_data
 
-info = {
-    "name": "art",
-    "aliases": [],
-    "description": (
+info = CommandInfo(
+    name="art",
+    aliases=[],
+    description=(
         "View and submit community art!\n\n"
         "**Usage:**\n"
         "`-art` - View a random piece of art\n"
@@ -28,14 +29,14 @@ info = {
         "`-art rename \"old title\" \"new title\"` - Rename your art\n"
         "`-art delete <title>` - Delete your own art"
     ),
-    "parameters": "[title | add <title> | update <title> | rename \"old\" \"new\" | delete <title> | list | @user]",
-    "examples": [
+    parameters="[title | add <title> | update <title> | rename \"old\" \"new\" | delete <title> | list | @user]",
+    examples=[
         "-art",
         "-art list",
         "-art skypromp",
         "-art add My Drawing",
     ],
-}
+)
 
 
 class Art(Command):
@@ -43,7 +44,7 @@ class Art(Command):
 
     ignore_flags = True
 
-    @commands.command(aliases=info["aliases"])
+    @commands.command(aliases=info.aliases)
     async def art(self, ctx: BotContext):
         """Dispatch to the gallery subcommand the first argument names."""
         args = " ".join(ctx.raw_args)

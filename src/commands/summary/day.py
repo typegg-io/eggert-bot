@@ -1,23 +1,24 @@
 from dateutil.relativedelta import relativedelta
 from discord.ext import commands
 
+from command_info import CommandInfo
 from commands.base import Command
 from commands.summary.races import run
 from context import BotContext
 
-info = {
-    "name": "day",
-    "aliases": ["d", "yesterday", "yd"],
-    "description": "Displays race information for a user on a given day.\n"
-                   "Date defaults to today.",
-    "parameters": "[username] [date]",
-    "examples": [
+info = CommandInfo(
+    name="day",
+    aliases=["d", "yesterday", "yd"],
+    description="Displays race information for a user on a given day.\n"
+                "Date defaults to today.",
+    parameters="[username] [date]",
+    examples=[
         "-d",
         "-d eiko",
         "-d eiko 2024-01-01",
         "-yd eiko",
     ],
-}
+)
 
 
 class Day(Command):
@@ -25,7 +26,7 @@ class Day(Command):
 
     supported_flags = {"gamemode", "status", "language", "date"}
 
-    @commands.command(aliases=info["aliases"])
+    @commands.command(aliases=info.aliases)
     async def day(self, ctx: BotContext, *args: str):
         """Resolve the date, stepping back one day when invoked as `-yesterday`."""
         date = ctx.flags.date

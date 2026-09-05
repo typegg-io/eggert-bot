@@ -1,5 +1,6 @@
 from discord.ext import commands
 
+from command_info import CommandInfo
 from commands.base import Command
 from context import BotContext
 from database.typegg.quotes import get_quotes
@@ -12,20 +13,20 @@ from utils.schemas import Profile
 from utils.strings import quote_display
 
 metrics = ["pp", "wpm"]
-info = {
-    "name": "best",
-    "aliases": ["b"],
-    "description": "Displays a user's top 100 quote bests ordered by pp or WPM.\n"
-                   "Use `pp` or `wpm` to set the metric.\n"
-                   "Filter by WPM range: `>150`, `<120`, or `100-150`.",
-    "parameters": "[username] [pp|wpm] [wpm range]",
-    "examples": [
+info = CommandInfo(
+    name="best",
+    aliases=["b"],
+    description="Displays a user's top 100 quote bests ordered by pp or WPM.\n"
+                "Use `pp` or `wpm` to set the metric.\n"
+                "Filter by WPM range: `>150`, `<120`, or `100-150`.",
+    parameters="[username] [pp|wpm] [wpm range]",
+    examples=[
         "-b",
         "-b eiko",
         "-b eiko wpm",
         "-b eiko >150"
     ],
-}
+)
 
 
 class Best(Command):
@@ -33,7 +34,7 @@ class Best(Command):
 
     supported_flags = {"metric", "raw", "gamemode", "status", "language", "number_range"}
 
-    @commands.command(aliases=info["aliases"])
+    @commands.command(aliases=info.aliases)
     async def best(self, ctx: BotContext, username: str = None):
         """Resolve the username, then render their quote bests in descending order."""
         if ctx.flags.metric == "pp" and ctx.flags.raw and not ctx.user["isGgPlus"]:

@@ -1,5 +1,6 @@
 from discord.ext import commands
 
+from command_info import CommandInfo
 from commands.base import Command
 from context import BotContext
 from database.typegg.quotes import get_quotes
@@ -8,17 +9,17 @@ from utils.dates import discord_date
 from utils.messages import Message, paginate_data
 from utils.schemas import Profile
 
-info = {
-    "name": "racehistory",
-    "aliases": ["rh"],
-    "description": "Displays a user's recent race history.",
-    "parameters": "[username]",
-    "examples": [
+info = CommandInfo(
+    name="racehistory",
+    aliases=["rh"],
+    description="Displays a user's recent race history.",
+    parameters="[username]",
+    examples=[
         "-rh",
         "-rh eiko",
     ],
-    "privacy": True,
-}
+    privacy=True,
+)
 
 
 class RaceHistory(Command):
@@ -26,7 +27,7 @@ class RaceHistory(Command):
 
     supported_flags = {"gamemode", "status", "language"}
 
-    @commands.command(aliases=info["aliases"])
+    @commands.command(aliases=info.aliases)
     async def racehistory(self, ctx: BotContext, username: str = None):
         """Resolve the username, then render their recent races."""
         profile = await self.get_profile(ctx, username)

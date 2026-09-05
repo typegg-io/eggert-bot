@@ -1,16 +1,17 @@
 from discord.ext import commands
 
 from bot_setup import is_locked, set_lockdown
+from command_info import CommandInfo
 from commands.base import Command
 from commands.checks import is_bot_owner
 from context import BotContext
 from utils.messages import Message, Page
 
-info = {
-    "name": "lockdown",
-    "aliases": ["ld"],
-    "description": "Toggles lockdown mode, disabling all commands for non-owners.",
-}
+info = CommandInfo(
+    name="lockdown",
+    aliases=["ld"],
+    description="Toggles lockdown mode, disabling all commands for non-owners.",
+)
 
 
 class Lockdown(Command):
@@ -18,7 +19,7 @@ class Lockdown(Command):
 
     ignore_flags = True
 
-    @commands.command(aliases=info["aliases"])
+    @commands.command(aliases=info.aliases)
     @is_bot_owner()
     async def lockdown(self, ctx: BotContext):
         """Flip lockdown mode and report the new state."""

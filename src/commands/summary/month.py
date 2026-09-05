@@ -1,23 +1,24 @@
 from dateutil.relativedelta import relativedelta
 from discord.ext import commands
 
+from command_info import CommandInfo
 from commands.base import Command
 from commands.summary.races import run
 from context import BotContext
 
-info = {
-    "name": "month",
-    "aliases": ["m", "yestermonth", "ym", "lm"],
-    "description": "Displays race information for a user in a given month.\n"
-                   "Date defaults to the current month.",
-    "parameters": "[username] [date]",
-    "examples": [
+info = CommandInfo(
+    name="month",
+    aliases=["m", "yestermonth", "ym", "lm"],
+    description="Displays race information for a user in a given month.\n"
+                "Date defaults to the current month.",
+    parameters="[username] [date]",
+    examples=[
         "-m",
         "-m eiko",
         "-m eiko 2024-01",
         "-lm eiko",
     ],
-}
+)
 
 
 class Month(Command):
@@ -25,7 +26,7 @@ class Month(Command):
 
     supported_flags = {"gamemode", "status", "language", "date"}
 
-    @commands.command(aliases=info["aliases"])
+    @commands.command(aliases=info.aliases)
     async def month(self, ctx: BotContext, *args: str):
         """Resolve the date, stepping back one month when invoked as `-yestermonth`."""
         date = ctx.flags.date

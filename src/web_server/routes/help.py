@@ -20,12 +20,12 @@ async def help_page(request: web.Request) -> dict:
             continue
         info = module.info
         modules_by_group[group].append({
-            "name": info["name"],
-            "aliases": info.get("aliases", []),
-            "description": info.get("description", ""),
-            "parameters": info.get("parameters", ""),
-            "examples": info.get("examples", []),
-            "plus": info.get("plus", False),
+            "name": info.name,
+            "aliases": info.aliases,
+            "description": info.description,
+            "parameters": info.parameters,
+            "examples": info.examples,
+            "plus": info.plus,
             "prefix": BOT_PREFIX,
         })
 

@@ -1,5 +1,6 @@
 from discord.ext import commands
 
+from command_info import CommandInfo
 from commands.base import Command
 from config import BOT_PREFIX as prefix, BOT_SUBDOMAIN
 from context import BotContext
@@ -9,14 +10,14 @@ from utils.files import get_command_modules
 from utils.messages import Field, Message, Page
 from utils.strings import GG_PLUS
 
-info = {
-    "name": "help",
-    "aliases": ["h"],
-    "description": "Displays a list of available commands.\n"
-                   "Pass a command name to view its usage and aliases.",
-    "parameters": "[command]",
-    "examples": ["-h", "-h stats"],
-}
+info = CommandInfo(
+    name="help",
+    aliases=["h"],
+    description="Displays a list of available commands.\n"
+                "Pass a command name to view its usage and aliases.",
+    parameters="[command]",
+    examples=["-h", "-h stats"],
+)
 
 
 class Help(Command):
@@ -24,7 +25,7 @@ class Help(Command):
 
     ignore_flags = True
 
-    @commands.command(aliases=info["aliases"])
+    @commands.command(aliases=info.aliases)
     async def help(self, ctx: BotContext):
         """Dispatch to the command index or to one command's usage."""
         command = " ".join(ctx.raw_args)
@@ -69,7 +70,7 @@ async def help_main(ctx: BotContext) -> None:
         if group in modules_by_group:
             for module in modules_by_group[group]:
                 command_info = module.info
-                commands.append((command_info["name"], command_info.get("plus", False)))
+                commands.append((command_info.name, command_info.plus))
 
         commands.sort(key=lambda x: x[0])
 
@@ -108,7 +109,7 @@ async def help_command(ctx: BotContext, command_name: str) -> None:
     command = None
     for group, file, module in get_command_modules():
         command_info = module.info
-        if command_name in [command_info["name"]] + command_info["aliases"]:
+        if command_name in command_info.all_names:
             if group == "admin" and not ctx.user["isAdmin"]:
                 raise UserNotAdmin
             command = command_info
@@ -117,48 +118,34 @@ async def help_command(ctx: BotContext, command_name: str) -> None:
     if not command:
         raise UnknownCommand
 
-    name = command["name"]
-    aliases = command["aliases"]
     fields = []
 
-    parameter_string = f"`{prefix}{name}"
-    if command.get("parameters"):
-        parameter_string += " " + command["parameters"]
-    parameter_string += "`"
-
-    if "usage" in command:
-        fields.append(Field(
-            title="Usage",
-            content="\n".join([f"`{prefix}{usage}`" for usage in command["usage"]]),
-        ))
-
-    if aliases:
+    if command.aliases:
         fields.append(Field(
             title="Aliases",
-            content=", ".join([f"`{prefix}{alias}`" for alias in aliases]),
+            content=", ".join([f"`{prefix}{alias}`" for alias in command.aliases]),
         ))
 
-    command_author = command.get("author", None)
-    if command_author:
+    if command.author:
         fields.append(Field(
             title="\t",
-            content=f"-# Command by <@{command_author}>"
+            content=f"-# Command by <@{command.author}>"
         ))
 
-    if command.get("plus"):
+    if command.plus:
         fields.append(Field(
             title="\t",
             content=f"{GG_PLUS} exclusive"
         ))
 
     page = Page(
-        title=f"Help: `{prefix}{name}`",
-        description=command["description"],
+        title=f"Help: `{prefix}{command.name}`",
+        description=command.description,
         fields=fields,
         color=ctx.user["theme"]["embed"],
     )
 
-    if command.get("privacy"):
+    if command.privacy:
         page.footer = "⚠️ This command exposes hidden races (non-quote bests)"
 
     message = Message(

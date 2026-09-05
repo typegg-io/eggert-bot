@@ -20,14 +20,14 @@ def build_system_prompt() -> str:
             continue
         if group not in by_group:
             by_group[group] = []
-        line = f"-{info['name']}"
-        if info.get("aliases"):
-            line += f" (aliases: {', '.join('-' + a for a in info['aliases'])})"
-        if info.get("parameters"):
-            line += f" {info['parameters']}"
-        line += f"\n  {info['description'].strip()}"
-        if info.get("examples"):
-            line += f"\n  e.g. {', '.join(info['examples'])}"
+        line = f"-{info.name}"
+        if info.aliases:
+            line += f" (aliases: {', '.join('-' + a for a in info.aliases)})"
+        if info.parameters:
+            line += f" {info.parameters}"
+        line += f"\n  {info.description.strip()}"
+        if info.examples:
+            line += f"\n  e.g. {', '.join(info.examples)}"
         by_group[group].append(line)
 
     command_list = ""

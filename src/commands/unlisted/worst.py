@@ -1,17 +1,18 @@
 from discord.ext import commands
 
+from command_info import CommandInfo
 from commands.base import Command
 from commands.quotes.best import run
 from context import BotContext
 from utils.errors import NotSubscribed
 
-info = {
-    "name": "worst",
-    "aliases": ["bottom"],
-    "description": "Displays a user's bottom 100 quotes\n"
-                   "\\- `metric` defaults to pp",
-    "parameters": "[username] [pp|wpm]",
-}
+info = CommandInfo(
+    name="worst",
+    aliases=["bottom"],
+    description="Displays a user's bottom 100 quotes\n"
+                "\\- `metric` defaults to pp",
+    parameters="[username] [pp|wpm]",
+)
 
 
 class Worst(Command):
@@ -19,7 +20,7 @@ class Worst(Command):
 
     supported_flags = {"metric", "raw", "gamemode", "status", "language", "number_range"}
 
-    @commands.command(aliases=info["aliases"])
+    @commands.command(aliases=info.aliases)
     async def worst(self, ctx: BotContext, username: str = None):
         """Run the `-best` renderer in ascending order."""
         if ctx.flags.metric == "pp" and ctx.flags.raw and not ctx.user["isGgPlus"]:

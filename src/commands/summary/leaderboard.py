@@ -1,6 +1,7 @@
 from discord.ext import commands
 
 from api.leaders import get_leaders, get_multiplayer_leaders
+from command_info import CommandInfo
 from commands.base import Command, enforce_daily_quote
 from commands.quotes.quoteleaderboard import run as run_quoteleaderboard
 from config import DAILY_QUOTE_CHANNEL_ID
@@ -125,18 +126,18 @@ categories = {
 
 DAILY_CATEGORIES = {"daily", "streak", "dailyquotes", "dailywins", "dailyseconds", "dailytoptens"}
 
-info = {
-    "name": "leaderboard",
-    "aliases": ["lb"],
-    "description": "Displays the top 100 users for a given category.\n"
-                   f"Categories: {', '.join('`' + c + '`' for c in categories)}.",
-    "parameters": "<category> [args]",
-    "examples": [
+info = CommandInfo(
+    name="leaderboard",
+    aliases=["lb"],
+    description="Displays the top 100 users for a given category.\n"
+                f"Categories: {', '.join('`' + c + '`' for c in categories)}.",
+    parameters="<category> [args]",
+    examples=[
         "-lb pp",
         "-lb wpm",
         "-lb quickplay",
     ],
-}
+)
 
 
 class Leaderboard(Command):
@@ -144,7 +145,7 @@ class Leaderboard(Command):
 
     supported_flags = {"metric", "gamemode", "number", "quote_id"}
 
-    @commands.command(aliases=info["aliases"])
+    @commands.command(aliases=info.aliases)
     @usable_in(DAILY_QUOTE_CHANNEL_ID)
     async def leaderboard(self, ctx: BotContext, category: str = "pp", *args):
         """Resolve the category, then dispatch to the API, multiplayer, custom or quote renderer."""

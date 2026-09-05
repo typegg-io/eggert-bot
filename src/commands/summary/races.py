@@ -3,6 +3,7 @@ from datetime import datetime
 from dateutil.relativedelta import relativedelta
 from discord.ext import commands
 
+from command_info import CommandInfo
 from commands.base import Command
 from context import BotContext
 from database.typegg.quotes import get_quotes
@@ -15,17 +16,17 @@ from utils.schemas import Profile
 from utils.stats import calculate_quote_bests, calculate_quote_length, calculate_total_pp
 from utils.strings import date_range_display, format_duration
 
-info = {
-    "name": "races",
-    "aliases": ["rd"],
-    "description": "Displays a comprehensive stat summary for a user's races.\n"
-                   "Covers performance, speed, activity, and quote stats.",
-    "parameters": "[username]",
-    "examples": [
+info = CommandInfo(
+    name="races",
+    aliases=["rd"],
+    description="Displays a comprehensive stat summary for a user's races.\n"
+                "Covers performance, speed, activity, and quote stats.",
+    parameters="[username]",
+    examples=[
         "-rd",
         "-rd eiko",
     ],
-}
+)
 
 
 class Races(Command):
@@ -33,7 +34,7 @@ class Races(Command):
 
     supported_flags = {"gamemode", "status", "language"}
 
-    @commands.command(aliases=info["aliases"])
+    @commands.command(aliases=info.aliases)
     async def races(self, ctx: BotContext, *args: str):
         """Resolve the username, then render their all time summary."""
         profile = await self.get_profile(ctx, args[0] if args else None)

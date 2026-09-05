@@ -1,6 +1,7 @@
 from dateutil import parser
 from discord.ext import commands
 
+from command_info import CommandInfo
 from commands.base import Command, enforce_daily_quote
 from config import DAILY_QUOTE_CHANNEL_ID
 from context import BotContext
@@ -17,19 +18,19 @@ from utils.schemas import Profile
 from utils.stats import calculate_wpm
 from utils.strings import escape_formatting, get_segments, quote_display
 
-info = {
-    "name": "segments",
-    "aliases": ["sg", "words", "wg"],
-    "description": "Displays a bar graph of WPM segments across a race.\n"
-                   "Pass a quote ID to show the user's best race on that quote.",
-    "parameters": "[username] [race_number/quote_id]",
-    "examples": [
+info = CommandInfo(
+    name="segments",
+    aliases=["sg", "words", "wg"],
+    description="Displays a bar graph of WPM segments across a race.\n"
+                "Pass a quote ID to show the user's best race on that quote.",
+    parameters="[username] [race_number/quote_id]",
+    examples=[
         "-sg",
         "-sg eiko",
         "-sg eiko 1500",
         "-sg eiko piykyai_3408",
     ],
-}
+)
 
 
 class Segments(Command):
@@ -37,7 +38,7 @@ class Segments(Command):
 
     supported_flags = {"number", "quote_id"}
 
-    @commands.command(aliases=info["aliases"])
+    @commands.command(aliases=info.aliases)
     @usable_in(DAILY_QUOTE_CHANNEL_ID)
     async def segments(self, ctx: BotContext, *args: str):
         """Graph the race number given, or the user's best race on a quote."""

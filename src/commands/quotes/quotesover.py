@@ -1,6 +1,7 @@
 import numpy as np
 from discord.ext import commands
 
+from command_info import CommandInfo
 from commands.base import Command
 from context import BotContext
 from database.typegg.quotes import get_quotes
@@ -9,16 +10,16 @@ from utils.errors import MissingArguments
 from utils.messages import Message, Page
 from utils.schemas import Profile
 
-info = {
-    "name": "quotesover",
-    "aliases": ["qo"],
-    "description": "Displays the number of quotes a user has above a specified WPM or pp threshold.",
-    "parameters": "[username] <threshold> [pp|wpm]",
-    "examples": [
+info = CommandInfo(
+    name="quotesover",
+    aliases=["qo"],
+    description="Displays the number of quotes a user has above a specified WPM or pp threshold.",
+    parameters="[username] <threshold> [pp|wpm]",
+    examples=[
         "-qo eiko 200",
         "-qo eiko 1000 pp",
     ],
-}
+)
 
 
 class QuotesOver(Command):
@@ -26,7 +27,7 @@ class QuotesOver(Command):
 
     supported_flags = {"metric", "raw", "gamemode", "status", "language", "number"}
 
-    @commands.command(aliases=info["aliases"])
+    @commands.command(aliases=info.aliases)
     async def quotesover(self, ctx: BotContext, *args: str):
         """Require a threshold, then count the user's quote bests above it."""
         if ctx.flags.number is None:

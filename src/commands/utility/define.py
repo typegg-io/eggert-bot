@@ -2,20 +2,21 @@ import aiohttp
 from discord import Embed
 from discord.ext import commands
 
+from command_info import CommandInfo
 from commands.base import Command
 from context import BotContext
 from utils.colors import ERROR
 from utils.errors import MissingArguments
 
-info = {
-    "name": "define",
-    "aliases": ["def"],
-    "description": "Displays the definition(s) of a word.\n Uses https://dictionaryapi.dev/",
-    "parameters": "[word]",
-    "examples": [
+info = CommandInfo(
+    name="define",
+    aliases=["def"],
+    description="Displays the definition(s) of a word.\n Uses https://dictionaryapi.dev/",
+    parameters="[word]",
+    examples=[
         "-def typing",
     ],
-}
+)
 
 
 class Define(Command):
@@ -23,7 +24,7 @@ class Define(Command):
 
     ignore_flags = True
 
-    @commands.command(aliases=info["aliases"])
+    @commands.command(aliases=info.aliases)
     async def define(self, ctx: BotContext):
         """Send every definition the dictionary API returns for the word."""
         if not ctx.raw_args:

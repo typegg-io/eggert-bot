@@ -1,6 +1,7 @@
 
 from discord.ext import commands
 
+from command_info import CommandInfo
 from commands.base import Command
 from config import GENERAL_CHANNEL_ID
 from context import BotContext
@@ -10,17 +11,17 @@ from utils.messages import Message, Page, usable_in
 
 supported_layouts_string = "Supported layouts: `QWERTY` (default), `Dvorak`, `Colemak`, `Gallium`"
 
-info = {
-    "name": "translate",
-    "aliases": ["tr"],
-    "description": f"Translates text between keyboard layouts.\n{supported_layouts_string}",
-    "parameters": "[from layout] <to layout> <text>",
-    "examples": [
+info = CommandInfo(
+    name="translate",
+    aliases=["tr"],
+    description=f"Translates text between keyboard layouts.\n{supported_layouts_string}",
+    parameters="[from layout] <to layout> <text>",
+    examples=[
         "-tr dvorak hello world",
         "-tr qwerty dvorak hello world",
     ],
-    "author": 231721357484752896,
-}
+    author=231721357484752896,
+)
 
 
 class Translate(Command):
@@ -28,7 +29,7 @@ class Translate(Command):
 
     ignore_flags = True
 
-    @commands.command(aliases=info["aliases"])
+    @commands.command(aliases=info.aliases)
     @usable_in(GENERAL_CHANNEL_ID)
     async def translate(self, ctx: BotContext):
         """Retype the text as if it were typed on the other layout."""

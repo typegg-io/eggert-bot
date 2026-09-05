@@ -2,21 +2,22 @@
 from discord import Embed
 from discord.ext import commands
 
+from command_info import CommandInfo
 from commands.base import Command
 from context import BotContext
 from utils.colors import ERROR
 from utils.schemas import Profile
 
-info = {
-    "name": "profilepicture",
-    "aliases": ["avatar", "pfp"],
-    "description": "Displays a user's TypeGG profile picture.",
-    "parameters": "[username]",
-    "examples": [
+info = CommandInfo(
+    name="profilepicture",
+    aliases=["avatar", "pfp"],
+    description="Displays a user's TypeGG profile picture.",
+    parameters="[username]",
+    examples=[
         "-pfp",
         "-pfp eiko",
     ],
-}
+)
 
 
 class ProfilePicture(Command):
@@ -24,7 +25,7 @@ class ProfilePicture(Command):
 
     ignore_flags = True
 
-    @commands.command(aliases=info["aliases"])
+    @commands.command(aliases=info.aliases)
     async def profilepicture(self, ctx: BotContext, username: str | None = None):
         """Resolve the username without requiring races, then post their avatar."""
         profile = await self.get_profile(ctx, username, races_required=False)

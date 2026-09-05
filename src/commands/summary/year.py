@@ -1,23 +1,24 @@
 from dateutil.relativedelta import relativedelta
 from discord.ext import commands
 
+from command_info import CommandInfo
 from commands.base import Command
 from commands.summary.races import run
 from context import BotContext
 
-info = {
-    "name": "year",
-    "aliases": ["y", "yesteryear", "yy", "ly"],
-    "description": "Displays race information for a user in a given year.\n"
-                   "Date defaults to the current year.",
-    "parameters": "[username] [date]",
-    "examples": [
+info = CommandInfo(
+    name="year",
+    aliases=["y", "yesteryear", "yy", "ly"],
+    description="Displays race information for a user in a given year.\n"
+                "Date defaults to the current year.",
+    parameters="[username] [date]",
+    examples=[
         "-y",
         "-y eiko",
         "-y eiko 2024",
         "-ly eiko",
     ],
-}
+)
 
 
 class Year(Command):
@@ -25,7 +26,7 @@ class Year(Command):
 
     supported_flags = {"gamemode", "status", "language", "date"}
 
-    @commands.command(aliases=info["aliases"])
+    @commands.command(aliases=info.aliases)
     async def year(self, ctx: BotContext, *args: str):
         """Resolve the date, stepping back one year when invoked as `-yesteryear`."""
         date = ctx.flags.date

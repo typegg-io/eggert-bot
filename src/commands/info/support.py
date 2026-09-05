@@ -1,18 +1,19 @@
 from discord.ext import commands
 
+from command_info import CommandInfo
 from commands.base import Command
 from context import BotContext
 from utils.colors import PLUS
 from utils.messages import Field, Message, Page
 from utils.strings import GG_PLUS
 
-info = {
-    "name": "support",
-    "aliases": ["gg+", "premium", "subscribe"],
-    "description": "Displays information about the GG+ subscription.\n"
-                   "Includes pricing, features, and a link to upgrade.",
-    "examples": ["-gg+"],
-}
+info = CommandInfo(
+    name="support",
+    aliases=["gg+", "premium", "subscribe"],
+    description="Displays information about the GG+ subscription.\n"
+                "Includes pricing, features, and a link to upgrade.",
+    examples=["-gg+"],
+)
 
 
 class Support(Command):
@@ -20,7 +21,7 @@ class Support(Command):
 
     ignore_flags = True
 
-    @commands.command(aliases=info["aliases"])
+    @commands.command(aliases=info.aliases)
     async def support(self, ctx: BotContext):
         """Send the GG+ perks, pricing and upgrade link."""
         page = Page(

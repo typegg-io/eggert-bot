@@ -1,6 +1,7 @@
 import discord
 from discord.ext import commands
 
+from command_info import CommandInfo
 from commands.base import Command
 from context import BotContext
 from database.typegg.users import get_quote_bests
@@ -10,16 +11,16 @@ from utils.messages import Message, Page
 from utils.schemas import Profile
 from utils.strings import get_argument
 
-info = {
-    "name": "roles",
-    "aliases": ["role"],
-    "description": "View available achievement roles and your progress, or claim one.",
-    "parameters": "[role_name]",
-    "examples": [
+info = CommandInfo(
+    name="roles",
+    aliases=["role"],
+    description="View available achievement roles and your progress, or claim one.",
+    parameters="[role_name]",
+    examples=[
         "-roles",
         "-roles masochist"
     ],
-}
+)
 
 ACHIEVEMENT_ROLES = {
     "masochist": {
@@ -48,7 +49,7 @@ class Roles(Command):
 
     ignore_flags = True
 
-    @commands.command(aliases=info["aliases"])
+    @commands.command(aliases=info.aliases)
     async def roles(self, ctx: BotContext, role_name: str = None):
         """List every achievement role, or claim the one named."""
         if not ctx.guild:

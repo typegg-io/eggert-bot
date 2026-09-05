@@ -1,5 +1,6 @@
 from discord.ext import commands
 
+from command_info import CommandInfo
 from commands.base import Command
 from context import BotContext
 from database.bot.users import (
@@ -12,17 +13,17 @@ from utils.errors import BotUserNotFound, UnknownCommand, UserNotAdmin
 from utils.files import get_command_modules
 from utils.messages import Message, Page
 
-info = {
-    "name": "commandleaderboard",
-    "aliases": ["clb", "blb"],
-    "description": "Displays your command usage breakdown.\n"
-                   "Pass a Discord user to see theirs.",
-    "parameters": "[user]",
-    "examples": [
+info = CommandInfo(
+    name="commandleaderboard",
+    aliases=["clb", "blb"],
+    description="Displays your command usage breakdown.\n"
+                "Pass a Discord user to see theirs.",
+    parameters="[user]",
+    examples=[
         "-clb",
         "-clb @user",
     ],
-}
+)
 
 
 class CommandLeaderboard(Command):
@@ -30,7 +31,7 @@ class CommandLeaderboard(Command):
 
     ignore_flags = True
 
-    @commands.command(aliases=info["aliases"])
+    @commands.command(aliases=info.aliases)
     async def commandleaderboard(self, ctx: BotContext):
         """Read the argument as a command name, a Discord user, or the overall keyword."""
         arg = " ".join(ctx.raw_args)
@@ -39,9 +40,8 @@ class CommandLeaderboard(Command):
 
         command_aliases = {}
         for group, file, module in get_command_modules():
-            command_name = module.info["name"]
-            aliases = [command_name] + module.info["aliases"]
-            for alias in aliases:
+            command_name = module.info.name
+            for alias in module.info.all_names:
                 command_aliases[alias] = command_name
 
         if arg in command_aliases:

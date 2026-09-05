@@ -1,16 +1,17 @@
 from discord import DMChannel
 from discord.ext import commands
 
+from command_info import CommandInfo
 from commands.base import Command
 from commands.checks import is_bot_admin
 from context import BotContext
 
-info = {
-    "name": "echo",
-    "aliases": ["e"],
-    "description": "Echoes the given message",
-    "parameters": "<message>",
-}
+info = CommandInfo(
+    name="echo",
+    aliases=["e"],
+    description="Echoes the given message",
+    parameters="<message>",
+)
 
 
 class Echo(Command):
@@ -18,7 +19,7 @@ class Echo(Command):
 
     ignore_flags = True
 
-    @commands.command(aliases=info["aliases"])
+    @commands.command(aliases=info.aliases)
     @is_bot_admin()
     async def echo(self, ctx: BotContext):
         """Send the arguments back, deleting the invocation outside DMs."""

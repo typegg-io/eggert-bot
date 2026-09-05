@@ -1,27 +1,28 @@
 from discord.ext import commands
 
+from command_info import CommandInfo
 from commands.base import Command
 from context import BotContext
 from utils.dates import discord_date, now, parse_date
 from utils.messages import Message, Page
 from utils.strings import format_duration
 
-info = {
-    "name": "lastonline",
-    "aliases": ["lo"],
-    "description": "Displays when a user was last active on their account.",
-    "parameters": "[username]",
-    "examples": [
+info = CommandInfo(
+    name="lastonline",
+    aliases=["lo"],
+    description="Displays when a user was last active on their account.",
+    parameters="[username]",
+    examples=[
         "-lo",
         "-lo eiko",
     ],
-}
+)
 
 
 class LastOnline(Command):
     """Display when a user was last active."""
 
-    @commands.command(aliases=info["aliases"])
+    @commands.command(aliases=info.aliases)
     async def lastonline(self, ctx: BotContext, username: str = None):
         """Send how long ago the profile was last seen, and the exact time."""
         profile = await self.get_profile(ctx, username)

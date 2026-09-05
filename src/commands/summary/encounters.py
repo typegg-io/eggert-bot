@@ -1,6 +1,7 @@
 import numpy as np
 from discord.ext import commands
 
+from command_info import CommandInfo
 from commands.base import Command
 from config import EIKO
 from context import BotContext
@@ -18,20 +19,20 @@ from utils.schemas import Profile
 from utils.strings import quote_display, rank, username_with_flag
 
 sorts = ["wins", "losses", "winrate", "wpm", "-winrate", "-wpm"]
-info = {
-    "name": "encounters",
-    "aliases": ["en"],
-    "description": "Displays a list of opponents faced in multiplayer matches.\n"
-                   "Pass a second username for head-to-head analysis.\n"
-                   "Sort by: `wins`, `losses`, `winrate`, `wpm`, `-winrate`, `-wpm`.",
-    "parameters": "[username] [username2/sort]",
-    "examples": [
+info = CommandInfo(
+    name="encounters",
+    aliases=["en"],
+    description="Displays a list of opponents faced in multiplayer matches.\n"
+                "Pass a second username for head-to-head analysis.\n"
+                "Sort by: `wins`, `losses`, `winrate`, `wpm`, `-winrate`, `-wpm`.",
+    parameters="[username] [username2/sort]",
+    examples=[
         "-en",
         "-en eiko",
         "-en eiko me",
         "-en eiko winrate",
     ],
-}
+)
 
 
 class Encounters(Command):
@@ -39,7 +40,7 @@ class Encounters(Command):
 
     supported_flags = {"metric", "gamemode", "status", "language"}
 
-    @commands.command(aliases=info["aliases"])
+    @commands.command(aliases=info.aliases)
     async def encounters(self, ctx: BotContext, *args: str):
         """Dispatch to the head to head view when a second username is given."""
         if ctx.explicit_flags.get("metric"):

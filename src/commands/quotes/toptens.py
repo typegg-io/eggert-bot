@@ -1,22 +1,23 @@
 from discord.ext import commands
 
 from api.users import get_quote_rankings
+from command_info import CommandInfo
 from commands.base import Command
 from context import BotContext
 from utils.messages import Field, Message, Page
 from utils.schemas import Profile
 from utils.strings import LOADING, ordinal_number
 
-info = {
-    "name": "toptens",
-    "aliases": ["10s"],
-    "description": "Displays the number of quote top 10s a user appears in.",
-    "parameters": "[username]",
-    "examples": [
+info = CommandInfo(
+    name="toptens",
+    aliases=["10s"],
+    description="Displays the number of quote top 10s a user appears in.",
+    parameters="[username]",
+    examples=[
         "-10s",
         "-10s eiko",
     ],
-}
+)
 
 
 class TopTens(Command):
@@ -24,7 +25,7 @@ class TopTens(Command):
 
     supported_flags = {"status"}
 
-    @commands.command(aliases=info["aliases"])
+    @commands.command(aliases=info.aliases)
     async def toptens(self, ctx: BotContext, username: str = None):
         """Resolve the username, then count their top 10 appearances."""
         profile = await self.get_profile(ctx, username)

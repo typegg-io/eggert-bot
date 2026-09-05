@@ -3,6 +3,7 @@ from discord import Embed
 from discord.ext import commands
 
 from bot_setup import Eggert
+from command_info import CommandInfo
 from commands.base import Command
 from config import BOT_PREFIX, TYPEGG_GUILD_ID, VERIFIED_ROLE_NAME
 from context import BotContext
@@ -10,12 +11,12 @@ from database.bot.users import unlink_user, update_gg_plus_status, update_theme
 from utils.colors import DEFAULT_THEME, ERROR, WARNING
 from utils.logging import log
 
-info = {
-    "name": "unlink",
-    "aliases": ["unverify"],
-    "description": "Removes the link between your Discord and TypeGG accounts.",
-    "examples": ["-unlink"],
-}
+info = CommandInfo(
+    name="unlink",
+    aliases=["unverify"],
+    description="Removes the link between your Discord and TypeGG accounts.",
+    examples=["-unlink"],
+)
 
 
 class Unlink(Command):
@@ -23,7 +24,7 @@ class Unlink(Command):
 
     ignore_flags = True
 
-    @commands.command(aliases=info["aliases"])
+    @commands.command(aliases=info.aliases)
     async def unlink(self, ctx: BotContext):
         """Confirm with the caller, then drop the link and its Discord roles."""
         if not ctx.user["userId"]:

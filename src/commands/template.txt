@@ -1,16 +1,17 @@
 from discord.ext import commands
 
-from bot_setup import BotContext
+from command_info import CommandInfo
 from commands.base import Command
+from context import BotContext
 from utils.messages import Message, Page
 
-info = {
-    "name": "",
-    "aliases": [],
-    "description": "",
-    "parameters": "[username]",
-    "examples": [""],
-}
+info = CommandInfo(
+    name="",
+    aliases=[],
+    description="",
+    parameters="[username]",
+    examples=[""],
+)
 
 
 class CommandName(Command):
@@ -18,7 +19,7 @@ class CommandName(Command):
     # Options: "metric", "raw", "gamemode", "status", "language", "number", "number_range", "date", "quote_id"
     supported_flags = set()
 
-    @commands.command(aliases=info["aliases"])
+    @commands.command(aliases=info.aliases)
     async def commandname(self, ctx: BotContext, *args: str):
         profile = await self.get_profile(ctx, args[0] if args else None)
         await run(ctx, profile)

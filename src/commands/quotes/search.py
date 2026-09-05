@@ -1,6 +1,7 @@
 from discord.ext import commands
 
 from api.quotes import get_quotes
+from command_info import CommandInfo
 from commands.base import Command
 from context import BotContext
 from database.bot.recent_quotes import set_recent_quote
@@ -9,15 +10,15 @@ from utils.errors import MissingArguments
 from utils.messages import Message, Page, paginate_data
 from utils.strings import escape_formatting, quote_display
 
-info = {
-    "name": "search",
-    "aliases": ["lf"],
-    "description": "Performs a case-insensitive search through quotes for matching results.",
-    "parameters": "<query>",
-    "examples": [
+info = CommandInfo(
+    name="search",
+    aliases=["lf"],
+    description="Performs a case-insensitive search through quotes for matching results.",
+    parameters="<query>",
+    examples=[
         "-qs they don't know",
     ],
-}
+)
 
 
 class Search(Command):
@@ -25,7 +26,7 @@ class Search(Command):
 
     ignore_flags = True
 
-    @commands.command(aliases=info["aliases"])
+    @commands.command(aliases=info.aliases)
     async def search(self, ctx: BotContext):
         """Require a query, then render the matching quotes."""
         query = " ".join(ctx.raw_args)

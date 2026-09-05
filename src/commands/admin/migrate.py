@@ -1,5 +1,6 @@
 from discord.ext import commands
 
+from command_info import CommandInfo
 from commands.base import Command
 from commands.checks import is_bot_admin
 from context import BotContext
@@ -10,10 +11,10 @@ from utils.errors import InvalidArgument, MissingArguments
 from utils.messages import Message, Page
 
 categories = ["users", "quotes", "nwpm", "daily"]
-info = {
-    "name": "migrate",
-    "aliases": [],
-    "description": (
+info = CommandInfo(
+    name="migrate",
+    aliases=[],
+    description=(
         "Re-imports data from the TypeGG API into the bot's database. Categories:\n"
         "• `users` - Migrates every stored user's race history\n"
         "• `quotes` - Migrates all quote sources and quotes\n"
@@ -21,12 +22,12 @@ info = {
         "• `nwpm` - Resyncs nWPM roles for all linked users\n"
         "-# Runs in the background, silently skips individual failures. Check logs for details."
     ),
-    "parameters": "<category1> [category2] ...",
-    "examples": [
+    parameters="<category1> [category2] ...",
+    examples=[
         "migrate quotes",
         "migrate users nwpm",
     ],
-}
+)
 
 
 class Migrate(Command):
@@ -34,7 +35,7 @@ class Migrate(Command):
 
     ignore_flags = True
 
-    @commands.command(aliases=info["aliases"])
+    @commands.command(aliases=info.aliases)
     @is_bot_admin()
     async def migrate(self, ctx: BotContext, *category_list: str):
         """Validate each category, then run the migrations in the background."""

@@ -1,5 +1,6 @@
 from discord.ext import commands
 
+from command_info import CommandInfo
 from commands.base import Command
 from commands.summary.races import build_stat_fields
 from context import BotContext
@@ -8,16 +9,16 @@ from utils.errors import BotError, MissingArguments, NoRaces
 from utils.messages import Message, Page
 from utils.schemas import Profile
 
-info = {
-    "name": "longestaverage",
-    "aliases": ["la"],
-    "description": "Displays the longest streak of consecutive races a user maintained a given WPM average.",
-    "parameters": "[username] <wpm>",
-    "examples": [
+info = CommandInfo(
+    name="longestaverage",
+    aliases=["la"],
+    description="Displays the longest streak of consecutive races a user maintained a given WPM average.",
+    parameters="[username] <wpm>",
+    examples=[
         "-la 150",
         "-la eiko 150",
     ],
-}
+)
 
 
 class LongestAverage(Command):
@@ -25,7 +26,7 @@ class LongestAverage(Command):
 
     supported_flags = {"raw", "gamemode", "status", "language", "number"}
 
-    @commands.command(aliases=info["aliases"])
+    @commands.command(aliases=info.aliases)
     async def longestaverage(self, ctx: BotContext, *args: str):
         """Require a WPM threshold, then find the longest runs that clear it."""
         ctx.flags.gamemode = ctx.flags.gamemode or "quickplay"

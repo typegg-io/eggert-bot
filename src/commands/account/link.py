@@ -2,6 +2,7 @@ from discord import Embed, Forbidden
 from discord.ext import commands
 
 from api.verification import generate_link
+from command_info import CommandInfo
 from commands.base import Command
 from config import BOT_PREFIX, STAGING
 from context import BotContext
@@ -9,12 +10,12 @@ from database.bot.users import link_user
 from utils.colors import ERROR
 from utils.messages import Message, Page
 
-info = {
-    "name": "link",
-    "aliases": ["verify"],
-    "description": "Links your Discord account to your TypeGG account.",
-    "examples": ["-link"],
-}
+info = CommandInfo(
+    name="link",
+    aliases=["verify"],
+    description="Links your Discord account to your TypeGG account.",
+    examples=["-link"],
+)
 
 
 class Link(Command):
@@ -22,7 +23,7 @@ class Link(Command):
 
     ignore_flags = True
 
-    @commands.command(aliases=info["aliases"])
+    @commands.command(aliases=info.aliases)
     async def link(self, ctx: BotContext):
         """DM the caller a verification link, or link directly when staging."""
         if STAGING and ctx.raw_args:  # Skip verification process for development

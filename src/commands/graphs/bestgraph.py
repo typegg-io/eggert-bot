@@ -2,6 +2,7 @@
 import numpy as np
 from discord.ext import commands
 
+from command_info import CommandInfo
 from commands.base import Command
 from context import BotContext
 from database.typegg.quotes import get_quotes
@@ -14,21 +15,21 @@ from utils.stats import calculate_total_pp
 
 max_users = 5
 
-info = {
-    "name": "bestgraph",
-    "aliases": ["top", "bg", "50", "100", "250", "500", "1000"],
-    "description": "Displays a user's top n quote PBs ordered by pp.\n"
-                   "Use `n` to set how many quotes to show (default 50).\n"
-                   f"Supports up to {max_users} users.",
-    "parameters": f"[username1] ... [username{max_users}] [n]",
-    "examples": [
+info = CommandInfo(
+    name="bestgraph",
+    aliases=["top", "bg", "50", "100", "250", "500", "1000"],
+    description="Displays a user's top n quote PBs ordered by pp.\n"
+                "Use `n` to set how many quotes to show (default 50).\n"
+                f"Supports up to {max_users} users.",
+    parameters=f"[username1] ... [username{max_users}] [n]",
+    examples=[
         "-top",
         "-top eiko",
         "-top eiko me",
         "-top eiko me 1000",
     ],
-    "author": 231721357484752896,
-}
+    author=231721357484752896,
+)
 
 
 class BestGraph(Command):
@@ -36,7 +37,7 @@ class BestGraph(Command):
 
     supported_flags = {"metric", "raw", "gamemode", "status", "language", "number"}
 
-    @commands.command(aliases=info["aliases"])
+    @commands.command(aliases=info.aliases)
     async def bestgraph(self, ctx: BotContext, *args: str):
         """Read n from the alias or the number flag, then graph each user's top scores."""
         if ctx.invoked_with.isnumeric():

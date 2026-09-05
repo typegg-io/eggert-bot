@@ -1,6 +1,7 @@
 import numpy as np
 from discord.ext import commands
 
+from command_info import CommandInfo
 from commands.base import Command
 from context import BotContext
 from database.typegg.quotes import get_quotes
@@ -12,18 +13,18 @@ from utils.messages import Field, Message, Page
 from utils.schemas import Profile
 
 metrics = ["pp", "wpm"]
-info = {
-    "name": "improvement",
-    "aliases": ["imp", "simp"],
-    "description": "Displays a user's pp or WPM improvement over races.\n"
-                   "Use `-simp` to view solo PBs instead of multiplayer.\n",
-    "parameters": "[username] [pp|wpm]",
-    "examples": [
+info = CommandInfo(
+    name="improvement",
+    aliases=["imp", "simp"],
+    description="Displays a user's pp or WPM improvement over races.\n"
+                "Use `-simp` to view solo PBs instead of multiplayer.\n",
+    parameters="[username] [pp|wpm]",
+    examples=[
         "-imp",
         "-imp eiko wpm",
         "-simp eiko",
     ],
-}
+)
 
 
 class Improvement(Command):
@@ -31,7 +32,7 @@ class Improvement(Command):
 
     supported_flags = {"metric", "raw", "status", "language"}
 
-    @commands.command(aliases=info["aliases"])
+    @commands.command(aliases=info.aliases)
     async def improvement(self, ctx: BotContext, *args: str):
         """Pick the solo or multiplayer graph, then draw it for one user."""
         solo = ctx.invoked_with == "simp"

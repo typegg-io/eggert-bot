@@ -4,6 +4,7 @@ from collections import defaultdict
 
 from discord.ext import commands
 
+from command_info import CommandInfo
 from commands.base import Command
 from context import BotContext
 from database.typegg.quotes import get_quotes
@@ -20,21 +21,21 @@ metrics = ["pp", "wpm"]
 LENGTH_BOUNDARY = 20
 RANGE_RE = re.compile(r"^(\d+(?:\.\d+)?)-(\d+(?:\.\d+)?)$")
 
-info = {
-    "name": "comparegraph",
-    "aliases": ["cg", "flaneur"],
-    "description": "Compares quote best scores between two users across difficulty levels.\n"
-                   "• Pass a difficulty range (e.g. `3-5`) for a detailed head-to-head in that range.\n"
-                   "• Pass a character-length range (e.g. `50-100`) to filter by quote length.\n"
-                   "• Ranges starting at 20+ are read as length; below that, as difficulty.",
-    "parameters": "[username1] [username2] [difficulty_range] [length_range]",
-    "examples": [
+info = CommandInfo(
+    name="comparegraph",
+    aliases=["cg", "flaneur"],
+    description="Compares quote best scores between two users across difficulty levels.\n"
+                "• Pass a difficulty range (e.g. `3-5`) for a detailed head-to-head in that range.\n"
+                "• Pass a character-length range (e.g. `50-100`) to filter by quote length.\n"
+                "• Ranges starting at 20+ are read as length; below that, as difficulty.",
+    parameters="[username1] [username2] [difficulty_range] [length_range]",
+    examples=[
         "-cg eiko",
         "-cg eiko keegan",
         "-cg eiko keegan 3-5",
         "-cg eiko keegan 3-5 50-100",
     ],
-}
+)
 
 
 def parse_ranges(raw_args) -> tuple[tuple[float, float] | None, tuple[int, int] | None]:
@@ -70,7 +71,7 @@ class CompareGraph(Command):
 
     supported_flags = {"metric", "raw", "gamemode", "status", "language", "number_range"}
 
-    @commands.command(aliases=info["aliases"])
+    @commands.command(aliases=info.aliases)
     async def comparegraph(self, ctx: BotContext, *args: str):
         """Pick the overall or ranged comparison based on the ranges given."""
         if not args:

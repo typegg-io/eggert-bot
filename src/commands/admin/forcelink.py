@@ -6,6 +6,7 @@ import discord
 import jwt
 from discord.ext import commands
 
+from command_info import CommandInfo
 from commands.base import Command
 from commands.checks import is_bot_admin
 from config import SECRET
@@ -15,12 +16,12 @@ from utils.colors import ERROR, SUCCESS
 from utils.logging import log
 from utils.messages import Message, Page
 
-info = {
-    "name": "forcelink",
-    "aliases": [],
-    "description": "Force link a Discord user to a TypeGG account",
-    "parameters": "<discord_user> <typegg_user_id>",
-}
+info = CommandInfo(
+    name="forcelink",
+    aliases=[],
+    description="Force link a Discord user to a TypeGG account",
+    parameters="<discord_user> <typegg_user_id>",
+)
 
 
 class ForceLink(Command):
@@ -28,7 +29,7 @@ class ForceLink(Command):
 
     ignore_flags = True
 
-    @commands.command(aliases=info["aliases"])
+    @commands.command(aliases=info.aliases)
     @is_bot_admin()
     async def forcelink(self, ctx: BotContext, user: discord.User, typegg_user_id: str):
         """Mint a short lived token and post it to the verification endpoint."""

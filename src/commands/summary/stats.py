@@ -1,5 +1,6 @@
 from discord.ext import commands
 
+from command_info import CommandInfo
 from commands.base import Command
 from context import BotContext
 from utils.colors import DEFAULT, PLUS
@@ -9,22 +10,22 @@ from utils.schemas import Profile
 from utils.strings import GG_PLUS, format_duration
 from utils.urls import profile_url
 
-info = {
-    "name": "stats",
-    "aliases": ["s", "profile"],
-    "description": "Displays stats for a TypeGG account.",
-    "parameters": "[username]",
-    "examples": [
+info = CommandInfo(
+    name="stats",
+    aliases=["s", "profile"],
+    description="Displays stats for a TypeGG account.",
+    parameters="[username]",
+    examples=[
         "-s",
         "-s eiko",
     ],
-}
+)
 
 
 class Stats(Command):
     """Display a TypeGG account's headline stats."""
 
-    @commands.command(aliases=info["aliases"])
+    @commands.command(aliases=info.aliases)
     async def stats(self, ctx: BotContext, username: str = None):
         """Resolve the username without requiring races, then render their profile."""
         profile = await self.get_profile(ctx, username, races_required=False)

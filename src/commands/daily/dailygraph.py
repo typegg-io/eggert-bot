@@ -1,6 +1,7 @@
 from discord.ext import commands
 
 from api.daily_quotes import get_daily_quote
+from command_info import CommandInfo
 from commands.base import Command
 from commands.daily.dailyleaderboard import daily_quote_display
 from config import DAILY_QUOTE_CHANNEL_ID
@@ -14,18 +15,18 @@ from utils.keystrokes import get_keystroke_data
 from utils.messages import Message, Page, usable_in
 from utils.urls import race_url
 
-info = {
-    "name": "dailygraph",
-    "aliases": ["dg"],
-    "description": "Displays a WPM over keystrokes graph for the top 10 daily quote finishers.\n"
-                   "Pass a date or day number to view a past daily.",
-    "parameters": "[date/day_number]",
-    "examples": [
+info = CommandInfo(
+    name="dailygraph",
+    aliases=["dg"],
+    description="Displays a WPM over keystrokes graph for the top 10 daily quote finishers.\n"
+                "Pass a date or day number to view a past daily.",
+    parameters="[date/day_number]",
+    examples=[
         "-dg",
         "-dg 2025-11-09",
         "-dg 100",
     ],
-}
+)
 
 
 class DailyGraph(Command):
@@ -33,7 +34,7 @@ class DailyGraph(Command):
 
     supported_flags = {"number", "date"}
 
-    @commands.command(aliases=info["aliases"])
+    @commands.command(aliases=info.aliases)
     @usable_in(DAILY_QUOTE_CHANNEL_ID)
     async def dailygraph(self, ctx: BotContext):
         """Fetch the daily quote named by the number or date flag, then graph it."""

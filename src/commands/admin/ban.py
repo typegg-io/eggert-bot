@@ -1,18 +1,19 @@
 import discord
 from discord.ext import commands
 
+from command_info import CommandInfo
 from commands.base import Command
 from commands.checks import is_bot_admin
 from context import BotContext
 from database.bot.users import ban_user, get_user
 from utils.messages import Message, Page
 
-info = {
-    "name": "ban",
-    "aliases": [],
-    "description": "Bans a user from using bot commands",
-    "parameters": "<user>",
-}
+info = CommandInfo(
+    name="ban",
+    aliases=[],
+    description="Bans a user from using bot commands",
+    parameters="<user>",
+)
 
 
 class Ban(Command):
@@ -20,7 +21,7 @@ class Ban(Command):
 
     ignore_flags = True
 
-    @commands.command(aliases=info["aliases"])
+    @commands.command(aliases=info.aliases)
     @is_bot_admin()
     async def ban(self, ctx: BotContext, user: discord.User):
         """Ban the named user, refusing to ban the caller."""

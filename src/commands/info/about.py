@@ -1,17 +1,18 @@
 from discord.ext import commands
 
+from command_info import CommandInfo
 from commands.base import Command
 from config import KEEGAN
 from context import BotContext
 from database.bot.users import get_admin_users
 from utils.messages import Message, Page
 
-info = {
-    "name": "about",
-    "aliases": ["info"],
-    "description": "Displays information about the bot.",
-    "examples": ["-about"],
-}
+info = CommandInfo(
+    name="about",
+    aliases=["info"],
+    description="Displays information about the bot.",
+    examples=["-about"],
+)
 
 
 class About(Command):
@@ -19,7 +20,7 @@ class About(Command):
 
     ignore_flags = True
 
-    @commands.command(aliases=info["aliases"])
+    @commands.command(aliases=info.aliases)
     async def about(self, ctx: BotContext):
         """Send the bot's description, author and current admin list."""
         message = Message(ctx, Page(

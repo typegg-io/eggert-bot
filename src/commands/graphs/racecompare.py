@@ -3,6 +3,7 @@ import asyncio
 from discord.ext import commands
 
 from api.users import get_race
+from command_info import CommandInfo
 from commands.base import Command, enforce_daily_quote
 from config import DAILY_QUOTE_CHANNEL_ID
 from context import BotContext
@@ -18,18 +19,18 @@ from utils.strings import quote_display, username_with_flag
 
 max_users = 5
 
-info = {
-    "name": "racecompare",
-    "aliases": ["rc"],
-    "description": "Overlays multiple users' best races on the same quote on a single graph.\n"
-                   "Defaults to the most recently viewed quote.\n"
-                   f"Supports up to {max_users} users.",
-    "parameters": f"[quote_id] [username1] ... [username{max_users}]",
-    "examples": [
+info = CommandInfo(
+    name="racecompare",
+    aliases=["rc"],
+    description="Overlays multiple users' best races on the same quote on a single graph.\n"
+                "Defaults to the most recently viewed quote.\n"
+                f"Supports up to {max_users} users.",
+    parameters=f"[quote_id] [username1] ... [username{max_users}]",
+    examples=[
         "-rc me eiko",
         "-rc piykyai_3408 me eiko",
     ],
-}
+)
 
 
 class RaceCompare(Command):
@@ -37,7 +38,7 @@ class RaceCompare(Command):
 
     supported_flags = {"raw", "gamemode", "quote_id"}
 
-    @commands.command(aliases=info["aliases"])
+    @commands.command(aliases=info.aliases)
     @usable_in(DAILY_QUOTE_CHANNEL_ID)
     async def racecompare(self, ctx: BotContext, *args: str):
         """Compare the named users on a quote, or one user against themselves."""

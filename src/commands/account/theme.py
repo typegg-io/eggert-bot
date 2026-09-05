@@ -4,6 +4,7 @@ import matplotlib.colors as mcolors
 from discord import Embed, File, Interaction, Member
 from discord.ext import commands
 
+from command_info import CommandInfo
 from commands.base import Command
 from config import KEEGAN
 from context import BotContext
@@ -40,24 +41,24 @@ themes = {
     "reset": DEFAULT_THEME,
     "plus": GG_PLUS_THEME,
 }
-info = {
-    "name": "theme",
-    "aliases": ["st"],
-    "description": f"View and customize your embed and graph colors. {GG_PLUS_LINKED}\n"
-                   f"Run without arguments to display your current theme.\n"
-                   + "\nElements:\n" + ", ".join([f"`{el}`" for el in elements]) +
-                   "\n\nPre-made themes (free to use):\n"
-                   "`-theme typegg` (default)\n"
-                   "`-theme dark`\n"
-                   "`-theme light`\n",
-    "parameters": "[element] [color]",
-    "examples": [
+info = CommandInfo(
+    name="theme",
+    aliases=["st"],
+    description=f"View and customize your embed and graph colors. {GG_PLUS_LINKED}\n"
+                f"Run without arguments to display your current theme.\n"
+                + "\nElements:\n" + ", ".join([f"`{el}`" for el in elements]) +
+                "\n\nPre-made themes (free to use):\n"
+                "`-theme typegg` (default)\n"
+                "`-theme dark`\n"
+                "`-theme light`\n",
+    parameters="[element] [color]",
+    examples=[
         "-theme",
         "-theme @user",
         "-theme dark",
         "-theme line #ff0000",
     ],
-}
+)
 
 
 class Theme(Command):
@@ -65,7 +66,7 @@ class Theme(Command):
 
     ignore_flags = True
 
-    @commands.command(aliases=info["aliases"])
+    @commands.command(aliases=info.aliases)
     async def theme(self, ctx: BotContext, element: str | None, color: str | None):
         """Apply a named preset, set one element's color, or display a user's current theme."""
         if not element:

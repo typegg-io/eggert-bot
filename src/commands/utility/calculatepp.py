@@ -1,6 +1,7 @@
 from discord.ext import commands
 
 from api.quotes import calculate_metric
+from command_info import CommandInfo
 from commands.base import Command, enforce_daily_quote
 from config import DAILY_QUOTE_CHANNEL_ID
 from context import BotContext
@@ -9,17 +10,17 @@ from utils.messages import Message, Page, usable_in
 from utils.strings import quote_display
 from utils.urls import race_url
 
-info = {
-    "name": "calculatepp",
-    "aliases": ["calculatewpm", "calc", "qc", "calcpp", "ppcalc"],
-    "description": "Calculate WPM or pp for a specific quote, given the opposite.",
-    "parameters": "<quote_id> <value> [pp|wpm]",
-    "examples": [
+info = CommandInfo(
+    name="calculatepp",
+    aliases=["calculatewpm", "calc", "qc", "calcpp", "ppcalc"],
+    description="Calculate WPM or pp for a specific quote, given the opposite.",
+    parameters="<quote_id> <value> [pp|wpm]",
+    examples=[
         "-calc piykyai_3408 200 wpm",
         "-calc piykyai_3408 500 pp",
     ],
-    "plus": True,
-}
+    plus=True,
+)
 
 
 class CalculatePp(Command):
@@ -27,7 +28,7 @@ class CalculatePp(Command):
 
     supported_flags = {"metric", "number", "quote_id"}
 
-    @commands.command(aliases=info["aliases"])
+    @commands.command(aliases=info.aliases)
     @usable_in(DAILY_QUOTE_CHANNEL_ID)
     async def calculatepp(self, ctx: BotContext):
         """Convert the value given to the opposite metric on the quote."""

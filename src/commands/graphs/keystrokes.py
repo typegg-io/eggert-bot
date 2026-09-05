@@ -1,5 +1,6 @@
 from discord.ext import commands
 
+from command_info import CommandInfo
 from commands.base import Command
 from context import BotContext
 from database.typegg.races import get_quote_race_counts
@@ -10,27 +11,27 @@ from utils.messages import Field, Message, Page
 from utils.schemas import Profile
 
 keyboard_layouts = ["qwerty", "dvorak"]
-info = {
-    "name": "keystrokes",
-    "aliases": ["ks"],
-    "description": "Displays a keystroke heatmap across all of a user's races.\n"
-                   "Based on quote text, so corrections are not included.\n"
-                   "Shift keys represent total capitalizations.\n"
-                   "Supported layouts: " + ", ".join([f"`{kl}`" for kl in keyboard_layouts]),
-    "parameters": "[username] [keyboard_layout]",
-    "examples": [
+info = CommandInfo(
+    name="keystrokes",
+    aliases=["ks"],
+    description="Displays a keystroke heatmap across all of a user's races.\n"
+                "Based on quote text, so corrections are not included.\n"
+                "Shift keys represent total capitalizations.\n"
+                "Supported layouts: " + ", ".join([f"`{kl}`" for kl in keyboard_layouts]),
+    parameters="[username] [keyboard_layout]",
+    examples=[
         "-ks",
         "-ks eiko",
         "-ks skypromp dvorak",
     ],
-    "author": 231721357484752896,
-}
+    author=231721357484752896,
+)
 
 
 class Keystrokes(Command):
     """Graph a keystroke heatmap across all of a user's races."""
 
-    @commands.command(aliases=info["aliases"])
+    @commands.command(aliases=info.aliases)
     async def keystrokes(self, ctx: BotContext, *args: str):
         """Graph the heatmap on the layout given, or the one on the user's profile."""
         args, username, keyboard_layout = self.extract_params(args, keyboard_layouts)

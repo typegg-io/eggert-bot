@@ -1,6 +1,7 @@
 import numpy as np
 from discord.ext import commands
 
+from command_info import CommandInfo
 from commands.base import Command, enforce_daily_quote
 from config import DAILY_QUOTE_CHANNEL_ID
 from context import BotContext
@@ -15,19 +16,19 @@ from utils.schemas import Profile, Theme
 from utils.stats import calculate_total_pp
 from utils.strings import INCREASE, quote_display
 
-info = {
-    "name": "quote",
-    "aliases": ["q", "pb", "qh", "qg"],
-    "description": "Displays a user's stats on a specific quote.\n"
-                   "Defaults to the most recently played quote.",
-    "parameters": "[username] [quote_id]",
-    "privacy": True,
-    "examples": [
+info = CommandInfo(
+    name="quote",
+    aliases=["q", "pb", "qh", "qg"],
+    description="Displays a user's stats on a specific quote.\n"
+                "Defaults to the most recently played quote.",
+    parameters="[username] [quote_id]",
+    privacy=True,
+    examples=[
         "-q",
         "-q eiko",
         "-q eiko piykyai_3408",
     ],
-}
+)
 
 
 class Quote(Command):
@@ -35,7 +36,7 @@ class Quote(Command):
 
     supported_flags = {"number", "quote_id"}
 
-    @commands.command(aliases=info["aliases"])
+    @commands.command(aliases=info.aliases)
     @usable_in(DAILY_QUOTE_CHANNEL_ID)
     async def quote(self, ctx: BotContext, *args: str):
         """Resolve the quote from a flag, a race number, or the caller's latest race."""

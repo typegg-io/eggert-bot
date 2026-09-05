@@ -4,11 +4,8 @@ Commands are discovered by walking src/commands/*/, so a file is registered pure
 Nothing checks the shape of what it declares until the bot starts. These tests do.
 """
 
-import pytest
-
+from command_info import CommandInfo
 from utils.flags import Flags
-
-REQUIRED_INFO_KEYS = ("name", "aliases", "description")
 
 KNOWN_FLAGS = set(Flags().__dict__)
 
@@ -19,24 +16,17 @@ def test_modules_were_discovered(command_modules):
 
 
 def test_every_module_declares_info(command_modules):
-    """Every command module exposes an info dict."""
-    missing = [f"{g}/{f}" for g, f, m in command_modules if not isinstance(getattr(m, "info", None), dict)]
-    assert missing == []
-
-
-@pytest.mark.parametrize("key", REQUIRED_INFO_KEYS)
-def test_info_has_required_keys(command_modules, key):
-    """Every info dict carries the keys that help and the error handler read."""
-    missing = [f"{g}/{f}" for g, f, m in command_modules if key not in m.info]
+    """Every command module exposes a CommandInfo."""
+    missing = [f"{g}/{f}" for g, f, m in command_modules if not isinstance(getattr(m, "info", None), CommandInfo)]
     assert missing == []
 
 
 def test_info_name_matches_filename(command_modules):
     """A command's name matches its file, which is what -help <name> relies on."""
     mismatched = [
-        f"{g}/{f}: info name is {m.info['name']!r}"
+        f"{g}/{f}: info name is {m.info.name!r}"
         for g, f, m in command_modules
-        if m.info["name"] != f[:-3]
+        if m.info.name != f[:-3]
     ]
     assert mismatched == []
 
@@ -46,8 +36,8 @@ def test_aliases_are_a_list_of_strings(command_modules):
     bad = [
         f"{g}/{f}"
         for g, f, m in command_modules
-        if not isinstance(m.info["aliases"], list)
-        or not all(isinstance(a, str) for a in m.info["aliases"])
+        if not isinstance(m.info.aliases, list)
+        or not all(isinstance(a, str) for a in m.info.aliases)
     ]
     assert bad == []
 
@@ -57,7 +47,7 @@ def test_names_and_aliases_are_globally_unique(command_modules):
     seen = {}
     collisions = []
     for group, file, module in command_modules:
-        for token in [module.info["name"], *module.info["aliases"]]:
+        for token in module.info.all_names:
             if token in seen:
                 collisions.append(f"{token!r} in {group}/{file} and {seen[token]}")
             seen[token] = f"{group}/{file}"

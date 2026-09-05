@@ -2,6 +2,7 @@ import json
 
 from discord.ext import commands
 
+from command_info import CommandInfo
 from commands.base import Command
 from context import BotContext
 from database.bot.users import get_user, get_user_by_user_id
@@ -12,15 +13,15 @@ from utils.schemas import Profile
 from utils.strings import GG_PLUS_LINKED
 from utils.urls import profile_url
 
-info = {
-    "name": "whois",
-    "aliases": ["who"],
-    "description": "Displays information about a TypeGG or Discord user.",
-    "parameters": "[discord_id/typegg_username]",
-    "examples": [
+info = CommandInfo(
+    name="whois",
+    aliases=["who"],
+    description="Displays information about a TypeGG or Discord user.",
+    parameters="[discord_id/typegg_username]",
+    examples=[
         "-whois eiko"
     ]
-}
+)
 
 UnknownWhoIs = BotError(
     "Unknown User",
@@ -33,7 +34,7 @@ class WhoIs(Command):
 
     ignore_flags = True
 
-    @commands.command(aliases=info["aliases"])
+    @commands.command(aliases=info.aliases)
     async def whois(self, ctx: BotContext, *args: str):
         """Resolve the argument as a TypeGG username first, then as a Discord user."""
         if not args:

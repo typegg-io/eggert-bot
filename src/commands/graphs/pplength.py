@@ -1,6 +1,7 @@
 from discord import File
 from discord.ext import commands
 
+from command_info import CommandInfo
 from commands.base import Command
 from context import BotContext
 from database.typegg.quotes import get_quotes
@@ -9,24 +10,24 @@ from graphs import pplength
 from utils.flags import Flags
 from utils.schemas import Profile
 
-info = {
-    "name": "pplength",
-    "aliases": ["pl"],
-    "description": "Displays a scatterplot of pp PBs vs quote length.\n"
-                   "Shows how performance varies across different text lengths.",
-    "parameters": "[username]",
-    "examples": [
+info = CommandInfo(
+    name="pplength",
+    aliases=["pl"],
+    description="Displays a scatterplot of pp PBs vs quote length.\n"
+                "Shows how performance varies across different text lengths.",
+    parameters="[username]",
+    examples=[
         "-pl",
         "-pl eiko",
     ],
-    "author": 231721357484752896,
-}
+    author=231721357484752896,
+)
 
 
 class PpLengthGraph(Command):
     """Graph a scatterplot of pp personal bests against quote length."""
 
-    @commands.command(aliases=info["aliases"])
+    @commands.command(aliases=info.aliases)
     async def pplength(self, ctx: BotContext, username: str = None):
         """Graph one user's pp against quote length."""
         profile = await self.get_profile(ctx, username)

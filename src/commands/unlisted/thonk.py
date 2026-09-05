@@ -4,20 +4,21 @@ from discord import File
 from discord.ext import commands
 from thonk import generate_thonk
 
+from command_info import CommandInfo
 from commands.base import Command
 from context import BotContext
 from utils import files
 
-info = {
-    "name": "thonk",
-    "aliases": [],
-    "description": "Randomly generates a thonk emote.",
-    "parameters": "[seed]",
-    "examples": [
+info = CommandInfo(
+    name="thonk",
+    aliases=[],
+    description="Randomly generates a thonk emote.",
+    parameters="[seed]",
+    examples=[
         "-thonk",
         "-thonk 1234",
     ],
-}
+)
 
 
 class Thonk(Command):
@@ -25,7 +26,7 @@ class Thonk(Command):
 
     ignore_flags = True
 
-    @commands.command(aliases=info["aliases"])
+    @commands.command(aliases=info.aliases)
     async def thonk(self, ctx: BotContext):
         """Read an optional seed from the raw args, then render a thonk."""
         seed = " ".join(ctx.raw_args).replace("`", "") if ctx.raw_args else None

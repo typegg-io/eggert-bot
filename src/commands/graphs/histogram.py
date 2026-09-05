@@ -3,6 +3,7 @@ from collections.abc import Callable
 import numpy as np
 from discord.ext import commands
 
+from command_info import CommandInfo
 from commands.base import Command
 from context import BotContext
 from database.typegg.users import get_quote_bests
@@ -39,18 +40,18 @@ metrics = {
     },
 }
 
-info = {
-    "name": "histogram",
-    "aliases": ["hg", "hist"],
-    "description": "Displays a solo vs multiplayer histogram for a given metric.\n"
-                   "The react and recover metrics only include races with typos.\n",
-    "parameters": "[username] [pp|wpm|acc|react|recover]",
-    "examples": [
+info = CommandInfo(
+    name="histogram",
+    aliases=["hg", "hist"],
+    description="Displays a solo vs multiplayer histogram for a given metric.\n"
+                "The react and recover metrics only include races with typos.\n",
+    parameters="[username] [pp|wpm|acc|react|recover]",
+    examples=[
         "-hg",
         "-hg eiko wpm",
     ],
-    "author": 231721357484752896,
-}
+    author=231721357484752896,
+)
 
 
 class Histogram(Command):
@@ -58,7 +59,7 @@ class Histogram(Command):
 
     supported_flags = {"metric", "raw", "status", "language"}
 
-    @commands.command(aliases=info["aliases"])
+    @commands.command(aliases=info.aliases)
     async def histogram(self, ctx: BotContext, *args: str):
         """Graph the requested metric for one user."""
         params = self.extract_params(args, metrics.keys())

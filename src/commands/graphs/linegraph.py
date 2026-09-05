@@ -3,6 +3,7 @@ import bisect
 from discord import File
 from discord.ext import commands
 
+from command_info import CommandInfo
 from commands.base import Command
 from context import BotContext
 from database.typegg.races import get_races
@@ -61,18 +62,18 @@ metrics = {
 max_users = 5
 metric_aliases = [metric["alias"] for metric in metrics.values()]
 
-info = {
-    "name": "linegraph",
-    "aliases": ["lg", "l"] + metric_aliases,
-    "description": f"Displays a line graph for a given metric across up to {max_users} users.\n"
-                   f"Metrics: {', '.join('`' + m + '`' for m in metrics)}",
-    "parameters": f"[metric] [username1] ... [username{max_users}]",
-    "examples": [
+info = CommandInfo(
+    name="linegraph",
+    aliases=["lg", "l"] + metric_aliases,
+    description=f"Displays a line graph for a given metric across up to {max_users} users.\n"
+                f"Metrics: {', '.join('`' + m + '`' for m in metrics)}",
+    parameters=f"[metric] [username1] ... [username{max_users}]",
+    examples=[
         "-lg",
         "-lg wpm eiko",
         "-lg pp eiko me",
     ],
-}
+)
 
 
 class LineGraph(Command):
@@ -80,7 +81,7 @@ class LineGraph(Command):
 
     supported_flags = {"metric", "raw", "gamemode", "status", "language"}
 
-    @commands.command(aliases=info["aliases"])
+    @commands.command(aliases=info.aliases)
     async def linegraph(self, ctx: BotContext, *args: str):
         """Read the metric from the alias or the arguments, then graph it."""
         invoke = ctx.invoked_with.lower()
