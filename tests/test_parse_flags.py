@@ -210,3 +210,8 @@ def test_a_bare_year_is_still_a_number():
     f = flags_for("-best 2025")
     assert f.number == 2025
     assert f.dates == ()
+
+
+def test_period_keywords_accept_their_single_letter_aliases():
+    for alias, period in [("d", "day"), ("w", "week"), ("m", "month"), ("y", "year")]:
+        assert flags_for(f"-imp {alias}").period == period
