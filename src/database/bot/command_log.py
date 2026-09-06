@@ -60,6 +60,20 @@ def get_top_commands(limit: int = 10) -> list[dict]:
     return [dict(row) for row in results]
 
 
+def get_top_servers(limit: int = 10) -> list[dict]:
+    """Return the busiest servers, most commands first. DMs and unplaced rows are excluded."""
+    results = db.fetch("""
+        SELECT serverId, COUNT(*) AS total, COUNT(DISTINCT discordId) AS users
+        FROM command_log
+        WHERE serverId IS NOT NULL
+        GROUP BY serverId
+        ORDER BY total DESC
+        LIMIT ?
+    """, [limit])
+
+    return [dict(row) for row in results]
+
+
 def get_command_mix(weeks: int = 26, commands: int = 6) -> dict:
     """Return weekly counts for the top commands, with everything else pooled as 'other'."""
     top = [row["command"] for row in get_top_commands(commands)]

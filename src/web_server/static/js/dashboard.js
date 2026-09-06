@@ -159,7 +159,9 @@ function barChart(target, rows) {
         line.className = "bar-row";
 
         const name = document.createElement("span");
-        name.textContent = row.command;
+        name.className = "bar-name";
+        name.textContent = row.label;
+        name.title = row.label;
 
         const track = document.createElement("div");
         track.className = "bar-track";
@@ -268,7 +270,12 @@ function renderNewUsers() {
 function render() {
     renderTiles();
     renderDaily();
-    barChart(document.getElementById("top-commands"), stats.topCommands);
+    barChart(document.getElementById("top-commands"), stats.topCommands.map(
+        row => ({label: row.command, total: row.total}),
+    ));
+    barChart(document.getElementById("top-servers"), stats.topServers.map(
+        row => ({label: `${row.name} (${comma(row.users)} users)`, total: row.total}),
+    ));
     renderMix();
     renderNewUsers();
     document.getElementById("updated").textContent =

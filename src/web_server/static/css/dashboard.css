@@ -118,10 +118,16 @@
 
 .bar-row {
     display: grid;
-    grid-template-columns: 7rem 1fr 4rem;
+    grid-template-columns: minmax(7rem, 14rem) 1fr 4rem;
     align-items: center;
     gap: 0.5rem;
     font-size: 13px;
+}
+
+.bar-name {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 .bar-track {

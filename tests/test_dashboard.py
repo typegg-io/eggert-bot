@@ -139,19 +139,19 @@ def test_link_expires_within_the_advertised_window():
 
 # Aggregates
 
-def log_at(connection, discord_id, command, days_ago, origin="server", user_id=None):
+def log_at(connection, discord_id, command, days_ago, server_id="900", user_id=None):
     """Insert one dated invocation directly, since log_command always stamps now."""
     connection.execute("""
-        INSERT INTO command_log (discordId, userId, command, origin, timestamp)
-        VALUES (?, ?, ?, ?, strftime('%s', 'now') - ? * 86400)
-    """, [discord_id, user_id, command, origin, days_ago])
+        INSERT INTO command_log (discordId, userId, command, origin, serverId, timestamp)
+        VALUES (?, ?, ?, ?, ?, strftime('%s', 'now') - ? * 86400)
+    """, [discord_id, user_id, command, "server" if server_id else "dm", server_id, days_ago])
     connection.commit()
 
 
 def test_get_totals_counts_origins_and_links(scratch_db):
-    users.log_command("1", "u1", "stats", "server")
-    users.log_command("1", None, "day", "dm")
-    users.log_command("2", "u2", "stats", "dm")
+    users.log_command("1", "u1", "stats", "900")
+    users.log_command("1", None, "day", None)
+    users.log_command("2", "u2", "stats", None)
 
     totals = command_log.get_totals()
 
@@ -182,7 +182,7 @@ def test_get_daily_counts_buckets_by_day(scratch_db):
 
 def test_get_daily_counts_drops_undated_rows(scratch_db):
     scratch_db.execute("""
-        INSERT INTO command_log (discordId, command, origin, timestamp) VALUES ('1', 'stats', 'server', NULL)
+        INSERT INTO command_log (discordId, command, origin, timestamp) VALUES ('1', 'stats', 'dm', NULL)
     """)
     scratch_db.commit()
 
@@ -208,8 +208,8 @@ def test_get_active_users_counts_distinct_users_in_the_window(scratch_db):
 
 def test_get_top_commands_orders_by_usage(scratch_db):
     for _ in range(3):
-        users.log_command("1", None, "stats", "server")
-    users.log_command("1", None, "day", "server")
+        users.log_command("1", None, "stats", "900")
+    users.log_command("1", None, "day", "900")
 
     assert command_log.get_top_commands(1) == [{"command": "stats", "total": 3}]
 
@@ -245,10 +245,10 @@ def test_get_command_mix_on_an_empty_table(scratch_db):
 
 def test_get_concentration_sums_the_busiest_users(scratch_db):
     for _ in range(5):
-        users.log_command("1", None, "stats", "server")
+        users.log_command("1", None, "stats", "900")
     for _ in range(3):
-        users.log_command("2", None, "stats", "server")
-    users.log_command("3", None, "stats", "server")
+        users.log_command("2", None, "stats", "900")
+    users.log_command("3", None, "stats", "900")
 
     assert command_log.get_concentration(2) == 8
     assert command_log.get_concentration(10) == 9
@@ -256,6 +256,18 @@ def test_get_concentration_sums_the_busiest_users(scratch_db):
 
 def test_get_concentration_on_an_empty_table(scratch_db):
     assert command_log.get_concentration(10) == 0
+
+
+def test_get_top_servers_ranks_by_commands_and_excludes_dms(scratch_db):
+    log_at(scratch_db, "1", "stats", 1, server_id="900")
+    log_at(scratch_db, "2", "stats", 1, server_id="900")
+    log_at(scratch_db, "1", "day", 1, server_id="901")
+    log_at(scratch_db, "1", "day", 1, server_id=None)
+
+    assert command_log.get_top_servers() == [
+        {"serverId": "900", "total": 2, "users": 2},
+        {"serverId": "901", "total": 1, "users": 1},
+    ]
 
 
 def test_get_new_users_by_week_counts_first_commands(scratch_db):

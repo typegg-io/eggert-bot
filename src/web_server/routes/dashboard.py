@@ -154,17 +154,23 @@ async def dashboard_page(cog: "WebServer", request: web.Request) -> web.StreamRe
     return response
 
 
-async def dashboard_stats(request: web.Request) -> web.StreamResponse:
+async def dashboard_stats(cog: "WebServer", request: web.Request) -> web.StreamResponse:
     """Return the dashboard's aggregates as JSON (GET /dashboard/stats)."""
     if not read_session(request):
         return error_response(DENIED, 401)
 
-    return private(web.json_response(build_stats()))
+    return private(web.json_response(build_stats(cog)))
 
 
 # Stats
 
-def build_stats() -> dict:
+def name_server(cog: "WebServer", server_id: str) -> str:
+    """Return a server's name, falling back to its ID when the bot cannot see it."""
+    guild = cog.bot.get_guild(int(server_id)) if server_id.isdigit() else None
+    return guild.name if guild else server_id
+
+
+def build_stats(cog: "WebServer") -> dict:
     """Return every aggregate the dashboard renders, cached for a few seconds."""
     now = time.time()
     if _stats_cache["data"] and now - _stats_cache["at"] < STATS_TTL:
@@ -180,6 +186,9 @@ def build_stats() -> dict:
         },
         "daily": command_log.get_daily_counts(365),
         "topCommands": command_log.get_top_commands(12),
+        "topServers": [
+            dict(row, name=name_server(cog, row["serverId"])) for row in command_log.get_top_servers(10)
+        ],
         "mix": command_log.get_command_mix(),
         "newUsers": command_log.get_new_users_by_week(),
         "concentration": {

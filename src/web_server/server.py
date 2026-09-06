@@ -56,7 +56,7 @@ class WebServer(commands.Cog):
         self.app.router.add_delete("/users/{userId}", delete_user)
         self.app.router.add_get("/help", help_page)
         self.app.router.add_get("/dashboard", partial(dashboard_page, self))
-        self.app.router.add_get("/dashboard/stats", dashboard_stats)
+        self.app.router.add_get("/dashboard/stats", partial(dashboard_stats, self))
         self.app.router.add_get("/compare/{username1}/vs/{username2}", compare_page)
         self.app.router.add_get("/member-count", partial(member_count, self))
 

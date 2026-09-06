@@ -133,12 +133,15 @@ def get_theme(discord_id: int) -> Theme | None:
     return json.loads(results[0]["theme"]) if results else None
 
 
-def log_command(discord_id: str, user_id: str | None, command_name: str, origin: str) -> None:
+def log_command(discord_id: str, user_id: str | None, command_name: str, server_id: str | None) -> None:
     """Record one command invocation."""
     db.run("""
-        INSERT INTO command_log (discordId, userId, command, origin, timestamp)
-        VALUES (?, ?, ?, ?, ?)
-    """, [str(discord_id), user_id, command_name, origin, dates.now().timestamp()])
+        INSERT INTO command_log (discordId, userId, command, origin, serverId, timestamp)
+        VALUES (?, ?, ?, ?, ?, ?)
+    """, [
+        str(discord_id), user_id, command_name,
+        "server" if server_id else "dm", server_id, dates.now().timestamp(),
+    ])
 
 
 def get_command_count() -> int:

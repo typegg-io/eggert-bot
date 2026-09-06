@@ -301,8 +301,8 @@ def register_bot_checks(bot) -> None:
         """Record the command, and announce every 50,000th one."""
         global total_commands
 
-        command_origin = "server" if ctx.guild else "dm"
-        log_command(ctx.author.id, ctx.user["userId"], ctx.command.name, command_origin)
+        server_id = str(ctx.guild.id) if ctx.guild else None
+        log_command(ctx.author.id, ctx.user["userId"], ctx.command.name, server_id)
 
         total_commands += 1
         if total_commands % 50_000 == 0:

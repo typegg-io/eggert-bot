@@ -94,8 +94,11 @@ def read_log_rows(csv_path: str, aliases: dict[str, str]) -> tuple[dict, Counter
                 dropped["no timestamp"] += 1
                 continue
 
-            origin = "dm" if row["server_id"] == "dm" else "server"
-            rows[(discord_id, command)].append((timestamp, row["user_id"] or None, origin))
+            # The scrape writes the literal 'dm' where a server ID would go.
+            is_dm = row["server_id"] == "dm"
+            origin = "dm" if is_dm else "server"
+            server_id = None if is_dm else row["server_id"] or None
+            rows[(discord_id, command)].append((timestamp, row["user_id"] or None, origin, server_id))
 
     return rows, dropped
 
@@ -128,16 +131,17 @@ def reconcile(log_rows: dict, blob_counts: dict, user_ids: dict) -> tuple[list, 
             capped += len(dated) - target
             dated = dated[len(dated) - target:]
 
-        for timestamp, user_id, origin in dated:
-            records.append((discord_id, user_id, command, origin, timestamp))
+        for timestamp, user_id, origin, server_id in dated:
+            records.append((discord_id, user_id, command, origin, server_id, timestamp))
 
         shortfall = target - len(dated)
         if shortfall > 0:
             filled += shortfall
-            origin = Counter(row[2] for row in dated).most_common(1)
-            origin = origin[0][0] if origin else "server"
+            # Counting the pair keeps a filled row's origin and server agreeing with each other.
+            common = Counter((row[2], row[3]) for row in dated).most_common(1)
+            origin, server_id = common[0][0] if common else ("server", None)
             user_id = user_ids.get(discord_id)
-            records.extend([(discord_id, user_id, command, origin, None)] * shortfall)
+            records.extend([(discord_id, user_id, command, origin, server_id, None)] * shortfall)
 
     return records, capped, filled
 
@@ -187,8 +191,8 @@ def main() -> int:
 
     with connection:
         connection.executemany("""
-            INSERT INTO command_log (discordId, userId, command, origin, timestamp)
-            VALUES (?, ?, ?, ?, ?)
+            INSERT INTO command_log (discordId, userId, command, origin, serverId, timestamp)
+            VALUES (?, ?, ?, ?, ?, ?)
         """, records)
 
     print(f"\ninserted {len(records):,} rows into {args.database}")

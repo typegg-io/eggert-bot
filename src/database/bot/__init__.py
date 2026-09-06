@@ -51,11 +51,17 @@ db.run("""
         userId TEXT, -- the linked TypeGG ID at time of use, never joined
         command TEXT NOT NULL, -- canonical name, never an alias
         origin TEXT NOT NULL, -- 'server' or 'dm'
+        serverId TEXT, -- NULL on DMs, and on backfilled rows the log could not place
         timestamp REAL -- NULL on backfilled rows the log could not date
     )
 """)
+
+# command_log shipped without serverId, so a database made in that window catches up here.
+if not db.fetch("SELECT 1 FROM pragma_table_info('command_log') WHERE name = 'serverId'"):
+    db.run("ALTER TABLE command_log ADD COLUMN serverId TEXT")
 
 db.run("CREATE INDEX IF NOT EXISTS idx_command_log_discordId ON command_log (discordId)")
 db.run("CREATE INDEX IF NOT EXISTS idx_command_log_command ON command_log (command)")
 db.run("CREATE INDEX IF NOT EXISTS idx_command_log_discordId_command ON command_log (discordId, command)")
 db.run("CREATE INDEX IF NOT EXISTS idx_command_log_timestamp ON command_log (timestamp)")
+db.run("CREATE INDEX IF NOT EXISTS idx_command_log_serverId ON command_log (serverId)")
