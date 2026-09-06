@@ -8,7 +8,7 @@ from commands.base import Command
 from context import BotContext
 from database.typegg.races import get_races
 from graphs import line
-from utils.errors import BotError
+from utils.errors import BotError, NoRacesFiltered
 from utils.flags import get_flag_title
 from utils.nwpm_model import calculate_nwpm, initialize_nwpm_model
 from utils.schemas import Profile
@@ -221,6 +221,9 @@ async def run(ctx: BotContext, metric: str, profiles: list[Profile]) -> None:
             order_by="timestamp",
             flags=ctx.flags,
         )
+
+        if not race_list:
+            raise NoRacesFiltered(profile["username"])
 
         x_values = [race["timestamp"] for race in race_list]
         y_values = []
