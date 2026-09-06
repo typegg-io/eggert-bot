@@ -45,8 +45,3 @@ async def run(ctx: BotContext, seed: str | None) -> None:
     await ctx.send(content=f"-# Seed: `{seed}`", file=file)
 
     files.remove_file(file_name)
-
-
-async def setup(bot) -> None:
-    """Register the cog through the discord.py extension loader."""
-    await bot.add_cog(Thonk(bot))

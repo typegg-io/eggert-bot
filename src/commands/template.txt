@@ -4,6 +4,7 @@ from command_info import CommandInfo
 from commands.base import Command
 from context import BotContext
 from utils.messages import Message, Page
+from utils.schemas import Profile
 
 info = CommandInfo(
     name="",
@@ -15,17 +16,21 @@ info = CommandInfo(
 
 
 class CommandName(Command):
+    """One line saying what the command shows."""
+
     # Declare which flags this command can use, omit the line if none are supported.
     # Options: "metric", "raw", "gamemode", "status", "language", "number", "number_range", "date", "quote_id"
     supported_flags = set()
 
     @commands.command(aliases=info.aliases)
     async def commandname(self, ctx: BotContext, *args: str):
+        """Resolve the profile from the arguments, then render it."""
         profile = await self.get_profile(ctx, args[0] if args else None)
         await run(ctx, profile)
 
 
-async def run(ctx: BotContext, profile: dict):
+async def run(ctx: BotContext, profile: Profile) -> None:
+    """Send the command's page."""
     page = Page(
         title="Title",
         description="Description",
