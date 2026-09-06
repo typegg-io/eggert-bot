@@ -33,13 +33,14 @@ def quote_insert(quote) -> tuple:
         normalize_datetime(quote["created"]),
         quote["language"],
         formatting,
+        quote.get("predictedWpm"),
     )
 
 
 def add_quotes(quotes) -> None:
     """Batch insert or update quotes."""
     db.run_many("""
-        INSERT INTO quotes VALUES (?,?,?,?,?,?,?,?,?,?,?)
+        INSERT INTO quotes VALUES (?,?,?,?,?,?,?,?,?,?,?,?)
         ON CONFLICT(quoteId) DO UPDATE SET
             sourceId = excluded.sourceId,
             text = excluded.text,
@@ -50,7 +51,8 @@ def add_quotes(quotes) -> None:
             ranked = excluded.ranked,
             created = excluded.created,
             language = excluded.language,
-            formatting = excluded.formatting
+            formatting = excluded.formatting,
+            predictedWpm = excluded.predictedWpm
     """, [quote_insert(quote) for quote in quotes])
 
 
@@ -58,7 +60,7 @@ def add_quote(quote) -> None:
     """Insert a single quote."""
     db.run(f"""
         INSERT OR IGNORE INTO quotes
-        VALUES ({",".join(["?"] * 11)})
+        VALUES ({",".join(["?"] * 12)})
     """, quote_insert(quote))
 
 
@@ -237,6 +239,7 @@ async def update_quote(quote_id: str, updates: dict) -> None:
     fields = [
         "quoteId", "sourceId", "text", "explicit", "difficulty", "complexity",
         "submittedByUsername", "ranked", "created", "language", "formatting",
+        "predictedWpm",
     ]
     sets = []
     params = []

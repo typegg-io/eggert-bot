@@ -66,9 +66,14 @@ db.run("""
         ranked INTEGER NOT NULL, -- boolean
         created TEXT NOT NULL, -- ISO 8601 string
         language TEXT NOT NULL,
-        formatting TEXT -- JSON
+        formatting TEXT, -- JSON
+        predictedWpm REAL -- NULL until TypeGG rates the quote
     );
 """)
+
+# quotes shipped without predictedWpm, so a database made before it catches up here.
+if not db.fetch("SELECT 1 FROM pragma_table_info('quotes') WHERE name = 'predictedWpm'"):
+    db.run("ALTER TABLE quotes ADD COLUMN predictedWpm REAL")
 
 db.run("""
     CREATE TABLE IF NOT EXISTS daily_quotes (
