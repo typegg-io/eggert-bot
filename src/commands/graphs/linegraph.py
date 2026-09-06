@@ -6,7 +6,7 @@ from discord.ext import commands
 from command_info import CommandInfo
 from commands.base import Command
 from context import BotContext
-from database.typegg.nwpm import get_nwpm_over_time
+from database.typegg.nwpm import get_nwpm_over_time, quotes_are_rated
 from database.typegg.races import get_races
 from graphs import line
 from utils.errors import BotError, NoRacesFiltered
@@ -98,6 +98,13 @@ class LineGraph(Command):
 
 def get_nwpm_line(username: str, user_id: str) -> tuple[list[str], list[float]]:
     """Return a user's nWPM timestamps and values, oldest first."""
+    if not quotes_are_rated():
+        raise BotError(
+            "Missing Quote Ratings",
+            "nWPM needs quote ratings from the API.\n"
+            "Run tools/backfill_predicted_wpm.py.",
+        )
+
     points = get_nwpm_over_time(user_id)
 
     if not points:
