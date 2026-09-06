@@ -22,6 +22,7 @@ from web_server.routes.update_gg_plus import update_gg_plus
 from web_server.routes.update_nwpm_role import update_nwpm_role
 from web_server.routes.users import delete_user, import_user
 from web_server.routes.verify import verify_user
+from web_server.tokens import UsedTokens
 
 
 class WebServer(commands.Cog):
@@ -45,7 +46,7 @@ class WebServer(commands.Cog):
             self.member_count = self.guild.member_count
         else:
             self.member_count = 0
-        self.used_tokens = {}
+        self.used_tokens = UsedTokens()
 
         # Routes
         self.app.router.add_post("/verify", partial(verify_user, self))
