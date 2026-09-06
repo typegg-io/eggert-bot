@@ -48,6 +48,22 @@ def get_daily_counts(days: int | None = None) -> list[dict]:
     return [dict(row) for row in results]
 
 
+def get_hourly_counts() -> list[dict]:
+    """Return the all-time command count for each hour of the day, in UTC."""
+    results = db.fetch(f"""
+        SELECT
+            CAST(strftime('%H', timestamp, 'unixepoch') AS INTEGER) AS hour,
+            COUNT(*) AS commands
+        FROM command_log
+        WHERE {DATED}
+        GROUP BY hour
+    """)
+
+    counts = {row["hour"]: row["commands"] for row in results}
+
+    return [{"hour": hour, "commands": counts.get(hour, 0)} for hour in range(24)]
+
+
 def get_active_users(days: int) -> int:
     """Return how many distinct users have run a command in the last N days."""
     return db.fetch_one(f"""

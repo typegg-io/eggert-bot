@@ -185,6 +185,13 @@
     text-anchor: middle;
 }
 
+.chart-note {
+    color: #5c6486;
+    font-size: 12px;
+    margin: 0.5rem 0 0;
+    text-align: center;
+}
+
 .updated {
     color: #5c6486;
     font-size: 12px;

@@ -236,6 +236,62 @@ function pieChart(target, slices) {
     target.replaceChildren(chart);
 }
 
+function clockHour(hour) {
+    return `${String(hour).padStart(2, "0")}:00`;
+}
+
+function clockChart(target, hours) {
+    const size = 260;
+    const centre = size / 2;
+    const hub = 30;
+    const rim = 100;
+    const chart = svg(size, size);
+    const total = hours.reduce((sum, entry) => sum + entry.commands, 0);
+    const max = Math.max(...hours.map(entry => entry.commands), 1);
+    const step = (Math.PI * 2) / 24;
+    const peak = hours.reduce((a, b) => (b.commands > a.commands ? b : a), hours[0]);
+
+    for (const fraction of [0.5, 1]) {
+        chart.appendChild(el("circle", {
+            class: "grid-line", cx: centre, cy: centre, fill: "none",
+            r: hub + (rim - hub) * fraction,
+        }));
+    }
+
+    hours.forEach(entry => {
+        // Midnight straddles the top of the dial, so each wedge is centred on its own tick.
+        const from = entry.hour * step - step / 2;
+        const outer = hub + (rim - hub) * (entry.commands / max);
+
+        chart.appendChild(el("path", {
+            d: arc(centre, centre, Math.max(outer, hub + 1), hub, from + step * 0.1, from + step * 0.9),
+            fill: total && entry.hour === peak.hour ? "#f2cc60" : "#58a6ff",
+            "pointer-events": "none",
+        }));
+
+        const hit = el("path", {d: arc(centre, centre, rim, hub, from, from + step), fill: "transparent"});
+        hoverable(hit, [
+            `${clockHour(entry.hour)} - ${clockHour((entry.hour + 1) % 24)} UTC`,
+            `${comma(entry.commands)} commands (${percent(entry.commands, total)})`,
+        ]);
+        chart.appendChild(hit);
+    });
+
+    for (let hour = 0; hour < 24; hour += 3) {
+        const angle = hour * step - Math.PI / 2;
+        chart.appendChild(el("text", {
+            class: "axis-label", "text-anchor": "middle",
+            x: centre + (rim + 15) * Math.cos(angle),
+            y: centre + (rim + 15) * Math.sin(angle) + 3,
+        }, String(hour).padStart(2, "0")));
+    }
+
+    chart.appendChild(el("text", {class: "pie-value", x: centre, y: centre + 1}, total ? clockHour(peak.hour) : "--"));
+    chart.appendChild(el("text", {class: "pie-label", x: centre, y: centre + 17}, "busiest hour"));
+
+    target.replaceChildren(chart);
+}
+
 function barChart(target, rows) {
     const max = Math.max(...rows.map(r => r.total), 1);
 
@@ -406,6 +462,7 @@ const panels = [
 function render() {
     renderTiles();
     renderOrigin();
+    clockChart(document.getElementById("clock-chart"), stats.hourly);
     barChart(document.getElementById("top-commands"), stats.topCommands.map(
         row => ({label: row.command, total: row.total}),
     ));

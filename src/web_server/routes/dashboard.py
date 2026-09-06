@@ -182,6 +182,7 @@ def build_stats(cog: "WebServer") -> dict:
             "month": command_log.get_active_users(30),
         },
         "daily": command_log.get_daily_counts(),
+        "hourly": command_log.get_hourly_counts(),
         "topCommands": command_log.get_top_commands(12),
         "topServers": [
             dict(row, name=name_server(cog, row["serverId"], remembered))

@@ -204,6 +204,43 @@ def test_get_daily_counts_defaults_to_all_time(scratch_db):
     assert len(command_log.get_daily_counts()) == 2
 
 
+def log_at_time(connection, discord_id, moment):
+    """Insert one invocation stamped at a UTC wall clock time."""
+    connection.execute("""
+        INSERT INTO command_log (discordId, command, origin, serverId, timestamp)
+        VALUES (?, 'stats', 'server', '900', CAST(strftime('%s', ?) AS REAL))
+    """, [discord_id, moment])
+    connection.commit()
+
+
+def test_get_hourly_counts_buckets_by_utc_hour(scratch_db):
+    log_at_time(scratch_db, "1", "2026-03-04 07:30:00")
+    log_at_time(scratch_db, "2", "2026-03-05 07:59:59")
+    log_at_time(scratch_db, "1", "2026-03-04 23:00:00")
+
+    counts = {row["hour"]: row["commands"] for row in command_log.get_hourly_counts()}
+
+    assert counts[7] == 2
+    assert counts[23] == 1
+    assert sum(counts.values()) == 3
+
+
+def test_get_hourly_counts_covers_every_hour(scratch_db):
+    hourly = command_log.get_hourly_counts()
+
+    assert [row["hour"] for row in hourly] == list(range(24))
+    assert sum(row["commands"] for row in hourly) == 0
+
+
+def test_get_hourly_counts_drops_undated_rows(scratch_db):
+    scratch_db.execute("""
+        INSERT INTO command_log (discordId, command, origin, timestamp) VALUES ('1', 'stats', 'dm', NULL)
+    """)
+    scratch_db.commit()
+
+    assert sum(row["commands"] for row in command_log.get_hourly_counts()) == 0
+
+
 def test_get_active_users_counts_distinct_users_in_the_window(scratch_db):
     log_at(scratch_db, "1", "stats", 0)
     log_at(scratch_db, "1", "day", 0)
