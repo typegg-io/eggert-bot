@@ -4,12 +4,12 @@ import numpy as np
 from matplotlib.colors import hex2color
 
 from graphs.core import apply_theme, filter_palette, generate_file_name, plt
-from utils.schemas import Profile, Theme
+from utils.schemas import Theme
 
 
 def render(
     username: str,
-    profiles: list[Profile],
+    scores: list[dict],
     n: int,
     metric: str,
     theme: Theme,
@@ -18,15 +18,15 @@ def render(
     fig, ax = plt.subplots()
     filter_palette(ax, theme["line"])
     themed_line = 0
-    profile_count = len(profiles)
+    profile_count = len(scores)
 
-    for i, profile in enumerate(profiles):
-        values = profile["values"]
+    for i, score in enumerate(scores):
+        values = score["values"]
 
-        if profile["username"] == username:
+        if score["username"] == username:
             themed_line = i
 
-        ax.plot(range(1, len(values) + 1), values, label=profile["username"], zorder=profile_count - i)
+        ax.plot(range(1, len(values) + 1), values, label=score["username"], zorder=profile_count - i)
 
     ax.set_title(f"Top {n:,} {metric} Quotes")
     ax.set_xlabel("Quote Rank")
@@ -41,7 +41,7 @@ def render(
     )
 
     if profile_count == 1:
-        difficulties = profiles[0]["difficulties"]
+        difficulties = scores[0]["difficulties"]
         bg_color = hex2color(theme["graph_background"])
         point_color = "white" if np.mean(bg_color) < 0.5 else "black"
 

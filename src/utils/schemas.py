@@ -73,8 +73,3 @@ class Profile(TypedDict):
     stats: ProfileStats
     isGgPlus: NotRequired[bool]
     subscribeDate: NotRequired[str | None]
-
-    # Injected by commands, never returned by the API.
-    bestRace: NotRequired[dict]
-    enStats: NotRequired[dict]
-    values: NotRequired[list[float]]

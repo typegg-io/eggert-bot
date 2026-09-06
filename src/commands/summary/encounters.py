@@ -206,14 +206,11 @@ async def run_head_to_head(ctx: BotContext, profile1: Profile, profile2: Profile
         "bestStreak": 0, "currentStreak": 0, "biggestWin": None,
     }
 
-    profile1["enStats"] = default_stats | {}
-    profile2["enStats"] = default_stats | {}
+    p1 = default_stats | {}
+    p2 = default_stats | {}
     closest_race = None
 
     for match in encounters:
-        p1 = profile1["enStats"]
-        p2 = profile2["enStats"]
-
         p1["wpm"] += match["userWpm"]
         p1["rawWpm"] += match["userRawWpm"]
         p1["accuracy"] += match["userAccuracy"]
@@ -224,17 +221,14 @@ async def run_head_to_head(ctx: BotContext, profile1: Profile, profile2: Profile
         p2["accuracy"] += match["opponentAccuracy"]
         p2["placement"] += match["opponentPlacement"]
 
-        winner, loser = profile1, profile2
+        winner, loser = p1, p2
         if match["opponentPlacement"] < match["userPlacement"]:
             winner, loser = loser, winner
 
-        winner["enStats"]["wins"] += 1
-        winner["enStats"]["currentStreak"] += 1
-        winner["enStats"]["bestStreak"] = max(
-            winner["enStats"]["currentStreak"],
-            winner["enStats"]["bestStreak"]
-        )
-        loser["enStats"]["currentStreak"] = 0
+        winner["wins"] += 1
+        winner["currentStreak"] += 1
+        winner["bestStreak"] = max(winner["currentStreak"], winner["bestStreak"])
+        loser["currentStreak"] = 0
 
         wpm_delta = match["userWpm"] - match["opponentWpm"]
 
@@ -250,24 +244,21 @@ async def run_head_to_head(ctx: BotContext, profile1: Profile, profile2: Profile
         if closest_race is None or abs(wpm_delta) < abs(closest_race["userWpm"] - closest_race["opponentWpm"]):
             closest_race = match
 
-    profile1["enStats"]["completion"] = p1_finish_count / total_encounters
-    profile2["enStats"]["completion"] = p2_finish_count / total_encounters
+    p1["completion"] = p1_finish_count / total_encounters
+    p2["completion"] = p2_finish_count / total_encounters
 
-    profiles = (
-        (profile1, p1_finish_count),
-        (profile2, p2_finish_count),
+    sides = (
+        (profile1, p1, p1_finish_count),
+        (profile2, p2, p2_finish_count),
     )
 
-    for profile, finish_count in profiles:
+    for _, stats, finish_count in sides:
         for key in stat_keys:
             divisor = total_encounters if key == "placement" else finish_count
-            profile["enStats"][key] = (
-                0 if divisor == 0 else profile["enStats"][key] / divisor
-            )
+            stats[key] = 0 if divisor == 0 else stats[key] / divisor
 
-    def build_field(profile: Profile) -> Field:
+    def build_field(profile: Profile, stats: dict) -> Field:
         """Format one side of the head to head comparison."""
-        stats = profile["enStats"]
         biggest = stats["biggestWin"]
 
         content = (
@@ -343,8 +334,8 @@ async def run_head_to_head(ctx: BotContext, profile1: Profile, profile2: Profile
             title="Multiplayer Encounters",
             description=description,
             fields=[
-                build_field(profile1),
-                build_field(profile2),
+                build_field(profile1, p1),
+                build_field(profile2, p2),
             ],
             render=lambda: encounters_graph.render(
                 encounters,
@@ -362,8 +353,8 @@ async def run_head_to_head(ctx: BotContext, profile1: Profile, profile2: Profile
     ]
 
     # Biggest Wins
-    for i, profile in enumerate((profile1, profile2)):
-        biggest = profile["enStats"]["biggestWin"]
+    for i, (profile, stats, _) in enumerate(sides):
+        biggest = stats["biggestWin"]
 
         if biggest is None:
             continue

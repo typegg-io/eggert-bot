@@ -64,8 +64,8 @@ async def run(ctx: BotContext, quote: dict, profiles: list[Profile]) -> None:
     themed_line = 0
 
     # Fetch all best races in parallel
-    async def fetch_user_best(profile: Profile) -> Profile:
-        """Return the profile with its best race on the quote attached."""
+    async def fetch_user_best(profile: Profile) -> tuple[Profile, dict]:
+        """Return the profile paired with its best race on the quote."""
         quote_best = get_quote_bests(
             profile["userId"], quote_id=quote["quoteId"],
             order_by="wpm", flags=ctx.flags,
@@ -78,23 +78,22 @@ async def run(ctx: BotContext, quote: dict, profiles: list[Profile]) -> None:
             quote_best[0]["raceNumber"],
             ctx.flags.raw,
         )
-        profile["bestRace"] = best_race
-        return profile
+        return profile, best_race
 
-    profiles = await asyncio.gather(*[fetch_user_best(p) for p in profiles])
-    profiles = sorted(profiles, key=lambda x: -x["bestRace"]["wpm"])
+    bests = await asyncio.gather(*[fetch_user_best(p) for p in profiles])
+    bests = sorted(bests, key=lambda best: -best[1]["wpm"])
 
     # Build description and find themed line
-    for i, profile in enumerate(profiles):
+    for i, (profile, best_race) in enumerate(bests):
         if profile["userId"] == ctx.user["userId"]:
             themed_line = i
-        description += format_race(profile, profile["bestRace"])
+        description += format_race(profile, best_race)
 
     title = f"Quote Best Comparison - {quote['quoteId']}"
     page = create_comparison_page(
         title=title,
         description=description,
-        race_data=[p["bestRace"] for p in profiles],
+        race_data=[best_race for _, best_race in bests],
         theme=ctx.user["theme"],
         themed_line=themed_line,
     )
