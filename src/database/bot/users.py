@@ -125,6 +125,15 @@ def update_timezone(discord_id: str, timezone: str) -> None:
     """, [timezone, discord_id])
 
 
+def update_date_range(discord_id: str, start: float | None, end: float | None) -> None:
+    """Store a user's time travel range as Unix seconds, or clear it with a pair of Nones."""
+    db.run("""
+        UPDATE users
+        SET startDate = ?, endDate = ?
+        WHERE discordId = ?
+    """, [start, end, discord_id])
+
+
 def link_user(discord_id: str, user_id: str) -> None:
     """Creates a link between a Discord ID and a User ID."""
     db.run("""
