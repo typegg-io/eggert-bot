@@ -223,7 +223,11 @@ def get_line_colormap(ax: Axes, line_index: int, colormap_name: str) -> LineColl
     points = np.array([x, y]).T.reshape(-1, 1, 2)
     segments = np.concatenate([points[:-1], points[1:]], axis=1)
     lc = LineCollection(segments, cmap=cmap, zorder=50, linewidth=line.get_linewidth())
-    lc.set_array(np.linspace(0, 1, len(x)))
+    # Spacing the colormap by index instead spends it wherever the points bunch up.
+    x = np.asarray(x, dtype=float)
+    span = x[-1] - x[0]
+    midpoints = (x[:-1] + x[1:]) / 2
+    lc.set_array((midpoints - x[0]) / span if span else np.zeros(len(midpoints)))
     ax.add_collection(lc)
 
     return lc
