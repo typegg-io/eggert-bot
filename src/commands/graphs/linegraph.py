@@ -6,10 +6,12 @@ from discord.ext import commands
 from command_info import CommandInfo
 from commands.base import Command
 from context import BotContext
+from database.typegg.nwpm import get_nwpm_over_time
 from database.typegg.races import get_races
 from graphs import line
 from utils.errors import BotError, NoRacesFiltered
 from utils.flags import get_flag_title
+from utils.nwpm import CALIBRATION_MIN_QUOTES
 from utils.schemas import Profile
 from utils.stats import calculate_quote_length, calculate_total_pp
 
@@ -94,6 +96,20 @@ class LineGraph(Command):
         await run(ctx, metric, profiles)
 
 
+def get_nwpm_line(username: str, user_id: str) -> tuple[list[str], list[float]]:
+    """Return a user's nWPM timestamps and values, oldest first."""
+    points = get_nwpm_over_time(user_id)
+
+    if not points:
+        raise BotError(
+            "Uncalibrated",
+            f"{username} needs best races on {CALIBRATION_MIN_QUOTES} ranked\n"
+            f"English quotes before nWPM appears.",
+        )
+
+    return [point[0] for point in points], [point[1] for point in points]
+
+
 def get_total_pp_over_time(race_list: list[dict]) -> list[float]:
     """Return the user's total pp after each race."""
     quote_bests = {}
@@ -173,38 +189,36 @@ async def run(ctx: BotContext, metric: str, profiles: list[Profile]) -> None:
 
     lines = []
     for profile in profiles:
-        columns = metrics[metric]["columns"].split(" ")
-        columns.append("timestamp")
+        if metric == "nwpm":
+            x_values, y_values = get_nwpm_line(profile["username"], profile["userId"])
+        else:
+            columns = metrics[metric]["columns"].split(" ")
+            columns.append("timestamp")
 
-        race_list = await get_races(
-            user_id=profile["userId"],
-            columns=columns,
-            include_dnf=False,
-            order_by="timestamp",
-            flags=ctx.flags,
-        )
-
-        if not race_list:
-            raise NoRacesFiltered(profile["username"])
-
-        x_values = [race["timestamp"] for race in race_list]
-        y_values = []
-
-        if metric == "pp":
-            y_values = get_total_pp_over_time(race_list)
-        elif metric in ["best", "wpm"]:
-            y_values = get_best_over_time(race_list, key=columns[0])
-        elif metric == "races":
-            y_values = [i + 1 for i in range(len(race_list))]
-        elif metric == "quotes":
-            y_values = get_quotes_over_time(race_list)
-        elif metric == "characters":
-            y_values = get_characters_over_time(race_list)
-        elif metric == "nwpm":
-            raise BotError(
-                "Graph Disabled",
-                "Due to recent nWPM changes this\ngraph is temporarily disabled <:eggertSad:1327614860388995174>"
+            race_list = await get_races(
+                user_id=profile["userId"],
+                columns=columns,
+                include_dnf=False,
+                order_by="timestamp",
+                flags=ctx.flags,
             )
+
+            if not race_list:
+                raise NoRacesFiltered(profile["username"])
+
+            x_values = [race["timestamp"] for race in race_list]
+            y_values = []
+
+            if metric == "pp":
+                y_values = get_total_pp_over_time(race_list)
+            elif metric in ["best", "wpm"]:
+                y_values = get_best_over_time(race_list, key=columns[0])
+            elif metric == "races":
+                y_values = [i + 1 for i in range(len(race_list))]
+            elif metric == "quotes":
+                y_values = get_quotes_over_time(race_list)
+            elif metric == "characters":
+                y_values = get_characters_over_time(race_list)
 
         lines.append({
             "username": profile["username"],
