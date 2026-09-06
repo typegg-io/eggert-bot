@@ -6,6 +6,7 @@ from config import DAILY_QUOTE_CHANNEL_ID
 from context import BotContext
 from database.bot.recent_quotes import get_recent_quote
 from utils.dates import discord_date
+from utils.errors import MissingArguments
 from utils.messages import Message, Page, usable_in
 from utils.strings import quote_display, rank, username_with_flag
 from utils.urls import race_url
@@ -32,6 +33,8 @@ class QuoteLeaderboard(Command):
         """Resolve the quote from the flag or the channel's most recent one, then render it."""
         if ctx.flags.quote_id is None:
             ctx.flags.quote_id = get_recent_quote(ctx.channel.id)
+            if ctx.flags.quote_id is None:
+                raise MissingArguments
         quote = await self.get_quote(ctx, ctx.flags.quote_id, from_api=True)
         enforce_daily_quote(ctx, quote["quoteId"])
         await run(ctx, quote)

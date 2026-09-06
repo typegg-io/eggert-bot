@@ -17,7 +17,15 @@ from database.typegg.quotes import get_quote as get_quote_db
 from database.typegg.races import get_latest_race
 from services.importer import get_total_races, run as import_races
 from utils.colors import ERROR
-from utils.errors import DailyQuoteChannel, InvalidNumber, MissingUsername, NoRaces, NoRacesFiltered, NotSubscribed
+from utils.errors import (
+    DailyQuoteChannel,
+    InvalidNumber,
+    MissingArguments,
+    MissingUsername,
+    NoRaces,
+    NoRacesFiltered,
+    NotSubscribed,
+)
 from utils.flags import Flags
 from utils.messages import command_milestone, privacy_warning
 from utils.schemas import Profile
@@ -231,6 +239,8 @@ class Command(commands.Cog):
             quote_id = solo_quote_id
         elif quote_id == "^":
             quote_id = get_recent_quote(ctx.channel.id)
+            if quote_id is None:
+                raise MissingArguments
         elif quote_id == "daily":
             quote_id = get_daily_quote_id()
 
