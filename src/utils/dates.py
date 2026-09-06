@@ -54,6 +54,12 @@ def date_to_string(date_object: datetime, format: str = API_DATE_FORMAT) -> str:
     return datetime.strftime(date_object, format)
 
 
+def to_timestamp_string(date: datetime | str | None) -> str | None:
+    """Return a date as the string form the race tables store, passing strings and None through."""
+    # Binding a datetime straight to SQLite uses an adapter deprecated in Python 3.12.
+    return date_to_string(date) if isinstance(date, datetime) else date
+
+
 def parse_date(date_string: str | None) -> datetime:
     """Parse a flexible date string (e.g., 'now', 'yesterday', ISO format) into a UTC datetime."""
     _now = now()

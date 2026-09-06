@@ -6,7 +6,7 @@ import zlib
 
 from database.typegg import db
 from database.typegg.keystroke_data import get_keystroke_data
-from utils.dates import normalize_datetime
+from utils.dates import normalize_datetime, to_timestamp_string
 from utils.errors import RaceNotFound
 from utils.flags import Flags
 
@@ -108,17 +108,18 @@ async def get_races(
     conditions = []
     params = []
 
-    condition_map = {
-        user_id: "r.userId = ?",
-        quote_id: "r.quoteId = ?",
-        start_date: "timestamp >= ?",
-        end_date: "timestamp < ?",
-        min_pp: "pp > ?",
-        max_pp: "pp <= ?",
-        match_id: "matchId = ?",
-    }
+    # Keying this by value would collapse two filters that happen to hold the same one.
+    filters = [
+        (user_id, "r.userId = ?"),
+        (quote_id, "r.quoteId = ?"),
+        (to_timestamp_string(start_date), "timestamp >= ?"),
+        (to_timestamp_string(end_date), "timestamp < ?"),
+        (min_pp, "pp > ?"),
+        (max_pp, "pp <= ?"),
+        (match_id, "matchId = ?"),
+    ]
 
-    for param, condition in condition_map.items():
+    for param, condition in filters:
         if param is not None:
             conditions.append(condition)
             params.append(param)

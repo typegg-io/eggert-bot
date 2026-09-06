@@ -9,6 +9,7 @@ from database.bot.users import get_all_linked_users
 from database.typegg import db
 from database.typegg.match_results import delete_match_results
 from database.typegg.quote_leaderboards import remove_user_from_leaderboards
+from utils.dates import to_timestamp_string
 from utils.errors import ProfileNotFound
 from utils.flags import Flags
 from utils.logging import log
@@ -89,15 +90,16 @@ def get_quote_bests(
     conditions = ["userId = ?"]
     params = [user_id]
 
-    condition_map = {
-        quote_id: "r.quoteId = ?",
-        start_date: "timestamp >= ?",
-        end_date: "timestamp < ?",
-        min_pp: "pp > ?",
-        max_pp: "pp <= ?",
-    }
+    # Keying this by value would collapse two filters that happen to hold the same one.
+    filters = [
+        (quote_id, "r.quoteId = ?"),
+        (to_timestamp_string(start_date), "timestamp >= ?"),
+        (to_timestamp_string(end_date), "timestamp < ?"),
+        (min_pp, "pp > ?"),
+        (max_pp, "pp <= ?"),
+    ]
 
-    for param, condition in condition_map.items():
+    for param, condition in filters:
         if param is not None:
             conditions.append(condition)
             params.append(param)
