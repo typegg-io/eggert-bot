@@ -9,7 +9,7 @@ from aiohttp import web
 from aiohttp.test_utils import make_mocked_request
 
 from api import verification
-from database.bot import command_log, servers, users
+from database.bot import command_log, servers
 from web_server.routes import dashboard
 
 SECRET = "test-secret"
@@ -149,9 +149,9 @@ def log_at(connection, discord_id, command, days_ago, server_id="900", user_id=N
 
 
 def test_get_totals_counts_origins_and_links(scratch_db):
-    users.log_command("1", "u1", "stats", "900")
-    users.log_command("1", None, "day", None)
-    users.log_command("2", "u2", "stats", None)
+    command_log.log_command("1", "u1", "stats", "900")
+    command_log.log_command("1", None, "day", None)
+    command_log.log_command("2", "u2", "stats", None)
 
     totals = command_log.get_totals()
 
@@ -252,8 +252,8 @@ def test_get_active_users_counts_distinct_users_in_the_window(scratch_db):
 
 def test_get_top_commands_orders_by_usage(scratch_db):
     for _ in range(3):
-        users.log_command("1", None, "stats", "900")
-    users.log_command("1", None, "day", "900")
+        command_log.log_command("1", None, "stats", "900")
+    command_log.log_command("1", None, "day", "900")
 
     assert command_log.get_top_commands(1) == [{"command": "stats", "total": 3}]
 
@@ -289,10 +289,10 @@ def test_get_command_mix_on_an_empty_table(scratch_db):
 
 def test_get_concentration_sums_the_busiest_users(scratch_db):
     for _ in range(5):
-        users.log_command("1", None, "stats", "900")
+        command_log.log_command("1", None, "stats", "900")
     for _ in range(3):
-        users.log_command("2", None, "stats", "900")
-    users.log_command("3", None, "stats", "900")
+        command_log.log_command("2", None, "stats", "900")
+    command_log.log_command("3", None, "stats", "900")
 
     assert command_log.get_concentration(2) == 8
     assert command_log.get_concentration(10) == 9

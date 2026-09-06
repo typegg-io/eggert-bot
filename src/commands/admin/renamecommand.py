@@ -4,7 +4,7 @@ from command_info import CommandInfo
 from commands.base import Command
 from commands.checks import is_bot_owner
 from context import BotContext
-from database.bot.users import migrate_command_name
+from database.bot.command_log import migrate_command_name
 from utils.messages import Message, Page
 
 info = CommandInfo(

@@ -21,8 +21,9 @@ from config import (
     TYPEGG_GUILD_ID,
 )
 from context import BotContext
+from database.bot.command_log import get_command_count, log_command
 from database.bot.servers import remember_server
-from database.bot.users import get_command_count, get_user, get_user_ids, log_command
+from database.bot.users import get_user, get_user_ids
 from database.typegg.quotes import is_quote_id
 from utils.dates import is_date_like, parse_date
 from utils.errors import BotLocked, InvalidNumber, UserBanned

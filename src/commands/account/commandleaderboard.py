@@ -3,7 +3,7 @@ from discord.ext import commands
 from command_info import CommandInfo
 from commands.base import Command
 from context import BotContext
-from database.bot.users import (
+from database.bot.command_log import (
     get_all_command_usage,
     get_command_leaderboard,
     get_command_usage,

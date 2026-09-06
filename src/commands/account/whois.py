@@ -3,7 +3,8 @@ from discord.ext import commands
 from command_info import CommandInfo
 from commands.base import Command
 from context import BotContext
-from database.bot.users import get_command_usage, get_user, get_user_by_user_id
+from database.bot.command_log import get_command_usage
+from database.bot.users import get_user, get_user_by_user_id
 from utils.dates import discord_date
 from utils.errors import BotError, ProfileNotFound
 from utils.messages import Message, Page

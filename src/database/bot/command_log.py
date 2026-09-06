@@ -1,6 +1,7 @@
-"""Aggregate reads over command_log, for the usage dashboard."""
+"""Every read and write over the command_log table."""
 
 from database.bot import db
+from utils import dates
 
 # Backfilled rows the log could not date carry a NULL timestamp, so every
 # time-series query filters them out rather than bucketing them somewhere wrong.
@@ -163,3 +164,79 @@ def get_new_users_by_week(weeks: int | None = None) -> list[dict]:
     """, [] if weeks is None else [weeks * 7])
 
     return [dict(row) for row in results]
+
+
+def get_command_usage(discord_id: int | str) -> dict[str, int]:
+    """Return command counts for a single user."""
+    results = db.fetch("""
+        SELECT command, COUNT(*) AS total FROM command_log
+        WHERE discordId = ?
+        GROUP BY command
+    """, [str(discord_id)])
+
+    return {row["command"]: row["total"] for row in results}
+
+
+def get_all_command_usage() -> dict[str, int]:
+    """Return total command counts across all users."""
+    results = db.fetch("""
+        SELECT command, COUNT(*) AS total FROM command_log
+        GROUP BY command
+    """)
+
+    return {row["command"]: row["total"] for row in results}
+
+
+def get_command_leaderboard(command_name: str) -> list[dict]:
+    """Return every user who has run a command, most usages first."""
+    results = db.fetch("""
+        SELECT discordId, COUNT(*) AS total FROM command_log
+        WHERE command = ?
+        GROUP BY discordId
+        ORDER BY total DESC
+    """, [command_name])
+
+    return [{"discord_id": row["discordId"], "usages": row["total"]} for row in results]
+
+
+def get_top_users_by_command_usage() -> list[dict]:
+    """Return users sorted by total command usage."""
+    results = db.fetch("""
+        SELECT discordId, COUNT(*) AS total FROM command_log
+        GROUP BY discordId
+        ORDER BY total DESC
+    """)
+
+    return [{"discord_id": row["discordId"], "total_commands": row["total"]} for row in results]
+
+
+def log_command(discord_id: str, user_id: str | None, command_name: str, server_id: str | None) -> None:
+    """Record one command invocation."""
+    db.run("""
+        INSERT INTO command_log (discordId, userId, command, origin, serverId, timestamp)
+        VALUES (?, ?, ?, ?, ?, ?)
+    """, [
+        str(discord_id), user_id, command_name,
+        "server" if server_id else "dm", server_id, dates.now().timestamp(),
+    ])
+
+
+def get_command_count() -> int:
+    """Return the total number of commands ever run."""
+    return db.fetch_one("SELECT COUNT(*) AS total FROM command_log")["total"]
+
+
+def migrate_command_name(old_name: str, new_name: str) -> int:
+    """Migrate command usage data from an old command name to a new one."""
+    affected_count = db.fetch_one("""
+        SELECT COUNT(DISTINCT discordId) AS total FROM command_log
+        WHERE command = ?
+    """, [old_name])["total"]
+
+    db.run("""
+        UPDATE command_log
+        SET command = ?
+        WHERE command = ?
+    """, [new_name, old_name])
+
+    return affected_count
