@@ -24,13 +24,10 @@ COOKIE_NAME = "eggert_dashboard"
 SESSION_SECONDS = 30 * 86400
 # Re-issue a cookie older than this so the session slides rather than expiring 30 days after login.
 REFRESH_AFTER = 86400
-STATS_TTL = 30
 
 SESSION_SCOPE = "dashboard-session"
 
 DENIED = "This dashboard is admin only. Run -dashboard in Discord for a fresh link."
-
-_stats_cache = {"at": 0.0, "data": None}
 
 
 # Sessions
@@ -171,11 +168,7 @@ def name_server(cog: "WebServer", server_id: str) -> str:
 
 
 def build_stats(cog: "WebServer") -> dict:
-    """Return every aggregate the dashboard renders, cached for a few seconds."""
-    now = time.time()
-    if _stats_cache["data"] and now - _stats_cache["at"] < STATS_TTL:
-        return _stats_cache["data"]
-
+    """Return every aggregate the dashboard renders."""
     totals = command_log.get_totals()
     stats = {
         "totals": totals,
@@ -195,9 +188,7 @@ def build_stats(cog: "WebServer") -> dict:
             "users": 10,
             "commands": command_log.get_concentration(10),
         },
-        "generated": now,
+        "generated": time.time(),
     }
-
-    _stats_cache.update(at=now, data=stats)
 
     return stats

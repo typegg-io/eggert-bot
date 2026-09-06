@@ -3,8 +3,6 @@ const PALETTE = [
     "#58a6ff", "#f778ba", "#7ee787", "#ffa657",
     "#a5a5ff", "#f2cc60", "#79c0ff", "#3f4a72",
 ];
-const POLL_MS = 30000;
-
 let stats = null;
 let dailyDays = 90;
 
@@ -279,21 +277,18 @@ function render() {
     renderMix();
     renderNewUsers();
     document.getElementById("updated").textContent =
-        `Updated ${new Date(stats.generated * 1000).toLocaleTimeString()}`;
+        `Read at ${new Date(stats.generated * 1000).toLocaleString()}. Reload for fresh numbers.`;
 }
 
-// Polling
-
-async function refresh() {
+async function load() {
     const response = await fetch("/dashboard/stats");
     if (!response.ok) {
         document.getElementById("updated").textContent = "Session expired. Run -dashboard in Discord.";
-        return false;
+        return;
     }
 
     stats = await response.json();
     render();
-    return true;
 }
 
 document.getElementById("range-buttons").addEventListener("click", event => {
@@ -306,6 +301,4 @@ document.getElementById("range-buttons").addEventListener("click", event => {
     renderDaily();
 });
 
-refresh().then(ok => {
-    if (ok) setInterval(refresh, POLL_MS);
-});
+load();
