@@ -35,14 +35,16 @@ def _decompress(row) -> str | bytes | None:
     return keystroke_data
 
 
-def get_keystroke_data(race_id: str) -> list | dict:
-    """Get keystroke data by race ID, decompressed."""
-    result = db.fetch_one("""
-        SELECT keystrokeData FROM keystroke_data
+def get_keystroke_data(race_id: str) -> list | dict | None:
+    """Return one race's keystroke payload, decompressed, or None when it has none."""
+    row = db.fetch_one("""
+        SELECT keystrokeData, compressed FROM keystroke_data
         WHERE raceId = ?
     """, [race_id])
 
-    return json.loads(result["keystrokeData"])
+    keystroke_data = _decompress(row)
+
+    return None if keystroke_data is None else json.loads(keystroke_data)
 
 
 def get_uncompressed_count() -> int:
