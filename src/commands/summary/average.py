@@ -26,7 +26,7 @@ info = CommandInfo(
 class Average(Command):
     """Display the average stats of a user's last n races."""
 
-    supported_flags = {"gamemode", "status", "language", "number"}
+    supported_flags = {"gamemode", "status", "language", "number", "date_range"}
 
     @commands.command(aliases=info.aliases)
     async def average(self, ctx: BotContext, *args: str):

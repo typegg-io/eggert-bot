@@ -32,7 +32,7 @@ info = CommandInfo(
 class Races(Command):
     """Display a full stat summary of a user's races."""
 
-    supported_flags = {"gamemode", "status", "language"}
+    supported_flags = {"gamemode", "status", "language", "date_range"}
 
     @commands.command(aliases=info.aliases)
     async def races(self, ctx: BotContext, *args: str):

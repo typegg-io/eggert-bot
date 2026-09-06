@@ -8,6 +8,7 @@ from database.typegg.quotes import get_quotes
 from database.typegg.users import get_quote_bests
 from graphs import pplength
 from utils.flags import Flags
+from utils.messages import range_subtext
 from utils.schemas import Profile
 
 info = CommandInfo(
@@ -27,6 +28,8 @@ info = CommandInfo(
 class PpLengthGraph(Command):
     """Graph a scatterplot of pp personal bests against quote length."""
 
+    supported_flags = {"date_range"}
+
     @commands.command(aliases=info.aliases)
     async def pplength(self, ctx: BotContext, username: str = None):
         """Graph one user's pp against quote length."""
@@ -36,7 +39,10 @@ class PpLengthGraph(Command):
 
 async def run(ctx: BotContext, profile: Profile) -> None:
     """Send a scatterplot of the user's ranked quote bests by length."""
-    quote_bests = get_quote_bests(profile["userId"], flags=Flags(status="ranked"))
+    quote_bests = get_quote_bests(
+        profile["userId"],
+        flags=Flags(status="ranked", date_range=ctx.flags.date_range),
+    )
     quotes = get_quotes()
 
     file_name = pplength.render(
@@ -47,4 +53,4 @@ async def run(ctx: BotContext, profile: Profile) -> None:
     )
 
     file = File(file_name, filename=file_name)
-    await ctx.send(file=file)
+    await ctx.send(content=range_subtext(ctx) or None, file=file)

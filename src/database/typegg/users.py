@@ -60,6 +60,10 @@ def get_quote_bests(
     columns = list(columns) if columns else ["*"]
     flags = flags or Flags()
 
+    # An explicit argument wins, so -day and the importer keep their own range.
+    if flags.date_range and start_date is None and end_date is None:
+        start_date, end_date = flags.date_range
+
     min_pp = 0
     max_pp = 99999
 

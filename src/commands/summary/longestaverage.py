@@ -24,7 +24,7 @@ info = CommandInfo(
 class LongestAverage(Command):
     """Display the longest run of races a user held a WPM average over."""
 
-    supported_flags = {"raw", "gamemode", "status", "language", "number"}
+    supported_flags = {"raw", "gamemode", "status", "language", "number", "date_range"}
 
     @commands.command(aliases=info.aliases)
     async def longestaverage(self, ctx: BotContext, *args: str):

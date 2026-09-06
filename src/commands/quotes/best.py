@@ -32,7 +32,7 @@ info = CommandInfo(
 class Best(Command):
     """Display a user's best 100 quotes."""
 
-    supported_flags = {"metric", "raw", "gamemode", "status", "language", "number_range"}
+    supported_flags = {"metric", "raw", "gamemode", "status", "language", "number_range", "date_range"}
 
     @commands.command(aliases=info.aliases)
     async def best(self, ctx: BotContext, username: str = None):

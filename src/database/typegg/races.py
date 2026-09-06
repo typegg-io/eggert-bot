@@ -80,6 +80,10 @@ async def get_races(
     columns = list(columns) if columns else ["*"]
     flags = flags or Flags()
 
+    # An explicit argument wins, so -day and the importer keep their own range.
+    if flags.date_range and start_date is None and end_date is None:
+        start_date, end_date = flags.date_range
+
     if flags.raw:
         raw_columns = {"wpm": "rawWpm as wpm", "pp": "rawPp as pp"}
         if "*" in columns:

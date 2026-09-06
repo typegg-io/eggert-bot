@@ -57,7 +57,7 @@ info = CommandInfo(
 class Histogram(Command):
     """Graph a solo against multiplayer histogram for a metric."""
 
-    supported_flags = {"metric", "raw", "status", "language"}
+    supported_flags = {"metric", "raw", "status", "language", "date_range"}
 
     @commands.command(aliases=info.aliases)
     async def histogram(self, ctx: BotContext, *args: str):

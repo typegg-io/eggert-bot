@@ -18,7 +18,7 @@ info = CommandInfo(
 class Worst(Command):
     """Display a user's worst 100 quotes."""
 
-    supported_flags = {"metric", "raw", "gamemode", "status", "language", "number_range"}
+    supported_flags = {"metric", "raw", "gamemode", "status", "language", "number_range", "date_range"}
 
     @commands.command(aliases=info.aliases)
     async def worst(self, ctx: BotContext, username: str = None):

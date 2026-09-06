@@ -31,7 +31,7 @@ info = CommandInfo(
 class BestAverages(Command):
     """Display a user's 10 best averages over n consecutive races."""
 
-    supported_flags = {"raw", "gamemode", "status", "language", "number"}
+    supported_flags = {"raw", "gamemode", "status", "language", "number", "date_range"}
 
     @commands.command(aliases=info.aliases)
     async def bestaverages(self, ctx: BotContext, *args: str):

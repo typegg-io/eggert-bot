@@ -30,7 +30,7 @@ info = CommandInfo(
 class Improvement(Command):
     """Graph a user's pp or WPM improvement over races."""
 
-    supported_flags = {"metric", "raw", "status", "language"}
+    supported_flags = {"metric", "raw", "status", "language", "date_range"}
 
     @commands.command(aliases=info.aliases)
     async def improvement(self, ctx: BotContext, *args: str):

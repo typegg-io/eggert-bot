@@ -38,7 +38,7 @@ info = CommandInfo(
 class Encounters(Command):
     """List the opponents a user has faced in multiplayer."""
 
-    supported_flags = {"metric", "gamemode", "status", "language"}
+    supported_flags = {"metric", "gamemode", "status", "language", "date_range"}
 
     @commands.command(aliases=info.aliases)
     async def encounters(self, ctx: BotContext, *args: str):

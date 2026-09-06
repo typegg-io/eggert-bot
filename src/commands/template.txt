@@ -19,7 +19,7 @@ class CommandName(Command):
     """One line saying what the command shows."""
 
     # Declare which flags this command can use, omit the line if none are supported.
-    # Options: "metric", "raw", "gamemode", "status", "language", "number", "number_range", "date", "quote_id"
+    # Options: "metric", "raw", "gamemode", "status", "language", "number", "number_range", "date", "date_range", "quote_id"
     supported_flags = set()
 
     @commands.command(aliases=info.aliases)

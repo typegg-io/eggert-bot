@@ -226,6 +226,11 @@ def date_range_display(start, end, tz) -> str:
     return display_string
 
 
+def date_range_subtext(start, end, tz) -> str:
+    """Return the time travel line shown above an embed while a date range applies."""
+    return f"-# ⏳ {date_range_display(start, end, tz)}"
+
+
 # Text Formatting
 
 def escape_formatting(string, remove_backticks=True) -> str:

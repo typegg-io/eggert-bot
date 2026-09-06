@@ -69,7 +69,7 @@ def length_label(min_length, max_length) -> str:
 class CompareGraph(Command):
     """Compare two users' quote bests across difficulty levels."""
 
-    supported_flags = {"metric", "raw", "gamemode", "status", "language", "number_range"}
+    supported_flags = {"metric", "raw", "gamemode", "status", "language", "number_range", "date_range"}
 
     @commands.command(aliases=info.aliases)
     async def comparegraph(self, ctx: BotContext, *args: str):

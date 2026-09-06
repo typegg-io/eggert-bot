@@ -58,10 +58,17 @@ class Command(commands.Cog):
 
     async def cog_before_invoke(self, ctx: BotContext) -> None:
         """Warn about flags this command does not support, then reset them to their defaults."""
+        explicit = getattr(ctx, "explicit_flags", {})
+        unranged = "date_range" not in self.supported_flags
+        stored_range = bool(ctx.flags.date_range) and "date_range" not in explicit
+
+        # A stored range applies with nothing typed, so ignore_flags commands still have to clear it.
+        if unranged:
+            ctx.flags.date_range = None
+
         if hasattr(self, "ignore_flags"):
             return
 
-        explicit = getattr(ctx, "explicit_flags", {})
         unsupported = {name: arg for name, arg in explicit.items() if name not in self.supported_flags}
 
         if unsupported:
@@ -77,6 +84,9 @@ class Command(commands.Cog):
             for name in unsupported:
                 if hasattr(ctx.flags, name):
                     setattr(ctx.flags, name, getattr(defaults, name))
+
+        if unranged and stored_range:
+            await ctx.send("-# :warning: time travel has no effect on this command")
 
     async def celebrate_milestone(self, ctx: BotContext, milestone: int) -> None:
         """Announce a user's command count milestone in the stats channel."""

@@ -14,8 +14,18 @@ from utils import files
 from utils.colors import SUCCESS, WARNING
 from utils.flags import get_flag_title
 from utils.schemas import Profile
-from utils.strings import LOADING
+from utils.strings import LOADING, date_range_subtext
 from utils.urls import profile_url
+
+
+def range_subtext(ctx: BotContext) -> str:
+    """Return the time travel line for an active date range, or an empty string."""
+    date_range = getattr(getattr(ctx, "flags", None), "date_range", None)
+    if not date_range:
+        return ""
+
+    return date_range_subtext(*date_range, ctx.user["timezone"])
+
 
 welcome_message = (
     f"### Hi there, I'm Eggert!\n"
@@ -118,7 +128,9 @@ class Message(View):
         super().__init__(timeout=60 if self.page_count > 1 else 0.01)
         self.message = None
 
-        self.content = content
+        subtext = range_subtext(ctx)
+        self.content = f"{subtext}\n{content}" if subtext and content else subtext or content
+
         self.title = title
         self.url = url
         self.header = header

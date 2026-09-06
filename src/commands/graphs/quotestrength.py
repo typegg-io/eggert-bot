@@ -9,6 +9,7 @@ from database.typegg.quotes import get_quotes
 from database.typegg.users import get_quote_bests
 from graphs import quotestrength as qs_graph
 from utils.errors import NoRankedRaces
+from utils.flags import Flags
 from utils.messages import Message, Page
 from utils.schemas import Profile
 
@@ -34,6 +35,8 @@ info = CommandInfo(
 
 class QuoteStrength(Command):
     """Graph a compass showing where a user's pp comes from."""
+
+    supported_flags = {"date_range"}
 
     @commands.command(aliases=info.aliases)
     async def quotestrength(self, ctx: BotContext, *args: str):
@@ -74,6 +77,7 @@ async def run(ctx: BotContext, profiles: list[Profile]) -> None:
             columns=["pp", "quoteId"],
             order_by="pp",
             limit=250,
+            flags=Flags(date_range=ctx.flags.date_range),
         )
 
         if not quote_bests:

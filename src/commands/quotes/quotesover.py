@@ -25,7 +25,7 @@ info = CommandInfo(
 class QuotesOver(Command):
     """Count how many quotes a user has above a threshold."""
 
-    supported_flags = {"metric", "raw", "gamemode", "status", "language", "number"}
+    supported_flags = {"metric", "raw", "gamemode", "status", "language", "number", "date_range"}
 
     @commands.command(aliases=info.aliases)
     async def quotesover(self, ctx: BotContext, *args: str):

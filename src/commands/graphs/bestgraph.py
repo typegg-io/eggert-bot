@@ -35,7 +35,7 @@ info = CommandInfo(
 class BestGraph(Command):
     """Graph a user's top n quote PBs ordered by pp."""
 
-    supported_flags = {"metric", "raw", "gamemode", "status", "language", "number"}
+    supported_flags = {"metric", "raw", "gamemode", "status", "language", "number", "date_range"}
 
     @commands.command(aliases=info.aliases)
     async def bestgraph(self, ctx: BotContext, *args: str):

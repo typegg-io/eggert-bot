@@ -11,6 +11,7 @@ from database.typegg.races import get_races
 from graphs import line
 from utils.errors import BotError, NoRacesFiltered
 from utils.flags import get_flag_title
+from utils.messages import range_subtext
 from utils.nwpm import CALIBRATION_MIN_QUOTES
 from utils.schemas import Profile
 from utils.stats import calculate_quote_length, calculate_total_pp
@@ -80,7 +81,7 @@ info = CommandInfo(
 class LineGraph(Command):
     """Graph a metric over time for up to five users."""
 
-    supported_flags = {"metric", "raw", "gamemode", "status", "language"}
+    supported_flags = {"metric", "raw", "gamemode", "status", "language", "date_range"}
 
     @commands.command(aliases=info.aliases)
     async def linegraph(self, ctx: BotContext, *args: str):
@@ -254,4 +255,4 @@ async def run(ctx: BotContext, metric: str, profiles: list[Profile]) -> None:
         ctx.user["theme"],
     )
     file = File(file_name, filename=file_name)
-    await ctx.send(file=file)
+    await ctx.send(content=range_subtext(ctx) or None, file=file)
