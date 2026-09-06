@@ -65,3 +65,12 @@ db.run("CREATE INDEX IF NOT EXISTS idx_command_log_command ON command_log (comma
 db.run("CREATE INDEX IF NOT EXISTS idx_command_log_discordId_command ON command_log (discordId, command)")
 db.run("CREATE INDEX IF NOT EXISTS idx_command_log_timestamp ON command_log (timestamp)")
 db.run("CREATE INDEX IF NOT EXISTS idx_command_log_serverId ON command_log (serverId)")
+
+# Discord serves no name for a guild the bot has left, so names are kept as they are seen.
+db.run("""
+    CREATE TABLE IF NOT EXISTS servers (
+        serverId TEXT PRIMARY KEY,
+        name TEXT NOT NULL,
+        lastSeen REAL NOT NULL
+    )
+""")

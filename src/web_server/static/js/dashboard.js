@@ -3,8 +3,13 @@ const PALETTE = [
     "#58a6ff", "#f778ba", "#7ee787", "#ffa657",
     "#a5a5ff", "#f2cc60", "#79c0ff", "#3f4a72",
 ];
+const RANGES = [
+    {label: "30d", days: 30},
+    {label: "90d", days: 90},
+    {label: "1y", days: 365},
+    {label: "All", days: null},
+];
 let stats = null;
-let dailyDays = 90;
 
 const tooltip = document.createElement("div");
 tooltip.className = "tooltip";
@@ -44,6 +49,25 @@ function hideTooltip() {
 function hoverable(node, lines) {
     node.addEventListener("mousemove", event => showTooltip(event, lines));
     node.addEventListener("mouseleave", hideTooltip);
+}
+
+// Dates
+
+function shortDate(day) {
+    return new Date(`${day}T00:00:00Z`).toLocaleDateString("en-US", {
+        month: "short", day: "numeric", timeZone: "UTC",
+    });
+}
+
+function longDate(day) {
+    return new Date(`${day}T00:00:00Z`).toLocaleDateString("en-US", {
+        year: "numeric", month: "short", day: "numeric", timeZone: "UTC",
+    });
+}
+
+function within(day, days) {
+    if (!days) return true;
+    return Date.parse(`${day}T00:00:00Z`) >= Date.now() - days * 86400000;
 }
 
 // Charts
@@ -90,6 +114,11 @@ function lineChart(target, points, options) {
 
     drawGrid(chart, width, height, pad, max);
 
+    if (!points.length) {
+        target.replaceChildren(chart);
+        return;
+    }
+
     const x = i => pad.left + (points.length > 1 ? span * (i / (points.length - 1)) : span / 2);
     const y = v => pad.top + plot * (1 - v / max);
     const path = points.map((p, i) => `${i ? "L" : "M"}${x(i)},${y(p.value)}`).join(" ");
@@ -100,15 +129,27 @@ function lineChart(target, points, options) {
     }));
     chart.appendChild(el("path", {d: path, fill: "none", stroke: color, "stroke-width": "2"}));
 
+    const marker = el("circle", {
+        r: 4, fill: color, stroke: "#00031B", "stroke-width": "2",
+        "pointer-events": "none", visibility: "hidden",
+    });
+
     const slot = span / points.length;
     points.forEach((p, i) => {
         const hit = el("rect", {
             x: x(i) - slot / 2, y: pad.top, width: slot, height: plot, fill: "transparent",
         });
         hoverable(hit, [p.label, `${comma(p.value)} ${options.unit}`]);
+        hit.addEventListener("mouseenter", () => {
+            marker.setAttribute("cx", x(i));
+            marker.setAttribute("cy", y(p.value));
+            marker.setAttribute("visibility", "visible");
+        });
+        hit.addEventListener("mouseleave", () => marker.setAttribute("visibility", "hidden"));
         chart.appendChild(hit);
     });
 
+    chart.appendChild(marker);
     drawXLabels(chart, points.map(p => p.short), width, height, pad);
 
     target.replaceChildren(chart);
@@ -122,7 +163,7 @@ function stackedChart(target, columns, buckets, series, height = 280) {
     const max = niceMax(Math.max(...totals, 0));
     const span = width - pad.left - pad.right;
     const plot = height - pad.top - pad.bottom;
-    const barWidth = Math.max(1, (span / Math.max(columns.length, 1)) * 0.7);
+    const barWidth = Math.min(60, Math.max(1, (span / Math.max(columns.length, 1)) * 0.7));
 
     drawGrid(chart, width, height, pad, max);
 
@@ -139,12 +180,58 @@ function stackedChart(target, columns, buckets, series, height = 280) {
                 x: center - barWidth / 2, y: bottom, width: barWidth, height: barHeight,
                 fill: PALETTE[b % PALETTE.length],
             });
-            hoverable(rect, [column, `${bucket}: ${comma(value)}`]);
+            hoverable(rect, [`Week of ${longDate(column)}`, `${bucket}: ${comma(value)}`]);
             chart.appendChild(rect);
         });
     });
 
-    drawXLabels(chart, columns, width, height, pad);
+    drawXLabels(chart, columns.map(shortDate), width, height, pad);
+
+    target.replaceChildren(chart);
+}
+
+function arc(cx, cy, outer, inner, from, to) {
+    const point = (angle, radius) => [
+        cx + radius * Math.cos(angle - Math.PI / 2),
+        cy + radius * Math.sin(angle - Math.PI / 2),
+    ];
+    const large = to - from > Math.PI ? 1 : 0;
+    const [x1, y1] = point(from, outer);
+    const [x2, y2] = point(to, outer);
+    const [x3, y3] = point(to, inner);
+    const [x4, y4] = point(from, inner);
+
+    return `M${x1},${y1} A${outer},${outer} 0 ${large} 1 ${x2},${y2}`
+        + ` L${x3},${y3} A${inner},${inner} 0 ${large} 0 ${x4},${y4} Z`;
+}
+
+function pieChart(target, slices) {
+    const size = 220;
+    const centre = size / 2;
+    const outer = 90;
+    const inner = 58;
+    const chart = svg(size, size);
+    const total = slices.reduce((sum, slice) => sum + slice.value, 0);
+
+    let start = 0;
+    slices.forEach((slice, i) => {
+        if (!slice.value) return;
+        const color = PALETTE[i % PALETTE.length];
+        const sweep = total ? (slice.value / total) * Math.PI * 2 : 0;
+        // A full turn has identical endpoints, which draws an arc of nothing.
+        const shape = slice.value === total
+            ? el("circle", {cx: centre, cy: centre, r: (outer + inner) / 2,
+                fill: "none", stroke: color, "stroke-width": outer - inner})
+            : el("path", {d: arc(centre, centre, outer, inner, start, start + sweep), fill: color});
+
+        hoverable(shape, [slice.label, `${comma(slice.value)} (${percent(slice.value, total)})`]);
+        chart.appendChild(shape);
+        start += sweep;
+    });
+
+    const lead = slices.reduce((a, b) => (b.value > a.value ? b : a), {value: 0, label: ""});
+    chart.appendChild(el("text", {class: "pie-value", x: centre, y: centre + 2}, percent(lead.value, total)));
+    chart.appendChild(el("text", {class: "pie-label", x: centre, y: centre + 20}, lead.label));
 
     target.replaceChildren(chart);
 }
@@ -174,6 +261,23 @@ function barChart(target, rows) {
 
         line.append(name, track, value);
         return line;
+    }));
+}
+
+function legend(target, entries) {
+    target.replaceChildren(...entries.map((entry, i) => {
+        const item = document.createElement("span");
+        item.className = "legend-item";
+
+        const swatch = document.createElement("span");
+        swatch.className = "legend-swatch";
+        swatch.style.backgroundColor = PALETTE[i % PALETTE.length];
+
+        const label = document.createElement("span");
+        label.textContent = entry;
+
+        item.append(swatch, label);
+        return item;
     }));
 }
 
@@ -210,7 +314,6 @@ function renderTiles() {
         tile(comma(perDay), "Commands per day", "30 day average"),
         tile(percent(active.day, active.month), "Stickiness", "DAU / MAU"),
         tile(percent(totals.linked, totals.commands), "From linked users", `${comma(totals.linked)} commands`),
-        tile(percent(totals.dm, totals.commands), "Run in DMs", `${comma(totals.commands - totals.dm)} in servers`),
         tile(
             percent(concentration.commands, totals.commands),
             `Top ${concentration.users} users`,
@@ -219,65 +322,99 @@ function renderTiles() {
     );
 }
 
-function shortDay(day) {
-    return day.slice(5).replace("-", "/");
-}
-
-function renderDaily() {
-    const rows = stats.daily.slice(-dailyDays);
+function renderDaily(days) {
+    const rows = stats.daily.filter(d => within(d.day, days));
 
     lineChart(document.getElementById("daily-chart"), rows.map(d => ({
-        label: d.day, short: shortDay(d.day), value: d.commands,
+        label: longDate(d.day), short: shortDate(d.day), value: d.commands,
     })), {unit: "commands"});
+}
+
+function renderActive(days) {
+    const rows = stats.daily.filter(d => within(d.day, days));
 
     lineChart(document.getElementById("active-chart"), rows.map(d => ({
-        label: d.day, short: shortDay(d.day), value: d.users,
+        label: longDate(d.day), short: shortDate(d.day), value: d.users,
     })), {unit: "users", color: "#7ee787", height: 220});
 }
 
-function renderMix() {
-    const {weeks, buckets, series} = stats.mix;
-    stackedChart(document.getElementById("mix-chart"), weeks, buckets, series);
+function renderOrigin() {
+    const {totals} = stats;
+    const slices = [
+        {label: "Servers", value: totals.commands - totals.dm},
+        {label: "DMs", value: totals.dm},
+    ];
 
-    document.getElementById("mix-legend").replaceChildren(...buckets.map((bucket, i) => {
-        const item = document.createElement("span");
-        item.className = "legend-item";
-
-        const swatch = document.createElement("span");
-        swatch.className = "legend-swatch";
-        swatch.style.backgroundColor = PALETTE[i % PALETTE.length];
-
-        const label = document.createElement("span");
-        label.textContent = bucket;
-
-        item.append(swatch, label);
-        return item;
-    }));
+    pieChart(document.getElementById("origin-chart"), slices);
+    legend(document.getElementById("origin-legend"), slices.map(s => `${s.label} (${comma(s.value)})`));
 }
 
-function renderNewUsers() {
+function renderMix(days) {
+    const {weeks, buckets, series} = stats.mix;
+    const keep = weeks.map((week, i) => i).filter(i => within(weeks[i], days));
+
+    stackedChart(
+        document.getElementById("mix-chart"),
+        keep.map(i => weeks[i]),
+        buckets,
+        Object.fromEntries(buckets.map(b => [b, keep.map(i => series[b][i])])),
+    );
+
+    legend(document.getElementById("mix-legend"), buckets);
+}
+
+function renderNewUsers(days) {
+    const rows = stats.newUsers.filter(r => within(r.week, days));
+
     stackedChart(
         document.getElementById("new-users-chart"),
-        stats.newUsers.map(r => r.week),
+        rows.map(r => r.week),
         ["users"],
-        {users: stats.newUsers.map(r => r.users)},
+        {users: rows.map(r => r.users)},
         220,
     );
 }
 
+// Ranges
+
+function rangeButtons(id, initial, render) {
+    const container = document.getElementById(id);
+
+    container.replaceChildren(...RANGES.map(range => {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.textContent = range.label;
+        if (range.days === initial) button.className = "active";
+        button.addEventListener("click", () => {
+            container.querySelectorAll("button").forEach(b => b.classList.remove("active"));
+            button.classList.add("active");
+            if (stats) render(range.days);
+        });
+        return button;
+    }));
+
+    return () => render(initial);
+}
+
+const panels = [
+    rangeButtons("daily-range", 90, renderDaily),
+    rangeButtons("active-range", 90, renderActive),
+    rangeButtons("mix-range", 365, renderMix),
+    rangeButtons("new-users-range", 365, renderNewUsers),
+];
+
 function render() {
     renderTiles();
-    renderDaily();
+    renderOrigin();
     barChart(document.getElementById("top-commands"), stats.topCommands.map(
         row => ({label: row.command, total: row.total}),
     ));
     barChart(document.getElementById("top-servers"), stats.topServers.map(
         row => ({label: `${row.name} (${comma(row.users)} users)`, total: row.total}),
     ));
-    renderMix();
-    renderNewUsers();
+    panels.forEach(draw => draw());
     document.getElementById("updated").textContent =
-        `Read at ${new Date(stats.generated * 1000).toLocaleString()}. Reload for fresh numbers.`;
+        `Read at ${new Date(stats.generated * 1000).toLocaleString()}`;
 }
 
 async function load() {
@@ -290,15 +427,5 @@ async function load() {
     stats = await response.json();
     render();
 }
-
-document.getElementById("range-buttons").addEventListener("click", event => {
-    const button = event.target.closest("button");
-    if (!button || !stats) return;
-
-    dailyDays = Number(button.dataset.days);
-    document.querySelectorAll("#range-buttons button")
-        .forEach(b => b.classList.toggle("active", b === button));
-    renderDaily();
-});
 
 load();

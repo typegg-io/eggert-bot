@@ -16,18 +16,17 @@ Usage Dashboard
     <section class="panel">
         <div class="panel-head">
             <h2>Commands per day</h2>
-            <div class="range-buttons" id="range-buttons">
-                <button type="button" data-days="30">30d</button>
-                <button type="button" data-days="90" class="active">90d</button>
-                <button type="button" data-days="365">1y</button>
-            </div>
+            <div class="range-buttons" id="daily-range"></div>
         </div>
         <div class="chart" id="daily-chart"></div>
     </section>
 
     <div class="panel-row">
         <section class="panel">
-            <div class="panel-head"><h2>Active users</h2></div>
+            <div class="panel-head">
+                <h2>Active users</h2>
+                <div class="range-buttons" id="active-range"></div>
+            </div>
             <div class="chart" id="active-chart"></div>
         </section>
 
@@ -38,6 +37,12 @@ Usage Dashboard
     </div>
 
     <div class="panel-row">
+        <section class="panel panel-narrow">
+            <div class="panel-head"><h2>Where commands run</h2></div>
+            <div class="chart" id="origin-chart"></div>
+            <div class="legend" id="origin-legend"></div>
+        </section>
+
         <section class="panel">
             <div class="panel-head"><h2>Top servers</h2></div>
             <div class="bar-list" id="top-servers"></div>
@@ -45,13 +50,19 @@ Usage Dashboard
     </div>
 
     <section class="panel">
-        <div class="panel-head"><h2>Command mix by week</h2></div>
+        <div class="panel-head">
+            <h2>Command mix by week</h2>
+            <div class="range-buttons" id="mix-range"></div>
+        </div>
         <div class="chart" id="mix-chart"></div>
         <div class="legend" id="mix-legend"></div>
     </section>
 
     <section class="panel">
-        <div class="panel-head"><h2>New users per week</h2></div>
+        <div class="panel-head">
+            <h2>New users per week</h2>
+            <div class="range-buttons" id="new-users-range"></div>
+        </div>
         <div class="chart" id="new-users-chart"></div>
     </section>
 

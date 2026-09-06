@@ -10,7 +10,7 @@ from aiohttp import web
 
 from api.verification import DASHBOARD_SCOPE
 from config import SECRET
-from database.bot import command_log
+from database.bot import command_log, servers
 from database.bot.users import get_user
 from utils.logging import log_server
 from web_server.utils import error_response
@@ -161,15 +161,19 @@ async def dashboard_stats(cog: "WebServer", request: web.Request) -> web.StreamR
 
 # Stats
 
-def name_server(cog: "WebServer", server_id: str) -> str:
-    """Return a server's name, falling back to its ID when the bot cannot see it."""
+def name_server(cog: "WebServer", server_id: str, remembered: dict[str, str]) -> str:
+    """Return a server's name, falling back to the last one seen and then to its ID."""
     guild = cog.bot.get_guild(int(server_id)) if server_id.isdigit() else None
-    return guild.name if guild else server_id
+    if guild:
+        return guild.name
+
+    return remembered.get(server_id, server_id)
 
 
 def build_stats(cog: "WebServer") -> dict:
     """Return every aggregate the dashboard renders."""
     totals = command_log.get_totals()
+    remembered = servers.get_server_names()
     stats = {
         "totals": totals,
         "active": {
@@ -177,10 +181,11 @@ def build_stats(cog: "WebServer") -> dict:
             "week": command_log.get_active_users(7),
             "month": command_log.get_active_users(30),
         },
-        "daily": command_log.get_daily_counts(365),
+        "daily": command_log.get_daily_counts(),
         "topCommands": command_log.get_top_commands(12),
         "topServers": [
-            dict(row, name=name_server(cog, row["serverId"])) for row in command_log.get_top_servers(10)
+            dict(row, name=name_server(cog, row["serverId"], remembered))
+            for row in command_log.get_top_servers(10)
         ],
         "mix": command_log.get_command_mix(),
         "newUsers": command_log.get_new_users_by_week(),

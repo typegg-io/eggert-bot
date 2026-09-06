@@ -9,7 +9,7 @@ from aiohttp import web
 from aiohttp.test_utils import make_mocked_request
 
 from api import verification
-from database.bot import command_log, users
+from database.bot import command_log, servers, users
 from web_server.routes import dashboard
 
 SECRET = "test-secret"
@@ -197,6 +197,13 @@ def test_get_daily_counts_honours_the_window(scratch_db):
     assert len(command_log.get_daily_counts(90)) == 2
 
 
+def test_get_daily_counts_defaults_to_all_time(scratch_db):
+    log_at(scratch_db, "1", "stats", 2)
+    log_at(scratch_db, "1", "stats", 5000)
+
+    assert len(command_log.get_daily_counts()) == 2
+
+
 def test_get_active_users_counts_distinct_users_in_the_window(scratch_db):
     log_at(scratch_db, "1", "stats", 0)
     log_at(scratch_db, "1", "day", 0)
@@ -270,6 +277,36 @@ def test_get_top_servers_ranks_by_commands_and_excludes_dms(scratch_db):
     ]
 
 
+def test_week_of_buckets_to_the_sunday_that_starts_the_week(scratch_db):
+    for day in ("2026-08-19", "2026-08-22", "2026-08-23", "2026-08-24"):
+        scratch_db.execute("""
+            INSERT INTO command_log (discordId, command, origin, timestamp)
+            VALUES ('1', 'stats', 'server', strftime('%s', ?))
+        """, [day])
+    scratch_db.commit()
+
+    weeks = command_log.get_command_mix()["weeks"]
+
+    # The 23rd is itself a Sunday, so it opens a week rather than closing the one before.
+    assert weeks == ["2026-08-16", "2026-08-23"]
+
+
+def test_get_command_mix_defaults_to_all_time(scratch_db):
+    log_at(scratch_db, "1", "stats", 2)
+    log_at(scratch_db, "1", "stats", 5000)
+
+    assert len(command_log.get_command_mix()["weeks"]) == 2
+    assert len(command_log.get_command_mix(weeks=4)["weeks"]) == 1
+
+
+def test_get_new_users_by_week_defaults_to_all_time(scratch_db):
+    log_at(scratch_db, "1", "stats", 2)
+    log_at(scratch_db, "2", "stats", 5000)
+
+    assert len(command_log.get_new_users_by_week()) == 2
+    assert len(command_log.get_new_users_by_week(4)) == 1
+
+
 def test_get_new_users_by_week_counts_first_commands(scratch_db):
     log_at(scratch_db, "1", "stats", 1)
     log_at(scratch_db, "1", "stats", 20)
@@ -279,3 +316,37 @@ def test_get_new_users_by_week_counts_first_commands(scratch_db):
 
     assert sum(row["users"] for row in weeks) == 2
     assert len(weeks) == 1
+
+
+# Server names
+
+def test_remember_server_keeps_the_latest_name(scratch_db):
+    servers.remember_server("900", "Old Name")
+    servers.remember_server("900", "New Name")
+
+    assert servers.get_server_names() == {"900": "New Name"}
+
+
+def test_get_server_names_on_an_empty_table(scratch_db):
+    assert servers.get_server_names() == {}
+
+
+def guild_cog(guilds: dict) -> types.SimpleNamespace:
+    """Return a stand-in cog whose bot sees only the given guilds."""
+    return types.SimpleNamespace(bot=types.SimpleNamespace(
+        get_guild=lambda server_id: guilds.get(server_id),
+    ))
+
+
+def test_name_server_prefers_the_live_guild(scratch_db):
+    cog = guild_cog({900: types.SimpleNamespace(name="Live Name")})
+
+    assert dashboard.name_server(cog, "900", {"900": "Stale Name"}) == "Live Name"
+
+
+def test_name_server_falls_back_to_the_remembered_name(scratch_db):
+    assert dashboard.name_server(guild_cog({}), "900", {"900": "Remembered"}) == "Remembered"
+
+
+def test_name_server_falls_back_to_the_id(scratch_db):
+    assert dashboard.name_server(guild_cog({}), "900", {}) == "900"

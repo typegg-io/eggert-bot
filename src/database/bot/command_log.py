@@ -7,6 +7,12 @@ from database.bot import db
 DATED = "timestamp IS NOT NULL"
 
 
+def week_of(column: str = "timestamp") -> str:
+    """Return SQL bucketing a unix timestamp into the date its week started."""
+    # SQLite has no "start of week", so the row is dated back by its own weekday index.
+    return f"date({column}, 'unixepoch', '-' || strftime('%w', {column}, 'unixepoch') || ' days')"
+
+
 def get_totals() -> dict:
     """Return the all-time command count, distinct users, and the dated range."""
     row = db.fetch_one(f"""
@@ -24,18 +30,20 @@ def get_totals() -> dict:
     return dict(row)
 
 
-def get_daily_counts(days: int = 365) -> list[dict]:
-    """Return the command count and distinct user count for each of the last N days."""
+def get_daily_counts(days: int | None = None) -> list[dict]:
+    """Return the command count and distinct user count per day, for the last N days or all time."""
+    window = "" if days is None else "AND timestamp > strftime('%s', 'now') - ? * 86400"
+
     results = db.fetch(f"""
         SELECT
             date(timestamp, 'unixepoch') AS day,
             COUNT(*) AS commands,
             COUNT(DISTINCT discordId) AS users
         FROM command_log
-        WHERE {DATED} AND timestamp > strftime('%s', 'now') - ? * 86400
+        WHERE {DATED} {window}
         GROUP BY day
         ORDER BY day
-    """, [days])
+    """, [] if days is None else [days])
 
     return [dict(row) for row in results]
 
@@ -74,24 +82,25 @@ def get_top_servers(limit: int = 10) -> list[dict]:
     return [dict(row) for row in results]
 
 
-def get_command_mix(weeks: int = 26, commands: int = 6) -> dict:
+def get_command_mix(weeks: int | None = None, commands: int = 6) -> dict:
     """Return weekly counts for the top commands, with everything else pooled as 'other'."""
     top = [row["command"] for row in get_top_commands(commands)]
     if not top:
         return {"weeks": [], "buckets": [], "series": {}}
 
     placeholders = ",".join("?" * len(top))
+    window = "" if weeks is None else "AND timestamp > strftime('%s', 'now') - ? * 604800"
 
     results = db.fetch(f"""
         SELECT
-            strftime('%Y-%W', timestamp, 'unixepoch') AS week,
+            {week_of()} AS week,
             CASE WHEN command IN ({placeholders}) THEN command ELSE 'other' END AS bucket,
             COUNT(*) AS total
         FROM command_log
-        WHERE {DATED} AND timestamp > strftime('%s', 'now') - ? * 604800
+        WHERE {DATED} {window}
         GROUP BY week, bucket
         ORDER BY week
-    """, [*top, weeks])
+    """, [*top] if weeks is None else [*top, weeks])
 
     weeks_seen = []
     totals = {}
@@ -121,18 +130,20 @@ def get_concentration(top: int = 10) -> int:
     """, [top])["total"]
 
 
-def get_new_users_by_week(weeks: int = 26) -> list[dict]:
-    """Return how many users ran their first command in each of the last N weeks."""
+def get_new_users_by_week(weeks: int | None = None) -> list[dict]:
+    """Return how many users ran their first command in each week, over the last N weeks or all time."""
+    window = "" if weeks is None else "WHERE week >= date('now', '-' || ? || ' days')"
+
     results = db.fetch(f"""
         SELECT week, COUNT(*) AS users FROM (
-            SELECT strftime('%Y-%W', MIN(timestamp), 'unixepoch') AS week
+            SELECT {week_of("MIN(timestamp)")} AS week
             FROM command_log
             WHERE {DATED}
             GROUP BY discordId
         )
-        WHERE week >= strftime('%Y-%W', 'now', '-' || ? || ' days')
+        {window}
         GROUP BY week
         ORDER BY week
-    """, [weeks * 7])
+    """, [] if weeks is None else [weeks * 7])
 
     return [dict(row) for row in results]

@@ -21,6 +21,7 @@ from config import (
     TYPEGG_GUILD_ID,
 )
 from context import BotContext
+from database.bot.servers import remember_server
 from database.bot.users import get_command_count, get_user, get_user_ids, log_command
 from database.typegg.quotes import is_quote_id
 from utils.dates import is_date_like, parse_date
@@ -35,6 +36,8 @@ from web_server.utils import assign_user_roles
 
 users = get_user_ids()
 total_commands = get_command_count()
+# One write per server per restart, rather than one on every command.
+named_servers = set()
 
 _locked = False
 
@@ -303,6 +306,10 @@ def register_bot_checks(bot) -> None:
 
         server_id = str(ctx.guild.id) if ctx.guild else None
         log_command(ctx.author.id, ctx.user["userId"], ctx.command.name, server_id)
+
+        if server_id and server_id not in named_servers:
+            named_servers.add(server_id)
+            remember_server(server_id, ctx.guild.name)
 
         total_commands += 1
         if total_commands % 50_000 == 0:
