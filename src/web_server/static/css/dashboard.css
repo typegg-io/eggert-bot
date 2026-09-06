@@ -185,6 +185,19 @@
     text-anchor: middle;
 }
 
+.dial-value {
+    fill: #FFFFFF;
+    font-size: 15px;
+    font-weight: 700;
+    text-anchor: middle;
+}
+
+.dial-label {
+    fill: #8a93b5;
+    font-size: 8px;
+    text-anchor: middle;
+}
+
 .chart-note {
     color: #5c6486;
     font-size: 12px;

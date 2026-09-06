@@ -243,8 +243,8 @@ function clockHour(hour) {
 function clockChart(target, hours) {
     const size = 260;
     const centre = size / 2;
-    const hub = 30;
-    const rim = 100;
+    const hub = 40;
+    const rim = 102;
     const chart = svg(size, size);
     const total = hours.reduce((sum, entry) => sum + entry.commands, 0);
     const max = Math.max(...hours.map(entry => entry.commands), 1);
@@ -263,11 +263,13 @@ function clockChart(target, hours) {
         const from = entry.hour * step - step / 2;
         const outer = hub + (rim - hub) * (entry.commands / max);
 
-        chart.appendChild(el("path", {
-            d: arc(centre, centre, Math.max(outer, hub + 1), hub, from + step * 0.1, from + step * 0.9),
-            fill: total && entry.hour === peak.hour ? "#f2cc60" : "#58a6ff",
-            "pointer-events": "none",
-        }));
+        if (entry.commands) {
+            chart.appendChild(el("path", {
+                d: arc(centre, centre, outer, hub, from, from + step),
+                fill: entry.hour === peak.hour ? "#f2cc60" : "#58a6ff",
+                stroke: "#010626", "stroke-width": "0.5", "pointer-events": "none",
+            }));
+        }
 
         const hit = el("path", {d: arc(centre, centre, rim, hub, from, from + step), fill: "transparent"});
         hoverable(hit, [
@@ -286,8 +288,8 @@ function clockChart(target, hours) {
         }, String(hour).padStart(2, "0")));
     }
 
-    chart.appendChild(el("text", {class: "pie-value", x: centre, y: centre + 1}, total ? clockHour(peak.hour) : "--"));
-    chart.appendChild(el("text", {class: "pie-label", x: centre, y: centre + 17}, "busiest hour"));
+    chart.appendChild(el("text", {class: "dial-value", x: centre, y: centre + 1}, total ? clockHour(peak.hour) : "--"));
+    chart.appendChild(el("text", {class: "dial-label", x: centre, y: centre + 14}, "busiest"));
 
     target.replaceChildren(chart);
 }
