@@ -167,3 +167,46 @@ def test_explicit_flags_exclude_defaults_the_user_did_not_type():
     """cog_before_invoke warns on unsupported flags, so silent defaults must not appear here."""
     assert "metric" not in explicit("-best raw")
     assert "status" not in explicit("-best raw")
+
+
+# Date ranges
+
+def test_two_dates_are_kept_in_the_order_typed():
+    f = flags_for("-best 9/1/2025 9/1/2026")
+    assert [date.year for date in f.dates] == [2025, 2026]
+
+
+def test_one_date_still_lands_in_the_single_date_flag():
+    f = flags_for("-d keegant 2024-01-01")
+    assert f.date.year == 2024
+    assert len(f.dates) == 1
+
+
+def test_one_date_reports_the_date_flag_not_the_range():
+    assert explicit("-d keegant 2024-01-01") == {"date"}
+
+
+def test_two_dates_report_the_range_flag():
+    assert explicit("-best 9/1/2025 9/1/2026") == {"date_range"}
+
+
+def test_a_period_keyword_reports_the_range_flag():
+    f = flags_for("-best year")
+    assert f.period == "year"
+    assert explicit("-best year") == {"date_range"}
+
+
+def test_period_keywords_accept_their_aliases():
+    assert flags_for("-best yr").period == "year"
+    assert flags_for("-best mo").period == "month"
+
+
+def test_dates_are_stripped_from_the_command():
+    assert cleaned("-best keegant 9/1/2025 9/1/2026") == "-best keegant"
+
+
+def test_a_bare_year_is_still_a_number():
+    """parse_number runs before is_date_like, so -best 2025 asks for 2025 races."""
+    f = flags_for("-best 2025")
+    assert f.number == 2025
+    assert f.dates == ()

@@ -59,6 +59,9 @@ OPTION_ALIASES = {
     "submissions": ["qs"],
     "quotesover": ["qo"],
     "level": ["experience", "xp"],
+    "week": ["wk"],
+    "month": ["mo"],
+    "year": ["yr"],
 }
 
 ALIAS_LOOKUP = {

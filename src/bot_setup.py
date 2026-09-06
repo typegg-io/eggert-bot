@@ -25,10 +25,10 @@ from database.bot.command_log import get_command_count, log_command
 from database.bot.servers import remember_server
 from database.bot.users import get_user, get_user_ids
 from database.typegg.quotes import is_quote_id
-from utils.dates import is_date_like, parse_date
+from utils.dates import is_date_like, parse_date, resolve_date_range
 from utils.errors import BotLocked, InvalidNumber, UserBanned
 from utils.files import get_command_modules
-from utils.flags import FLAG_VALUES, Flags, Language
+from utils.flags import FLAG_VALUES, PERIOD_VALUES, Flags, Language
 from utils.logging import get_log_message, log
 from utils.messages import check_channel_permissions, command_milestone, welcome_message
 from utils.strings import get_argument, parse_number, parse_wpm_range
@@ -100,6 +100,7 @@ def parse_flags(content: str) -> tuple[Flags, str, dict[str, str]]:
     flags = Flags()
     explicit_flags: dict[str, str] = {}
     regular_args = []  # Non-flag arguments
+    date_args = []
 
     for arg in raw_args[::-1]:
         value = arg.lstrip("-")
@@ -118,8 +119,13 @@ def parse_flags(content: str) -> tuple[Flags, str, dict[str, str]]:
             pass
 
         if is_date_like(value):
-            flags.date = value
-            explicit_flags["date"] = arg
+            date_args.append(arg)
+            continue
+
+        period = get_argument(PERIOD_VALUES, value, _raise=False)
+        if period:
+            flags.period = period
+            explicit_flags["date_range"] = arg
             continue
 
         if wpm_range := parse_wpm_range(value):
@@ -164,7 +170,16 @@ def parse_flags(content: str) -> tuple[Flags, str, dict[str, str]]:
     if flags.status != "ranked":
         flags.metric = "wpm"
 
-    flags.date = parse_date(flags.date)
+    # The loop runs right to left, so the tokens come back reversed.
+    date_args = date_args[::-1]
+    flags.dates = tuple(parse_date(arg.lstrip("-")) for arg in date_args[:2])
+    flags.date = flags.dates[0] if flags.dates else parse_date(None)
+
+    if len(date_args) > 1:
+        explicit_flags["date_range"] = " ".join(date_args[:2])
+    elif date_args and not flags.period:
+        explicit_flags["date"] = date_args[0]
+
     regular_args = regular_args[::-1]
 
     cleaned_command = f"{invoke} " + " ".join(regular_args)
@@ -203,6 +218,13 @@ def register_bot_checks(bot) -> None:
             ctx.user["timezone"] = ZoneInfo(ctx.user["timezone"])
         if ctx.user["isBanned"]:
             raise UserBanned("Banned user attempted to use a command")
+
+        # Flags parse before the user loads, so the range can only resolve here.
+        ctx.flags.date_range = resolve_date_range(
+            ctx.flags,
+            ctx.user["timezone"],
+            (ctx.user["startDate"], ctx.user["endDate"]),
+        )
         return True
 
     async def forward_to_site(message) -> None:

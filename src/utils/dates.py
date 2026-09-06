@@ -143,6 +143,36 @@ def get_start_end_dates(date: datetime, period: str, tz: ZoneInfo) -> tuple[date
     return None, None
 
 
+def local_midnight(date: datetime, tz: ZoneInfo) -> datetime:
+    """Return the calendar date a user typed as midnight in their own timezone."""
+    # parse_date reads a typed date as UTC midnight, which lands on the day before west of UTC.
+    return datetime(date.year, date.month, date.day, tzinfo=tz)
+
+
+def resolve_date_range(flags, tz: ZoneInfo, stored=(None, None)) -> tuple[datetime, datetime] | None:
+    """Return the half-open UTC range a command should filter by, or None for all time."""
+    if flags.period == "alltime":
+        return None
+
+    if flags.period:
+        anchor = local_midnight(flags.date, tz) if flags.dates else flags.date
+        return get_start_end_dates(anchor, flags.period, tz)
+
+    if len(flags.dates) > 1:
+        start, end = (local_midnight(date, tz) for date in flags.dates)
+        # Adding the day in local time rather than UTC keeps the end inclusive across a DST change.
+        return start.astimezone(UTC), (end + relativedelta(days=1)).astimezone(UTC)
+
+    start, end = stored
+    if start is None and end is None:
+        return None
+
+    return (
+        datetime.fromtimestamp(start, UTC) if start else epoch(),
+        datetime.fromtimestamp(end, UTC) if end else now(),
+    )
+
+
 def count_unique_dates(start, end) -> int:
     """Count the number of unique days between two date strings (inclusive)."""
     start_date = parse_date(start)

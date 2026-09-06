@@ -35,6 +35,8 @@ FLAG_VALUES = {
     "ranked", "unranked", "any"
 }
 
+PERIOD_VALUES = {"day", "week", "month", "year", "alltime"}
+
 for language in LANGUAGES.keys():
     FLAG_VALUES.add(language)
 
@@ -68,6 +70,9 @@ class Flags:
     number_range: tuple | None = None
     quote_id: str | None = None
     date: datetime | None = None
+    dates: tuple[datetime, ...] = ()
+    period: str | None = None
+    date_range: tuple[datetime, datetime] | None = None
 
     def __post_init__(self) -> None:
         """Coerce a language code string into a Language."""
