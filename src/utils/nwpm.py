@@ -74,7 +74,7 @@ class SkillMedian:
         self.sorted: list[float] = []
 
     def update(self, quote_id: str, ratio: float) -> bool:
-        """Record a quote's ratio, keeping the higher one. Returns whether the median moved."""
+        """Record a quote's ratio, keeping the higher one. Returns whether it beat the old one."""
         previous = self.ratios.get(quote_id)
         if previous is not None:
             if ratio <= previous:
