@@ -331,6 +331,6 @@ def register_bot_checks(bot) -> None:
         log(f"Rejoining linked user detected: {member.name} (userId: {user_id})")
 
         try:
-            await assign_user_roles(bot, member.guild, member.id, user_id)
+            await assign_user_roles(member.guild, member.id, user_id)
         except Exception as e:
             log(f"Error reassigning roles to {member.name}: {e}")

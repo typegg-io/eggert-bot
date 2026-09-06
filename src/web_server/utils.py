@@ -122,7 +122,7 @@ def get_nwpm_role_name(nwpm) -> str | None:
     return f"{lower_bound}-{upper_bound}"
 
 
-async def update_nwpm_role(cog, guild: discord.Guild, discord_id: int, nwpm: float) -> None:
+async def update_nwpm_role(guild: discord.Guild, discord_id: int, nwpm: float) -> None:
     """Update a given user's nWPM role."""
     member = guild.get_member(discord_id)
     if not member:
@@ -164,7 +164,7 @@ async def update_nwpm_role(cog, guild: discord.Guild, discord_id: int, nwpm: flo
         raise RuntimeError(f"Failed to update nWPM role for {member.name}: {e}")
 
 
-async def assign_user_roles(cog, guild: discord.Guild, discord_id: int, user_id: str) -> None:
+async def assign_user_roles(guild: discord.Guild, discord_id: int, user_id: str) -> None:
     """Fetch user profile and assign all roles (verified, nWPM, GG+)."""
 
     member = guild.get_member(discord_id)
@@ -193,7 +193,7 @@ async def assign_user_roles(cog, guild: discord.Guild, discord_id: int, user_id:
             # Get nWPM and assign nWPM role
             nwpm = profile_data.get("stats", {}).get("nWpm")
             if nwpm is not None:
-                await update_nwpm_role(cog, guild, discord_id, nwpm)
+                await update_nwpm_role(guild, discord_id, nwpm)
             else:
                 log_server(f"No nWPM data available for user {user_id}")
 

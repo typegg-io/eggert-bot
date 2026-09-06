@@ -56,7 +56,7 @@ async def verify_user(cog: "WebServer", request: web.Request) -> web.Response:
 
     # Assign all roles (verified, nWPM, GG+) and update database
     try:
-        await assign_user_roles(cog, guild, discord_id, user_id)
+        await assign_user_roles(guild, discord_id, user_id)
     except Exception as e:
         return error_response(str(e), 500)
 
