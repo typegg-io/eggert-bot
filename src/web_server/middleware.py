@@ -40,8 +40,12 @@ async def request_logging_middleware(request, handler) -> web.StreamResponse:
 
 @web.middleware
 async def security_headers_middleware(request, handler) -> web.StreamResponse:
-    """Attach the content security and framing headers to a response."""
+    """Attach the content security, framing and caching headers to a response."""
     resp = await handler(request)
+
+    # aiohttp sends no Cache-Control, so a browser caches an edited asset heuristically.
+    if request.path.startswith(("/static/", "/assets/")):
+        resp.headers["Cache-Control"] = "no-cache"
 
     csp = (
         "default-src 'self'; "
