@@ -120,6 +120,12 @@ async def help_command(ctx: BotContext, command_name: str) -> None:
 
     fields = []
 
+    if command.parameters:
+        fields.append(Field(
+            title="Usage",
+            content=f"`{command.usage}`",
+        ))
+
     if command.aliases:
         fields.append(Field(
             title="Aliases",
