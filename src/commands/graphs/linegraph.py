@@ -10,7 +10,6 @@ from database.typegg.races import get_races
 from graphs import line
 from utils.errors import BotError, NoRacesFiltered
 from utils.flags import get_flag_title
-from utils.nwpm_model import calculate_nwpm, initialize_nwpm_model
 from utils.schemas import Profile
 from utils.stats import calculate_quote_length, calculate_total_pp
 
@@ -167,45 +166,8 @@ def get_characters_over_time(race_list: list[dict]) -> list[int]:
     return characters_typed
 
 
-def get_nwpm_over_time(race_list: list[dict]) -> list[float]:
-    """Return the user's normalized WPM after each race."""
-    quote_bests = {}
-    best_pps = []
-    nwpm = []
-    current_total = 0.0
-    max_entries = 250
-
-    for race in race_list:
-        quote_id = race["quoteId"]
-        pp = race["pp"]
-        old_best = quote_bests.get(quote_id)
-
-        if old_best is None or pp > old_best["pp"]:
-            if old_best is not None:
-                old_pp = old_best["pp"]
-                idx = bisect.bisect_left([-x for x in best_pps], -old_pp)
-                if idx < len(best_pps) and best_pps[idx] == old_pp:
-                    best_pps.pop(idx)
-
-            bisect.insort_left(best_pps, pp)
-            best_pps.sort(reverse=True)
-
-            quote_bests[quote_id] = race
-
-            if len(best_pps) <= max_entries or best_pps.index(pp) < max_entries:
-                current_total = calculate_total_pp(best_pps[:max_entries])
-
-        if len(best_pps) >= 125:
-            nwpm.append(calculate_nwpm(current_total))
-
-    return nwpm
-
-
 async def run(ctx: BotContext, metric: str, profiles: list[Profile]) -> None:
     """Send one line per user for the metric requested."""
-    if metric == "nwpm":
-        await initialize_nwpm_model()
-
     profiles.sort(key=lambda x: -metrics[metric]["sort"](x))
     username = profiles[0]["username"]
 
@@ -243,14 +205,6 @@ async def run(ctx: BotContext, metric: str, profiles: list[Profile]) -> None:
                 "Graph Disabled",
                 "Due to recent nWPM changes this\ngraph is temporarily disabled <:eggertSad:1327614860388995174>"
             )
-            y_values = get_nwpm_over_time(race_list)
-            if not y_values:
-                raise BotError(
-                    "Not Enough Data",
-                    "User must have completed at least\n125 quotes for this graph",
-                    ctx.flags,
-                )
-            x_values = x_values[-len(y_values):]
 
         lines.append({
             "username": profile["username"],
