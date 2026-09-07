@@ -6,7 +6,7 @@ from context import BotContext
 from database.typegg.quotes import get_quotes
 from database.typegg.sources import get_sources
 from database.typegg.users import get_quote_bests
-from utils import strings
+from utils.dates import discord_date
 from utils.errors import NoRacesFiltered, NotSubscribed
 from utils.messages import Message, Page, paginate_data
 from utils.schemas import Profile
@@ -76,7 +76,7 @@ async def run(
             pp_display = ""
         return quote_display(quote) + (
             f"{pp_display}{data["wpm"]:,.2f} WPM ({data["accuracy"]:.2%} Accuracy) - "
-            f"{strings.discord_date(data["timestamp"])}\n\n"
+            f"{discord_date(data["timestamp"])}\n\n"
         )
 
     per_page = 5
