@@ -497,9 +497,19 @@ async def invoke(invocation: str, stored=(None, None)) -> FakeContext:
 
     cog = cog_class(ctx.bot)
     await cog.cog_before_invoke(ctx)
-    await command.callback(cog, ctx, *ctx.args)
+    await command.callback(cog, ctx, *accepted_args(command, ctx.args))
 
     return ctx
+
+
+def accepted_args(command, args: tuple) -> tuple:
+    """Return the arguments the callback takes, dropping extras the way ignore_extra does."""
+    params = list(command.clean_params.values())
+
+    if any(param.kind is param.VAR_POSITIONAL for param in params):
+        return args
+
+    return args[:len(params)]
 
 
 # Tests
