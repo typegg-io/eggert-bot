@@ -71,6 +71,10 @@ class Command(commands.Cog):
 
         unsupported = {name: arg for name, arg in explicit.items() if name not in self.supported_flags}
 
+        # A second date on a command that takes one is redundant, not wrong, so it passes in silence.
+        if "date" in self.supported_flags and not ctx.flags.period:
+            unsupported.pop("date_range", None)
+
         if unsupported:
             args = list(unsupported.values())
             if len(args) == 1:
