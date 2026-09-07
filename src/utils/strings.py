@@ -47,6 +47,7 @@ LOADING = "<a:loading:1418688762745065594>"
 INCREASE = "<:increase:1372466536693891142>"
 GG_PLUS = "<:GG1:1445664315871985807><:GG2:1445664341742452798>"
 EGGERT = "<:eggertHappy:1327614782446108725>"
+GALAXY = "<:galaxy:1292423577345196176>"
 GG_PLUS_LINKED = f"[{GG_PLUS}]({GG_PLUS_LINK})"
 
 OPTION_ALIASES = {
@@ -229,7 +230,7 @@ def date_range_display(start, end, tz) -> str:
 
 def date_range_subtext(start, end, tz) -> str:
     """Return the time travel line shown above an embed while a date range applies."""
-    return f"-# ⏳ {date_range_display(start, end, tz)}"
+    return f"-# {GALAXY} {date_range_display(start, end, tz)}"
 
 
 # Text Formatting
