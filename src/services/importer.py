@@ -101,7 +101,7 @@ async def run(
                 title=f"Import Request {LOADING}",
                 description=status_message,
             )
-            message = Message(ctx, page=page)
+            message = Message(ctx, page=page, show_range=False)
 
             if races_left < 1:
                 page.title = "Import Request"
@@ -182,7 +182,7 @@ async def run(
                         title=title,
                         description=description,
                     )
-                    message = Message(ctx, page)
+                    message = Message(ctx, page, show_range=False)
                     await message.send()
 
                 await import_new_quotes(list(new_quote_ids))

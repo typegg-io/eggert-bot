@@ -114,6 +114,7 @@ class Message(View):
         color: int = None,
         profile: Profile = None,
         show_avatar: bool = True,
+        show_range: bool = True,
         thumbnail: str = None,
         jump_page: int = None,
     ) -> None:
@@ -128,7 +129,7 @@ class Message(View):
         super().__init__(timeout=60 if self.page_count > 1 else 0.01)
         self.message = None
 
-        subtext = range_subtext(ctx)
+        subtext = range_subtext(ctx) if show_range else ""
         self.content = f"{subtext}\n{content}" if subtext and content else subtext or content
 
         self.title = title
