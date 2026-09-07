@@ -133,12 +133,11 @@ def get_start_end_dates(date: datetime, period: str, tz: ZoneInfo) -> tuple[date
 
     if period in periods:
         floor_function, relative_delta = periods[period]
-        local_date = date.astimezone(tz)
-        start_local = floor_function(local_date)
-        start = start_local.astimezone(UTC).replace(tzinfo=UTC)
-        end = start + relative_delta
+        start_local = floor_function(date.astimezone(tz))
+        # Adding the period in local time keeps a DST day 23 or 25 hours long.
+        end_local = start_local + relative_delta
 
-        return start, end
+        return start_local.astimezone(UTC), end_local.astimezone(UTC)
 
     return None, None
 

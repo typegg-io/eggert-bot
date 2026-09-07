@@ -26,6 +26,12 @@ def local(year, month, day, tz=NEW_YORK):
     """Return local midnight on a date."""
     return datetime(year, month, day, tzinfo=tz)
 
+def elapsed_hours(date_range) -> float:
+    """Return the real hours a range covers, which a same-zone subtraction would not give."""
+    start, end = (date.astimezone(UTC) for date in date_range)
+    return (end - start).total_seconds() / 3600
+
+
 
 def test_no_dates_and_no_stored_range_means_all_time():
     assert resolve("-best") is None
@@ -86,3 +92,10 @@ def test_week_floors_to_monday():
 
 def test_dates_typed_in_reverse_order_are_sorted():
     assert resolve("-best 9/1/2026 9/1/2025") == (local(2025, 9, 1), local(2026, 9, 2))
+
+def test_a_period_day_is_twenty_five_hours_long_when_the_clocks_go_back():
+    assert elapsed_hours(resolve("-best day 2025-11-02")) == 25
+
+
+def test_a_period_day_is_twenty_three_hours_long_when_the_clocks_go_forward():
+    assert elapsed_hours(resolve("-best day 2025-03-09")) == 23

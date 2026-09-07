@@ -9,7 +9,7 @@ from context import BotContext
 from database.typegg.quotes import get_quotes
 from database.typegg.races import get_races
 from database.typegg.users import get_quote_bests
-from utils.dates import count_unique_dates, get_start_end_dates, parse_date
+from utils.dates import count_unique_dates, get_start_end_dates, local_midnight, parse_date
 from utils.errors import NoRacesFiltered
 from utils.messages import Field, Message, Page
 from utils.schemas import Profile
@@ -219,6 +219,10 @@ async def run(
 ) -> None:
     """Send a stat summary for a user's races, over all time or one period."""
     flags = ctx.flags
+
+    if date and flags.dates:
+        date = local_midnight(date, ctx.user["timezone"])
+
     start_date, end_date = get_start_end_dates(date, period, ctx.user["timezone"])
 
     race_list = await get_races(
