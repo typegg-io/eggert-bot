@@ -12,6 +12,7 @@ async def get_leaders(
     country: str | None = None,
     page: int = 1,
     per_page: int = 10,
+    universe: str | None = None,
 ) -> dict[str, Any]:
     """
     Calls GET /leaders with all available filters.
@@ -25,6 +26,7 @@ async def get_leaders(
             "country": country,
             "page": page,
             "perPage": per_page,
+            "universe": universe,
         },
     )
 

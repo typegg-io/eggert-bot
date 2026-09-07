@@ -15,9 +15,14 @@ db.run("""
         isAdmin INTEGER DEFAULT 0,
         isPrivacyWarned INTEGER DEFAULT 0,
         isGgPlus INTEFER DEFAULT 0,
-        timezone DEFAULT "UTC"
+        timezone DEFAULT "UTC",
+        universe DEFAULT "en"
     )
 """)
+
+# users shipped without universe, so a database made before the split catches up here.
+if not db.fetch("SELECT 1 FROM pragma_table_info('users') WHERE name = 'universe'"):
+    db.run('ALTER TABLE users ADD COLUMN universe DEFAULT "en"')
 
 db.run("""
     CREATE TABLE IF NOT EXISTS recent_quotes (

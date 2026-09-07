@@ -8,13 +8,14 @@ from config import API_URL
 from utils.errors import ProfileNotFound, RaceNotFound
 
 
-async def get_profile(user_id: str) -> dict[str, Any]:
+async def get_profile(user_id: str, universe: str | None = None) -> dict[str, Any]:
     """
-    Calls GET /users/{userId}.
+    Calls GET /users/{userId}, optionally scoped to a universe.
     Returns the JSON response as a dict.
     """
     return await request(
         url=f"{API_URL}/v1/users/{quote(user_id, safe="")}",
+        params={"universe": universe},
         exceptions={404: ProfileNotFound(user_id)},
     )
 

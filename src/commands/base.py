@@ -61,10 +61,15 @@ class Command(commands.Cog):
         explicit = getattr(ctx, "explicit_flags", {})
         unranged = "date_range" not in self.supported_flags
         stored_range = bool(ctx.flags.date_range) and "date_range" not in explicit
+        universeless = "language" not in self.supported_flags
+        stored_universe = bool(ctx.flags.language) and "language" not in explicit
 
         # A stored range applies with nothing typed, so ignore_flags commands still have to clear it.
         if unranged:
             ctx.flags.date_range = None
+
+        if universeless:
+            ctx.flags.language = None
 
         if hasattr(self, "ignore_flags"):
             return
@@ -91,6 +96,9 @@ class Command(commands.Cog):
 
         if unranged and stored_range:
             await ctx.send("-# :warning: time travel has no effect on this command")
+
+        if universeless and stored_universe:
+            await ctx.send("-# :warning: your universe has no effect on this command")
 
     async def celebrate_milestone(self, ctx: BotContext, milestone: int) -> None:
         """Announce a user's command count milestone in the stats channel."""
@@ -172,7 +180,7 @@ class Command(commands.Cog):
         """Fetch a user's profile, and optionally imports their races."""
         username = self.get_username(ctx, username)
 
-        profile = await get_profile(username)
+        profile = await get_profile(username, universe=str(ctx.flags.language) if ctx.flags.language else None)
 
         # Sync GG+ status
         api_gg_plus = profile.get("isGgPlus", False)

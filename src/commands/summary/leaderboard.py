@@ -143,7 +143,7 @@ info = CommandInfo(
 class Leaderboard(Command):
     """Display a global leaderboard for one of many categories."""
 
-    supported_flags = {"metric", "gamemode", "number", "quote_id"}
+    supported_flags = {"metric", "gamemode", "number", "quote_id", "language"}
 
     @commands.command(aliases=info.aliases)
     @usable_in(DAILY_QUOTE_CHANNEL_ID)
@@ -199,6 +199,20 @@ class Leaderboard(Command):
         await run(ctx, category_info)
 
 
+async def take_universe(ctx: BotContext, supported: bool) -> str | None:
+    """Return the universe to request, warning and clearing it when the board cannot carry one."""
+    if not ctx.flags.language:
+        return None
+
+    # The API serves a universe leaderboard for total pp alone, and 400s on every other sort.
+    if not supported:
+        await ctx.send("-# :warning: this leaderboard has no universe of its own")
+        ctx.flags.language = None
+        return None
+
+    return str(ctx.flags.language)
+
+
 def entry_formatter(data) -> str:
     """Format one API leaderboard row, bolded when it belongs to the caller."""
     bold = "**" if data["highlight"] else ""
@@ -218,6 +232,7 @@ def is_statusless(leaderboard: str) -> bool:
 async def run(ctx: BotContext, category: dict) -> None:
     """Send a leaderboard the API serves, behind a skeleton message."""
     gamemode = ctx.flags.gamemode or "any"
+    universe = await take_universe(ctx, category["sort"] == "totalPp" and gamemode == "any")
     title = f"{category["title"]} Leaderboard"
 
     skeleton_page = Page(
@@ -233,6 +248,7 @@ async def run(ctx: BotContext, category: dict) -> None:
         sort=category["sort"],
         per_page=100,
         gamemode=gamemode,
+        universe=universe,
     )
 
     if gamemode == "quickplay" and category["sort"] == "races":
@@ -397,6 +413,7 @@ async def run_custom(ctx: BotContext, category: dict, args: tuple = ()) -> None:
 
 async def run_multiplayer(ctx: BotContext, category: dict) -> None:
     """Send a multiplayer leaderboard, behind a skeleton message."""
+    await take_universe(ctx, False)
     title = f"{category["title"]} Leaderboard"
     skeleton_page = Page(
         title=title,

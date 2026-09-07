@@ -25,6 +25,8 @@ info = CommandInfo(
 class Stats(Command):
     """Display a TypeGG account's headline stats."""
 
+    supported_flags = {"language"}
+
     @commands.command(aliases=info.aliases)
     async def stats(self, ctx: BotContext, username: str = None):
         """Resolve the username without requiring races, then render their profile."""
@@ -37,6 +39,7 @@ async def run(ctx: BotContext, profile: Profile) -> None:
     join_date = parse_date(profile["joinDate"])
     today = now()
     is_anniversary = join_date.month == today.month and join_date.day == today.day
+    scoped = bool(ctx.flags.language)
 
     fields = [
         Field(
@@ -44,8 +47,10 @@ async def run(ctx: BotContext, profile: Profile) -> None:
             content=(
                 f"**Total:** {profile["stats"]["totalPp"]:,.0f} pp\n"
                 f"**Best:** {profile["stats"]["bestPp"]["value"]:,.2f} pp\n"
-                f"**nWPM:** {profile["stats"]["nWpm"]:.2f} ({profile["stats"]["accuracy"]:.2%} accuracy)\n"
-                f"**Top Speed:** {profile["stats"]["bestWpm"]["value"]} WPM\n\n"
+                # The API keeps nWPM and accuracy English, so a universe must not appear to scope them.
+                + ("" if scoped else
+                   f"**nWPM:** {profile["stats"]["nWpm"]:.2f} ({profile["stats"]["accuracy"]:.2%} accuracy)\n")
+                + f"**Top Speed:** {profile["stats"]["bestWpm"]["value"]} WPM\n\n"
             )
         ),
         Field(
@@ -96,12 +101,15 @@ async def run(ctx: BotContext, profile: Profile) -> None:
     else:
         rank_string += f"#{profile["globalRank"]:,} :earth_americas:"
         country = profile["country"]
-        country_rank = f" / #{profile["countryRank"]} :flag_{country.lower()}:" if country else ""
-        rank_string += country_rank
+        # countryRank has no per-universe equivalent, so it would read as a rank it is not.
+        if country and not scoped:
+            rank_string += f" / #{profile["countryRank"]} :flag_{country.lower()}:"
 
     page = Page(
         description=rank_string,
         fields=fields,
+        # The embed has no title to hang a flag title on, so the universe goes in the footer.
+        footer=f"{ctx.flags.language.name} Universe" if scoped else None,
     )
 
     message = Message(

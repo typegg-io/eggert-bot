@@ -7,6 +7,7 @@ command string that discord.py then parses, and the tokens the user actually typ
 import pytest
 
 from bot_setup import parse_flags
+from utils.flags import Language, apply_universe_status, resolve_universe
 
 
 def flags_for(content):
@@ -111,10 +112,51 @@ def test_language_is_an_iso_code_not_a_name():
     assert flags_for("-best french").language is None
 
 
-def test_language_forces_unranked_and_wpm():
-    """Only English quotes are ranked, so any language flag implies unranked."""
+def test_a_language_flag_no_longer_decides_status():
+    """A universe resolves after the user loads, so parsing leaves status alone."""
     f = flags_for("-best fr")
+    assert (f.status, f.metric) == ("ranked", "pp")
+
+
+def test_a_universe_keeps_its_ranked_pool():
+    """French is a universe, so its quotes stay ranked and scored in pp."""
+    f = flags_for("-best fr")
+    apply_universe_status(f)
+    assert (f.status, f.metric) == ("ranked", "pp")
+
+
+def test_a_language_without_a_universe_is_unranked():
+    """Latin has no universe, so its quotes are unranked and scored in wpm."""
+    f = flags_for("-best la")
+    apply_universe_status(f)
     assert (f.status, f.metric) == ("unranked", "wpm")
+
+
+def test_an_explicit_ranked_survives_a_universe():
+    """A universe does not override a typed status the way a plain language does."""
+    f = flags_for("-best fr -ranked")
+    apply_universe_status(f)
+    assert f.status == "ranked"
+
+
+def test_only_registered_codes_are_universes():
+    """A universe is a language with its own ranked pool, which Latin does not have."""
+    assert Language("fr").is_universe
+    assert Language("vi").is_universe
+    assert not Language("la").is_universe
+
+
+def test_a_typed_universe_beats_the_stored_one():
+    assert resolve_universe(flags_for("-best fr"), "de") == Language("fr")
+
+
+def test_a_stored_universe_applies_with_nothing_typed():
+    assert resolve_universe(flags_for("-best"), "de") == Language("de")
+
+
+def test_a_stored_english_universe_reads_as_no_universe():
+    """English is the default world, so storing it leaves titles and queries untouched."""
+    assert resolve_universe(flags_for("-best"), "en") is None
 
 
 def test_an_unrecognised_word_is_left_alone():

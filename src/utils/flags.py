@@ -3,6 +3,8 @@
 from dataclasses import dataclass
 from datetime import datetime
 
+from config import DEFAULT_UNIVERSE, UNIVERSE_CODES
+
 LANGUAGES = {
     "en": "English",
     "es": "Spanish",
@@ -18,7 +20,9 @@ LANGUAGES = {
     "tr": "Turkish",
     "no": "Norwegian",
     "id": "Indonesian",
+    "vi": "Vietnamese",
     "la": "Latin",
+    "hi": "Hindi",
 }
 
 FLAG_VALUES = {
@@ -51,6 +55,11 @@ class Language:
     def name(self) -> str:
         """Return the language's display name."""
         return LANGUAGES[self.code]
+
+    @property
+    def is_universe(self) -> bool:
+        """Return whether this language has its own ranked pool and pp leaderboard."""
+        return self.code in UNIVERSE_CODES
 
     def __str__(self) -> str:
         """Return the language code."""
@@ -96,3 +105,20 @@ def get_flag_title(flags: Flags) -> str:
         return ""
 
     return " (" + ", ".join(flag_titles) + ")"
+
+
+def resolve_universe(flags: Flags, stored: str | None) -> Language | None:
+    """Return the universe a command runs in, preferring a typed flag over the stored one."""
+    if flags.language:
+        return flags.language
+    if stored and stored != DEFAULT_UNIVERSE:
+        return Language(stored)
+    return None
+
+
+def apply_universe_status(flags: Flags) -> None:
+    """Force unranked for a language that has no ranked pool of its own."""
+    if flags.language and not flags.language.is_universe:
+        flags.status = "unranked"
+    if flags.status != "ranked":
+        flags.metric = "wpm"

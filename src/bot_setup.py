@@ -28,7 +28,7 @@ from database.typegg.quotes import is_quote_id
 from utils.dates import is_date_like, parse_date, resolve_date_range
 from utils.errors import BotLocked, InvalidNumber, UserBanned
 from utils.files import get_command_modules
-from utils.flags import FLAG_VALUES, PERIOD_VALUES, Flags, Language
+from utils.flags import FLAG_VALUES, PERIOD_VALUES, Flags, Language, apply_universe_status, resolve_universe
 from utils.logging import get_log_message, log
 from utils.messages import check_channel_permissions, command_milestone, welcome_message
 from utils.strings import get_argument, parse_number, parse_wpm_range
@@ -164,9 +164,6 @@ def parse_flags(content: str) -> tuple[Flags, str, dict[str, str]]:
 
         regular_args.append(arg)
 
-    if flags.language:
-        flags.status = "unranked"
-
     if flags.status != "ranked":
         flags.metric = "wpm"
 
@@ -225,6 +222,8 @@ def register_bot_checks(bot) -> None:
             ctx.user["timezone"],
             (ctx.user["startDate"], ctx.user["endDate"]),
         )
+        ctx.flags.language = resolve_universe(ctx.flags, ctx.user["universe"])
+        apply_universe_status(ctx.flags)
         return True
 
     async def forward_to_site(message) -> None:

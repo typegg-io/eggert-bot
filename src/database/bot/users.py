@@ -3,6 +3,7 @@
 import json
 import sqlite3
 
+from config import DEFAULT_UNIVERSE
 from database.bot import db
 from utils import dates
 from utils.colors import DEFAULT_THEME
@@ -29,6 +30,7 @@ def add_user(discord_id: str) -> dict:
         "isPrivacyWarned": 0,
         "isGgPlus": 0,
         "timezone": "UTC",
+        "universe": DEFAULT_UNIVERSE,
     }
     user_values = user.values()
 
@@ -123,6 +125,15 @@ def update_timezone(discord_id: str, timezone: str) -> None:
         SET timezone = ?
         WHERE discordId = ?
     """, [timezone, discord_id])
+
+
+def update_universe(discord_id: str, universe: str) -> None:
+    """Update the universe a user's commands run in."""
+    db.run("""
+        UPDATE users
+        SET universe = ?
+        WHERE discordId = ?
+    """, [universe, discord_id])
 
 
 def update_date_range(discord_id: str, start: float | None, end: float | None) -> None:

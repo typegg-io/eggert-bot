@@ -18,6 +18,7 @@ from zoneinfo import ZoneInfo
 import matplotlib
 import pytest
 import seed_data
+from discord.ext.commands import CommandError
 
 from bot_setup import parse_flags
 from commands.base import Command
@@ -25,6 +26,7 @@ from database.bot import db as bot_db
 from database.typegg import db as typegg_db
 from utils.colors import DEFAULT_THEME
 from utils.dates import resolve_date_range
+from utils.flags import apply_universe_status, resolve_universe
 
 matplotlib.use("Agg")
 
@@ -113,6 +115,7 @@ SKIPPED = {
     "rundaily": "admin, posts the daily quote",
     "say": "admin, needs a channel to speak into",
     "search": "served entirely by the API",
+    "setuniverse": "mutates the invoking user",
     "settings": "mutates the invoking user",
     "support": "static embed, no data path",
     "theme": "mutates the invoking user",
@@ -487,13 +490,15 @@ def find_command(name: str):
     raise LookupError(f"no command named {name}")
 
 
-async def invoke(invocation: str, stored=(None, None)) -> FakeContext:
+async def invoke(invocation: str, stored=(None, None), universe: str | None = None) -> FakeContext:
     """Run one invocation end to end and return the context it sent through."""
     name = invocation.split()[0].lstrip("-")
     cog_class, command = find_command(name)
     ctx = FakeContext(invocation, build_user(), bot=SimpleNamespace(get_channel=lambda _: None))
 
     ctx.flags.date_range = resolve_date_range(ctx.flags, ctx.user["timezone"], stored)
+    ctx.flags.language = resolve_universe(ctx.flags, universe or ctx.user["universe"])
+    apply_universe_status(ctx.flags)
 
     cog = cog_class(ctx.bot)
     await cog.cog_before_invoke(ctx)
@@ -547,6 +552,18 @@ def test_a_command_renders_under_time_travel(seeded, invocation):
     ctx = asyncio.run(invoke(invocation, stored=stored))
 
     assert ctx.sent, f"{invocation} sent nothing under a stored date range"
+
+
+@pytest.mark.parametrize("invocation", INVOCATIONS)
+def test_a_command_renders_under_a_universe(seeded, invocation):
+    """A stored universe either applies or is warned about, and never crashes a command."""
+    # The seed holds three Spanish quotes, so an empty result is the right answer, not a failure.
+    try:
+        ctx = asyncio.run(invoke(invocation, universe="es"))
+    except CommandError:
+        return
+
+    assert ctx.sent, f"{invocation} sent nothing under a stored universe"
 
 
 def test_the_seed_is_isolated_from_the_real_database(seeded):
