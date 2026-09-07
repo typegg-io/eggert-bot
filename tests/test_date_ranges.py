@@ -82,3 +82,7 @@ def test_day_anchors_on_the_date_typed_rather_than_the_day_before():
 
 def test_week_floors_to_monday():
     assert resolve("-best week 2025-03-12")[0] == local(2025, 3, 10)
+
+
+def test_dates_typed_in_reverse_order_are_sorted():
+    assert resolve("-best 9/1/2026 9/1/2025") == (local(2025, 9, 1), local(2026, 9, 2))

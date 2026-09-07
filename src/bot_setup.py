@@ -172,7 +172,7 @@ def parse_flags(content: str) -> tuple[Flags, str, dict[str, str]]:
 
     # The loop runs right to left, so the tokens come back reversed.
     date_args = date_args[::-1]
-    flags.dates = tuple(parse_date(arg.lstrip("-")) for arg in date_args[:2])
+    flags.dates = tuple(sorted(parse_date(arg.lstrip("-")) for arg in date_args[:2]))
     flags.date = flags.dates[0] if flags.dates else parse_date(None)
 
     if len(date_args) > 1:
