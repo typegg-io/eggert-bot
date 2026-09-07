@@ -5,7 +5,7 @@ from commands.base import Command
 from context import BotContext
 from database.typegg.quotes import get_quotes
 from database.typegg.races import get_races
-from utils.errors import NumberGreaterThan
+from utils.errors import NoRacesFiltered, NumberGreaterThan
 from utils.messages import Field, Message, Page
 from utils.schemas import Profile
 from utils.strings import format_duration
@@ -49,6 +49,9 @@ async def run(ctx: BotContext, profile: Profile, n: int) -> None:
         flags=ctx.flags,
         limit=n,
     )
+    if not race_list:
+        raise NoRacesFiltered(profile["username"])
+
     quote_list = get_quotes()
     multiplayer = ctx.flags.gamemode in ["quickplay", "lobby"]
     n = min(n, len(race_list))
