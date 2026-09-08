@@ -28,7 +28,7 @@ info = CommandInfo(
 class LengthGraph(Command):
     """Graph peak pp or WPM at each quote length."""
 
-    supported_flags = {"metric"}
+    supported_flags = {"metric", "raw"}
 
     @commands.command(aliases=info.aliases)
     async def lengthgraph(self, ctx: BotContext, *args: str):
@@ -44,7 +44,7 @@ async def run(ctx: BotContext, profiles: list) -> None:
     username = profiles[0]["username"]
 
     for profile in profiles:
-        rows = get_best_by_length(profile["userId"], metric)
+        rows = get_best_by_length(profile["userId"], metric, ctx.flags.raw)
         if not rows:
             continue
         values, lengths = zip(*((r["value"], r["length"]) for r in rows))
@@ -58,6 +58,7 @@ async def run(ctx: BotContext, profiles: list) -> None:
         data,
         metric,
         ctx.user["theme"],
+        ctx.flags.raw,
     )
 
     file = File(file_name, filename=file_name)

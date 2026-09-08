@@ -28,7 +28,7 @@ info = CommandInfo(
 class PpLengthGraph(Command):
     """Graph a scatterplot of pp personal bests against quote length."""
 
-    supported_flags = {"date_range", "language"}
+    supported_flags = {"raw", "date_range", "language"}
 
     @commands.command(aliases=info.aliases)
     async def pplength(self, ctx: BotContext, username: str = None):
@@ -39,15 +39,16 @@ class PpLengthGraph(Command):
 
 async def run(ctx: BotContext, profile: Profile) -> None:
     """Send a scatterplot of the user's ranked quote bests by length."""
+    raw_title = "Raw " if ctx.flags.raw else ""
     universe_title = f" ({ctx.flags.language.name})" if ctx.flags.language else ""
     quote_bests = get_quote_bests(
         profile["userId"],
-        flags=Flags(status="ranked", date_range=ctx.flags.date_range, language=ctx.flags.language),
+        flags=Flags(status="ranked", raw=ctx.flags.raw, date_range=ctx.flags.date_range, language=ctx.flags.language),
     )
     quotes = get_quotes()
 
     file_name = pplength.render(
-        f"pp vs. Quote Length - {profile["username"]}{universe_title}",
+        f"{raw_title}pp vs. Quote Length - {profile["username"]}{universe_title}",
         quotes,
         quote_bests,
         ctx.user["theme"],

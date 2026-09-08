@@ -25,7 +25,7 @@ info = CommandInfo(
 class RaceHistory(Command):
     """Display a user's recent races."""
 
-    supported_flags = {"gamemode", "status", "language", "date_range"}
+    supported_flags = {"raw", "gamemode", "status", "language", "date_range"}
 
     @commands.command(aliases=info.aliases)
     async def racehistory(self, ctx: BotContext, username: str = None):
@@ -74,7 +74,7 @@ async def run(ctx: BotContext, profile: Profile) -> None:
 
     message = Message(
         ctx,
-        title="Race History",
+        title="Race History" + (" (Raw)" if ctx.flags.raw else ""),
         pages=pages,
         profile=profile,
     )

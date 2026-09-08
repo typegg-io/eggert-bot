@@ -30,6 +30,8 @@ info = CommandInfo(
 class Endurance(Command):
     """Graph peak WPM achieved at each quote length."""
 
+    supported_flags = {"raw"}
+
     @commands.command(aliases=info.aliases)
     async def endurance(self, ctx: BotContext, *args: str):
         """Graph the endurance curve for each user named."""
@@ -42,7 +44,7 @@ async def run(ctx: BotContext, profiles: list[Profile]) -> None:
     data = []
 
     for profile in profiles:
-        bests = get_running_maximum_by_length(profile["userId"])
+        bests = get_running_maximum_by_length(profile["userId"], ctx.flags.raw)
         wpm_values, length_values = map(list, zip(*((r["wpm"], r["length"]) for r in bests)))
 
         data.append(UserEnduranceData(profile["username"], wpm_values, length_values))
@@ -50,7 +52,8 @@ async def run(ctx: BotContext, profiles: list[Profile]) -> None:
     file_name = render(
         profile["username"] if profile["userId"] == ctx.user["userId"] else "",
         data,
-        ctx.user["theme"]
+        ctx.user["theme"],
+        ctx.flags.raw,
     )
 
     file = File(file_name, filename=file_name)

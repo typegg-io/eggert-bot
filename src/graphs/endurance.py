@@ -20,6 +20,7 @@ def render(
     first_username: str,
     data: list[UserEnduranceData],
     theme: Theme,
+    raw: bool = False,
 ) -> str:
     """Render each user's endurance curve and return the file name."""
     fig, ax = plt.subplots()
@@ -56,7 +57,7 @@ def render(
     apply_log_ticks(ax, max_length)
     ax.xaxis.set_major_formatter(format_big_number)
 
-    ax.set_title("WPM PB Per Quote Length")
+    ax.set_title(f"{"Raw " if raw else ""}WPM PB Per Quote Length")
     ax.set_xlabel("Quote Length")
     ax.set_ylabel("WPM")
 

@@ -36,7 +36,7 @@ info = CommandInfo(
 class QuoteStrength(Command):
     """Graph a compass showing where a user's pp comes from."""
 
-    supported_flags = {"date_range"}
+    supported_flags = {"raw", "date_range"}
 
     @commands.command(aliases=info.aliases)
     async def quotestrength(self, ctx: BotContext, *args: str):
@@ -77,7 +77,7 @@ async def run(ctx: BotContext, profiles: list[Profile]) -> None:
             columns=["pp", "quoteId"],
             order_by="pp",
             limit=250,
-            flags=Flags(date_range=ctx.flags.date_range),
+            flags=Flags(raw=ctx.flags.raw, date_range=ctx.flags.date_range),
         )
 
         if not quote_bests:
@@ -129,7 +129,7 @@ async def run(ctx: BotContext, profiles: list[Profile]) -> None:
         ]
 
     page = Page(
-        title="Quote Strength Compass",
+        title="Quote Strength Compass" + (" (Raw)" if ctx.flags.raw else ""),
         render=lambda: qs_graph.render(users, ctx.user["theme"], heatmap_points),
     )
 

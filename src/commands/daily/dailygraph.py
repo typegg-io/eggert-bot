@@ -32,7 +32,7 @@ info = CommandInfo(
 class DailyGraph(Command):
     """Graph WPM over keystrokes for the top 10 daily quote finishers."""
 
-    supported_flags = {"number", "date"}
+    supported_flags = {"raw", "number", "date"}
 
     @commands.command(aliases=info.aliases)
     @usable_in(DAILY_QUOTE_CHANNEL_ID)
@@ -60,7 +60,10 @@ async def run(ctx: BotContext, daily_quote: dict) -> None:
         scores = []
         for score in entries:
             score = dict(score)
-            score["keystroke_wpm"] = get_keystroke_data(score["keystrokeData"]).keystrokeWpm
+            keystroke_data = get_keystroke_data(score["keystrokeData"])
+            score["keystroke_wpm"] = (
+                keystroke_data.keystrokeRawWpm if ctx.flags.raw else keystroke_data.keystrokeWpm
+            )
             scores.append(score)
         return scores
 
@@ -70,7 +73,7 @@ async def run(ctx: BotContext, daily_quote: dict) -> None:
         f"{quote["quoteId"]}"
     )
     description = daily_quote_display(daily_quote)
-    graph_title = title.split("\n")[0]
+    graph_title = ("Raw " if ctx.flags.raw else "") + title.split("\n")[0]
 
     user_index = next(
         (i for i, s in enumerate(leaderboard) if s["userId"] == ctx.user["userId"]),

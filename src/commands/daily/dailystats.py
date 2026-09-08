@@ -30,6 +30,8 @@ info = CommandInfo(
 class DailyStats(Command):
     """Display a user's daily quote history."""
 
+    supported_flags = {"raw"}
+
     @commands.command(aliases=info.aliases)
     @usable_in(DAILY_QUOTE_CHANNEL_ID)
     async def dailystats(self, ctx: BotContext, username: str = None):
@@ -59,9 +61,10 @@ async def run(ctx: BotContext, profile: Profile) -> None:
     total_days = min(total_days, (dates.now() - dates.parse_date(profile["joinDate"])).days + 2)
 
     today_quote_id = get_daily_quote_id()
-    today_result = get_today_result(profile["userId"], today_quote_id) if today_quote_id else None
+    today_result = get_today_result(profile["userId"], today_quote_id, ctx.flags.raw) if today_quote_id else None
 
-    pp, wpm, positions = zip(*[(race["pp"], race["wpm"], race["rank"]) for race in results])
+    pp_key, wpm_key = ("rawPp", "rawWpm") if ctx.flags.raw else ("pp", "wpm")
+    pp, wpm, positions = zip(*[(race[pp_key], race[wpm_key], race["rank"]) for race in results])
     pp = list(pp)
     wpm = list(wpm)
 
@@ -111,7 +114,7 @@ async def run(ctx: BotContext, profile: Profile) -> None:
     ))
 
     page = Page(
-        title="Daily Quote Stats",
+        title="Daily Quote Stats" + (" (Raw)" if ctx.flags.raw else ""),
         fields=fields,
     )
 

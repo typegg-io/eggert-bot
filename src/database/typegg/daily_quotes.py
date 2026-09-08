@@ -132,11 +132,12 @@ def get_user_results(user_id: str) -> list[sqlite3.Row]:
     return db.fetch("SELECT * FROM daily_quote_results WHERE userId = ?", [user_id])
 
 
-def get_today_result(user_id: str, quote_id: str) -> sqlite3.Row | None:
+def get_today_result(user_id: str, quote_id: str, raw: bool = False) -> sqlite3.Row | None:
     """Fetch the user's best race on today's daily quote."""
     today = dates.floor_day(dates.now()).strftime("%Y-%m-%d")
-    return db.fetch_one("""
-        SELECT pp, wpm FROM races
+    columns = "rawPp AS pp, rawWpm AS wpm" if raw else "pp, wpm"
+    return db.fetch_one(f"""
+        SELECT {columns} FROM races
         WHERE userId = ?
         AND quoteId = ?
         AND timestamp >= ?

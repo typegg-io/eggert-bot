@@ -42,6 +42,7 @@ def render(
     data: list[UserLengthData],
     metric: str,
     theme: Theme,
+    raw: bool = False,
 ) -> str:
     """Render each user's length curve and return the file name."""
     fig, ax = plt.subplots()
@@ -66,7 +67,7 @@ def render(
     ax.xaxis.set_major_formatter(format_big_number)
 
     y_label = "pp" if metric == "pp" else "WPM"
-    ax.set_title(f"{y_label} PB Per Quote Length")
+    ax.set_title(f"{"Raw " if raw else ""}{y_label} PB Per Quote Length")
     ax.set_xlabel("Quote Length")
     ax.set_ylabel(y_label)
 

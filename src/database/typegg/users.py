@@ -223,9 +223,11 @@ async def reimport_nwpm() -> None:
             log(f"[nwpm migrate] Failed for {user_id}: {e.__class__.__name__}: {e}")
 
 
-def get_best_by_length(user_id: str, metric: str = "pp") -> list[sqlite3.Row]:
+def get_best_by_length(user_id: str, metric: str = "pp", raw: bool = False) -> list[sqlite3.Row]:
     """Return each user's best race per quote length."""
     col = "r.pp" if metric == "pp" else "r.wpm"
+    if raw:
+        col = "r.rawPp" if metric == "pp" else "r.rawWpm"
     return db.fetch(f"""
         SELECT MAX({col}) AS value, LENGTH(q.text) AS length
         FROM races r
@@ -236,11 +238,12 @@ def get_best_by_length(user_id: str, metric: str = "pp") -> list[sqlite3.Row]:
     """, [user_id])
 
 
-def get_running_maximum_by_length(user_id: str) -> list[sqlite3.Row]:
+def get_running_maximum_by_length(user_id: str, raw: bool = False) -> list[sqlite3.Row]:
     """Return each user's best race at or below every quote length."""
-    return db.fetch("""
+    col = "r.rawWpm" if raw else "r.wpm"
+    return db.fetch(f"""
         WITH text_bests_with_length AS (
-            SELECT MAX(r.wpm) AS wpm, LENGTH(q.text) AS length
+            SELECT MAX({col}) AS wpm, LENGTH(q.text) AS length
             FROM races as r
             JOIN quotes q ON q.quoteId = r.quoteId
             WHERE r.userId = ? AND q.ranked
