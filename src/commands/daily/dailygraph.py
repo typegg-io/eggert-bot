@@ -55,6 +55,10 @@ async def run(ctx: BotContext, daily_quote: dict) -> None:
     if not leaderboard:
         raise BotError("No Results", "No daily scores to display")
 
+    # The API ranks on wpm, so raw ranks only hold within the 100 entries fetched.
+    if ctx.flags.raw:
+        leaderboard.sort(key=lambda score: -score["rawWpm"])
+
     def build_score_list(entries) -> list[dict]:
         """Decode each entry's keystrokes and attach the resulting WPM series."""
         scores = []

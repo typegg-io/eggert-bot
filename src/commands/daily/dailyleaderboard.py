@@ -30,7 +30,7 @@ info = CommandInfo(
 class DailyLeaderboard(Command):
     """Display the leaderboard for a daily quote."""
 
-    supported_flags = {"number", "date"}
+    supported_flags = {"raw", "number", "date"}
 
     @commands.command(aliases=info.aliases)
     @usable_in(DAILY_QUOTE_CHANNEL_ID)
@@ -42,7 +42,7 @@ class DailyLeaderboard(Command):
             daily_quote = await get_daily_quote(ctx.flags.date.strftime("%Y-%m-%d"), results=100)
 
         title = f"Daily Quote #{daily_quote["dayNumber"]:,}"
-        await display_daily_quote(ctx, daily_quote, title, paginate=True)
+        await display_daily_quote(ctx, daily_quote, title, paginate=True, raw=ctx.flags.raw)
 
 
 async def display_daily_quote(
@@ -54,12 +54,19 @@ async def display_daily_quote(
     color: int | None = None,
     mention: bool = False,
     paginate: bool = False,
+    raw: bool = False,
 ) -> None:
     """Send a daily quote and its leaderboard, to a command context or a bare channel."""
     quote = daily_quote["quote"]
     quote_id = quote["quoteId"]
     leaderboard = daily_quote["leaderboard"]
+    wpm_key, pp_key = ("rawWpm", "rawPp") if raw else ("wpm", "pp")
     quote_description = daily_quote_display(daily_quote)
+
+    # The API ranks on wpm, so raw ranks only hold within the 100 entries fetched.
+    if raw:
+        title += " (Raw)"
+        leaderboard.sort(key=lambda score: -score["rawWpm"])
 
     channel_id = ctx.channel.id if hasattr(ctx, "channel") else ctx.id
     set_recent_quote(channel_id, quote_id)
@@ -69,7 +76,7 @@ async def display_daily_quote(
             """Format one podium entry as a single line."""
             return (
                 f"{username_with_flag(data)} - "
-                f"{data["wpm"]:,.2f} WPM ({data["accuracy"]:.2%}) - {data["pp"]:,.0f} pp\n"
+                f"{data[wpm_key]:,.2f} WPM ({data["accuracy"]:.2%}) - {data[pp_key]:,.0f} pp\n"
             )
 
         quote_description = (
@@ -92,7 +99,7 @@ async def display_daily_quote(
 
         return (
             f"{bold}{rank_display} {username_with_flag(score)} - "
-            f"{score["wpm"]:,.2f} WPM ({score["accuracy"]:.2%}) - {score["pp"]:,.0f} pp - "
+            f"{score[wpm_key]:,.2f} WPM ({score["accuracy"]:.2%}) - {score[pp_key]:,.0f} pp - "
             f"{discord_date(score["timestamp"])}{bold}\n"
         )
 

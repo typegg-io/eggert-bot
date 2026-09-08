@@ -49,6 +49,7 @@ INVOCATIONS = [
     "-dailygraph",
     "-dailygraph raw",
     "-dailyleaderboard",
+    "-dailyleaderboard raw",
     "-dailystats",
     "-dailystats raw",
     "-day",

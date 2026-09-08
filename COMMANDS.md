@@ -107,9 +107,14 @@ Everywhere else, swap the column yourself. The precedents:
 indistinguishable from a normal one. A `flag_title=True` page gets "(Raw)" for free. Anything else
 appends it by hand.
 
-**Do not add `raw` to a server-ranked board.** `-quoteleaderboard` and `-dailyleaderboard` render
-rows in the order the API returned them. Swapping the column relabels the rows without reordering
-them, and re-sorting locally would print ranks that are not the real ranks.
+**On a board, ask how much of it you hold.** The API sorts on `wpm` and returns no `rank` field, so
+ranks come from enumerating the rows. Swapping the column alone relabels the rows without reordering
+them, which is wrong either way. Re-sorting locally is only honest when the fetch is deep enough that
+nobody outside it belongs in the view. `-dailyleaderboard` and `-dailygraph` fetch `results=100` and
+show ten, so a re-sort is accurate to 100 places. `-quoteleaderboard` reads
+`GET /v1/quotes/{quoteId}`, which returns exactly ten rows and takes no size parameter, so re-sorting
+those ten would miss anyone whose raw score belongs in the top ten but whose real score did not
+place. That is why it has no `raw`.
 
 **Do not add `raw` to a command that already shows raw as its own field.** `-races`, `-average`,
 `-racegraph`, `-segments`, `-matchgraph` and `-encounters` each render a raw section beside the
