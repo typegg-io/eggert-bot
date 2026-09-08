@@ -336,11 +336,11 @@ def get_quotes_over_leaderboard(
     query = f"""
         SELECT userId, COUNT(*) as count
         FROM (
-            SELECT userId, quoteId, MAX({metric}) as best_value
+            SELECT r.userId, r.quoteId, MAX({metric}) as best_value
             FROM {table} r
             {join_clause}
             WHERE {where_clause}
-            GROUP BY userId, quoteId
+            GROUP BY r.userId, r.quoteId
         ) as quote_bests
         WHERE best_value >= ?
         GROUP BY userId
