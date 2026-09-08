@@ -47,6 +47,19 @@ def enforce_daily_quote(ctx: BotContext, quote_id: str) -> None:
         raise DailyQuoteChannel
 
 
+async def take_universe(ctx: BotContext) -> str | None:
+    """Return the universe code to send, warning and clearing a language that has no universe."""
+    if not ctx.flags.language:
+        return None
+
+    code = universe_code(ctx.flags)
+    if not code:
+        await ctx.send(f"-# :warning: {ctx.flags.language.name} has no universe of its own")
+        ctx.flags.language = None
+
+    return code
+
+
 class Command(commands.Cog):
     """Base command class providing common command utilities."""
 

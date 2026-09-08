@@ -2,7 +2,7 @@ from discord.ext import commands
 
 from api.leaders import get_leaders, get_multiplayer_leaders
 from command_info import CommandInfo
-from commands.base import Command, enforce_daily_quote
+from commands.base import Command, enforce_daily_quote, take_universe as resolve_universe
 from commands.quotes.quoteleaderboard import run as run_quoteleaderboard
 from config import DAILY_QUOTE_CHANNEL_ID
 from context import BotContext
@@ -11,7 +11,6 @@ from database.typegg.quotes import get_ranked_quote_chars, get_ranked_quote_coun
 from database.typegg.users import get_quote_chars_typed, get_quotes_over_leaderboard, get_user_lookup
 from utils import strings
 from utils.errors import BotError, DailyQuoteChannel
-from utils.flags import universe_code
 from utils.messages import Message, Page, paginate_data, usable_in
 from utils.strings import LOADING, get_argument, get_streak_emoji, parse_number, rank, username_with_flag
 
@@ -209,13 +208,8 @@ UNIVERSE_SORTS = frozenset({
 
 async def take_universe(ctx: BotContext, supported: bool) -> str | None:
     """Return the universe to request, warning and clearing it when the board cannot carry one."""
-    if not ctx.flags.language:
-        return None
-
-    code = universe_code(ctx.flags)
+    code = await resolve_universe(ctx)
     if not code:
-        await ctx.send(f"-# :warning: {ctx.flags.language.name} has no universe of its own")
-        ctx.flags.language = None
         return None
 
     if not supported:

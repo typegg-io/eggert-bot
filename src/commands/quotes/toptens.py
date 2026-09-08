@@ -2,9 +2,8 @@ from discord.ext import commands
 
 from api.users import get_quote_rankings
 from command_info import CommandInfo
-from commands.base import Command
+from commands.base import Command, take_universe
 from context import BotContext
-from utils.flags import universe_code
 from utils.messages import Field, Message, Page
 from utils.schemas import Profile
 from utils.strings import LOADING, ordinal_number
@@ -35,6 +34,8 @@ class TopTens(Command):
 
 async def run(ctx: BotContext, profile: Profile) -> None:
     """Send how many quote leaderboards a user places in, broken down by rank."""
+    universe = await take_universe(ctx)
+
     page = Page(
         title="Top Ten Appearances",
         description=(
@@ -62,7 +63,7 @@ async def run(ctx: BotContext, profile: Profile) -> None:
         profile["userId"],
         max_rank=10,
         status=ctx.flags.status,
-        universe=universe_code(ctx.flags),
+        universe=universe,
     )
 
     quotes_typed = rankings["quotesTyped"]
