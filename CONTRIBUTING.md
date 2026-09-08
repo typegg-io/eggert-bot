@@ -204,6 +204,10 @@ this codebase relies on throughout its embed content. Only the linter runs.
 4. Update the class name, and the function name to match the name of the command
 5. Update the info dictionary with the command name, aliases, description, and parameter string
 6. Parameters are received from the class's main function, and can be passed to a run function for further processing and output
+7. Declare `supported_flags`, and check that every flag you declare actually reaches the data
+
+[COMMANDS.md](COMMANDS.md) is the reference for step 7: what each flag means, which data functions
+already honour it, and what the rest cost to wire up.
 
 ---
 
