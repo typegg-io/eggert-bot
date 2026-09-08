@@ -192,6 +192,11 @@ def get_characters_over_time(race_list: list[dict]) -> list[int]:
 
 async def run(ctx: BotContext, metric: str, profiles: list[Profile]) -> None:
     """Send one line per user for the metric requested."""
+    # get_nwpm_line replays English races alone, so a universe would title data the graph never held.
+    if metric == "nwpm" and ctx.flags.language:
+        await ctx.send("-# :warning: nWPM is English only")
+        ctx.flags.language = None
+
     profiles.sort(key=lambda x: -metrics[metric]["sort"](x))
     username = profiles[0]["username"]
 

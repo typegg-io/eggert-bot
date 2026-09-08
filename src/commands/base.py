@@ -26,7 +26,7 @@ from utils.errors import (
     NoRacesFiltered,
     NotSubscribed,
 )
-from utils.flags import Flags
+from utils.flags import Flags, universe_code
 from utils.messages import command_milestone, privacy_warning
 from utils.schemas import Profile
 from utils.strings import get_argument, parse_number
@@ -180,7 +180,7 @@ class Command(commands.Cog):
         """Fetch a user's profile, and optionally imports their races."""
         username = self.get_username(ctx, username)
 
-        profile = await get_profile(username, universe=str(ctx.flags.language) if ctx.flags.language else None)
+        profile = await get_profile(username, universe=universe_code(ctx.flags))
 
         # Sync GG+ status
         api_gg_plus = profile.get("isGgPlus", False)

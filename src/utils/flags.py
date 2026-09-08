@@ -116,6 +116,15 @@ def resolve_universe(flags: Flags, stored: str | None) -> Language | None:
     return None
 
 
+def universe_code(flags: Flags) -> str | None:
+    """Return the code the API takes for the active language, or None when it has no universe."""
+    # The API 400s on a language code outside the registry rather than falling back to English.
+    if flags.language and flags.language.is_universe:
+        return str(flags.language)
+
+    return None
+
+
 def apply_universe_status(flags: Flags) -> None:
     """Force unranked for a language that has no ranked pool of its own."""
     if flags.language and not flags.language.is_universe:

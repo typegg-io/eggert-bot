@@ -7,7 +7,7 @@ command string that discord.py then parses, and the tokens the user actually typ
 import pytest
 
 from bot_setup import parse_flags
-from utils.flags import Language, apply_universe_status, resolve_universe
+from utils.flags import Language, apply_universe_status, resolve_universe, universe_code
 
 
 def flags_for(content):
@@ -144,6 +144,15 @@ def test_only_registered_codes_are_universes():
     assert Language("fr").is_universe
     assert Language("vi").is_universe
     assert not Language("la").is_universe
+
+
+def test_a_non_universe_language_sends_no_universe_code():
+    """The API 400s on a code outside the registry rather than falling back to English."""
+    assert universe_code(flags_for("-best la")) is None
+
+
+def test_a_universe_sends_its_code():
+    assert universe_code(flags_for("-best fr")) == "fr"
 
 
 def test_a_typed_universe_beats_the_stored_one():

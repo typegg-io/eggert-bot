@@ -5,6 +5,7 @@ from commands.base import Command
 from context import BotContext
 from utils.colors import DEFAULT, PLUS
 from utils.dates import discord_date, format_date, now, parse_date
+from utils.flags import universe_code
 from utils.messages import Field, Message, Page
 from utils.schemas import Profile
 from utils.strings import GG_PLUS, format_duration
@@ -34,12 +35,21 @@ class Stats(Command):
         await run(ctx, profile)
 
 
+def nwpm_line(stats: dict) -> str:
+    """Return the nWPM line, rendering a question mark until the universe's calibration is met."""
+    # The API sends 0 rather than null for an uncalibrated user, so accuracy is not real either.
+    if not stats["nWpm"]:
+        return "**nWPM:** ?\n"
+
+    return f"**nWPM:** {stats["nWpm"]:.2f} ({stats["accuracy"]:.2%} accuracy)\n"
+
+
 async def run(ctx: BotContext, profile: Profile) -> None:
     """Send a profile's performance, speed and account stats."""
     join_date = parse_date(profile["joinDate"])
     today = now()
     is_anniversary = join_date.month == today.month and join_date.day == today.day
-    scoped = bool(ctx.flags.language)
+    universe = ctx.flags.language if universe_code(ctx.flags) else None
 
     fields = [
         Field(
@@ -47,9 +57,7 @@ async def run(ctx: BotContext, profile: Profile) -> None:
             content=(
                 f"**Total:** {profile["stats"]["totalPp"]:,.0f} pp\n"
                 f"**Best:** {profile["stats"]["bestPp"]["value"]:,.2f} pp\n"
-                # The API keeps nWPM and accuracy English, so a universe must not appear to scope them.
-                + ("" if scoped else
-                   f"**nWPM:** {profile["stats"]["nWpm"]:.2f} ({profile["stats"]["accuracy"]:.2%} accuracy)\n")
+                + nwpm_line(profile["stats"])
                 + f"**Top Speed:** {profile["stats"]["bestWpm"]["value"]} WPM\n\n"
             )
         ),
@@ -101,15 +109,14 @@ async def run(ctx: BotContext, profile: Profile) -> None:
     else:
         rank_string += f"#{profile["globalRank"]:,} :earth_americas:"
         country = profile["country"]
-        # countryRank has no per-universe equivalent, so it would read as a rank it is not.
-        if country and not scoped:
+        if country:
             rank_string += f" / #{profile["countryRank"]} :flag_{country.lower()}:"
 
     page = Page(
         description=rank_string,
         fields=fields,
         # The embed has no title to hang a flag title on, so the universe goes in the footer.
-        footer=f"{ctx.flags.language.name} Universe" if scoped else None,
+        footer=f"{universe.name} Universe" if universe else None,
     )
 
     message = Message(

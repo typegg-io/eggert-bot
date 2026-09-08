@@ -4,6 +4,7 @@ from api.users import get_quote_rankings
 from command_info import CommandInfo
 from commands.base import Command
 from context import BotContext
+from utils.flags import universe_code
 from utils.messages import Field, Message, Page
 from utils.schemas import Profile
 from utils.strings import LOADING, ordinal_number
@@ -23,7 +24,7 @@ info = CommandInfo(
 class TopTens(Command):
     """Count the quote top 10s a user appears in."""
 
-    supported_flags = {"status"}
+    supported_flags = {"status", "language"}
 
     @commands.command(aliases=info.aliases)
     async def toptens(self, ctx: BotContext, username: str = None):
@@ -61,6 +62,7 @@ async def run(ctx: BotContext, profile: Profile) -> None:
         profile["userId"],
         max_rank=10,
         status=ctx.flags.status,
+        universe=universe_code(ctx.flags),
     )
 
     quotes_typed = rankings["quotesTyped"]

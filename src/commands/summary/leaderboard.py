@@ -11,6 +11,7 @@ from database.typegg.quotes import get_ranked_quote_chars, get_ranked_quote_coun
 from database.typegg.users import get_quote_chars_typed, get_quotes_over_leaderboard, get_user_lookup
 from utils import strings
 from utils.errors import BotError, DailyQuoteChannel
+from utils.flags import universe_code
 from utils.messages import Message, Page, paginate_data, usable_in
 from utils.strings import LOADING, get_argument, get_streak_emoji, parse_number, rank, username_with_flag
 
@@ -199,18 +200,30 @@ class Leaderboard(Command):
         await run(ctx, category_info)
 
 
+# The API 400s on any other sort, and on any gamemode but "any".
+UNIVERSE_SORTS = frozenset({
+    "totalPp", "nWpm", "bestPp", "bestWpm",
+    "races", "quotesTyped", "charactersTyped", "playTime",
+})
+
+
 async def take_universe(ctx: BotContext, supported: bool) -> str | None:
     """Return the universe to request, warning and clearing it when the board cannot carry one."""
     if not ctx.flags.language:
         return None
 
-    # The API serves a universe leaderboard for total pp alone, and 400s on every other sort.
+    code = universe_code(ctx.flags)
+    if not code:
+        await ctx.send(f"-# :warning: {ctx.flags.language.name} has no universe of its own")
+        ctx.flags.language = None
+        return None
+
     if not supported:
         await ctx.send("-# :warning: this leaderboard has no universe of its own")
         ctx.flags.language = None
         return None
 
-    return str(ctx.flags.language)
+    return code
 
 
 def entry_formatter(data) -> str:
@@ -232,7 +245,7 @@ def is_statusless(leaderboard: str) -> bool:
 async def run(ctx: BotContext, category: dict) -> None:
     """Send a leaderboard the API serves, behind a skeleton message."""
     gamemode = ctx.flags.gamemode or "any"
-    universe = await take_universe(ctx, category["sort"] == "totalPp" and gamemode == "any")
+    universe = await take_universe(ctx, category["sort"] in UNIVERSE_SORTS and gamemode == "any")
     title = f"{category["title"]} Leaderboard"
 
     skeleton_page = Page(

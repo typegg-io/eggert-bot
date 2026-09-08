@@ -144,9 +144,10 @@ async def get_quote_rankings(
     user_id: str,
     max_rank: int = 10,
     status: str = "ranked",
+    universe: str | None = None,
 ) -> dict[str, Any]:
     """
-    Calls GET /users/{userId}/quote-rankings.
+    Calls GET /users/{userId}/quote-rankings, optionally scoped to a universe.
     Returns the user's quote leaderboard placement counts (rank -> count).
     """
     return await request(
@@ -154,6 +155,7 @@ async def get_quote_rankings(
         params=dict(
             maxRank=max_rank,
             status=status,
+            universe=universe,
         ),
         exceptions={404: ProfileNotFound(user_id)},
     )
