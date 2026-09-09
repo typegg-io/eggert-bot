@@ -297,6 +297,21 @@ RACES, MATCHES, MATCH_RESULTS = seed_data.build_races(list(QUOTES.values()), NOW
 RACES_BY_NUMBER = {(race["userId"], race["raceNumber"]): race for race in RACES}
 
 
+def api_quote_stats(user_id: str, quote_id: str) -> dict:
+    """Return one user's attempt and play time counters for a quote, as the API serves them."""
+    races = [race for race in RACES if race["userId"] == user_id and race["quoteId"] == quote_id]
+    completion = sum(race["duration"] for race in races)
+
+    return {
+        "races": len(races),
+        "attempts": len(races) + 3,
+        "playTime": completion + 4200,
+        "completionPlayTime": completion,
+        "attemptPlayTime": 4200,
+        "globalRank": 4,
+    }
+
+
 def api_quote(quote_id: str) -> dict:
     """Return one seeded quote in the shape the API serves it."""
     quote = QUOTES[quote_id]
@@ -442,6 +457,8 @@ async def fake_request(url: str, params: dict = None, **kwargs) -> dict:
             return profile
         if url.endswith(f"/users/{user_id}/races"):
             return {"races": [{"raceNumber": RACE_TOTALS[user_id]}], "page": 1, "perPage": 20}
+        if f"/users/{user_id}/quotes/" in url:
+            return api_quote_stats(user_id, url.rsplit("/", 1)[-1])
         if url.endswith(f"/users/{user_id}/quote-rankings"):
             return {
                 "quotesTyped": seed_data.QUOTE_COUNT,

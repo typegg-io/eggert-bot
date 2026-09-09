@@ -1,6 +1,7 @@
 import numpy as np
 from discord.ext import commands
 
+from api.users import get_quote as get_quote_stats
 from command_info import CommandInfo
 from commands.base import Command, enforce_daily_quote
 from config import DAILY_QUOTE_CHANNEL_ID
@@ -10,11 +11,11 @@ from database.typegg.users import get_quote_bests
 from graphs import improvement
 from utils.colors import SUCCESS
 from utils.dates import discord_date, parse_date
-from utils.errors import BotError
+from utils.errors import APIError, BotError
 from utils.messages import Field, Message, Page, usable_in
 from utils.schemas import Profile, Theme
 from utils.stats import calculate_total_pp
-from utils.strings import INCREASE, quote_display
+from utils.strings import INCREASE, format_duration, quote_display
 
 info = CommandInfo(
     name="quote",
@@ -175,7 +176,27 @@ def build_unranked_personal_best_page(quote: dict, quote_races: list[dict]) -> P
         return page
 
 
-def build_history_page(quote_races: list[dict], ranked: bool) -> Page:
+async def get_attempt_stats(user_id: str, quote_id: str) -> dict | None:
+    """Return a user's attempt and play time counters for one quote, or None when the API has none."""
+    try:
+        return await get_quote_stats(user_id, quote_id)
+    except APIError:
+        return None
+
+
+def attempt_display(stats: dict | None) -> str:
+    """Format the attempt and play time counters the site shows in its History tab."""
+    if not stats:
+        return ""
+
+    return (
+        f"**Attempts:** {stats["attempts"]:,} | {stats["races"]:,} Finished\n"
+        f"**Time Typed:** {format_duration(stats["playTime"] / 1000)} | "
+        f"{format_duration((stats["playTime"] - stats["attemptPlayTime"]) / 1000)} Finished\n"
+    )
+
+
+def build_history_page(quote_races: list[dict], ranked: bool, stats: dict | None = None) -> Page:
     """Build the page listing a user's 10 best and 10 most recent races on a quote."""
 
     def quote_history(scores) -> str:
@@ -204,6 +225,7 @@ def build_history_page(quote_races: list[dict], ranked: bool) -> Page:
     best_races = quote_history(quote_races)
 
     page = Page(
+        description=attempt_display(stats),
         fields=[
             Field(
                 title="Recent",
@@ -270,8 +292,9 @@ async def run(ctx: BotContext, profile: Profile, quote: dict) -> None:
     pages = [pb_page]
 
     if show_buttons:
+        stats = await get_attempt_stats(user_id, quote_id)
         pages += [
-            build_history_page(quote_races, is_ranked),
+            build_history_page(quote_races, is_ranked, stats),
             build_graph_page(quote_races, is_ranked, ctx.user["theme"])
         ]
 
