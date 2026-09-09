@@ -184,7 +184,7 @@ async def get_attempt_stats(user_id: str, quote_id: str) -> dict | None:
         return None
 
 
-def build_attempts_page(stats: dict | None) -> Page:
+def build_attempts_page(stats: dict | None, quote: dict, quote_races: list[dict]) -> Page:
     """Build the page showing how much typing a quote took, including the runs never finished."""
     page = Page(button_name="Attempts")
 
@@ -211,7 +211,17 @@ def build_attempts_page(stats: dict | None) -> Page:
             f"{format_duration(completed / races, round_seconds=False)} completed\n"
         )
 
+        length = len(quote["text"])
+        speeds = [race["wpm"] for race in quote_races if race["wpm"] > 0]
+        if length and speeds:
+            # The API sends no per-quote character counts, so estimate from the user's own speed.
+            characters = (abandoned / unfinished) * (sum(speeds) / len(speeds)) * 5 / 60
+            page.description += (
+                f"**Average Quit:** ~{characters:,.0f} characters in ({characters / length:.1%} of the quote)\n"
+            )
+
     return page
+
 
 def build_history_page(quote_races: list[dict], ranked: bool) -> Page:
     """Build the page listing a user's 10 best and 10 most recent races on a quote."""
@@ -312,7 +322,7 @@ async def run(ctx: BotContext, profile: Profile, quote: dict) -> None:
         pages += [
             build_history_page(quote_races, is_ranked),
             build_graph_page(quote_races, is_ranked, ctx.user["theme"]),
-            build_attempts_page(stats),
+            build_attempts_page(stats, quote, quote_races),
         ]
 
     try:
