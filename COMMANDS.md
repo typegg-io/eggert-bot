@@ -120,18 +120,26 @@ place. That is why it has no `raw`.
 `-racegraph`, `-segments`, `-matchgraph` and `-encounters` each render a raw section beside the
 real one. A flag there duplicates what is already on screen.
 
-**Raw pp needs GG+, and how you gate it depends on where the number sits.** Two rules:
+**Raw stats need GG+.** Both halves of the swap are subscriber numbers: raw pp and raw speed.
+How you gate one depends on where it sits, not on which of the two it is. Two rules:
 
-1. **Raw pp is one field in an embed.** Substitute it with `GG_PLUS_LINKED` through
-   `strings.pp_display(value, hide_raw)`. The reader sees where the number would be and how to get
-   it. `-racegraph`, `-average`, `-best wpm`, `-racehistory`, `-bestaverages`, `-dailyleaderboard`
-   and `-dailystats` all take this path.
-2. **Raw pp is the whole output**, a graph's y-axis or a board's sort order. Refuse with
+1. **The raw number is one field on a page the user did not ask to be raw.** Substitute it with
+   `GG_PLUS_LINKED` through `strings.pp_display(value, hide_raw)`. The reader sees where the number
+   would be and how to get it. `-racegraph`, `-average`, `-best wpm`, `-racehistory`,
+   `-bestaverages`, `-dailyleaderboard` and `-dailystats` all take this path.
+2. **The raw number is the whole output**, a graph's y-axis or a board's sort order. Refuse with
    `self.check_raw_pp(ctx, showing_pp)` in the command method, before any work. There is nothing to
    draw, so there is nothing to substitute. `showing_pp` is the command's own metric test, so a
    command with no `metric` flag omits it.
 
 Never drop the field silently. A reader cannot tell a hidden value from an absent one.
+
+**Raw speed is gated the same way, and the code does not do it yet.** Only raw pp is enforced
+today. Five commands render a raw speed field with no flag typed, so they belong to rule 1:
+`-racegraph`, `-segments`, `-average`, `-encounters` and `-races`. Everywhere else raw speed
+arrives through the flag, which makes it the whole output and puts it under rule 2. Taken to its
+end that means the `raw` flag is itself a subscriber feature, and one check in `cog_before_invoke`
+replaces every per-command call. `-sumofbest` already gates its whole command that way.
 
 ### `gamemode`
 
@@ -237,7 +245,7 @@ An unsupported flag is also reset to its default, so the command body never sees
 4. Check that every declared flag reaches the data. Pass `flags=ctx.flags` where a function takes
    it, and wire the rest by hand.
 5. Mark `raw` and the active universe in the title, unless the page is already `flag_title=True`.
-6. Gate raw pp. Substitute a single field with `pp_display`, or refuse the whole command with
+6. Gate raw stats. Substitute a single field with `pp_display`, or refuse the whole command with
    `check_raw_pp`.
 7. Add the invocation to `INVOCATIONS` in `tests/test_command_smoke.py`, one line per flag
    combination worth pinning. A command left out must appear in `SKIPPED` with a reason, or the
