@@ -81,6 +81,9 @@ def normalize_universe(code) -> str:
 EIKO = 87926662364160000
 KEEGAN = 155481579005804544
 
+# Discord IDs forced to non-GG+, so a subscriber can test what everyone else sees.
+FORCE_NO_GG_PLUS = {i.strip() for i in os.getenv("FORCE_NO_GG_PLUS", "").split(",") if i.strip()}
+
 # === Paths ===
 ROOT_DIR = Path(__file__).resolve().parents[1]
 SOURCE_DIR = ROOT_DIR / "src"

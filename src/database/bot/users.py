@@ -3,7 +3,7 @@
 import json
 import sqlite3
 
-from config import DEFAULT_UNIVERSE
+from config import DEFAULT_UNIVERSE, FORCE_NO_GG_PLUS
 from database.bot import db
 from utils import dates
 from utils.colors import DEFAULT_THEME
@@ -56,6 +56,8 @@ def get_user(discord_id: str, auto_insert: bool = True) -> dict | None:
 
     user = dict(user)
     user["theme"] = json.loads(user["theme"])
+    if user["discordId"] in FORCE_NO_GG_PLUS:
+        user["isGgPlus"] = 0
     return user
 
 
@@ -74,6 +76,8 @@ def get_user_by_user_id(user_id: str) -> dict | None:
 
     user = dict(user)
     user["theme"] = json.loads(user["theme"])
+    if user["discordId"] in FORCE_NO_GG_PLUS:
+        user["isGgPlus"] = 0
     return user
 
 
@@ -111,6 +115,9 @@ def update_warning(discord_id: str) -> None:
 
 def update_gg_plus_status(user_id: str, is_gg_plus: bool) -> None:
     """Update a user's GG+ subscription status."""
+    if get_discord_id(user_id) in FORCE_NO_GG_PLUS:
+        return
+
     db.run("""
         UPDATE users
         SET isGgPlus = ?
