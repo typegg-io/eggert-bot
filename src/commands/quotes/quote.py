@@ -19,7 +19,7 @@ from utils.strings import INCREASE, format_duration, quote_display
 
 info = CommandInfo(
     name="quote",
-    aliases=["q", "pb", "qh", "qg"],
+    aliases=["q", "pb", "qh", "qg", "qa"],
     description="Displays a user's stats on a specific quote.\n"
                 "Defaults to the most recently played quote.",
     parameters="[username] [quote_id]",
@@ -184,19 +184,36 @@ async def get_attempt_stats(user_id: str, quote_id: str) -> dict | None:
         return None
 
 
-def attempt_display(stats: dict | None) -> str:
-    """Format the attempt and play time counters the site shows in its History tab."""
-    if not stats:
-        return ""
+def build_attempts_page(stats: dict | None) -> Page:
+    """Build the page showing how much typing a quote took, including the runs never finished."""
+    page = Page(button_name="Attempts")
 
-    return (
-        f"**Attempts:** {stats["attempts"]:,} | {stats["races"]:,} Finished\n"
-        f"**Time Typed:** {format_duration(stats["playTime"] / 1000)} | "
-        f"{format_duration((stats["playTime"] - stats["attemptPlayTime"]) / 1000)} Finished\n"
+    if not stats or not stats["attempts"]:
+        page.description = "No attempt data for this quote."
+        return page
+
+    races, attempts = stats["races"], stats["attempts"]
+    unfinished = attempts - races
+    completed = stats["completionPlayTime"] / 1000
+    abandoned = stats["attemptPlayTime"] / 1000
+
+    page.description = (
+        f"**Attempts:** {attempts:,} ({unfinished:,} unfinished)\n"
+        f"**Completion Rate:** {races / attempts:.2%}\n\n"
+        f"**Time Typed:** {format_duration(stats["playTime"] / 1000)}\n"
+        f"**Completed:** {format_duration(completed)}\n"
+        f"**Abandoned:** {format_duration(abandoned)}\n"
     )
 
+    if unfinished and races:
+        page.description += (
+            f"\n**Average Run:** {format_duration(abandoned / unfinished, round_seconds=False)} abandoned, "
+            f"{format_duration(completed / races, round_seconds=False)} completed\n"
+        )
 
-def build_history_page(quote_races: list[dict], ranked: bool, stats: dict | None = None) -> Page:
+    return page
+
+def build_history_page(quote_races: list[dict], ranked: bool) -> Page:
     """Build the page listing a user's 10 best and 10 most recent races on a quote."""
 
     def quote_history(scores) -> str:
@@ -225,7 +242,6 @@ def build_history_page(quote_races: list[dict], ranked: bool, stats: dict | None
     best_races = quote_history(quote_races)
 
     page = Page(
-        description=attempt_display(stats),
         fields=[
             Field(
                 title="Recent",
@@ -294,12 +310,13 @@ async def run(ctx: BotContext, profile: Profile, quote: dict) -> None:
     if show_buttons:
         stats = await get_attempt_stats(user_id, quote_id)
         pages += [
-            build_history_page(quote_races, is_ranked, stats),
-            build_graph_page(quote_races, is_ranked, ctx.user["theme"])
+            build_history_page(quote_races, is_ranked),
+            build_graph_page(quote_races, is_ranked, ctx.user["theme"]),
+            build_attempts_page(stats),
         ]
 
     try:
-        default_page = {"qh": 1, "qg": 2}.get(ctx.invoked_with, 0)
+        default_page = {"qh": 1, "qg": 2, "qa": 3}.get(ctx.invoked_with, 0)
         pages[default_page].default = True
     except IndexError:
         raise BotError(
