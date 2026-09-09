@@ -1,5 +1,8 @@
 """Shared fixtures for the test suite."""
 
+import gc
+import glob
+import os
 import sqlite3
 
 import pytest
@@ -7,6 +10,22 @@ import pytest
 from commands.base import Command
 from database.bot import db
 from utils.files import get_command_modules
+
+
+@pytest.fixture(scope="session", autouse=True)
+def clean_rendered_images():
+    """Delete the PNGs the slow suite renders, which no send path is there to remove."""
+    before = set(glob.glob("*.png"))
+    yield
+
+    # Windows will not unlink a PNG a discord.File still holds open.
+    gc.collect()
+
+    for file in set(glob.glob("*.png")) - before:
+        try:
+            os.remove(file)
+        except OSError:
+            pass
 
 
 @pytest.fixture
