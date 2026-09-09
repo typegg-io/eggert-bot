@@ -192,33 +192,37 @@ def build_attempts_page(stats: dict | None, quote: dict, quote_races: list[dict]
         page.description = "No attempt data for this quote."
         return page
 
-    races, attempts = stats["races"], stats["attempts"]
+    # The attempt counter postdates some races, so it can sit below the completion count.
+    races, attempts = stats["races"], max(stats["attempts"], stats["races"])
     unfinished = attempts - races
     completed = stats["completionPlayTime"] / 1000
     abandoned = stats["attemptPlayTime"] / 1000
 
     page.description = (
-        f"**Attempts:** {attempts:,} ({unfinished:,} unfinished)\n"
-        f"**Completion Rate:** {races / attempts:.2%}\n\n"
+        f"**Attempts:** {attempts:,}\n"
+        f"**Finishes:** {races:,} ({races / attempts:.2%})\n"
+        f"**Quits:** {unfinished:,} ({unfinished / attempts:.2%})\n\n"
         f"**Time Typed:** {format_duration(stats["playTime"] / 1000)}\n"
         f"**Completed:** {format_duration(completed)}\n"
         f"**Abandoned:** {format_duration(abandoned)}\n"
     )
 
     if unfinished and races:
-        page.description += (
-            f"\n**Average Run:** {format_duration(abandoned / unfinished, round_seconds=False)} abandoned, "
-            f"{format_duration(completed / races, round_seconds=False)} completed\n"
-        )
-
+        page.description += "\n"
         length = len(quote["text"])
         speeds = [race["wpm"] for race in quote_races if race["wpm"] > 0]
+
         if length and speeds:
             # The API sends no per-quote character counts, so estimate from the user's own speed.
             characters = (abandoned / unfinished) * (sum(speeds) / len(speeds)) * 5 / 60
             page.description += (
-                f"**Average Quit:** ~{characters:,.0f} characters in ({characters / length:.1%} of the quote)\n"
+                f"**Average Quit:** ~{characters:,.0f}/{length:,} characters ({characters / length:.2%})\n"
             )
+
+        page.description += (
+            f"**Average Quit Time:** {format_duration(abandoned / unfinished, round_seconds=False)}\n"
+            f"**Average Finish Time:** {format_duration(completed / races, round_seconds=False)}\n"
+        )
 
     return page
 
