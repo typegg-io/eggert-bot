@@ -40,6 +40,7 @@ class BestGraph(Command):
     @commands.command(aliases=info.aliases)
     async def bestgraph(self, ctx: BotContext, *args: str):
         """Read n from the alias or the number flag, then graph each user's top scores."""
+        self.check_raw_pp(ctx, ctx.flags.metric == "pp")
         if ctx.invoked_with.isnumeric():
             n = int(ctx.invoked_with)
         else:

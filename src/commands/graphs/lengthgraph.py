@@ -33,6 +33,7 @@ class LengthGraph(Command):
     @commands.command(aliases=info.aliases)
     async def lengthgraph(self, ctx: BotContext, *args: str):
         """Graph the length curve for each user named."""
+        self.check_raw_pp(ctx, ctx.flags.metric == "pp")
         profiles = await self.get_profiles(ctx, args, max_users)
         await run(ctx, profiles)
 

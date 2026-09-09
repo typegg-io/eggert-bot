@@ -74,6 +74,7 @@ class CompareGraph(Command):
     @commands.command(aliases=info.aliases)
     async def comparegraph(self, ctx: BotContext, *args: str):
         """Pick the overall or ranged comparison based on the ranges given."""
+        self.check_raw_pp(ctx, ctx.flags.metric == "pp")
         if not args:
             raise MissingArguments
 

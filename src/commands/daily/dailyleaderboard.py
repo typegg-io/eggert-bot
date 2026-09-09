@@ -10,7 +10,7 @@ from database.bot.recent_quotes import set_recent_quote
 from utils import dates
 from utils.dates import discord_date, format_date, parse_date
 from utils.messages import Message, Page, paginate_data, usable_in
-from utils.strings import quote_display, rank, username_with_flag
+from utils.strings import pp_display, quote_display, rank, username_with_flag
 from utils.urls import race_url
 
 info = CommandInfo(
@@ -61,6 +61,7 @@ async def display_daily_quote(
     quote_id = quote["quoteId"]
     leaderboard = daily_quote["leaderboard"]
     wpm_key, pp_key = ("rawWpm", "rawPp") if raw else ("wpm", "pp")
+    hide_raw_pp = raw and not ctx.user["isGgPlus"]
     quote_description = daily_quote_display(daily_quote)
 
     # The API ranks on wpm, so raw ranks only hold within the 100 entries fetched.
@@ -76,7 +77,7 @@ async def display_daily_quote(
             """Format one podium entry as a single line."""
             return (
                 f"{username_with_flag(data)} - "
-                f"{data[wpm_key]:,.2f} WPM ({data["accuracy"]:.2%}) - {data[pp_key]:,.0f} pp\n"
+                f"{data[wpm_key]:,.2f} WPM ({data["accuracy"]:.2%}) - {pp_display(data[pp_key], hide_raw_pp, 0)}\n"
             )
 
         quote_description = (
@@ -99,7 +100,7 @@ async def display_daily_quote(
 
         return (
             f"{bold}{rank_display} {username_with_flag(score)} - "
-            f"{score[wpm_key]:,.2f} WPM ({score["accuracy"]:.2%}) - {score[pp_key]:,.0f} pp - "
+            f"{score[wpm_key]:,.2f} WPM ({score["accuracy"]:.2%}) - {pp_display(score[pp_key], hide_raw_pp, 0)} - "
             f"{discord_date(score["timestamp"])}{bold}\n"
         )
 

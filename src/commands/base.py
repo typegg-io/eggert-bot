@@ -316,3 +316,8 @@ class Command(commands.Cog):
                 raise NotSubscribed(feature)
             raise NotSubscribed
         return
+
+    def check_raw_pp(self, ctx: BotContext, showing_pp: bool = True) -> None:
+        """Raise when raw pp is the whole output and the invoking user is not subscribed."""
+        if showing_pp and ctx.flags.raw:
+            self.check_gg_plus(ctx, "raw pp stats")

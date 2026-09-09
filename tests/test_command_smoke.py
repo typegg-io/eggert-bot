@@ -26,6 +26,7 @@ from database.bot import db as bot_db
 from database.typegg import db as typegg_db
 from utils.colors import DEFAULT_THEME
 from utils.dates import resolve_date_range
+from utils.errors import NotSubscribed
 from utils.flags import apply_universe_status, resolve_universe
 
 matplotlib.use("Agg")
@@ -88,6 +89,32 @@ INVOCATIONS = [
     "-week",
     "-worst",
     "-year",
+]
+
+# Raw pp is the whole output, so a non-subscriber is refused outright.
+RAW_PP_REFUSED = [
+    "-best raw",
+    "-bestgraph raw",
+    "-comparegraph eiko keegan raw",
+    "-histogram raw",
+    "-improvement -pp raw",
+    "-lengthgraph raw",
+    "-linegraph raw",
+    "-pplength raw",
+    "-quotesover 100 raw",
+    "-quotestrength raw",
+    "-worst raw",
+]
+
+# Raw pp is one field, so a non-subscriber still gets the page with the GG+ link in its place.
+RAW_PP_SUBSTITUTED = [
+    "-average",
+    "-bestaverages -raw",
+    "-best -wpm raw",
+    "-dailyleaderboard raw",
+    "-dailystats raw",
+    "-racegraph",
+    "-racehistory raw",
 ]
 
 # Commands left out, and the reason each one cannot run here.
@@ -498,11 +525,19 @@ def find_command(name: str):
     raise LookupError(f"no command named {name}")
 
 
-async def invoke(invocation: str, stored=(None, None), universe: str | None = None) -> FakeContext:
+async def invoke(
+    invocation: str,
+    stored=(None, None),
+    universe: str | None = None,
+    gg_plus: bool = True,
+) -> FakeContext:
     """Run one invocation end to end and return the context it sent through."""
     name = invocation.split()[0].lstrip("-")
     cog_class, command = find_command(name)
-    ctx = FakeContext(invocation, build_user(), bot=SimpleNamespace(get_channel=lambda _: None))
+    user = build_user()
+    user["isGgPlus"] = gg_plus
+    user["theme"]["isGgPlus"] = gg_plus
+    ctx = FakeContext(invocation, user, bot=SimpleNamespace(get_channel=lambda _: None))
 
     ctx.flags.date_range = resolve_date_range(ctx.flags, ctx.user["timezone"], stored)
     ctx.flags.language = resolve_universe(ctx.flags, universe or ctx.user["universe"])
@@ -572,6 +607,21 @@ def test_a_command_renders_under_a_universe(seeded, invocation):
         return
 
     assert ctx.sent, f"{invocation} sent nothing under a stored universe"
+
+
+@pytest.mark.parametrize("invocation", RAW_PP_REFUSED)
+def test_raw_pp_output_is_refused_without_gg_plus(seeded, invocation):
+    """A command whose whole output is raw pp refuses a non-subscriber."""
+    with pytest.raises(NotSubscribed):
+        asyncio.run(invoke(invocation, gg_plus=False))
+
+
+@pytest.mark.parametrize("invocation", RAW_PP_SUBSTITUTED)
+def test_raw_pp_fields_still_render_without_gg_plus(seeded, invocation):
+    """A command showing raw pp as one field still renders for a non-subscriber."""
+    ctx = asyncio.run(invoke(invocation, gg_plus=False))
+
+    assert ctx.sent, f"{invocation} sent nothing without GG+"
 
 
 def test_the_seed_is_isolated_from_the_real_database(seeded):

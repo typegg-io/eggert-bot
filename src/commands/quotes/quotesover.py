@@ -33,6 +33,8 @@ class QuotesOver(Command):
         if ctx.flags.number is None:
             raise MissingArguments
 
+        self.check_raw_pp(ctx, ctx.flags.metric == "pp")
+
         profile = await self.get_profile(ctx, args[0] if args else None)
         await run(ctx, profile, abs(ctx.flags.number), ctx.flags.metric)
 

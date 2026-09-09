@@ -33,6 +33,7 @@ class PpLengthGraph(Command):
     @commands.command(aliases=info.aliases)
     async def pplength(self, ctx: BotContext, username: str = None):
         """Graph one user's pp against quote length."""
+        self.check_raw_pp(ctx)
         profile = await self.get_profile(ctx, username)
         await run(ctx, profile)
 

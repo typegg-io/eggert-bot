@@ -9,7 +9,7 @@ from utils.dates import discord_date, parse_date
 from utils.errors import NotEnoughRaces, NumberGreaterThan
 from utils.messages import Message, Page
 from utils.schemas import Profile
-from utils.strings import date_range_display
+from utils.strings import date_range_display, pp_display
 
 info = CommandInfo(
     name="bestaverages",
@@ -125,6 +125,7 @@ async def run(ctx: BotContext, profile: Profile, n: int, metric: str = "wpm") ->
         top_races = race_list[top_start_index + start_offset:top_start_index + n]
         quote_list = get_quotes()
 
+        hide_raw_pp = ctx.flags.raw and not ctx.user["isGgPlus"]
         race_descriptions = ""
         for race in top_races:
             if race["wpm"] == 0:
@@ -133,7 +134,7 @@ async def run(ctx: BotContext, profile: Profile, n: int, metric: str = "wpm") ->
                 desc = (
                     f"{race["wpm"]:,.2f} WPM - "
                     f"{race["accuracy"]:.2%} - " +
-                    (f"{race["pp"]:,.2f} pp - " if race["pp"] > 0 else "")
+                    (f"{pp_display(race["pp"], hide_raw_pp)} - " if race["pp"] > 0 else "")
                 )
 
             desc += (

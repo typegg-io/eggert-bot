@@ -8,6 +8,7 @@ from database.typegg.races import get_races
 from utils.dates import discord_date
 from utils.messages import Message, paginate_data
 from utils.schemas import Profile
+from utils.strings import pp_display
 
 info = CommandInfo(
     name="racehistory",
@@ -50,6 +51,7 @@ async def run(ctx: BotContext, profile: Profile) -> None:
     )
 
     quote_list = get_quotes()
+    hide_raw_pp = ctx.flags.raw and not ctx.user["isGgPlus"]
 
     def formatter(race) -> str:
         """Format one race as a single line, or as a DNF."""
@@ -59,7 +61,7 @@ async def run(ctx: BotContext, profile: Profile) -> None:
             desc = (
                 f"{race["wpm"]:,.2f} WPM - "
                 f"{race["accuracy"]:.2%} - " +
-                (f"{race["pp"]:,.2f} pp - " if race["pp"] > 0 else "")
+                (f"{pp_display(race["pp"], hide_raw_pp)} - " if race["pp"] > 0 else "")
             )
 
         desc += (

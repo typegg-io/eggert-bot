@@ -44,6 +44,8 @@ class Improvement(Command):
         if ctx.flags.status != "ranked":  # Unranked quotes are 0 pp
             metric = "wpm"
 
+        self.check_raw_pp(ctx, metric == "pp")
+
         username = args[0] if args else None
         profile = await self.get_profile(ctx, username)
 

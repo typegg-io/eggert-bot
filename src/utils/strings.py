@@ -158,6 +158,11 @@ def rank(number) -> str:
     return f"**{number}**"
 
 
+def pp_display(pp: float, hide_raw: bool = False, decimals: int = 2) -> str:
+    """Return a pp value for display, or the GG+ link when raw pp needs a subscription."""
+    return GG_PLUS_LINKED if hide_raw else f"{pp:,.{decimals}f} pp"
+
+
 def get_streak_emoji(streak: int) -> str:
     """Return the respective fire emoji for the given streak."""
     for threshold in sorted(STREAK_TIERS.keys(), reverse=True):

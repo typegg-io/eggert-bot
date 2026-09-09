@@ -64,6 +64,7 @@ class Histogram(Command):
         """Graph the requested metric for one user."""
         params = self.extract_params(args, metrics.keys())
         metric = params.argument or ctx.flags.metric
+        self.check_raw_pp(ctx, metric == "pp")
         profile = await self.get_profile(ctx, params.username)
         await run(ctx, profile, metric)
 

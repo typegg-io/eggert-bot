@@ -41,6 +41,7 @@ class QuoteStrength(Command):
     @commands.command(aliases=info.aliases)
     async def quotestrength(self, ctx: BotContext, *args: str):
         """Graph the strength compass for each user named."""
+        self.check_raw_pp(ctx)
         profiles = await self.get_profiles(ctx, args, max_users)
         await run(ctx, profiles)
 

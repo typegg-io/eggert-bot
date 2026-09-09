@@ -14,7 +14,7 @@ from utils.errors import NoQuoteRaces
 from utils.keystrokes import get_keystroke_data
 from utils.messages import Field, Message, Page, usable_in
 from utils.schemas import Profile
-from utils.strings import GG_PLUS_LINKED, format_duration, quote_display
+from utils.strings import format_duration, pp_display, quote_display
 
 info = CommandInfo(
     name="racegraph",
@@ -71,10 +71,7 @@ async def run(ctx: BotContext, profile: Profile, race_number: int) -> None:
     )
 
     title = f"Race Graph - Race #{race_number:,}"
-    raw_pp_display = (
-        f"{race["rawPp"]:,.2f} pp" if ctx.user["isGgPlus"]
-        else GG_PLUS_LINKED
-    )
+    raw_pp_display = pp_display(race["rawPp"], not ctx.user["isGgPlus"])
 
     page = Page(
         title=title,

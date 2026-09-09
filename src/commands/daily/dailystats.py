@@ -12,7 +12,7 @@ from database.typegg.daily_quotes import get_daily_quote_id, get_today_result, g
 from utils import dates
 from utils.messages import Field, Message, Page, usable_in
 from utils.schemas import Profile
-from utils.strings import get_streak_emoji
+from utils.strings import get_streak_emoji, pp_display
 
 info = CommandInfo(
     name="dailystats",
@@ -64,6 +64,7 @@ async def run(ctx: BotContext, profile: Profile) -> None:
     today_result = get_today_result(profile["userId"], today_quote_id, ctx.flags.raw) if today_quote_id else None
 
     pp_key, wpm_key = ("rawPp", "rawWpm") if ctx.flags.raw else ("pp", "wpm")
+    hide_raw_pp = ctx.flags.raw and not ctx.user["isGgPlus"]
     pp, wpm, positions = zip(*[(race[pp_key], race[wpm_key], race["rank"]) for race in results])
     pp = list(pp)
     wpm = list(wpm)
@@ -89,8 +90,8 @@ async def run(ctx: BotContext, profile: Profile) -> None:
         Field(
             title="Stats",
             content=(
-                f"**Average Performance:** {average_pp:,.2f} pp\n"
-                f"**Best Performance:** {max(pp):,.2f} pp\n"
+                f"**Average Performance:** {pp_display(average_pp, hide_raw_pp)}\n"
+                f"**Best Performance:** {pp_display(max(pp), hide_raw_pp)}\n"
                 f"**Average Speed:** {np.average(wpm):,.2f} WPM\n"
                 f"**Best Speed:** {max(wpm):,.2f} WPM\n"
             ),

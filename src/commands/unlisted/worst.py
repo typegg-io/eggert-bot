@@ -4,7 +4,6 @@ from command_info import CommandInfo
 from commands.base import Command
 from commands.quotes.best import run
 from context import BotContext
-from utils.errors import NotSubscribed
 
 info = CommandInfo(
     name="worst",
@@ -23,8 +22,7 @@ class Worst(Command):
     @commands.command(aliases=info.aliases)
     async def worst(self, ctx: BotContext, username: str = None):
         """Run the `-best` renderer in ascending order."""
-        if ctx.flags.metric == "pp" and ctx.flags.raw and not ctx.user["isGgPlus"]:
-            raise NotSubscribed("raw pp stats")
+        self.check_raw_pp(ctx, ctx.flags.metric == "pp")
 
         profile = await self.get_profile(ctx, username)
         await run(ctx, profile, ctx.flags.metric, reverse=False)

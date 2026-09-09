@@ -93,6 +93,7 @@ class LineGraph(Command):
         if invoke in metric_aliases:
             metric = list(metrics.keys())[metric_aliases.index(invoke)]
 
+        self.check_raw_pp(ctx, metric in ("pp", "best"))
         profiles = await self.get_profiles(ctx, params.remaining, max_users)
         await run(ctx, metric, profiles)
 

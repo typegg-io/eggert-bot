@@ -7,10 +7,10 @@ from database.typegg.quotes import get_quotes
 from database.typegg.sources import get_sources
 from database.typegg.users import get_quote_bests
 from utils.dates import discord_date
-from utils.errors import NoRacesFiltered, NotSubscribed
+from utils.errors import NoRacesFiltered
 from utils.messages import Message, Page, paginate_data
 from utils.schemas import Profile
-from utils.strings import quote_display
+from utils.strings import pp_display, quote_display
 
 metrics = ["pp", "wpm"]
 info = CommandInfo(
@@ -37,8 +37,7 @@ class Best(Command):
     @commands.command(aliases=info.aliases)
     async def best(self, ctx: BotContext, username: str = None):
         """Resolve the username, then render their quote bests in descending order."""
-        if ctx.flags.metric == "pp" and ctx.flags.raw and not ctx.user["isGgPlus"]:
-            raise NotSubscribed("raw pp stats")
+        self.check_raw_pp(ctx, ctx.flags.metric == "pp")
 
         profile = await self.get_profile(ctx, username)
         await run(ctx, profile, ctx.flags.metric)
@@ -67,15 +66,15 @@ async def run(
     if not quote_bests:
         raise NoRacesFiltered(profile["username"])
 
+    hide_raw_pp = ctx.flags.raw and not ctx.user["isGgPlus"]
+
     def entry_formatter(data) -> str:
         """Format one quote best as a quote display followed by the score."""
         quote = dict(quotes[data["quoteId"]])
         quote["source"] = sources[quote["sourceId"]]
-        pp_display = f"{data["pp"]:,.2f} pp - "
-        if ctx.flags.raw and not ctx.user["isGgPlus"]:
-            pp_display = ""
+        pp = pp_display(data["pp"], hide_raw_pp)
         return quote_display(quote) + (
-            f"{pp_display}{data["wpm"]:,.2f} WPM ({data["accuracy"]:.2%} Accuracy) - "
+            f"{pp} - {data["wpm"]:,.2f} WPM ({data["accuracy"]:.2%} Accuracy) - "
             f"{discord_date(data["timestamp"])}\n\n"
         )
 

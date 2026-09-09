@@ -120,9 +120,18 @@ place. That is why it has no `raw`.
 `-racegraph`, `-segments`, `-matchgraph` and `-encounters` each render a raw section beside the
 real one. A flag there duplicates what is already on screen.
 
-The GG+ gate on **raw pp** is inconsistent across the stack and there is no rule to follow yet.
-`-best` and `-worst` refuse outright, `-racegraph` swaps the one value for `GG_PLUS_LINKED`, and
-seven graph commands show it to everyone.
+**Raw pp needs GG+, and how you gate it depends on where the number sits.** Two rules:
+
+1. **Raw pp is one field in an embed.** Substitute it with `GG_PLUS_LINKED` through
+   `strings.pp_display(value, hide_raw)`. The reader sees where the number would be and how to get
+   it. `-racegraph`, `-average`, `-best wpm`, `-racehistory`, `-bestaverages`, `-dailyleaderboard`
+   and `-dailystats` all take this path.
+2. **Raw pp is the whole output**, a graph's y-axis or a board's sort order. Refuse with
+   `self.check_raw_pp(ctx, showing_pp)` in the command method, before any work. There is nothing to
+   draw, so there is nothing to substitute. `showing_pp` is the command's own metric test, so a
+   command with no `metric` flag omits it.
+
+Never drop the field silently. A reader cannot tell a hidden value from an absent one.
 
 ### `gamemode`
 
@@ -228,10 +237,12 @@ An unsupported flag is also reset to its default, so the command body never sees
 4. Check that every declared flag reaches the data. Pass `flags=ctx.flags` where a function takes
    it, and wire the rest by hand.
 5. Mark `raw` and the active universe in the title, unless the page is already `flag_title=True`.
-6. Add the invocation to `INVOCATIONS` in `tests/test_command_smoke.py`, one line per flag
+6. Gate raw pp. Substitute a single field with `pp_display`, or refuse the whole command with
+   `check_raw_pp`.
+7. Add the invocation to `INVOCATIONS` in `tests/test_command_smoke.py`, one line per flag
    combination worth pinning. A command left out must appear in `SKIPPED` with a reason, or the
    coverage test fails.
-7. Run the gates.
+8. Run the gates.
 
 ```bash
 ruff check src tests tools
