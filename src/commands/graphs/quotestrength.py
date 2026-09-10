@@ -12,6 +12,7 @@ from utils.errors import NoRankedRaces
 from utils.flags import Flags
 from utils.messages import Message, Page
 from utils.schemas import Profile
+from utils.stats import PP_DECAY_FACTOR, PP_WEIGHT_DECAY_SHARE, PP_WEIGHT_FLOOR
 
 max_users = 5
 
@@ -84,7 +85,7 @@ async def run(ctx: BotContext, profiles: list[Profile]) -> None:
         if not quote_bests:
             raise NoRankedRaces(profile["username"])
 
-        weights = np.array([0.97 ** i for i in range(len(quote_bests))])
+        weights = PP_WEIGHT_DECAY_SHARE * PP_DECAY_FACTOR ** np.arange(len(quote_bests)) + PP_WEIGHT_FLOOR
         total_weight = np.sum(weights)
 
         values = np.array([
