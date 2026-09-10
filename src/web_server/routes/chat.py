@@ -4,7 +4,6 @@ import aiohttp
 from aiohttp import web
 
 from config import CHAT_WEBHOOK_URLS, DEFAULT_UNIVERSE, normalize_universe
-from utils.logging import log_server
 from web_server.utils import error_response, validate_authorization
 
 GLOBAL_EMOTE = "<:gc1:1489646936813469767>" + "<:gc2:1489646971965935617> "
@@ -45,5 +44,4 @@ async def receive_message(request: web.Request) -> web.Response:
             "allowed_mentions": {"parse": []},
         })
 
-    log_server(f"[chat:{universe}] {username}: {content[:50]}")
     return web.json_response({"success": True})
