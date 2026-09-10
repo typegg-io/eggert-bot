@@ -225,6 +225,8 @@ def get_line_colormap(ax: Axes, line_index: int, colormap_name: str) -> LineColl
     lc = LineCollection(segments, cmap=cmap, zorder=50, linewidth=line.get_linewidth())
     # Spacing the colormap by index instead spends it wherever the points bunch up.
     x = np.asarray(x, dtype=float)
+    # Display coordinates keep the spacing even on a log axis.
+    x = ax.transData.transform(np.column_stack([x, np.asarray(y, dtype=float)]))[:, 0]
     span = x[-1] - x[0]
     midpoints = (x[:-1] + x[1:]) / 2
     lc.set_array((midpoints - x[0]) / span if span else np.zeros(len(midpoints)))
