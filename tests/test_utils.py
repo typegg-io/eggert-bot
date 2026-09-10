@@ -6,7 +6,14 @@ import pytest
 
 from utils.dates import is_date_like, parse_date
 from utils.errors import InvalidDate, InvalidNumber
-from utils.stats import calculate_duration, calculate_quote_length, calculate_wpm
+from utils.stats import (
+    calculate_duration,
+    calculate_experience,
+    calculate_experience_for_level,
+    calculate_level,
+    calculate_quote_length,
+    calculate_wpm,
+)
 from utils.strings import (
     escape_formatting,
     format_duration,
@@ -157,3 +164,16 @@ def test_calculate_duration_is_zero_for_zero_wpm():
 
 def test_calculate_quote_length_is_positive():
     assert calculate_quote_length(wpm=100, duration=30000) > 0
+
+
+# Level
+
+def test_an_hour_of_ranked_typing_earns_nine_thousand_xp():
+    """XP is 2.5 per second, the rate typegg's XP service sets."""
+    assert calculate_experience(60 * 60 * 1000) == 9000
+
+
+@pytest.mark.parametrize("level", [1, 2, 10, 45, 72, 100])
+def test_a_level_threshold_lands_exactly_on_that_level(level):
+    """calculate_experience_for_level is the inverse of calculate_level."""
+    assert calculate_level(calculate_experience_for_level(level)) == pytest.approx(level)

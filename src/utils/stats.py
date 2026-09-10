@@ -58,3 +58,27 @@ def get_pauseless_delays(raw_delays: int) -> list[float]:
             pauseless_delays.append(average)
 
     return pauseless_delays
+
+
+# Level
+
+# Ports of the constants and formulas in typegg's XP service.
+XP_PER_SECOND = 2.5
+LEVEL_A = 2.0
+LEVEL_B = 15.0
+
+
+def calculate_experience(duration) -> float:
+    """Returns the XP a ranked race of a given ms duration earns."""
+    return duration / 1000 * XP_PER_SECOND
+
+
+def calculate_level(experience) -> float:
+    """Returns the level a total XP value reaches."""
+    hours = experience / XP_PER_SECOND / 3600
+    return 1 + LEVEL_A * math.sqrt(hours * LEVEL_B)
+
+
+def calculate_experience_for_level(level) -> float:
+    """Returns the XP needed to reach a level."""
+    return (level - 1) ** 2 * XP_PER_SECOND * 3600 / (LEVEL_A ** 2 * LEVEL_B)

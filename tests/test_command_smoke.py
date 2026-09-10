@@ -69,6 +69,7 @@ INVOCATIONS = [
     "-lengthgraph raw",
     "-linegraph",
     "-linegraph nwpm",
+    "-linegraph level",
     "-longestaverage 100",
     "-matchgraph",
     "-month",

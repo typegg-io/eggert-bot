@@ -14,6 +14,7 @@ def render(
     title: str,
     y_label: str,
     theme: Theme,
+    y_ticks: list[tuple[float, str]] | None = None,
 ) -> str:
     """Render one line per user for a metric and return the file name."""
     fig, ax = plt.subplots()
@@ -58,7 +59,11 @@ def render(
     ax.set_ylabel(y_label)
 
     apply_date_ticks(ax, timestamps)
-    ax.yaxis.set_major_formatter(FuncFormatter(format_big_number))
+
+    if y_ticks:
+        ax.set_yticks([position for position, _ in y_ticks], [label for _, label in y_ticks])
+    else:
+        ax.yaxis.set_major_formatter(FuncFormatter(format_big_number))
 
     apply_theme(ax, theme, themed_line=themed_line)
 

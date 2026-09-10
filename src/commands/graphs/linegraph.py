@@ -14,7 +14,13 @@ from utils.flags import get_flag_title
 from utils.messages import range_subtext
 from utils.nwpm import CALIBRATION_MIN_QUOTES
 from utils.schemas import Profile
-from utils.stats import calculate_quote_length, calculate_total_pp
+from utils.stats import (
+    calculate_experience,
+    calculate_experience_for_level,
+    calculate_level,
+    calculate_quote_length,
+    calculate_total_pp,
+)
 
 metrics = {
     "pp": {
@@ -59,7 +65,18 @@ metrics = {
         "alias": "nl",
         "sort": lambda p: p["stats"]["nWpm"],
     },
+    "level": {
+        "columns": "duration",
+        "title": "Level",
+        "alias": "ll",
+        "sort": lambda p: p["stats"]["experience"],
+    },
 }
+
+LEVEL_TICK_STEPS = (1, 2, 5, 10, 20, 25, 50, 100)
+
+# A level costs the square of its number in XP, so the low ones crowd the bottom of the axis.
+MIN_TICK_GAP = 0.04
 
 max_users = 5
 metric_aliases = [metric["alias"] for metric in metrics.values()]
@@ -178,6 +195,36 @@ def get_quotes_over_time(race_list: list[dict]) -> list[int]:
     return quotes_typed
 
 
+def get_experience_over_time(race_list: list[dict]) -> list[float]:
+    """Return the running total of XP earned."""
+    experience = []
+    total = 0.0
+
+    for race in race_list:
+        total += calculate_experience(race["duration"])
+        experience.append(total)
+
+    return experience
+
+
+def get_level_ticks(max_experience: float) -> list[tuple[float, str]]:
+    """Return the XP each labelled level sits at, spaced far enough apart to read."""
+    max_level = int(calculate_level(max_experience))
+    step = next(
+        (step for step in LEVEL_TICK_STEPS if (max_level - 1) / step <= 10),
+        LEVEL_TICK_STEPS[-1],
+    )
+
+    ticks = []
+    for level in range(1, max_level + step + 1, step):
+        experience = calculate_experience_for_level(level)
+        if ticks and experience - ticks[-1][0] < MIN_TICK_GAP * max_experience:
+            continue
+        ticks.append((experience, str(level)))
+
+    return ticks
+
+
 def get_characters_over_time(race_list: list[dict]) -> list[int]:
     """Return the running total of characters typed."""
     characters_typed = []
@@ -197,6 +244,11 @@ async def run(ctx: BotContext, metric: str, profiles: list[Profile]) -> None:
     if metric == "nwpm" and ctx.flags.language:
         await ctx.send("-# :warning: nWPM is English only")
         ctx.flags.language = None
+
+    # Unranked typing earns no XP, so plotting it would draw a level nobody can reach.
+    if metric == "level" and ctx.flags.status != "ranked":
+        await ctx.send("-# :warning: only ranked races earn XP")
+        ctx.flags.status = "ranked"
 
     profiles.sort(key=lambda x: -metrics[metric]["sort"](x))
     username = profiles[0]["username"]
@@ -233,6 +285,8 @@ async def run(ctx: BotContext, metric: str, profiles: list[Profile]) -> None:
                 y_values = get_quotes_over_time(race_list)
             elif metric == "characters":
                 y_values = get_characters_over_time(race_list)
+            elif metric == "level":
+                y_values = get_experience_over_time(race_list)
 
         lines.append({
             "username": profile["username"],
@@ -253,12 +307,17 @@ async def run(ctx: BotContext, metric: str, profiles: list[Profile]) -> None:
 
     title += get_flag_title(ctx.flags)
 
+    y_ticks = None
+    if metric == "level":
+        y_ticks = get_level_ticks(max(line["y_values"][-1] for line in lines))
+
     file_name = line.render(
         username,
         lines,
         title,
         y_label,
         ctx.user["theme"],
+        y_ticks,
     )
     file = File(file_name, filename=file_name)
     await ctx.send(content=range_subtext(ctx) or None, file=file)
