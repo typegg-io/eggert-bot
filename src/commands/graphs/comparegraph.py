@@ -90,6 +90,10 @@ class CompareGraph(Command):
         difficulty_range_, length_range = parse_ranges(ctx.raw_args)
         min_length, max_length = length_range if length_range else (None, None)
 
+        # parse_ranges reads only the a-b form, so an open-ended range would pass unnoticed.
+        if ctx.flags.number_range and not (difficulty_range_ or length_range):
+            await ctx.send("-# :warning: pass a range as `3-5` for difficulty or `50-100` for length")
+
         if difficulty_range_:
             min_diff, max_diff = difficulty_range_
             await comparegraph_ranged(
