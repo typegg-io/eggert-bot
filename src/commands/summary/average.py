@@ -5,7 +5,7 @@ from commands.base import Command
 from context import BotContext
 from database.typegg.quotes import get_quotes
 from database.typegg.races import get_races
-from utils.errors import NoRacesFiltered, NumberGreaterThan
+from utils.errors import AllQuits, NoRacesFiltered, NumberGreaterThan
 from utils.flags import is_multiplayer
 from utils.messages import Field, Message, Page
 from utils.schemas import Profile
@@ -77,6 +77,9 @@ async def run(ctx: BotContext, profile: Profile, n: int) -> None:
                 stats[key] += 0 if race["wpm"] == 0 else race["pp"] * (race["rawWpm"] / race["wpm"])
             elif key in race:
                 stats[key] += race[key] or 0
+
+    if dnf_count == n:
+        raise AllQuits
 
     for key in stats:
         if key in dnf_stats or not multiplayer:

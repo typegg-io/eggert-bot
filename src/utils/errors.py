@@ -437,6 +437,18 @@ class NotEnoughRaces(CommandError):
         )
 
 
+class AllQuits(CommandError):
+    """Raised when every race in the requested range is a quit."""
+
+    @property
+    def embed(self) -> Embed:
+        """Return the embed shown for this error."""
+        return Embed(
+            title="All Quits",
+            description="All races in this range are quits",
+        )
+
+
 class MessageTooLong(CommandError):
     """Raised when a message exceeds Discord's character limit."""
 
