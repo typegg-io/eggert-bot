@@ -215,8 +215,11 @@ def get_level_ticks(max_experience: float) -> list[tuple[float, str]]:
         LEVEL_TICK_STEPS[-1],
     )
 
+    # Level 1 is where every account starts, so the round milestones follow it rather than offset it.
+    levels = sorted({1, *range(step, max_level + step + 1, step)})
+
     ticks = []
-    for level in range(1, max_level + step + 1, step):
+    for level in levels:
         experience = calculate_experience_for_level(level)
         if ticks and experience - ticks[-1][0] < MIN_TICK_GAP * max_experience:
             continue
