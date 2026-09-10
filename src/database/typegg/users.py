@@ -147,7 +147,8 @@ def get_quote_bests(
     results = db.fetch(f"""
         SELECT * FROM (
             SELECT {inner_columns},
-                   ROW_NUMBER() OVER (PARTITION BY r.quoteId ORDER BY {order_by} {order_clause}) AS _rn
+                   -- Always DESC. Reverse sorts a user's bests, it does not pick their worst race.
+                   ROW_NUMBER() OVER (PARTITION BY r.quoteId ORDER BY {order_by} DESC) AS _rn
             FROM {table} r
             {join_clause}
             {where_clause}
