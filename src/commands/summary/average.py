@@ -62,7 +62,7 @@ async def run(ctx: BotContext, profile: Profile, n: int) -> None:
         "pp": 0, "wpm": 0, "accuracy": 0, "duration": 0, "difficulty": 0,
         "rawPp": 0, "rawWpm": 0, "flow": 0, "errorReactionTime": 0, "errorRecoveryTime": 0,
     }
-    dnf_stats = {"pp", "wpm", "rawPp", "rawWpm"}
+    dnf_stats = {"pp", "wpm", "rawPp", "rawWpm", "difficulty"}
 
     for race in race_list:
         race = dict(race)
