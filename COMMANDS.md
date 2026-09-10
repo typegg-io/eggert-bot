@@ -54,16 +54,23 @@ Declaring a flag is a promise that the command honours it. `cog_before_invoke` w
 anything not declared, so an undeclared flag is safe. A **declared** flag that the command then
 ignores is silently wrong output, and nothing catches it.
 
-**When an argument changes which flags apply, warn from the command.** `supported_flags` is a
-class attribute, so it cannot narrow per invocation. `-best attempts` and `-best playtime` sort on
-lifetime counters the API refuses to filter, so those two arguments drop five of the seven flags
-`-best` declares. `warn_unfilterable` in `commands/quotes/best.py` is the pattern: name the flags
-the user actually typed, in the same `-# :warning:` shape `cog_before_invoke` uses.
+**When an argument changes which flags apply, warn and reset from the command.** `supported_flags`
+is a class attribute, so it cannot narrow per invocation. `-best attempts` and `-best playtime` sort
+on lifetime counters the API refuses to filter, so those two arguments drop four of the seven flags
+`-best` declares. `drop_unfilterable` in `commands/quotes/best.py` is the pattern: name the flags
+the user actually typed, in the same `-# :warning:` shape `cog_before_invoke` uses, then reset them
+the way `cog_before_invoke` does. Resetting is not optional. A dropped `date_range` left on
+`ctx.flags` still renders its time travel subtext above the embed.
 
-Warn separately for a limit the API never reports. The four filters come back as a 400, so the bot
+Warn separately for a limit the API never reports. Those filters come back as a 400, so the bot
 knows it asked for something refused. `language` does not, because `GET /v1/users/{id}/quotes`
 takes no universe parameter at all, and a single catch-all message would put that limit in the
 wrong place.
+
+**A filter the API refuses is not a filter the command may drop.** `status` defaults to ranked
+everywhere, so dropping it would quietly widen `-best attempts` to the whole quote pool. The counter
+sorts require `status=any` on the wire, so `fetch_counters` asks for everything and filters the rows
+itself on `quote.ranked`, paging until 100 survive.
 
 ### The table
 

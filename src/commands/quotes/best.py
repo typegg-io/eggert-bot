@@ -9,6 +9,7 @@ from database.typegg.sources import get_sources
 from database.typegg.users import get_quote_bests
 from utils.dates import discord_date
 from utils.errors import BotError, NoRacesFiltered
+from utils.flags import Flags
 from utils.messages import Message, Page, paginate_data
 from utils.schemas import Profile
 from utils.strings import format_duration, pp_display, quote_display
@@ -20,7 +21,11 @@ COUNTER_SORTS = {"attempts": "attempts", "playtime": "playTime"}
 COUNTER_TITLES = {"attempts": "Most Attempted Quotes", "playtime": "Most Time Typed"}
 
 # Flags the counter sorts drop, since the API rejects every filter alongside them.
-UNFILTERABLE = {"metric", "gamemode", "status", "number_range", "date_range"}
+UNFILTERABLE = {"metric", "gamemode", "number_range", "date_range"}
+
+# A page this size costs the API no more than a page of 100, so ranked-only rarely needs a second.
+FETCH_SIZE = 500
+COUNTER_LIMIT = 100
 
 info = CommandInfo(
     name="best",
@@ -60,7 +65,7 @@ class Best(Command):
                     "You may only view attempt counts for your own account",
                 )
 
-            await warn_unfilterable(ctx)
+            await drop_unfilterable(ctx)
             await run_counters(ctx, profile, params.argument)
             return
 
@@ -70,10 +75,15 @@ class Best(Command):
         await run(ctx, profile, ctx.flags.metric)
 
 
-async def warn_unfilterable(ctx: BotContext) -> None:
-    """Warn that a counter sort drops every filter the user typed."""
+async def drop_unfilterable(ctx: BotContext) -> None:
+    """Warn that a counter sort ignores the filters the user typed, then reset them."""
     explicit = getattr(ctx, "explicit_flags", {})
     ignored = [arg for name, arg in explicit.items() if name in UNFILTERABLE]
+    stored_range = bool(ctx.flags.date_range) and "date_range" not in explicit
+
+    defaults = Flags()
+    for name in UNFILTERABLE:
+        setattr(ctx.flags, name, getattr(defaults, name))
 
     if ignored:
         if len(ignored) == 1:
@@ -83,22 +93,45 @@ async def warn_unfilterable(ctx: BotContext) -> None:
         has_have = "has" if len(ignored) == 1 else "have"
         await ctx.send(f"-# :warning: {flag_str} {has_have} no effect on a lifetime counter")
 
+    if stored_range:
+        await ctx.send("-# :warning: time travel has no effect on a lifetime counter")
+
     # The endpoint takes no universe parameter, so this one is unavailable rather than refused.
     if ctx.flags.language:
         await ctx.send("-# :warning: attempt counts are not scoped to a universe")
+        ctx.flags.language = None
+
+
+async def fetch_counters(user_id: str, sort: str, status: str | None) -> list[dict]:
+    """Return a user's top 100 counter rows, keeping only quotes the status flag allows."""
+    counters = []
+    page = 1
+
+    while True:
+        response = await get_quotes_api(
+            user_id,
+            gamemode=None,
+            status="any",
+            sort=sort,
+            page=page,
+            per_page=FETCH_SIZE,
+        )
+
+        rows = response["quotes"]
+        if status and status != "any":
+            rows = [row for row in rows if row["quote"]["ranked"] == (status == "ranked")]
+        counters += rows
+
+        if len(counters) >= COUNTER_LIMIT or page >= response["totalPages"]:
+            break
+        page += 1
+
+    return counters[:COUNTER_LIMIT]
 
 
 async def run_counters(ctx: BotContext, profile: Profile, sort: str) -> None:
     """Send the 100 quotes a user has attempted most, or spent the longest typing."""
-    response = await get_quotes_api(
-        profile["userId"],
-        gamemode=None,
-        status="any",
-        sort=COUNTER_SORTS[sort],
-        per_page=100,
-    )
-
-    quote_counters = response["quotes"]
+    quote_counters = await fetch_counters(profile["userId"], COUNTER_SORTS[sort], ctx.flags.status)
     if not quote_counters:
         raise NoRacesFiltered(profile["username"])
 
@@ -117,9 +150,14 @@ async def run_counters(ctx: BotContext, profile: Profile, sort: str) -> None:
 
     pages = paginate_data(quote_counters, entry_formatter, 20, 5, flag_title=False)
 
+    labels = [ctx.flags.status.title()] if ctx.flags.status else []
+    if raw:
+        labels.append("Raw")
+    title = COUNTER_TITLES[sort] + (f" ({", ".join(labels)})" if labels else "")
+
     message = Message(
         ctx,
-        title=COUNTER_TITLES[sort] + (" (Raw)" if raw else ""),
+        title=title,
         pages=pages,
         profile=profile,
     )

@@ -45,6 +45,7 @@ INVOCATIONS = [
     "-best -wpm",
     "-best attempts",
     "-best playtime",
+    "-best attempts any",
     "-bestgraph",
     "-bestgraph -pp",
     "-commandleaderboard",
@@ -331,15 +332,19 @@ def api_quote_counters(user_id: str, params: dict | None) -> dict:
             }
         )
 
-    sort = (params or {}).get("sort", "attempts")
+    params = params or {}
+    sort = params.get("sort", "attempts")
     quote_counters.sort(key=lambda counters: -counters.get(sort, 0))
 
+    page = int(params.get("page", 1))
+    per_page = int(params.get("perPage", 10))
+
     return {
-        "page": 1,
-        "perPage": len(quote_counters),
-        "totalPages": 1,
+        "page": page,
+        "perPage": per_page,
+        "totalPages": max(1, -(-len(quote_counters) // per_page)),
         "totalCount": len(quote_counters),
-        "quotes": quote_counters,
+        "quotes": quote_counters[(page - 1) * per_page:page * per_page],
     }
 
 
