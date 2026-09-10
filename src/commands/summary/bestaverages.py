@@ -106,10 +106,11 @@ async def run(ctx: BotContext, profile: Profile, n: int, metric: str = "wpm") ->
         end_date = end_race["timestamp"]
 
         window_stats = format_window(race_list[start_index:start_index + n], quote_list, show_pp, hide_raw_pp)
+        date_range = date_range_display(parse_date(start_date), parse_date(end_date), ctx.user["timezone"], short=True)
         description += (
-            f"**{date_range_display(parse_date(start_date), parse_date(end_date), ctx.user["timezone"])}**\n"
-            f"{window_stats} (Races {f"#{start_number:,}" if start_number else "DNF"} - "
-            f"{f"#{end_number:,}" if end_number else "DNF"})\n\n"
+            f"**{date_range}** (Races {f"#{start_number:,}" if start_number else "DNF"} - "
+            f"{f"#{end_number:,}" if end_number else "DNF"})\n"
+            f"{window_stats}\n\n"
         )
 
         if not top_average_desc:

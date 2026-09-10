@@ -205,20 +205,21 @@ def format_duration(seconds, round_seconds=True, show_seconds=True) -> str:
     return f"{days}{hours}{minutes}{seconds_str}".strip()
 
 
-def date_range_display(start, end, tz) -> str:
+def date_range_display(start, end, tz, short: bool = False) -> str:
     """Format a date range into a readable string, omitting redundant year/month info."""
-    from utils.dates import format_date
-
     start = start.astimezone(tz)
     end = end.astimezone(tz)
     end -= relativedelta(microseconds=1)
 
     start_year, end_year = start.year, end.year
-    start_month, end_month = start.strftime("%B"), end.strftime("%B")
-    start_day, end_day = ordinal_number(start.day), ordinal_number(end.day)
+    start_month, end_month = month_display(start, short), month_display(end, short)
+    if short:
+        start_day, end_day = start.day, end.day
+    else:
+        start_day, end_day = ordinal_number(start.day), ordinal_number(end.day)
 
     if start_year == end_year and start_month == end_month and start_day == end_day:
-        return format_date(start)
+        return f"{start_month} {start_day}, {start_year}"
 
     display_string = (
         f"{start_month} {start_day}, {start_year} - "
@@ -235,6 +236,15 @@ def date_range_display(start, end, tz) -> str:
             display_string = temp_string[::-1]
 
     return display_string
+
+
+def month_display(date, short: bool = False) -> str:
+    """Return a date's month name, or its abbreviation like 'Dec.' when short."""
+    month = date.strftime("%B")
+    abbreviation = date.strftime("%b")
+    if not short or abbreviation == month:
+        return month
+    return f"{abbreviation}."
 
 
 def date_range_subtext(start, end, tz) -> str:
