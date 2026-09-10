@@ -33,13 +33,14 @@ info = CommandInfo(
     description="Displays a user's top 100 quote bests ordered by pp or WPM.\n"
                 "Use `pp` or `wpm` to set the metric.\n"
                 "Use `attempts` or `playtime` to rank your own quotes by how much you have typed them.\n"
-                "Filter by WPM range: `>150`, `<120`, or `100-150`.",
-    parameters="[username] [pp|wpm|attempts|playtime] [wpm range]",
+                "Filter by a range of the metric: `>150`, `<120`, or `100-150`.",
+    parameters="[username] [pp|wpm|attempts|playtime] [range]",
     examples=[
         "-b",
         "-b eiko",
         "-b eiko wpm",
-        "-b eiko >150",
+        "-b eiko wpm >150",
+        "-b eiko <100 pp",
         "-most attempts",
         "-most playtime",
     ],
@@ -172,7 +173,7 @@ async def run(
     reverse: bool = True,
 ) -> None:
     """Send a user's 100 best or worst quotes, paginated."""
-    min_wpm, max_wpm = ctx.flags.number_range or (None, None)
+    min_value, max_value = ctx.flags.number_range or (None, None)
     quotes = get_quotes()
     sources = get_sources()
     quote_bests = get_quote_bests(
@@ -182,8 +183,8 @@ async def run(
         reverse=reverse,
         limit=100,
         flags=ctx.flags,
-        min_wpm=min_wpm,
-        max_wpm=max_wpm,
+        min_value=min_value,
+        max_value=max_value,
     )
     if not quote_bests:
         raise NoRacesFiltered(profile["username"])
@@ -213,13 +214,13 @@ async def run(
     pages = paginate_data(quote_bests, entry_formatter, 20, 5)
     title = f"{["Worst", "Best"][reverse]}{[" WPM", ""][metric == "pp"]} Quotes"
 
-    if min_wpm is not None or max_wpm is not None:
-        if min_wpm is not None and max_wpm is not None:
-            title += f" {min_wpm:g}-{max_wpm:g} WPM"
-        elif min_wpm is not None:
-            title += f" ≥{min_wpm:g} WPM"
-        else:
-            title += f" <{max_wpm:g} WPM"
+    unit = "pp" if metric == "pp" else "WPM"
+    if min_value is not None and max_value is not None:
+        title += f" {min_value:g}-{max_value:g} {unit}"
+    elif min_value is not None:
+        title += f" ≥{min_value:g} {unit}"
+    elif max_value is not None:
+        title += f" <{max_value:g} {unit}"
 
     message = Message(
         ctx,

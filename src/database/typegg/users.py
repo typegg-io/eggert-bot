@@ -49,8 +49,8 @@ def get_quote_bests(
     quote_id: str | None = None,
     start_date: str | None = None,
     end_date: str | None = None,
-    min_wpm: float | None = None,
-    max_wpm: float | None = None,
+    min_value: float | None = None,
+    max_value: float | None = None,
     order_by: str | None = "pp",
     reverse: bool | None = True,
     limit: int | None = None,
@@ -135,15 +135,13 @@ def get_quote_bests(
     inner_columns = f"{columns}, {order_by} AS _sort"
 
     outer_conditions = ["_rn = 1"]
-    if min_wpm is not None or max_wpm is not None:
-        wpm_expr = "rawWpm" if flags.raw else "wpm"
-        inner_columns += f", {wpm_expr} AS _wpm"
-        if min_wpm is not None:
-            outer_conditions.append("_wpm >= ?")
-            params.append(min_wpm)
-        if max_wpm is not None:
-            outer_conditions.append("_wpm < ?")
-            params.append(max_wpm)
+    # A range filters the column it sorts by, so the raw swap above covers it too.
+    if min_value is not None:
+        outer_conditions.append("_sort >= ?")
+        params.append(min_value)
+    if max_value is not None:
+        outer_conditions.append("_sort < ?")
+        params.append(max_value)
     outer_where = "WHERE " + " AND ".join(outer_conditions)
 
     results = db.fetch(f"""

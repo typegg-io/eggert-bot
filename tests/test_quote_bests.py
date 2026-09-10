@@ -55,8 +55,15 @@ def test_a_quote_best_is_the_fastest_race_when_sorting_ascending(races) -> None:
     assert [(row["quoteId"], row["wpm"]) for row in results] == [("slow", 140), ("fast", 320)]
 
 
-def test_a_wpm_range_matches_a_quote_the_user_has_ever_hit(races) -> None:
+def test_a_range_matches_a_quote_the_user_has_ever_hit(races) -> None:
     """`-worst >300 wpm` must keep a quote whose best race cleared 300."""
-    results = bests(order_by="wpm", reverse=False, min_wpm=300)
+    results = bests(order_by="wpm", reverse=False, min_value=300)
+
+    assert [row["quoteId"] for row in results] == ["fast"]
+
+
+def test_a_range_filters_the_metric_it_sorts_by(races) -> None:
+    """The same bounds pick the pp quote, not the WPM one that also falls inside them."""
+    results = bests(order_by="pp", min_value=125, max_value=310)
 
     assert [row["quoteId"] for row in results] == ["fast"]
