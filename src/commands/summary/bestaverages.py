@@ -15,14 +15,15 @@ from utils.strings import date_range_display, pp_display
 info = CommandInfo(
     name="bestaverages",
     aliases=["ba"],
-    description="Displays a user's top 10 best WPM averages of n consecutive races.\n"
+    description="Displays a user's top 10 best averages of n consecutive races.\n"
                 "Averages are non-overlapping.\n"
-                "Use `acc` to show best accuracy averages.",
-    parameters="[username] [n:25] [acc]",
+                "Use `pp` or `acc` to rank by pp or accuracy instead of WPM.",
+    parameters="[username] [n:25] [wpm|pp|acc]",
     examples=[
         "-ba",
         "-ba eiko",
         "-ba eiko 50",
+        "-ba eiko 50 pp",
         "-ba eiko 50 acc",
     ],
     privacy=True,
@@ -32,7 +33,7 @@ info = CommandInfo(
 class BestAverages(Command):
     """Display a user's 10 best averages over n consecutive races."""
 
-    supported_flags = {"raw", "gamemode", "status", "language", "number", "date_range"}
+    supported_flags = {"metric", "raw", "gamemode", "status", "language", "number", "date_range"}
 
     @commands.command(aliases=info.aliases)
     async def bestaverages(self, ctx: BotContext, *args: str):
@@ -40,13 +41,16 @@ class BestAverages(Command):
         ctx.flags.gamemode = ctx.flags.gamemode or "quickplay"
         n = int(abs(ctx.flags.number)) if ctx.flags.number is not None else 25
         params = self.extract_params(args, ["accuracy"])
+        # Flags.metric defaults to pp, so only a typed metric counts here.
+        metric = params.argument or (ctx.flags.metric if "metric" in ctx.explicit_flags else "wpm")
+        self.check_raw_pp(ctx, metric == "pp")
+
         profile = await self.get_profile(ctx, params.username)
-        metric = params.argument or "wpm"
         await run(ctx, profile, n, metric)
 
 
 async def run(ctx: BotContext, profile: Profile, n: int, metric: str = "wpm") -> None:
-    """Send the 10 best non-overlapping windows of n races, by speed or accuracy."""
+    """Send the 10 best non-overlapping windows of n races, by speed, pp or accuracy."""
     if n < 1:
         raise NumberGreaterThan
 
@@ -85,6 +89,10 @@ async def run(ctx: BotContext, profile: Profile, n: int, metric: str = "wpm") ->
 
     best_averages.sort(key=lambda x: x[0], reverse=True)
 
+    quote_list = get_quotes()
+    hide_raw_pp = ctx.flags.raw and not ctx.user["isGgPlus"]
+    show_pp = ctx.flags.status == "ranked"
+
     top_average_desc = ""
     description = ""
 
@@ -97,17 +105,17 @@ async def run(ctx: BotContext, profile: Profile, n: int, metric: str = "wpm") ->
         start_date = start_race["timestamp"]
         end_date = end_race["timestamp"]
 
-        value_str = f"{average:.2%}" if metric == "accuracy" else f"{average:,.2f} WPM"
+        window_stats = format_window(race_list[start_index:start_index + n], quote_list, show_pp, hide_raw_pp)
         description += (
             f"**{date_range_display(parse_date(start_date), parse_date(end_date), ctx.user["timezone"])}**\n"
-            f"{value_str} (Races {f"#{start_number:,}" if start_number else "DNF"} - "
+            f"{window_stats} (Races {f"#{start_number:,}" if start_number else "DNF"} - "
             f"{f"#{end_number:,}" if end_number else "DNF"})\n\n"
         )
 
         if not top_average_desc:
             top_average_desc += description
 
-    metric_label = "Accuracy" if metric == "accuracy" else "WPM"
+    metric_label = {"wpm": "WPM", "pp": "pp", "accuracy": "Accuracy"}[metric]
     pages = [Page(
         title=f"Best Last {n:,} {metric_label} Averages",
         description=description if description else "No averages found",
@@ -124,9 +132,7 @@ async def run(ctx: BotContext, profile: Profile, n: int, metric: str = "wpm") ->
         start_offset = max(0, n - 25)  # If n > 25, start from the last 25 races
 
         top_races = race_list[top_start_index + start_offset:top_start_index + n]
-        quote_list = get_quotes()
 
-        hide_raw_pp = ctx.flags.raw and not ctx.user["isGgPlus"]
         race_descriptions = ""
         for race in top_races:
             if race["wpm"] == 0:
@@ -163,3 +169,19 @@ async def run(ctx: BotContext, profile: Profile, n: int, metric: str = "wpm") ->
     )
 
     await message.send()
+
+
+def format_window(window: list, quote_list: dict, show_pp: bool, hide_raw_pp: bool) -> str:
+    """Return a window's average WPM, accuracy, pp and difficulty, counting a DNF as zero."""
+    n = len(window)
+    wpm = sum(race["wpm"] or 0 for race in window) / n
+    accuracy = sum(race["accuracy"] or 0 for race in window) / n
+    difficulty = sum(quote_list[race["quoteId"]]["difficulty"] for race in window) / n
+
+    parts = [f"{wpm:,.2f} WPM", f"{accuracy:.2%}"]
+    if show_pp:
+        pp = sum(race["pp"] or 0 for race in window) / n
+        parts.append(pp_display(pp, hide_raw_pp))
+    parts.append(f"{difficulty:.2f}★")
+
+    return " - ".join(parts)

@@ -41,6 +41,8 @@ INVOCATIONS = [
     "-average eiko",
     "-bestaverages",
     "-bestaverages -raw",
+    "-bestaverages pp",
+    "-bestaverages acc",
     "-best",
     "-best -wpm",
     "-best attempts",
@@ -97,6 +99,7 @@ INVOCATIONS = [
 
 # Raw pp is the whole output, so a non-subscriber is refused outright.
 RAW_PP_REFUSED = [
+    "-bestaverages pp raw",
     "-best raw",
     "-bestgraph raw",
     "-comparegraph eiko keegan raw",
