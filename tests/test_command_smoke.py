@@ -72,6 +72,7 @@ INVOCATIONS = [
     "-linegraph",
     "-linegraph nwpm",
     "-linegraph level",
+    "-linegraph playtime",
     "-longestaverage 100",
     "-matchgraph",
     "-month",

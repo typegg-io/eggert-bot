@@ -266,3 +266,14 @@ def get_quote_race_counts(user_id: str) -> list[sqlite3.Row]:
     """, [user_id])
 
     return results
+
+
+def get_completion_time(user_id: str) -> float:
+    """Return the milliseconds a user spent finishing races, idle time excluded where known."""
+    result = db.fetch_one("""
+        SELECT SUM(COALESCE(nonAfkDuration, duration)) AS total
+        FROM races
+        WHERE userId = ?
+    """, [user_id])
+
+    return result["total"] or 0

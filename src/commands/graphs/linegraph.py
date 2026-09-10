@@ -7,7 +7,7 @@ from command_info import CommandInfo
 from commands.base import Command
 from context import BotContext
 from database.typegg.nwpm import get_nwpm_over_time, quotes_are_rated
-from database.typegg.races import get_races
+from database.typegg.races import get_completion_time, get_races
 from graphs import line
 from utils.errors import BotError, NoRacesFiltered
 from utils.flags import get_flag_title
@@ -71,9 +71,16 @@ metrics = {
         "alias": "ll",
         "sort": lambda p: p["stats"]["experience"],
     },
+    "playtime": {
+        "columns": "duration nonAfkDuration",
+        "title": "Hours Played",
+        "alias": "tl",
+        "sort": lambda p: p["stats"]["playTime"],
+    },
 }
 
 LEVEL_TICK_STEPS = (1, 2, 5, 10, 20, 25, 50, 100)
+MS_PER_HOUR = 3_600_000
 
 # A level costs the square of its number in XP, so the low ones crowd the bottom of the axis.
 MIN_TICK_GAP = 0.04
@@ -209,6 +216,21 @@ def get_experience_over_time(race_list: list[dict]) -> list[float]:
     return experience
 
 
+def get_play_time_over_time(race_list: list[dict], play_time: float, completion_time: float) -> list[float]:
+    """Return the running hours played, counting abandoned attempts in proportion to completions."""
+    # TypeGG keeps no timestamps for abandoned attempts, so this spread is an estimate.
+    scale = play_time / completion_time
+    hours = []
+    total = 0.0
+
+    for race in race_list:
+        duration = race["duration"] if race["nonAfkDuration"] is None else race["nonAfkDuration"]
+        total += duration * scale
+        hours.append(total / MS_PER_HOUR)
+
+    return hours
+
+
 def get_level_ticks(max_experience: float) -> list[tuple[float, str]]:
     """Return the XP each labelled level sits at, spaced far enough apart to read."""
     max_level = int(calculate_level(max_experience))
@@ -255,6 +277,14 @@ async def run(ctx: BotContext, metric: str, profiles: list[Profile]) -> None:
         await ctx.send("-# :warning: only ranked races earn XP")
         ctx.flags.status = "ranked"
 
+    # A profile's play time spans every gamemode, status and language.
+    if metric == "playtime":
+        if ctx.flags.gamemode or ctx.flags.language or "status" in ctx.explicit_flags:
+            await ctx.send("-# :warning: play time counts every race")
+        ctx.flags.gamemode = None
+        ctx.flags.status = "any"
+        ctx.flags.language = None
+
     profiles.sort(key=lambda x: -metrics[metric]["sort"](x))
     username = profiles[0]["username"]
 
@@ -292,6 +322,10 @@ async def run(ctx: BotContext, metric: str, profiles: list[Profile]) -> None:
                 y_values = get_characters_over_time(race_list)
             elif metric == "level":
                 y_values = get_experience_over_time(race_list)
+            elif metric == "playtime":
+                y_values = get_play_time_over_time(
+                    race_list, profile["stats"]["playTime"], get_completion_time(profile["userId"])
+                )
 
         lines.append({
             "username": profile["username"],
