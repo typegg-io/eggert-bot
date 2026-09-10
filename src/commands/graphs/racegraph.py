@@ -21,7 +21,7 @@ info = CommandInfo(
     aliases=["rg", "r"],
     description="Displays a WPM over keystrokes graph for a given race.\n"
                 "Pass a quote ID to show the user's best race on that quote.",
-    parameters="[username] [race_number/quote_id]",
+    parameters="[username] [race_number/quote_id:latest]",
     examples=[
         "-r",
         "-r eiko",

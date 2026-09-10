@@ -19,9 +19,8 @@ info = CommandInfo(
     name="bestgraph",
     aliases=["top", "bg", "50", "100", "250", "500", "1000"],
     description="Displays a user's top n quote PBs ordered by pp.\n"
-                "Use `n` to set how many quotes to show (default 50).\n"
                 f"Supports up to {max_users} users.",
-    parameters=f"[username1] ... [username{max_users}] [n]",
+    parameters=f"[username1] ... [username{max_users}] [n:250]",
     examples=[
         "-top",
         "-top eiko",

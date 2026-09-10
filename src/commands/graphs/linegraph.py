@@ -86,7 +86,7 @@ info = CommandInfo(
     aliases=["lg", "l"] + metric_aliases,
     description=f"Displays a line graph for a given metric across up to {max_users} users.\n"
                 f"Metrics: {', '.join('`' + m + '`' for m in metrics)}",
-    parameters=f"[metric] [username1] ... [username{max_users}]",
+    parameters=f"[metric:pp] [username1] ... [username{max_users}]",
     examples=[
         "-lg",
         "-lg wpm eiko",

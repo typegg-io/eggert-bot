@@ -21,9 +21,8 @@ from utils.strings import quote_display, rank, username_with_flag
 info = CommandInfo(
     name="matchgraph",
     aliases=["mg"],
-    description="Displays rankings and WPM over keystrokes for a multiplayer match.\n"
-                "Defaults to the user's most recent match.",
-    parameters="[username] [race_number]",
+    description="Displays rankings and WPM over keystrokes for a multiplayer match.",
+    parameters="[username] [race_number:latest]",
     examples=[
         "-mg",
         "-mg eiko",

@@ -9,9 +9,8 @@ from context import BotContext
 info = CommandInfo(
     name="day",
     aliases=["d", "yesterday", "yd"],
-    description="Displays race information for a user on a given day.\n"
-                "Date defaults to today.",
-    parameters="[username] [date]",
+    description="Displays race information for a user on a given day.",
+    parameters="[username] [date:today]",
     examples=[
         "-d",
         "-d eiko",

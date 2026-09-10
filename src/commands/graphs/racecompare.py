@@ -23,9 +23,8 @@ info = CommandInfo(
     name="racecompare",
     aliases=["rc"],
     description="Overlays multiple users' best races on the same quote on a single graph.\n"
-                "Defaults to the most recently viewed quote.\n"
                 f"Supports up to {max_users} users.",
-    parameters=f"[quote_id] [username1] ... [username{max_users}]",
+    parameters=f"[quote_id:latest] [username1] ... [username{max_users}]",
     examples=[
         "-rc me eiko",
         "-rc piykyai_3408 me eiko",

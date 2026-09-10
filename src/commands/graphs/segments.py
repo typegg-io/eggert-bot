@@ -22,7 +22,7 @@ info = CommandInfo(
     aliases=["sg", "words", "wg"],
     description="Displays a bar graph of WPM segments across a race.\n"
                 "Pass a quote ID to show the user's best race on that quote.",
-    parameters="[username] [race_number/quote_id]",
+    parameters="[username] [race_number/quote_id:latest]",
     examples=[
         "-sg",
         "-sg eiko",

@@ -44,6 +44,8 @@ async def help_main(ctx: BotContext) -> None:
         f"• Parameters in `<>` are required\n"
         f"• Parameters in `[]` are optional\n"
         f"• Parameters with `|` indicate a choice between options\n"
+        f"• In a choice like `[pp|wpm]`, the first option is the default\n"
+        f"• A default shows after a colon, like `[n:25]`\n"
         f"• Parameters can be passed in any order\n"
         f"**Parameter Flags**\n"
         f"• Speed: `raw`\n"

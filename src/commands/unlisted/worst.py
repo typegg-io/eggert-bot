@@ -9,7 +9,6 @@ info = CommandInfo(
     name="worst",
     aliases=["bottom"],
     description="Displays a user's bottom 100 quotes\n"
-                "\\- `metric` defaults to pp\n"
                 "Filter by a range of the metric: `>150`, `<120`, or `100-150`.",
     parameters="[username] [pp|wpm] [range]",
 )

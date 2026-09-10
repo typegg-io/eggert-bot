@@ -20,9 +20,8 @@ from utils.strings import INCREASE, format_duration, quote_display
 info = CommandInfo(
     name="quote",
     aliases=["q", "pb", "qh", "qg", "qa"],
-    description="Displays a user's stats on a specific quote.\n"
-                "Defaults to the most recently played quote.",
-    parameters="[username] [quote_id]",
+    description="Displays a user's stats on a specific quote.",
+    parameters="[username] [quote_id:latest]",
     privacy=True,
     examples=[
         "-q",

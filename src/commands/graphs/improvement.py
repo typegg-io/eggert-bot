@@ -17,8 +17,8 @@ info = CommandInfo(
     name="improvement",
     aliases=["imp", "simp"],
     description="Displays a user's pp or WPM improvement over races.\n"
-                "Use `-simp` to view solo PBs instead of multiplayer.\n",
-    parameters="[username] [pp|wpm]",
+                "Use `-simp` to view solo PBs by pp instead of multiplayer.\n",
+    parameters="[username] [wpm|pp]",
     examples=[
         "-imp",
         "-imp eiko wpm",

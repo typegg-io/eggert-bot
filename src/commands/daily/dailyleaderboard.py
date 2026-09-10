@@ -18,7 +18,7 @@ info = CommandInfo(
     aliases=["daily", "dlb", "d10"],
     description="Displays the top 10 leaderboard for today's daily quote.\n"
                 "Pass a date or day number to view a past daily.",
-    parameters="[date/day_number]",
+    parameters="[date/day_number:today]",
     examples=[
         "-daily",
         "-daily 2025-11-09",

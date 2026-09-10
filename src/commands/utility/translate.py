@@ -9,13 +9,13 @@ from utils.errors import BotError, MissingArguments
 from utils.keyboard_layouts import K, get_keymap, keymaps as external_keymaps
 from utils.messages import Message, Page, usable_in
 
-supported_layouts_string = "Supported layouts: `QWERTY` (default), `Dvorak`, `Colemak`, `Gallium`"
+supported_layouts_string = "Supported layouts: `QWERTY`, `Dvorak`, `Colemak`, `Gallium`"
 
 info = CommandInfo(
     name="translate",
     aliases=["tr"],
     description=f"Translates text between keyboard layouts.\n{supported_layouts_string}",
-    parameters="[from layout] <to layout> <text>",
+    parameters="[from_layout:qwerty] <to_layout> <text>",
     examples=[
         "-tr dvorak hello world",
         "-tr qwerty dvorak hello world",

@@ -22,7 +22,7 @@ info = CommandInfo(
     aliases=["sob", ":sob:", "😭"],
     description="Displays a theoretical best race by combining your fastest segments.\n"
                 "Pass a quote ID to view a specific quote.",
-    parameters="[quote_id] [username]",
+    parameters="[quote_id:latest] [username]",
     examples=[
         "-sob",
         "-sob piykyai_3408",

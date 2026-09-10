@@ -20,7 +20,7 @@ info = CommandInfo(
     aliases=["dg"],
     description="Displays a WPM over keystrokes graph for the top 10 daily quote finishers.\n"
                 "Pass a date or day number to view a past daily.",
-    parameters="[date/day_number]",
+    parameters="[date/day_number:today]",
     examples=[
         "-dg",
         "-dg 2025-11-09",

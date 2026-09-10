@@ -9,9 +9,8 @@ from context import BotContext
 info = CommandInfo(
     name="year",
     aliases=["y", "yesteryear", "yy", "ly"],
-    description="Displays race information for a user in a given year.\n"
-                "Date defaults to the current year.",
-    parameters="[username] [date]",
+    description="Displays race information for a user in a given year.",
+    parameters="[username] [date:today]",
     examples=[
         "-y",
         "-y eiko",
