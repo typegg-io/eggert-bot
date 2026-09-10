@@ -19,15 +19,33 @@ def _get_command_class() -> type:
     return sys.modules["commands.base"].Command
 
 
+def file_digest(path: Path) -> str | None:
+    """Return the hash of a file's contents, or None if it cannot be read."""
+    try:
+        return hashlib.md5(path.read_bytes(), usedforsecurity=False).hexdigest()
+    except OSError:
+        return None
+
+
+def watched_files() -> list[Path]:
+    """Return every Python file under the source directory."""
+    return [path for path in SOURCE_DIR.rglob("*.py") if "__pycache__" not in path.parts]
+
+
 class ReloadHandler(FileSystemEventHandler):
     """Watchdog handler that reloads a changed module and the cogs behind it."""
 
-    def __init__(self, bot, loop) -> None:
-        """Hold the bot, the loop and the hashes that debounce a change."""
+    def __init__(self, bot, loop, queue) -> None:
+        """Hold the bot, the loop, the reload queue and the hashes that debounce a change."""
         self.bot = bot
         self.loop = loop
+        self.queue = queue
         self.debounce_timers = {}
-        self.file_hashes: dict[str, str] = {}
+        self.unchanged = 0
+        self.unchanged_timer = None
+
+        # Windows reports an attribute or access change as a modification, so hash the tree up front.
+        self.file_hashes: dict[str, str] = {str(path): file_digest(path) for path in watched_files()}
 
     def on_modified(self, event) -> None:
         """Queue a reload when a Python file's contents actually change."""
@@ -39,44 +57,72 @@ class ReloadHandler(FileSystemEventHandler):
         if path.suffix != ".py":
             return
 
-        if any(part in "__pycache__" for part in path.parts):
+        if "__pycache__" in path.parts:
             return
 
-        try:
-            digest = hashlib.md5(path.read_bytes(), usedforsecurity=False).hexdigest()
-        except OSError:
+        digest = file_digest(path)
+        if digest is None:
             return
 
         if self.file_hashes.get(str(path)) == digest:
+            self._note_unchanged()
             return
         self.file_hashes[str(path)] = digest
 
         if event.src_path in self.debounce_timers:
             self.debounce_timers[event.src_path].cancel()
 
-        timer = threading.Timer(0.5, lambda: self._handle_change(path))
+        timer = threading.Timer(0.5, lambda: self._queue_change(path))
         self.debounce_timers[event.src_path] = timer
         timer.start()
 
-    def _handle_change(self, path: Path) -> None:
-        """Route a changed path to the cog or module reloader."""
-        try:
-            parts = path.relative_to(SOURCE_DIR).parts
-        except ValueError:
-            return
+    def _note_unchanged(self) -> None:
+        """Count an event that carried no edit, and summarise the burst once it settles."""
+        self.unchanged += 1
 
-        if parts[0] == "commands" and len(parts) >= 3:
-            group, file = parts[1], parts[2].removesuffix(".py")
-            print(f"[Watcher] Detected change: commands/{group}/{file}")
-            self.loop.call_soon_threadsafe(
-                asyncio.create_task, reload_cog(self.bot, group, file)
-            )
-        else:
-            module_path = ".".join(p.removesuffix(".py") for p in parts)
-            print(f"[Watcher] Detected change: {module_path}")
-            self.loop.call_soon_threadsafe(
-                asyncio.create_task, reload_module_and_cogs(self.bot, module_path)
-            )
+        if self.unchanged_timer:
+            self.unchanged_timer.cancel()
+
+        self.unchanged_timer = threading.Timer(2, self._report_unchanged)
+        self.unchanged_timer.start()
+
+    def _report_unchanged(self) -> None:
+        """Print how many events in the last burst left file contents untouched."""
+        print(f"[Watcher] Ignored {self.unchanged} event(s) with no content change")
+        self.unchanged = 0
+
+    def _queue_change(self, path: Path) -> None:
+        """Hand a changed path to the reload worker."""
+        self.loop.call_soon_threadsafe(self.queue.put_nowait, path)
+
+
+async def reload_worker(bot, queue) -> None:
+    """Reload one changed path at a time, so a burst cannot stack reloads on the loop."""
+    while True:
+        path = await queue.get()
+        try:
+            await handle_change(bot, path)
+        except Exception as e:
+            print(f"[Watcher] ✗ Failed to reload {path.name}: {e}")
+        finally:
+            queue.task_done()
+
+
+async def handle_change(bot, path: Path) -> None:
+    """Route a changed path to the cog or module reloader."""
+    try:
+        parts = path.relative_to(SOURCE_DIR).parts
+    except ValueError:
+        return
+
+    if parts[0] == "commands" and len(parts) >= 3:
+        group, file = parts[1], parts[2].removesuffix(".py")
+        print(f"[Watcher] Detected change: commands/{group}/{file}")
+        await reload_cog(bot, group, file)
+    else:
+        module_path = ".".join(p.removesuffix(".py") for p in parts)
+        print(f"[Watcher] Detected change: {module_path}")
+        await reload_module_and_cogs(bot, module_path)
 
 
 async def reload_cog(bot, group, name) -> None:
@@ -201,8 +247,11 @@ async def reload_module_and_cogs(bot, module_path) -> None:
 
 def start_watcher(bot, loop) -> None:
     """Start the file watcher on a daemon thread."""
+    queue = asyncio.Queue()
+    loop.create_task(reload_worker(bot, queue))
+
     observer = Observer()
-    observer.schedule(ReloadHandler(bot, loop), path=SOURCE_DIR, recursive=True)
+    observer.schedule(ReloadHandler(bot, loop, queue), path=SOURCE_DIR, recursive=True)
     thread = threading.Thread(target=observer.start, daemon=True)
     thread.start()
     print(f"[Watcher] Watching {SOURCE_DIR} for changes...")
