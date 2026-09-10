@@ -14,6 +14,7 @@ from utils.stats import (
     calculate_level,
     calculate_non_afk_duration,
     calculate_quote_length,
+    calculate_total_pp,
 )
 from utils.strings import (
     escape_formatting,
@@ -161,6 +162,18 @@ def test_calculate_wpm_is_zero_for_a_zero_duration():
 
 def test_calculate_duration_is_zero_for_zero_wpm():
     assert calculate_duration(0, 100) == 0
+
+
+def test_total_pp_weights_each_quote_on_the_keegan_curve():
+    """Weight i is 0.99 * 0.97**i + 0.01, which leaves the top quote at full value."""
+    expected = 100 + 100 * (0.99 * 0.97 + 0.01)
+
+    assert calculate_total_pp([100.0, 100.0]) == pytest.approx(expected)
+
+
+def test_total_pp_stops_at_a_quote_worth_less_than_a_point():
+    """A floored pp below 1 ends the sum rather than contributing a fraction."""
+    assert calculate_total_pp([50.0, 0.5]) == pytest.approx(50)
 
 
 def test_calculate_quote_length_is_positive():

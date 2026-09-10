@@ -5,6 +5,12 @@ import math
 from utils.errors import InvalidKeystrokeData
 from utils.keystroke_codec import KeystrokeCodecError, decode_keystroke_data
 
+# The Keegan curve, mirroring KeeganWeightedSum in typegg's leaderboard/userstate.go.
+MAX_SCORING_QUOTES = 250
+PP_DECAY_FACTOR = 0.97
+PP_WEIGHT_DECAY_SHARE = 0.99
+PP_WEIGHT_FLOOR = 0.01
+
 
 def calculate_total_pp(quote_bests: list[dict] | list[float]) -> float:
     """Returns the total performance given a list of quote bests or pp values."""
@@ -13,10 +19,20 @@ def calculate_total_pp(quote_bests: list[dict] | list[float]) -> float:
 
     if isinstance(quote_bests[0], float):
         quote_bests.sort(reverse=True)
-        return sum(math.floor(v) * (0.97 ** i) for i, v in enumerate(quote_bests[:250]))
+        values = quote_bests
     else:
         quote_bests.sort(key=lambda x: -x["pp"])
-        return sum(math.floor(q["pp"]) * (0.97 ** i) for i, q in enumerate(quote_bests[:250]))
+        values = [quote["pp"] for quote in quote_bests]
+
+    total = 0.0
+    for i, value in enumerate(values[:MAX_SCORING_QUOTES]):
+        pp = math.floor(value)
+        # A floored pp below 1 ends the sum, it does not skip the quote.
+        if pp < 1:
+            break
+        total += pp * (PP_WEIGHT_DECAY_SHARE * PP_DECAY_FACTOR ** i + PP_WEIGHT_FLOOR)
+
+    return total
 
 
 def calculate_quote_bests(race_list: list[dict]) -> list[dict]:
