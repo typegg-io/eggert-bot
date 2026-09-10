@@ -9,6 +9,7 @@ from database.bot.users import get_all_linked_users
 from database.typegg import db
 from database.typegg.match_results import delete_match_results
 from database.typegg.quote_leaderboards import remove_user_from_leaderboards
+from database.typegg.races import delete_races
 from utils.dates import to_timestamp_string
 from utils.errors import ProfileNotFound
 from utils.flags import Flags, gamemode_filter, is_multiplayer
@@ -168,13 +169,15 @@ def get_quote_bests(
 
 
 def delete_user(user_id: str) -> None:
-    """Delete a user and everything imported for them."""
+    """Delete a user's row, leaving their imported data alone."""
     db.run("DELETE FROM users WHERE userId = ?", [user_id])
 
 
 def delete_user_data(user_id: str) -> None:
     """Delete all data associated with a user, recomputing affected leaderboards."""
 
+    # The leaderboard recompute reads races, so they have to be gone before it runs.
+    delete_races(user_id)
     remove_user_from_leaderboards(user_id)
     delete_match_results(user_id)
     delete_user(user_id)

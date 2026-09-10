@@ -1,7 +1,6 @@
 """The cached top ten user IDs per quote."""
 
 from database.typegg import db
-from database.typegg.races import delete_races
 
 
 def update_quote_leaderboards(quote_ids: list[str]) -> None:
@@ -32,9 +31,8 @@ def update_quote_leaderboards(quote_ids: list[str]) -> None:
 
 
 def remove_user_from_leaderboards(user_id: str) -> None:
-    """Recompute leaderboards for all quotes a user appeared in, then remove their races."""
+    """Recompute the leaderboards of every quote a user appears on."""
 
     affected = db.fetch("SELECT DISTINCT quoteId FROM quote_leaderboards WHERE userId = ?", [user_id])
     quote_ids = [row["quoteId"] for row in affected]
-    delete_races(user_id)
     update_quote_leaderboards(quote_ids)
