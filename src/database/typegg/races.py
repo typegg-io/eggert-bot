@@ -9,6 +9,7 @@ from database.typegg.keystroke_data import get_keystroke_data
 from utils.dates import normalize_datetime, to_timestamp_string
 from utils.errors import RaceNotFound
 from utils.flags import Flags
+from utils.stats import calculate_non_afk_duration
 
 
 def race_insert(race) -> tuple:
@@ -32,6 +33,7 @@ def race_insert(race) -> tuple:
         race["errorRecoveryTime"],
         timestamp,
         race["stickyStart"],
+        calculate_non_afk_duration(race["keystrokeData"]) if race.get("keystrokeData") else None,
     )
 
 
@@ -39,7 +41,7 @@ def add_races(races) -> None:
     """Batch insert user races."""
     db.run_many(f"""
         INSERT OR IGNORE INTO races
-        VALUES ({",".join(["?"] * 15)})
+        VALUES ({",".join(["?"] * 16)})
     """, [race_insert(race) for race in races])
 
 

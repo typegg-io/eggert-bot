@@ -273,12 +273,12 @@ def seed_typegg(source: sqlite3.Connection, path, now: datetime) -> sqlite3.Conn
         for quote in quotes
     ])
 
-    connection.executemany(f"INSERT INTO races VALUES ({marks(15)})", [
+    connection.executemany(f"INSERT INTO races VALUES ({marks(16)})", [
         (
             race["raceId"], race["quoteId"], race["userId"], race["matchId"], race["raceNumber"],
             race["pp"], race["rawPp"], race["wpm"], race["rawWpm"], race["duration"],
             race["accuracy"], race["errorReactionTime"], race["errorRecoveryTime"],
-            race["timestamp"], race["stickyStart"],
+            race["timestamp"], race["stickyStart"], race.get("nonAfkDuration"),
         )
         for race in races
     ])

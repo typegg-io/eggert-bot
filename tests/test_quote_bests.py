@@ -27,7 +27,7 @@ def races(tmp_path):
     connection = seed_data.copy_schema(typegg_db.reader, tmp_path / "typegg.db")
 
     connection.executemany(
-        "INSERT INTO races VALUES (?, ?, ?, NULL, 1, ?, ?, ?, ?, 10, 100, 0, 0, 1750000000, 0)",
+        "INSERT INTO races VALUES (?, ?, ?, NULL, 1, ?, ?, ?, ?, 10, 100, 0, 0, 1750000000, 0, NULL)",
         [
             (f"{quote_id}-{wpm}", quote_id, USER_ID, pp, pp, wpm, wpm)
             for quote_id, wpm, pp in RACES

@@ -2,6 +2,9 @@
 
 import math
 
+from utils.errors import InvalidKeystrokeData
+from utils.keystroke_codec import KeystrokeCodecError, decode_keystroke_data
+
 
 def calculate_total_pp(quote_bests: list[dict] | list[float]) -> float:
     """Returns the total performance given a list of quote bests or pp values."""
@@ -82,3 +85,17 @@ def calculate_level(experience) -> float:
 def calculate_experience_for_level(level) -> float:
     """Returns the XP needed to reach a level."""
     return (level - 1) ** 2 * XP_PER_SECOND * 3600 / (LEVEL_A ** 2 * LEVEL_B)
+
+
+# The public API serves only the untrimmed duration, so XP has to be recomputed from keystrokes.
+AFK_CAP = 1000
+
+
+def calculate_non_afk_duration(keystroke_data) -> float | None:
+    """Returns a race's duration in ms with each keystroke delay capped, or None if it will not decode."""
+    try:
+        decoded = decode_keystroke_data(keystroke_data)
+    except (KeystrokeCodecError, InvalidKeystrokeData, KeyError, IndexError, TypeError):
+        return None
+
+    return sum(min(keystroke.timeDelta, AFK_CAP) for keystroke in decoded.keystrokes)

@@ -27,9 +27,14 @@ db.run("""
         errorReactionTime REAL NOT NULL,
         errorRecoveryTime REAL NOT NULL,
         timestamp TEXT NOT NULL, -- ISO 8601 string
-        stickyStart INTEGER -- boolean
+        stickyStart INTEGER, -- boolean
+        nonAfkDuration REAL -- NULL until the keystrokes are decoded
     );
 """)
+
+# Only non-AFK time earns XP, and the public API serves the untrimmed duration alone.
+if not db.fetch("SELECT 1 FROM pragma_table_info('races') WHERE name = 'nonAfkDuration'"):
+    db.run("ALTER TABLE races ADD COLUMN nonAfkDuration REAL")
 
 db.run("CREATE INDEX IF NOT EXISTS idx_races_userId on races(userId)")
 db.run("CREATE INDEX IF NOT EXISTS idx_races_userId_quoteId on races(userId, quoteId)")
@@ -158,8 +163,9 @@ db.run("""
 """)
 db.run("CREATE INDEX IF NOT EXISTS idx_races_matchId_userId ON races(matchId, userId)")
 
+db.run("DROP VIEW IF EXISTS multiplayer_races")
 db.run("""
-    CREATE VIEW IF NOT EXISTS multiplayer_races AS
+    CREATE VIEW multiplayer_races AS
     SELECT
         mr.matchId,
         mr.userId,
@@ -167,6 +173,7 @@ db.run("""
         mr.raceNumber,
         r.raceId,
         r.duration,
+        r.nonAfkDuration,
         r.accuracy,
         r.errorReactionTime,
         r.errorRecoveryTime,

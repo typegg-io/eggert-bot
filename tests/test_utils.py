@@ -11,6 +11,7 @@ from utils.stats import (
     calculate_experience,
     calculate_experience_for_level,
     calculate_level,
+    calculate_non_afk_duration,
     calculate_quote_length,
     calculate_wpm,
 )
@@ -177,3 +178,25 @@ def test_an_hour_of_ranked_typing_earns_nine_thousand_xp():
 def test_a_level_threshold_lands_exactly_on_that_level(level):
     """calculate_experience_for_level is the inverse of calculate_level."""
     assert calculate_level(calculate_experience_for_level(level)) == pytest.approx(level)
+
+
+
+def legacy_keystrokes(*deltas: int) -> dict:
+    """Return a legacy keystroke payload typing "ab" with the given delays."""
+    return {
+        "text": "ab",
+        "keystrokes": [
+            {"action": {"i": index, "key": key}, "time": sum(deltas[:index + 1]), "timeDelta": delta}
+            for index, (key, delta) in enumerate(zip("ab", deltas, strict=True))
+        ],
+    }
+
+
+def test_an_idle_keystroke_counts_as_one_second():
+    """XP trims AFK time the way typegg's replay ingest does."""
+    assert calculate_non_afk_duration(legacy_keystrokes(200, 60000)) == 1200
+
+
+def test_an_undecodable_payload_has_no_non_afk_duration():
+    """A NULL lets readers fall back to the untrimmed duration."""
+    assert calculate_non_afk_duration([9, "text", 0, "junk"]) is None

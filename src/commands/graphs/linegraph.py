@@ -66,7 +66,7 @@ metrics = {
         "sort": lambda p: p["stats"]["nWpm"],
     },
     "level": {
-        "columns": "duration",
+        "columns": "duration nonAfkDuration",
         "title": "Level",
         "alias": "ll",
         "sort": lambda p: p["stats"]["experience"],
@@ -201,7 +201,9 @@ def get_experience_over_time(race_list: list[dict]) -> list[float]:
     total = 0.0
 
     for race in race_list:
-        total += calculate_experience(race["duration"])
+        # Mirrors the COALESCE in typegg's pubstats.go, for races imported before the column existed.
+        duration = race["duration"] if race["nonAfkDuration"] is None else race["nonAfkDuration"]
+        total += calculate_experience(duration)
         experience.append(total)
 
     return experience
