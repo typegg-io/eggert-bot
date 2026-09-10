@@ -41,8 +41,6 @@ class ReloadHandler(FileSystemEventHandler):
         self.loop = loop
         self.queue = queue
         self.debounce_timers = {}
-        self.unchanged = 0
-        self.unchanged_timer = None
 
         # Windows reports an attribute or access change as a modification, so hash the tree up front.
         self.file_hashes: dict[str, str] = {str(path): file_digest(path) for path in watched_files()}
@@ -65,7 +63,6 @@ class ReloadHandler(FileSystemEventHandler):
             return
 
         if self.file_hashes.get(str(path)) == digest:
-            self._note_unchanged()
             return
         self.file_hashes[str(path)] = digest
 
@@ -75,21 +72,6 @@ class ReloadHandler(FileSystemEventHandler):
         timer = threading.Timer(0.5, lambda: self._queue_change(path))
         self.debounce_timers[event.src_path] = timer
         timer.start()
-
-    def _note_unchanged(self) -> None:
-        """Count an event that carried no edit, and summarise the burst once it settles."""
-        self.unchanged += 1
-
-        if self.unchanged_timer:
-            self.unchanged_timer.cancel()
-
-        self.unchanged_timer = threading.Timer(2, self._report_unchanged)
-        self.unchanged_timer.start()
-
-    def _report_unchanged(self) -> None:
-        """Print how many events in the last burst left file contents untouched."""
-        print(f"[Watcher] Ignored {self.unchanged} event(s) with no content change")
-        self.unchanged = 0
 
     def _queue_change(self, path: Path) -> None:
         """Hand a changed path to the reload worker."""

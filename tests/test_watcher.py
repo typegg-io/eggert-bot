@@ -29,8 +29,6 @@ def test_an_event_on_unchanged_contents_queues_nothing() -> None:
     time.sleep(0.7)
 
     assert queued == []
-    assert handler.unchanged == 1
-    handler.unchanged_timer.cancel()
 
 
 def test_an_event_on_changed_contents_queues_one_reload() -> None:
