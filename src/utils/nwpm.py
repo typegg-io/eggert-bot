@@ -8,8 +8,7 @@ nWPM is the higher of two legs, shown only once the user has best races on
 
 Parameters load from the private src/data/nwpm_params.json.
 
-The monotonic lock lives in that package's assemble.go, not here, so a value from this
-module may fall.
+Once calibrated, the value only rises, as recomputeStats in model.go ratchets it.
 """
 
 import bisect
@@ -104,6 +103,7 @@ class NwpmState:
         """Start an uncalibrated user with no races."""
         self.window = QPWindow()
         self.skill = SkillMedian()
+        self.nwpm_max = 0.0
 
     @property
     def calibrated(self) -> bool:
@@ -115,4 +115,6 @@ class NwpmState:
         if not self.calibrated:
             return 0.0
 
-        return round(max(self.window.best, NWPM_BRIDGE_A + NWPM_BRIDGE_B * self.skill.value), 2)
+        # Ratcheting before calibration would lock in an early spike of the skill median.
+        self.nwpm_max = max(self.nwpm_max, self.window.best, NWPM_BRIDGE_A + NWPM_BRIDGE_B * self.skill.value)
+        return round(self.nwpm_max, 2)
