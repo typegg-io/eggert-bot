@@ -98,7 +98,7 @@ async def get_quotes(
     max_wpm: float | None = None,
     min_length: int | None = None,
     max_length: int | None = None,
-    gamemode: str = "any",
+    gamemode: str | None = "any",
     status: str = "any",
     sort: str = "timestamp",
     reverse: bool = True,

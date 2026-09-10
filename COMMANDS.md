@@ -54,6 +54,17 @@ Declaring a flag is a promise that the command honours it. `cog_before_invoke` w
 anything not declared, so an undeclared flag is safe. A **declared** flag that the command then
 ignores is silently wrong output, and nothing catches it.
 
+**When an argument changes which flags apply, warn from the command.** `supported_flags` is a
+class attribute, so it cannot narrow per invocation. `-best attempts` and `-best playtime` sort on
+lifetime counters the API refuses to filter, so those two arguments drop five of the seven flags
+`-best` declares. `warn_unfilterable` in `commands/quotes/best.py` is the pattern: name the flags
+the user actually typed, in the same `-# :warning:` shape `cog_before_invoke` uses.
+
+Warn separately for a limit the API never reports. The four filters come back as a 400, so the bot
+knows it asked for something refused. `language` does not, because `GET /v1/users/{id}/quotes`
+takes no universe parameter at all, and a single catch-all message would put that limit in the
+wrong place.
+
 ### The table
 
 "Free" means the flag works the moment you declare it, as long as your data comes from a function

@@ -43,6 +43,8 @@ INVOCATIONS = [
     "-bestaverages -raw",
     "-best",
     "-best -wpm",
+    "-best attempts",
+    "-best playtime",
     "-bestgraph",
     "-bestgraph -pp",
     "-commandleaderboard",
@@ -111,6 +113,7 @@ RAW_PP_SUBSTITUTED = [
     "-average",
     "-bestaverages -raw",
     "-best -wpm raw",
+    "-best attempts raw",
     "-dailyleaderboard raw",
     "-dailystats raw",
     "-racegraph",
@@ -312,6 +315,34 @@ def api_quote_stats(user_id: str, quote_id: str) -> dict:
     }
 
 
+def api_quote_counters(user_id: str, params: dict | None) -> dict:
+    """Return a user's quotes ranked by a lifetime counter, as the API serves them."""
+    quote_counters = []
+
+    for quote_id in QUOTES:
+        races = [race for race in RACES if race["userId"] == user_id and race["quoteId"] == quote_id]
+        if not races:
+            continue
+
+        quote_counters.append(
+            api_quote_stats(user_id, quote_id) | {
+                "quote": api_quote(quote_id),
+                "bestRace": max(races, key=lambda race: race["wpm"]),
+            }
+        )
+
+    sort = (params or {}).get("sort", "attempts")
+    quote_counters.sort(key=lambda counters: -counters.get(sort, 0))
+
+    return {
+        "page": 1,
+        "perPage": len(quote_counters),
+        "totalPages": 1,
+        "totalCount": len(quote_counters),
+        "quotes": quote_counters,
+    }
+
+
 def api_quote(quote_id: str) -> dict:
     """Return one seeded quote in the shape the API serves it."""
     quote = QUOTES[quote_id]
@@ -457,6 +488,8 @@ async def fake_request(url: str, params: dict = None, **kwargs) -> dict:
             return profile
         if url.endswith(f"/users/{user_id}/races"):
             return {"races": [{"raceNumber": RACE_TOTALS[user_id]}], "page": 1, "perPage": 20}
+        if url.endswith(f"/users/{user_id}/quotes"):
+            return api_quote_counters(user_id, params)
         if f"/users/{user_id}/quotes/" in url:
             return api_quote_stats(user_id, url.rsplit("/", 1)[-1])
         if url.endswith(f"/users/{user_id}/quote-rankings"):

@@ -59,6 +59,9 @@ OPTION_ALIASES = {
     "unranked": ["ur"],
     "submissions": ["qs"],
     "quotesover": ["qo"],
+    "attempts": ["att", "at"],
+    # "pt" is Portuguese, so play time cannot have the obvious alias.
+    "playtime": ["time", "ptime"],
     "level": ["experience", "xp"],
     "day": ["d"],
     "week": ["wk", "w"],
