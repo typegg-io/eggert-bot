@@ -47,7 +47,7 @@ async def help_main(ctx: BotContext) -> None:
         f"• Parameters can be passed in any order\n"
         f"**Parameter Flags**\n"
         f"• Speed: `raw`\n"
-        f"• Gamemode: `solo`, `quickplay`, `lobby`\n"
+        f"• Gamemode: `solo`, `quickplay`, `lobby`, `multiplayer`\n"
         f"• Status: `unranked`, `any`\n"
     )
 

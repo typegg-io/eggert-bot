@@ -11,6 +11,7 @@ from database.typegg.races import get_races
 from database.typegg.users import get_quote_bests
 from utils.dates import count_unique_dates, get_start_end_dates, local_midnight, parse_date
 from utils.errors import NoRacesFiltered
+from utils.flags import is_multiplayer
 from utils.messages import Field, Message, Page
 from utils.schemas import Profile
 from utils.stats import calculate_quote_bests, calculate_quote_length, calculate_total_pp
@@ -44,7 +45,7 @@ class Races(Command):
 def build_stat_fields(profile, race_list, flags, all_time=False) -> list:
     """Build the performance, speed, activity and quote fields for a set of races."""
     quote_list = get_quotes()
-    multiplayer = flags.gamemode in ["quickplay", "lobby"]
+    multiplayer = is_multiplayer(flags)
 
     cumulative_values = {
         "wpm": [], "rawWpm": [], "accuracy": [], "duration": [],

@@ -6,6 +6,7 @@ from context import BotContext
 from database.typegg.quotes import get_quotes
 from database.typegg.races import get_races
 from utils.dates import discord_date
+from utils.flags import is_multiplayer
 from utils.messages import Message, paginate_data
 from utils.schemas import Profile
 from utils.strings import pp_display
@@ -39,7 +40,7 @@ async def run(ctx: BotContext, profile: Profile) -> None:
     """Send a user's last 100 races, paginated."""
     only_historical_pbs = (
         profile["userId"] != ctx.user["userId"] and
-        ctx.flags.gamemode not in ["quickplay", "lobby"]
+        not is_multiplayer(ctx.flags)
     )
 
     race_list = await get_races(

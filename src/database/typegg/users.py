@@ -11,7 +11,7 @@ from database.typegg.match_results import delete_match_results
 from database.typegg.quote_leaderboards import remove_user_from_leaderboards
 from utils.dates import to_timestamp_string
 from utils.errors import ProfileNotFound
-from utils.flags import Flags
+from utils.flags import Flags, gamemode_filter, is_multiplayer
 from utils.logging import log
 from utils.schemas import Profile
 
@@ -85,7 +85,7 @@ def get_quote_bests(
         if flags.status == "unranked":
             max_pp = 0
 
-    multiplayer = flags.gamemode in ["quickplay", "lobby"]
+    multiplayer = is_multiplayer(flags)
 
     if multiplayer:
         table = "multiplayer_races"
@@ -113,8 +113,9 @@ def get_quote_bests(
 
     if multiplayer:
         conditions.append("completionType NOT IN ('dnf', 'quit')")
-        conditions.append("gamemode = ?")
-        params.append(flags.gamemode)
+        if gamemode := gamemode_filter(flags):
+            conditions.append("gamemode = ?")
+            params.append(gamemode)
 
     # ORDER clause
     order_clause = "DESC" if reverse else "ASC"
@@ -303,7 +304,7 @@ def get_quotes_over_leaderboard(
         elif metric == "pp":
             metric = "rawPp"
 
-    multiplayer = flags.gamemode in ["quickplay", "lobby"]
+    multiplayer = is_multiplayer(flags)
 
     if multiplayer:
         table = "multiplayer_races"
@@ -323,8 +324,9 @@ def get_quotes_over_leaderboard(
 
     if multiplayer:
         conditions.append("completionType NOT IN ('dnf', 'quit')")
-        conditions.append("gamemode = ?")
-        params.append(flags.gamemode)
+        if gamemode := gamemode_filter(flags):
+            conditions.append("gamemode = ?")
+            params.append(gamemode)
 
     # JOIN clause
     join_clause = ""

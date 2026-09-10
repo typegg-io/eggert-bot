@@ -7,7 +7,15 @@ command string that discord.py then parses, and the tokens the user actually typ
 import pytest
 
 from bot_setup import parse_flags
-from utils.flags import Language, apply_universe_status, resolve_universe, universe_code
+from utils.flags import (
+    Flags,
+    Language,
+    apply_universe_status,
+    gamemode_filter,
+    is_multiplayer,
+    resolve_universe,
+    universe_code,
+)
 
 
 def flags_for(content):
@@ -53,13 +61,35 @@ def test_raw_flag():
     assert flags_for("-best raw").raw is True
 
 
-@pytest.mark.parametrize("token", ["solo", "quickplay", "lobby"])
+@pytest.mark.parametrize("token", ["solo", "quickplay", "lobby", "multiplayer"])
 def test_gamemode_flags(token):
     assert flags_for(f"-best {token}").gamemode == token
 
 
-def test_gamemode_accepts_an_alias():
-    assert flags_for("-best qp").gamemode == "quickplay"
+@pytest.mark.parametrize(("token", "gamemode"), [
+    ("qp", "quickplay"),
+    ("mp", "multiplayer"),
+    ("multi", "multiplayer"),
+])
+def test_gamemode_accepts_an_alias(token, gamemode):
+    """`multi` is the umbrella over both modes, not a second name for quickplay."""
+    assert flags_for(f"-best {token}").gamemode == gamemode
+
+
+def test_the_umbrella_gamemode_filters_neither_mode():
+    """`gamemode = 'multiplayer'` matches no row, so it must not reach a WHERE clause."""
+    assert is_multiplayer(Flags(gamemode="multiplayer"))
+    assert gamemode_filter(Flags(gamemode="multiplayer")) is None
+
+
+@pytest.mark.parametrize("token", ["quickplay", "lobby"])
+def test_a_named_multiplayer_mode_still_filters_to_itself(token):
+    assert is_multiplayer(Flags(gamemode=token))
+    assert gamemode_filter(Flags(gamemode=token)) == token
+
+
+def test_solo_is_not_multiplayer():
+    assert not is_multiplayer(Flags(gamemode="solo"))
 
 
 @pytest.mark.parametrize("token", ["ranked", "unranked", "any"])

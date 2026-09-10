@@ -8,7 +8,7 @@ from database.typegg import db
 from database.typegg.keystroke_data import get_keystroke_data
 from utils.dates import normalize_datetime, to_timestamp_string
 from utils.errors import RaceNotFound
-from utils.flags import Flags
+from utils.flags import Flags, gamemode_filter, is_multiplayer
 from utils.stats import calculate_non_afk_duration
 
 
@@ -104,7 +104,7 @@ async def get_races(
         if flags.status == "unranked":
             max_pp = 0
 
-    multiplayer = flags.gamemode in ["quickplay", "lobby"]
+    multiplayer = is_multiplayer(flags)
 
     if multiplayer:
         table = "multiplayer_races"
@@ -134,8 +134,9 @@ async def get_races(
         conditions.append("matchId IS NULL")
 
     if multiplayer:
-        conditions.append("gamemode = ?")
-        params.append(flags.gamemode)
+        if gamemode := gamemode_filter(flags):
+            conditions.append("gamemode = ?")
+            params.append(gamemode)
         if not include_dnf:
             conditions.append("completionType NOT IN ('dnf', 'quit')")
 

@@ -33,7 +33,7 @@ FLAG_VALUES = {
     "raw",
 
     # Gamemode
-    "solo", "quickplay", "lobby",
+    "solo", "quickplay", "lobby", "multiplayer",
 
     # Status
     "ranked", "unranked", "any"
@@ -87,6 +87,34 @@ class Flags:
         """Coerce a language code string into a Language."""
         if isinstance(self.language, str):
             self.language = Language(self.language)
+
+
+# Gamemode
+
+# "multiplayer" is the umbrella term, so it selects both modes without filtering to either.
+MULTIPLAYER_GAMEMODES = ("quickplay", "lobby", "multiplayer")
+
+
+def is_multiplayer(flags: Flags) -> bool:
+    """Return whether the gamemode flag selects multiplayer races."""
+    return flags.gamemode in MULTIPLAYER_GAMEMODES
+
+
+def gamemode_filter(flags: Flags) -> str | None:
+    """Return the one gamemode to match rows against, or None when the flag covers both."""
+    return None if flags.gamemode == "multiplayer" else flags.gamemode
+
+
+def multiplayer_race_count(flags: Flags, stats: dict) -> int:
+    """Return how many races a profile has in the selected multiplayer mode."""
+    multiplayer = stats["races"] - stats["soloRaces"]
+
+    if flags.gamemode == "quickplay":
+        return stats["quickplayRaces"]
+    if flags.gamemode == "lobby":
+        return multiplayer - stats["quickplayRaces"]
+
+    return multiplayer
 
 
 def get_flag_title(flags: Flags) -> str:

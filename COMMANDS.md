@@ -81,7 +81,7 @@ that takes `flags=ctx.flags`. Anything else needs the wiring named in the last c
 |---|---|---|---|
 | `metric` | `pp`, `wpm` | never free | read `ctx.flags.metric` yourself |
 | `raw` | `raw` | `get_races`, `get_quote_bests`, `get_quotes_over_leaderboard` | swap the column or field yourself |
-| `gamemode` | `solo`, `quickplay`, `lobby` | those three, plus the `match_results` queries | pick the table and filter yourself |
+| `gamemode` | `solo`, `quickplay`, `lobby`, `multiplayer` | those three, plus the `match_results` queries | pick the table and filter yourself |
 | `status` | `ranked`, `unranked`, `any` | same as `gamemode` | apply the pp bounds yourself |
 | `language` | 17 ISO codes | same as `gamemode` | join `quotes` and filter, or send a universe to the API |
 | `number` | `500`, `1,234`, `2k`, `1.5k` | never free | read `ctx.flags.number` yourself |
@@ -90,9 +90,9 @@ that takes `flags=ctx.flags`. Anything else needs the wiring named in the last c
 | `date_range` | two date tokens, or a period word | `get_races`, `get_quote_bests` | filter on `timestamp` yourself |
 | `quote_id` | a quote ID, a solo URL, `^`, `daily` | never free | resolve through `self.get_quote(ctx, ...)` |
 
-Aliases resolve through `OPTION_ALIASES` in `utils/strings.py`: `qp`, `mp`, `multi` and
-`multiplayer` all mean `quickplay`, `ur` means `unranked`, and the period words take `d`, `w`,
-`wk`, `m`, `mo`, `y` and `yr`.
+Aliases resolve through `OPTION_ALIASES` in `utils/strings.py`: `qp` means `quickplay`, `mp` and
+`multi` mean `multiplayer`, `ur` means `unranked`, and the period words take `d`, `w`, `wk`, `m`,
+`mo`, `y` and `yr`.
 
 ---
 
@@ -159,9 +159,14 @@ free instead, so a non-subscriber typing `raw` still gets the board and the grap
 
 ### `gamemode`
 
-`solo`, `quickplay` or `lobby`, defaulting to None, which means every race. The two multiplayer
-values switch `get_races` and `get_quote_bests` from `races` to `multiplayer_races` and drop `dnf`
-and `quit` rows. `solo` adds `matchId IS NULL` to the solo table.
+`solo`, `quickplay`, `lobby` or `multiplayer`, defaulting to None, which means every race. The
+three multiplayer values switch `get_races` and `get_quote_bests` from `races` to
+`multiplayer_races` and drop `dnf` and `quit` rows. `multiplayer` is the umbrella over the other
+two, so it adds no `gamemode` condition of its own. `solo` adds `matchId IS NULL` to the solo
+table.
+
+Read the two through `is_multiplayer` and `gamemode_filter` in `utils/flags.py` rather than
+comparing the string, so a new mode lands in one place.
 
 ### `status`
 

@@ -11,6 +11,7 @@ from database.typegg.quotes import get_ranked_quote_chars, get_ranked_quote_coun
 from database.typegg.users import get_quote_chars_typed, get_quotes_over_leaderboard, get_user_lookup
 from utils import strings
 from utils.errors import BotError, DailyQuoteChannel
+from utils.flags import is_multiplayer
 from utils.messages import Message, Page, paginate_data, usable_in
 from utils.strings import LOADING, get_argument, get_streak_emoji, parse_number, rank, username_with_flag
 
@@ -161,7 +162,7 @@ class Leaderboard(Command):
 
         if (
             category == "pp"
-            and ctx.flags.gamemode == "quickplay"
+            and is_multiplayer(ctx.flags)
             and not ctx.explicit_flags.get("metric")
         ):
             category = "quickplay"
@@ -238,6 +239,11 @@ def is_statusless(leaderboard: str) -> bool:
 
 async def run(ctx: BotContext, category: dict) -> None:
     """Send a leaderboard the API serves, behind a skeleton message."""
+    # GET /v1/leaders takes one gamemode, so the umbrella over both modes is a 400.
+    if ctx.flags.gamemode == "multiplayer":
+        await ctx.send("-# :warning: this leaderboard needs `quickplay` or `lobby`, not both")
+        ctx.flags.gamemode = None
+
     gamemode = ctx.flags.gamemode or "any"
     universe = await take_universe(ctx, category["sort"] in UNIVERSE_SORTS and gamemode == "any")
     title = f"{category["title"]} Leaderboard"

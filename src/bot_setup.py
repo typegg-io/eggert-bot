@@ -142,7 +142,7 @@ def parse_flags(content: str) -> tuple[Flags, str, dict[str, str]]:
                 case "raw":
                     flags.raw = True
                     explicit_flags["raw"] = arg
-                case "solo" | "quickplay" | "lobby":
+                case "solo" | "quickplay" | "lobby" | "multiplayer":
                     flags.gamemode = flag
                     explicit_flags["gamemode"] = arg
                 case "ranked" | "unranked" | "any":

@@ -26,7 +26,7 @@ from utils.errors import (
     NoRacesFiltered,
     NotSubscribed,
 )
-from utils.flags import Flags, universe_code
+from utils.flags import Flags, is_multiplayer, multiplayer_race_count, universe_code
 from utils.messages import command_milestone, privacy_warning
 from utils.schemas import Profile
 from utils.strings import get_argument, parse_number
@@ -202,8 +202,8 @@ class Command(commands.Cog):
             update_gg_plus_status(profile["userId"], api_gg_plus)
 
         if races_required:
-            if ctx.flags.gamemode == "quickplay":
-                if profile["stats"]["quickplayRaces"] == 0:
+            if is_multiplayer(ctx.flags):
+                if multiplayer_race_count(ctx.flags, profile["stats"]) == 0:
                     raise NoRacesFiltered(username)
             else:
                 if profile["stats"]["races"] == 0:

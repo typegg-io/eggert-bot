@@ -7,6 +7,7 @@ from database.typegg.quotes import get_quotes
 from database.typegg.races import get_races
 from utils.dates import discord_date, parse_date
 from utils.errors import NotEnoughRaces, NumberGreaterThan
+from utils.flags import is_multiplayer
 from utils.messages import Message, Page
 from utils.schemas import Profile
 from utils.strings import date_range_display, pp_display
@@ -116,7 +117,7 @@ async def run(ctx: BotContext, profile: Profile, n: int, metric: str = "wpm") ->
 
     if best_averages and (
         ctx.user["userId"] == profile["userId"]
-        or ctx.flags.gamemode in ["quickplay", "lobby"]
+        or is_multiplayer(ctx.flags)
     ):
         top_average, top_start_index = best_averages[0]
 

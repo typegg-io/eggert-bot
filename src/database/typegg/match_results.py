@@ -3,7 +3,7 @@
 import sqlite3
 
 from database.typegg import db
-from utils.flags import Flags
+from utils.flags import Flags, gamemode_filter
 
 
 def match_result_insert(match_player) -> tuple:
@@ -39,9 +39,9 @@ def get_encounter_stats(user_id: str, flags: Flags = None) -> list[sqlite3.Row]:
     conditions = ["userId = ?", "opponentUsername != ''"]
     params = [user_id]
 
-    if flags.gamemode:
+    if gamemode := gamemode_filter(flags):
         conditions.append("gamemode = ?")
-        params.append(flags.gamemode)
+        params.append(gamemode)
 
     join_clauses = []
     if flags.status == "ranked":
@@ -86,9 +86,9 @@ def get_match_stats(user_id: str, flags: Flags = None) -> list[sqlite3.Row]:
     conditions = ["userId = ?"]
     params = [user_id]
 
-    if flags.gamemode:
+    if gamemode := gamemode_filter(flags):
         conditions.append("gamemode = ?")
-        params.append(flags.gamemode)
+        params.append(gamemode)
 
     join_clauses = []
     if flags.status == "ranked":
@@ -124,9 +124,9 @@ def get_opponent_encounters(user_id: str, opponent_id: str, flags: Flags = None)
     conditions = ["userId = ?", "opponentId = ?"]
     params = [user_id, opponent_id]
 
-    if flags.gamemode:
+    if gamemode := gamemode_filter(flags):
         conditions.append("gamemode = ?")
-        params.append(flags.gamemode)
+        params.append(gamemode)
 
     join_clauses = []
     if flags.status == "ranked":
