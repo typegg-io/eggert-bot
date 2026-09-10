@@ -6,6 +6,7 @@ import pytest
 
 from utils.dates import is_date_like, parse_date
 from utils.errors import InvalidDate, InvalidNumber
+from utils.keystrokes import calculate_wpm
 from utils.stats import (
     calculate_duration,
     calculate_experience,
@@ -13,7 +14,6 @@ from utils.stats import (
     calculate_level,
     calculate_non_afk_duration,
     calculate_quote_length,
-    calculate_wpm,
 )
 from utils.strings import (
     escape_formatting,
@@ -152,11 +152,11 @@ def test_parse_date_rejects_nonsense():
 def test_wpm_and_duration_round_trip():
     """calculate_duration is the inverse of calculate_wpm for the same character count."""
     duration = calculate_duration(wpm=100, chars_typed=250)
-    assert calculate_wpm(duration, 250) == pytest.approx(100)
+    assert calculate_wpm(250, duration) == pytest.approx(100)
 
 
-def test_calculate_wpm_is_infinite_for_a_zero_duration():
-    assert calculate_wpm(0, 100) == float("inf")
+def test_calculate_wpm_is_zero_for_a_zero_duration():
+    assert calculate_wpm(100, 0) == 0.0
 
 
 def test_calculate_duration_is_zero_for_zero_wpm():

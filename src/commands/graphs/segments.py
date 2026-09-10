@@ -12,10 +12,9 @@ from database.typegg.users import get_quote_bests
 from graphs import segments as segment_graph
 from utils.dates import discord_date, format_date
 from utils.errors import NoQuoteRaces
-from utils.keystrokes import get_keystroke_data
+from utils.keystrokes import calculate_wpm, get_keystroke_data
 from utils.messages import Field, Message, Page, usable_in
 from utils.schemas import Profile
-from utils.stats import calculate_wpm
 from utils.strings import escape_formatting, get_segments, quote_display
 
 info = CommandInfo(
@@ -105,8 +104,8 @@ def build_segments(parts: list[str], delays: list, raw_delays: list) -> list[dic
 
         segments.append({
             "text": text,
-            "wpm": calculate_wpm(sum(segment_delays), char_count),
-            "raw_wpm": calculate_wpm(sum(raw_segment_delays), char_count),
+            "wpm": calculate_wpm(char_count, sum(segment_delays)),
+            "raw_wpm": calculate_wpm(char_count, sum(raw_segment_delays)),
             "delays": segment_delays,
         })
         char_index += length
@@ -130,8 +129,8 @@ def build_word_segments(text: str, delays: list, raw_delays: list) -> tuple[list
                 char_count = len(current_delays) - adjustment
                 words.append({
                     "text": current_word,
-                    "wpm": calculate_wpm(sum(current_delays), char_count),
-                    "raw_wpm": calculate_wpm(sum(current_raw_delays), char_count),
+                    "wpm": calculate_wpm(char_count, sum(current_delays)),
+                    "raw_wpm": calculate_wpm(char_count, sum(current_raw_delays)),
                 })
                 current_word = ""
                 current_delays = []
@@ -151,12 +150,12 @@ def build_word_segments(text: str, delays: list, raw_delays: list) -> tuple[list
         char_count = len(current_delays) - adjustment
         words.append({
             "text": current_word,
-            "wpm": calculate_wpm(sum(current_delays), char_count),
-            "raw_wpm": calculate_wpm(sum(current_raw_delays), char_count),
+            "wpm": calculate_wpm(char_count, sum(current_delays)),
+            "raw_wpm": calculate_wpm(char_count, sum(current_raw_delays)),
         })
 
-    space_speed = calculate_wpm(sum(space_delays), len(space_delays)) if space_delays else 0
-    newline_speed = calculate_wpm(sum(newline_delays), len(newline_delays)) if newline_delays else 0
+    space_speed = calculate_wpm(len(space_delays), sum(space_delays)) if space_delays else 0
+    newline_speed = calculate_wpm(len(newline_delays), sum(newline_delays)) if newline_delays else 0
 
     return words, space_speed, newline_speed
 
