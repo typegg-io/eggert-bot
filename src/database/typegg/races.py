@@ -98,17 +98,18 @@ async def get_races(
     columns = ",".join(columns)
     table = "races"
 
-    # Applying flag filters
-    if flags.status != "ranked":
-        min_pp = -1
-        if flags.status == "unranked":
-            max_pp = 0
-
     multiplayer = is_multiplayer(flags)
+    # A quit scores 0 pp in a match, so there the quote's own status decides ranked.
+    status_by_quote = multiplayer and flags.status != "any"
 
+    # Applying flag filters
     if multiplayer:
         table = "multiplayer_races"
         min_pp = -1
+    elif flags.status != "ranked":
+        min_pp = -1
+        if flags.status == "unranked":
+            max_pp = 0
 
     # WHERE clause
     conditions = []
@@ -145,11 +146,18 @@ async def get_races(
 
     # JOIN clause
     join_clauses = []
-    if flags.language:
+    if flags.language or status_by_quote:
         join_clauses.append("JOIN quotes q ON q.quoteId = r.quoteId")
+        columns = ",".join("r.*" if column == "*" else column for column in columns.split(","))
+        columns = columns.replace("quoteId", "r.quoteId")
+
+    if flags.language:
         conditions.append("q.language = ?")
         params.append(flags.language.name)
-        columns = columns.replace("quoteId", "r.quoteId")
+
+    if status_by_quote:
+        conditions.append("q.ranked = ?")
+        params.append(int(flags.status == "ranked"))
 
     if get_keystrokes:
         join_clauses.append("LEFT JOIN keystroke_data k ON k.raceId = r.raceId")
