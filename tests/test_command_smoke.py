@@ -103,6 +103,8 @@ INVOCATIONS = [
     "-stats",
     "-sumofbest",
     "-timetravel",
+    "-topgraph q1",
+    "-10g q1 raw",
     "-toptens",
     "-week",
     "-worst",
