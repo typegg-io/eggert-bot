@@ -7,7 +7,7 @@ import aiohttp
 from aiohttp import ContentTypeError
 
 from config import SECRET
-from utils.errors import APIError
+from utils.errors import APIError, APIUnavailable
 from utils.logging import log
 
 AUTH_HEADERS = {
@@ -49,8 +49,8 @@ async def request(
     json_data = get_params(json_data)
     method = method.lower()
 
-    async def do_request() -> tuple[int, dict[str, Any], str]:
-        """Return the status, body and message of one attempt."""
+    async def do_request() -> tuple[int, dict[str, Any], str, str | None]:
+        """Return the status, body, message and Retry-After header of one attempt."""
         async with aiohttp.ClientSession() as session:
             async with session.request(
                 method,
@@ -66,9 +66,9 @@ async def request(
                 except ContentTypeError:
                     raise APIError(response.status, "TypeGG is likely down, try again later.")
 
-                return status, json, message
+                return status, json, message, response.headers.get("Retry-After")
 
-    status, json, message = await do_request()
+    status, json, message, retry_after = await do_request()
 
     if status == 200:
         return json
@@ -77,12 +77,16 @@ async def request(
         log("Rate limit exceeded, retrying in 3s...")
         await asyncio.sleep(3)
 
-        status, json, message = await do_request()
+        status, json, message, retry_after = await do_request()
 
         if status == 200:
             return json
 
     if exceptions and status in exceptions:
         raise exceptions[status]
+
+    # TypeGG sends whole seconds, though the header also allows an HTTP date.
+    if status == 503 and retry_after and retry_after.isdigit():
+        raise APIUnavailable(message, int(retry_after))
 
     raise APIError(status, message)

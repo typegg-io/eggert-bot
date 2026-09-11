@@ -291,6 +291,25 @@ class APIError(CommandError):
 
 
 @dataclass
+class APIUnavailable(CommandError):
+    """Raised when the TypeGG API is briefly unavailable and says when to retry."""
+    message: str
+    retry_after: int
+
+    @property
+    def embed(self) -> Embed:
+        """Return the embed shown for this error."""
+        return Embed(
+            title="Try Again Soon",
+            description=(
+                f"{self.message}\n"
+                f"Try again in {self.retry_after} seconds"
+            ),
+            color=WARNING,
+        )
+
+
+@dataclass
 class RaceNotFound(CommandError):
     """Raised when a specific race is not found."""
     username: str
