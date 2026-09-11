@@ -65,6 +65,8 @@ INVOCATIONS = [
     "-histogram",
     "-leaderboard qo 100",
     "-improvement",
+    "-improvement acc",
+    "-simp acc",
     "-keystrokes",
     "-lastonline",
     "-lengthgraph",
@@ -569,7 +571,7 @@ def build_user() -> dict:
 
 
 def find_command(name: str):
-    """Return the cog class and discord.py Command for one command name."""
+    """Return the cog class and discord.py Command for one command name or alias."""
     from discord.ext import commands as discord_commands
 
     from utils.files import get_command_modules
@@ -579,7 +581,7 @@ def find_command(name: str):
             if not (isinstance(obj, type) and issubclass(obj, Command) and obj is not Command):
                 continue
             for value in vars(obj).values():
-                if isinstance(value, discord_commands.Command) and value.name == name:
+                if isinstance(value, discord_commands.Command) and name in [value.name, *value.aliases]:
                     return obj, value
 
     raise LookupError(f"no command named {name}")
@@ -627,14 +629,17 @@ def test_every_command_is_either_exercised_or_skipped(command_classes):
     """A new command file has to join the suite or say why it cannot."""
     from discord.ext import commands as discord_commands
 
-    registered = {
-        value.name
+    registered_commands = [
+        value
         for classes in command_classes.values()
         for cls in classes
         for value in vars(cls).values()
         if isinstance(value, discord_commands.Command)
-    }
-    covered = {line.split()[0].lstrip("-") for line in INVOCATIONS} | set(SKIPPED)
+    ]
+    registered = {value.name for value in registered_commands}
+    names = {alias: value.name for value in registered_commands for alias in [value.name, *value.aliases]}
+    invoked = {line.split()[0].lstrip("-") for line in INVOCATIONS}
+    covered = {names.get(token, token) for token in invoked} | set(SKIPPED)
 
     assert sorted(registered - covered) == []
     assert sorted(covered - registered) == []

@@ -12,23 +12,28 @@ from utils.dates import parse_date
 from utils.messages import Field, Message, Page
 from utils.schemas import Profile
 
-metrics = ["pp", "wpm"]
+metrics = {
+    "pp": {"label": "pp", "suffix": " pp", "scale": 1},
+    "wpm": {"label": "WPM", "suffix": " WPM", "scale": 1},
+    "accuracy": {"label": "Accuracy", "suffix": "%", "scale": 100, "ceiling": 100},
+}
 info = CommandInfo(
     name="improvement",
     aliases=["imp", "simp"],
-    description="Displays a user's pp or WPM improvement over races.\n"
+    description="Displays a user's pp, WPM or accuracy improvement over races.\n"
                 "Use `-simp` to view solo PBs by pp instead of multiplayer.\n",
-    parameters="[username] [wpm|pp]",
+    parameters="[username] [wpm|pp|acc]",
     examples=[
         "-imp",
         "-imp eiko wpm",
+        "-imp eiko acc",
         "-simp eiko",
     ],
 )
 
 
 class Improvement(Command):
-    """Graph a user's pp or WPM improvement over races."""
+    """Graph a user's pp, WPM or accuracy improvement over races."""
 
     supported_flags = {"metric", "raw", "status", "language", "date_range"}
 
@@ -37,17 +42,19 @@ class Improvement(Command):
         """Pick the solo or multiplayer graph, then draw it for one user."""
         solo = ctx.invoked_with == "simp"
         metric = "pp" if solo else "wpm"
+        params = self.extract_params(args, ["accuracy"])
 
-        if ctx.explicit_flags.get("metric"):  # Overriding default metric
+        if params.argument:
+            metric = params.argument
+        elif ctx.explicit_flags.get("metric"):  # Overriding default metric
             metric = ctx.explicit_flags["metric"].lstrip("-")
 
-        if ctx.flags.status != "ranked":  # Unranked quotes are 0 pp
+        if ctx.flags.status != "ranked" and metric == "pp":  # Unranked quotes are 0 pp
             metric = "wpm"
 
         self.check_raw_pp(ctx, metric == "pp")
 
-        username = args[0] if args else None
-        profile = await self.get_profile(ctx, username)
+        profile = await self.get_profile(ctx, params.username)
 
         if solo:
             await solo_improvement(ctx, profile, metric)
@@ -83,9 +90,10 @@ async def multiplayer_improvement(ctx: BotContext, profile: Profile, metric: str
         return await message.send()
 
     quote_list = get_quotes()
+    scale = metrics[metric]["scale"]
 
     values, dates, difficulties = zip(*[
-        (race[metric], race["timestamp"], quote_list[race["quoteId"]]["difficulty"])
+        (race[metric] * scale, race["timestamp"], quote_list[race["quoteId"]]["difficulty"])
         for race in race_list
         if race["completionType"] == "finished"
     ])
@@ -124,9 +132,7 @@ async def multiplayer_improvement(ctx: BotContext, profile: Profile, metric: str
         else:
             dnf = True
 
-    if metric == "wpm":
-        metric = "WPM"
-
+    label, suffix = metrics[metric]["label"], metrics[metric]["suffix"]
     description = f"**Races:** {len(values):,}\n"
 
     fields = []
@@ -134,26 +140,26 @@ async def multiplayer_improvement(ctx: BotContext, profile: Profile, metric: str
     if window > 25:
         fields.append(Field(
             title="Average of 25",
-            content=f"– Recent: {last_25:,.2f} {metric} | Best: {best_25:,.2f} {metric}",
+            content=f"– Recent: {last_25:,.2f}{suffix} | Best: {best_25:,.2f}{suffix}",
         ))
 
     if window > 100:
         fields.append(Field(
             title="Average of 100",
-            content=f"– Recent: {last_100:,.2f} {metric} | Best: {best_100:,.2f} {metric}",
+            content=f"– Recent: {last_100:,.2f}{suffix} | Best: {best_100:,.2f}{suffix}",
         ))
 
     fields.append(Field(
         title=f"Average of {window}",
         content=(
-            f"– Recent: {last_average:,.2f} {metric} | Best: {best_average:,.2f} {metric}\n"
+            f"– Recent: {last_average:,.2f}{suffix} | Best: {best_average:,.2f}{suffix}\n"
             f"– Completion: {window / (window + quits_in_average):.2%}"
         ),
     ))
 
     message = Message(
         ctx,
-        title=f"{metric} Improvement",
+        title=f"{label} Improvement",
         header=description,
         pages=[
             Page(
@@ -162,7 +168,7 @@ async def multiplayer_improvement(ctx: BotContext, profile: Profile, metric: str
                 render=lambda: improvement.render_over_races(
                     values=values,
                     difficulties=difficulties,
-                    metric=metric,
+                    metric=label,
                     theme=ctx.user["theme"],
                     window_size=window,
                     dnf_indices=dnf_indices,
@@ -174,11 +180,12 @@ async def multiplayer_improvement(ctx: BotContext, profile: Profile, metric: str
                 button_name="Over Time",
                 render=lambda: improvement.render_over_time(
                     values=values,
-                    metric=metric,
+                    metric=label,
                     theme=ctx.user["theme"],
                     dates=dates,
                     window_size=window,
                     dnf_indices=dnf_indices,
+                    ceiling=metrics[metric].get("ceiling"),
                 ),
                 flag_title=True,
             ),
@@ -220,23 +227,22 @@ async def solo_improvement(ctx: BotContext, profile: Profile, metric: str) -> No
     pbs.sort(key=lambda r: parse_date(r["timestamp"]).timestamp())
 
     quote_list = get_quotes()
-    values, dates, quote_ids = zip(*[(race[metric], race["timestamp"], race["quoteId"]) for race in pbs])
+    scale = metrics[metric]["scale"]
+    values, dates, quote_ids = zip(*[(race[metric] * scale, race["timestamp"], race["quoteId"]) for race in pbs])
     difficulties = [quote_list[qid]["difficulty"] for qid in quote_ids]
 
     window = get_window_size(len(values))
 
-    if metric == "wpm":
-        metric = "WPM"
-
+    label, suffix = metrics[metric]["label"], metrics[metric]["suffix"]
     description = (
         f"**PB Improvements:** {len(values):,}\n"
-        f"**PB Average:** {np.mean(values):,.2f} {metric}\n"
-        f"**Best:** {max(values):,.2f} {metric}\n"
+        f"**PB Average:** {np.mean(values):,.2f}{suffix}\n"
+        f"**Best:** {max(values):,.2f}{suffix}\n"
     )
 
     message = Message(
         ctx,
-        title=f"{metric} PB Improvement",
+        title=f"{label} PB Improvement",
         header=description,
         pages=[
             Page(
@@ -244,7 +250,7 @@ async def solo_improvement(ctx: BotContext, profile: Profile, metric: str) -> No
                 render=lambda: improvement.render_over_races(
                     values=values,
                     difficulties=difficulties,
-                    metric=metric,
+                    metric=label,
                     theme=ctx.user["theme"],
                     window_size=window,
                 ),
@@ -254,10 +260,11 @@ async def solo_improvement(ctx: BotContext, profile: Profile, metric: str) -> No
                 button_name="Over Time",
                 render=lambda: improvement.render_over_time(
                     values=values,
-                    metric=metric,
+                    metric=label,
                     theme=ctx.user["theme"],
                     dates=dates,
                     window_size=window,
+                    ceiling=metrics[metric].get("ceiling"),
                 ),
                 flag_title=True,
             )
