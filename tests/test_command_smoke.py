@@ -89,6 +89,8 @@ INVOCATIONS = [
     "-quote q1",
     "-qp q1",
     "-quoteleaderboard q1",
+    "-quoteranks",
+    "-qr eiko 1",
     "-quotesover 100",
     "-quotestrength",
     "-quotestrength raw",
@@ -331,6 +333,7 @@ def api_quote_stats(user_id: str, quote_id: str) -> dict:
         "completionPlayTime": completion,
         "attemptPlayTime": 4200,
         "globalRank": 4,
+        "margin": 1.25,
     }
 
 
