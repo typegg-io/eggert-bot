@@ -1,6 +1,9 @@
+import asyncio
+
 from discord.ext import commands
 
 from api.daily_quotes import get_daily_quote
+from api.users import get_race
 from command_info import CommandInfo
 from commands.base import Command
 from commands.daily.dailyleaderboard import daily_quote_display
@@ -55,15 +58,69 @@ async def run(ctx: BotContext, daily_quote: dict) -> None:
     if not leaderboard:
         raise BotError("No Results", "No daily scores to display")
 
+    title = (
+        f"Daily Quote #{daily_quote["dayNumber"]:,} - "
+        f"{format_date(parse_date(daily_quote["startDate"]))}\n"
+        f"{quote["quoteId"]}"
+    )
+    graph_title = ("Raw " if ctx.flags.raw else "") + title.split("\n")[0]
+
+    await send_leaderboard_graph(
+        ctx,
+        leaderboard,
+        title=title,
+        description=daily_quote_display(daily_quote),
+        graph_title=graph_title,
+        url=race_url(quote["quoteId"]),
+    )
+
+
+def position_window(user_index: int, count: int) -> range:
+    """Return the indexes of the 10 entries around the caller, clamped to the leaderboard."""
+    start = max(0, user_index - 4)
+    end = min(start + 10, count)
+
+    return range(max(0, end - 10), end)
+
+
+async def attach_keystrokes(entries: list[dict]) -> None:
+    """Fetch the keystrokes of any entry the leaderboard was served without."""
+    missing = [entry for entry in entries if "keystrokeData" not in entry]
+    races = await asyncio.gather(*(
+        get_race(entry["userId"], entry["raceNumber"], get_keystrokes=True)
+        for entry in missing
+    ))
+
+    for entry, race in zip(missing, races, strict=True):
+        entry["keystrokeData"] = race["keystrokeData"]
+
+
+async def send_leaderboard_graph(
+    ctx: BotContext,
+    leaderboard: list[dict],
+    title: str,
+    description: str,
+    graph_title: str,
+    url: str,
+) -> None:
+    """Graph a leaderboard's top 10, plus a page centred on the caller when they placed."""
     # The API ranks on wpm, so raw ranks only hold within the 100 entries fetched.
     if ctx.flags.raw:
         leaderboard.sort(key=lambda score: -score["rawWpm"])
 
-    def build_score_list(entries) -> list[dict]:
+    user_index = next(
+        (i for i, s in enumerate(leaderboard) if s["userId"] == ctx.user["userId"]),
+        None,
+    )
+    top10 = range(min(10, len(leaderboard)))
+    window = position_window(user_index, len(leaderboard)) if user_index is not None else range(0)
+    await attach_keystrokes([leaderboard[i] for i in sorted(set(top10) | set(window))])
+
+    def build_score_list(indexes: range) -> list[dict]:
         """Decode each entry's keystrokes and attach the resulting WPM series."""
         scores = []
-        for score in entries:
-            score = dict(score)
+        for i in indexes:
+            score = dict(leaderboard[i])
             keystroke_data = get_keystroke_data(score["keystrokeData"])
             score["keystroke_wpm"] = (
                 keystroke_data.keystrokeRawWpm if ctx.flags.raw else keystroke_data.keystrokeWpm
@@ -71,27 +128,13 @@ async def run(ctx: BotContext, daily_quote: dict) -> None:
             scores.append(score)
         return scores
 
-    title = (
-        f"Daily Quote #{daily_quote["dayNumber"]:,} - "
-        f"{format_date(parse_date(daily_quote["startDate"]))}\n"
-        f"{quote["quoteId"]}"
-    )
-    description = daily_quote_display(daily_quote)
-    graph_title = ("Raw " if ctx.flags.raw else "") + title.split("\n")[0]
-
-    user_index = next(
-        (i for i, s in enumerate(leaderboard) if s["userId"] == ctx.user["userId"]),
-        None,
-    )
-
-    top10_scores = build_score_list(leaderboard[:10])
+    top10_scores = build_score_list(top10)
     top10_themed = user_index if user_index is not None and user_index < 10 else 0
 
     page = Page(
         title=title,
         description=description,
         button_name="Top 10" if user_index is not None else None,
-        default=True,
         render=lambda: daily_graph.render(
             top10_scores,
             graph_title,
@@ -103,13 +146,8 @@ async def run(ctx: BotContext, daily_quote: dict) -> None:
     pages = [page]
 
     if user_index is not None:
-        start = max(0, user_index - 4)
-        end = start + 10
-        if end > len(leaderboard):
-            end = len(leaderboard)
-            start = max(0, end - 10)
-        window_scores = build_score_list(leaderboard[start:end])
-        window_themed = user_index - start
+        window_scores = build_score_list(window)
+        window_themed = user_index - window.start
 
         pages.append(Page(
             title=title,
@@ -123,5 +161,11 @@ async def run(ctx: BotContext, daily_quote: dict) -> None:
             ),
         ))
 
-    message = Message(ctx, pages=pages, url=race_url(quote["quoteId"]))
+    message = Message(
+        ctx,
+        pages=pages,
+        url=url,
+        jump_page=1 if user_index is not None else None,
+        remember=True,
+    )
     await message.send()

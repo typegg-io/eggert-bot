@@ -334,11 +334,11 @@ def seed_bot(source: sqlite3.Connection, path, theme: dict, now: datetime) -> sq
     connection = copy_schema(source, path)
     commands = json.dumps({"counts": {}, "server": 0, "dm": 0})
 
-    connection.executemany(f"INSERT INTO users VALUES ({marks(13)})", [
+    connection.executemany(f"INSERT INTO users VALUES ({marks(14)})", [
         (DISCORD_ID, USER_ID, json.dumps(theme), commands, now.timestamp(),
-         None, None, 0, 1, 1, 1, "America/New_York", "en"),
+         None, None, 0, 1, 1, 1, "America/New_York", "en", "me"),
         (RIVAL_DISCORD_ID, RIVAL_ID, json.dumps(theme), commands, now.timestamp(),
-         None, None, 0, 0, 1, 1, "UTC", "en"),
+         None, None, 0, 0, 1, 1, "UTC", "en", "me"),
     ])
 
     connection.execute("INSERT INTO recent_quotes VALUES (?, ?)", [CHANNEL_ID, "q1"])

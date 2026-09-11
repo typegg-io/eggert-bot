@@ -10,6 +10,7 @@ from discord.ui import Button as DiscordButton, View
 
 from config import BOT_PREFIX, STATS_CHANNEL_ID, TYPEGG_GUILD_ID
 from context import BotContext
+from database.bot.users import update_leaderboard_page
 from utils import files
 from utils.colors import SUCCESS, WARNING
 from utils.flags import get_flag_title
@@ -95,6 +96,9 @@ class Message(View):
         profile (dict): Optional user profile for author section, pulled from API.
         show_avatar (bool): Whether to show the avatar in the embed.
         thumbnail (str): Optional thumbnail to display in the embed (URL).
+        jump_page (int): The page holding the caller. A paginated message reaches it with a 👤 button.
+        remember (bool): Whether to open on jump_page unless the caller last chose the first page,
+            and to save the caller's choice of the first page or jump_page as they press it.
 
     Methods:
         send(): Sends the constructed message with buttons and embeds.
@@ -117,6 +121,7 @@ class Message(View):
         show_range: bool = True,
         thumbnail: str = None,
         jump_page: int = None,
+        remember: bool = False,
     ) -> None:
         """Build a message from one page or a list of pages."""
         self.ctx = ctx
@@ -142,6 +147,12 @@ class Message(View):
         self.show_avatar = show_avatar
         self.thumbnail = thumbnail
         self.jump_page = jump_page
+
+        # A caller who did not place has no choice here, so their browsing must not overwrite it.
+        self.remember = remember and jump_page is not None
+        self.choice = ctx.user["leaderboardPage"] if self.remember else None
+        if self.choice == "me":
+            self.page_index = jump_page
 
         self.embeds = []
         self.cache = {}
@@ -280,6 +291,16 @@ class Message(View):
         else:
             await interaction.response.defer()
 
+        # The caller's page can be the top page, and 👤 still chooses their position.
+        if self.remember and interaction.user.id == self.ctx.author.id:
+            self.choose("me")
+
+    def choose(self, page: str) -> None:
+        """Save the caller's leaderboard page, 'me' or 'top', when it differs from their last choice."""
+        if page != self.choice:
+            self.choice = page
+            update_leaderboard_page(str(self.ctx.author.id), page)
+
     def add_buttons(self) -> None:
         """Adds buttons with custom names (non-paginated layout)."""
         for i, page in enumerate(self.pages):
@@ -335,6 +356,11 @@ class Message(View):
             if not interaction.response.is_done():
                 await interaction.response.defer()
             return
+
+        if self.remember and self.page_index == 0:
+            self.choose("top")
+        elif self.remember and self.page_index == self.jump_page:
+            self.choose("me")
 
         kwargs = {
             "embed": self.embeds[self.page_index],
@@ -484,6 +510,36 @@ def paginate_data(
         pages.append(Page(description=description, flag_title=flag_title))
 
     return pages
+
+
+def paginate_leaderboard(
+    scores: list[dict],
+    formatter: Callable[[int, dict], str],
+    user_id: str | None,
+) -> tuple[list[Page], int | None]:
+    """
+    Split a leaderboard into pages of 10, repeating the caller's row below every other page.
+
+    Args:
+        scores (list[dict]): Leaderboard entries in rank order, each carrying a `userId`.
+        formatter (Callable): Function that formats an entry's index and entry into a row.
+        user_id (str): The caller's TypeGG user ID.
+
+    Returns:
+        tuple: The pages, and the index of the page holding the caller or None if they did not place.
+    """
+    pages = paginate_data(list(enumerate(scores)), lambda row: formatter(*row), flag_title=False)
+    user_index = next((i for i, score in enumerate(scores) if score["userId"] == user_id), None)
+    if user_index is None:
+        return pages, None
+
+    jump_page = user_index // 10
+    user_row = formatter(user_index, scores[user_index])
+    for i, page in enumerate(pages):
+        if i != jump_page:
+            page.description += f"\n{user_row}"
+
+    return pages, jump_page
 
 
 def command_milestone(author, milestone) -> Embed:

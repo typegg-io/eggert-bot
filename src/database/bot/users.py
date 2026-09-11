@@ -31,6 +31,7 @@ def add_user(discord_id: str) -> dict:
         "isGgPlus": 0,
         "timezone": "UTC",
         "universe": DEFAULT_UNIVERSE,
+        "leaderboardPage": "me",
     }
     user_values = user.values()
 
@@ -141,6 +142,15 @@ def update_universe(discord_id: str, universe: str) -> None:
         SET universe = ?
         WHERE discordId = ?
     """, [universe, discord_id])
+
+
+def update_leaderboard_page(discord_id: str, page: str) -> None:
+    """Update the page leaderboards open on for a user, 'me' or 'top'."""
+    db.run("""
+        UPDATE users
+        SET leaderboardPage = ?
+        WHERE discordId = ?
+    """, [page, discord_id])
 
 
 def update_date_range(discord_id: str, start: float | None, end: float | None) -> None:

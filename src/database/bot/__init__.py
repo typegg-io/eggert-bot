@@ -16,13 +16,18 @@ db.run("""
         isPrivacyWarned INTEGER DEFAULT 0,
         isGgPlus INTEFER DEFAULT 0,
         timezone DEFAULT "UTC",
-        universe DEFAULT "en"
+        universe DEFAULT "en",
+        leaderboardPage DEFAULT "me" -- 'me' or 'top'
     )
 """)
 
 # users shipped without universe, so a database made before the split catches up here.
 if not db.fetch("SELECT 1 FROM pragma_table_info('users') WHERE name = 'universe'"):
     db.run('ALTER TABLE users ADD COLUMN universe DEFAULT "en"')
+
+# users shipped without leaderboardPage, so an older database catches up here.
+if not db.fetch("SELECT 1 FROM pragma_table_info('users') WHERE name = 'leaderboardPage'"):
+    db.run('ALTER TABLE users ADD COLUMN leaderboardPage DEFAULT "me"')
 
 db.run("""
     CREATE TABLE IF NOT EXISTS recent_quotes (

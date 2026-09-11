@@ -9,14 +9,14 @@ from context import BotContext
 from database.bot.recent_quotes import set_recent_quote
 from utils import dates
 from utils.dates import discord_date, format_date, parse_date
-from utils.messages import Message, Page, paginate_data, usable_in
+from utils.messages import Message, Page, paginate_leaderboard, usable_in
 from utils.strings import pp_display, quote_display, rank, username_with_flag
 from utils.urls import race_url
 
 info = CommandInfo(
     name="dailyleaderboard",
     aliases=["daily", "dlb", "d10"],
-    description="Displays the top 10 leaderboard for today's daily quote.\n"
+    description="Displays the top 100 leaderboard for today's daily quote.\n"
                 "Pass a date or day number to view a past daily.",
     parameters="[date/day_number:today]",
     examples=[
@@ -86,9 +86,8 @@ async def display_daily_quote(
             f"{quote_description}"
         )
 
-    def format_row(data) -> str:
+    def format_row(index: int, score: dict) -> str:
         """Format one leaderboard row, bolded when it belongs to the caller."""
-        index, score = data["index"], data["score"]
         bold = "**" if (
             hasattr(ctx, "user") and
             score["userId"] == ctx.user["userId"]
@@ -107,26 +106,12 @@ async def display_daily_quote(
     pages = [Page()]
     jump_page = None
     if show_leaderboard and leaderboard:
-        for i in range(len(leaderboard)):
-            leaderboard[i] = {"index": i, "score": leaderboard[i]}
-
         quote_description += "\n**Leaderboard**"
 
-        user_score = next((
-            row for row in leaderboard
-            if hasattr(ctx, "user") and row["score"]["userId"] == ctx.user["userId"]
-        ), None)
-
         if paginate:
-            pages = paginate_data(leaderboard, format_row, page_count=10, per_page=10, flag_title=False)
-            if user_score:
-                jump_page = user_score["index"] // 10
-                user_row = format_row(user_score)
-                for i, page in enumerate(pages):
-                    if i != jump_page:
-                        page.description += f"\n{user_row}"
+            pages, jump_page = paginate_leaderboard(leaderboard, format_row, ctx.user["userId"])
         else:
-            description = "".join(format_row(s) for s in leaderboard[:10])
+            description = "".join(format_row(i, score) for i, score in enumerate(leaderboard[:10]))
             pages[0].description = description
 
     message = Message(
@@ -142,6 +127,7 @@ async def display_daily_quote(
         content=f"<@&{DAILY_QUOTE_ROLE_ID}>" if mention else "",
         color=color or ctx.user["theme"]["embed"],
         jump_page=jump_page,
+        remember=True,
     )
 
     await message.send()
