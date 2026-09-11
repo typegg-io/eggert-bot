@@ -19,6 +19,8 @@ RACES = [
     ("slow", 130, 110),
 ]
 
+QUOTE_LENGTHS = {"fast": 200, "slow": 60}
+
 
 @pytest.fixture
 def races(tmp_path):
@@ -32,6 +34,10 @@ def races(tmp_path):
             (f"{quote_id}-{wpm}", quote_id, USER_ID, pp, pp, wpm, wpm)
             for quote_id, wpm, pp in RACES
         ],
+    )
+    connection.executemany(
+        "INSERT INTO quotes VALUES (?, 'source', ?, 0, 1, 1, 'tester', 1, '2025-01-01', 'English', NULL, NULL)",
+        [(quote_id, "a" * length) for quote_id, length in QUOTE_LENGTHS.items()],
     )
     connection.commit()
 
@@ -67,3 +73,11 @@ def test_a_range_filters_the_metric_it_sorts_by(races) -> None:
     results = bests(order_by="pp", min_value=125, max_value=310)
 
     assert [row["quoteId"] for row in results] == ["fast"]
+
+
+def test_a_length_range_keeps_its_low_end_and_drops_its_high_end(races) -> None:
+    """`-best 60-200c` keeps the 60 character quote and drops the 200 character one."""
+    flags = Flags(length_range=(60, 200))
+    results = get_quote_bests(USER_ID, columns=["quoteId", "wpm", "pp"], flags=flags)
+
+    assert [row["quoteId"] for row in results] == ["slow"]

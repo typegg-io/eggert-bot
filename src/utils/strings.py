@@ -158,6 +158,18 @@ def parse_wpm_range(s: str) -> tuple[float | None, float | None] | None:
     return None
 
 
+def parse_length_range(s: str) -> tuple[int | None, int | None] | None:
+    """Parse a quote length range string (>250c, <100c, 50-100c). Returns (min, max) or None."""
+    p = r"(\d+)"
+    if m := re.fullmatch(f">{p}c", s):
+        return int(m.group(1)), None
+    if m := re.fullmatch(f"<{p}c", s):
+        return None, int(m.group(1))
+    if m := re.fullmatch(f"{p}-{p}c", s):
+        return int(m.group(1)), int(m.group(2))
+    return None
+
+
 def rank(number) -> str:
     """Return a rank emoji for numbers 1-20, or bold number for others."""
     if 1 <= number <= 20:

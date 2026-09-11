@@ -123,11 +123,23 @@ def get_quote_bests(
 
     # JOIN clause
     join_clause = ""
-    if flags.language:
+    if flags.language or flags.length_range:
         join_clause = "JOIN quotes q ON q.quoteId = r.quoteId"
+        columns = columns.replace("quoteId", "r.quoteId")
+
+    if flags.language:
         conditions.append("q.language = ?")
         params.append(flags.language.name)
-        columns = columns.replace("quoteId", "r.quoteId")
+
+    # The same bounds as the metric range: the low end is kept and the high end is not.
+    if flags.length_range:
+        min_length, max_length = flags.length_range
+        if min_length is not None:
+            conditions.append("LENGTH(q.text) >= ?")
+            params.append(min_length)
+        if max_length is not None:
+            conditions.append("LENGTH(q.text) < ?")
+            params.append(max_length)
 
     where_clause = "WHERE " + " AND ".join(conditions)
     limit_clause = f"LIMIT {limit}" if limit else ""

@@ -9,15 +9,16 @@ info = CommandInfo(
     name="worst",
     aliases=["bottom"],
     description="Displays a user's bottom 100 quotes\n"
-                "Filter by a range of the metric: `>150`, `<120`, or `100-150`.",
-    parameters="[username] [pp|wpm] [range]",
+                "Filter by a range of the metric: `>150`, `<120`, or `100-150`.\n"
+                "Filter by quote length: `>250c`, `<100c`, or `50-100c`.",
+    parameters="[username] [pp|wpm] [range] [length]",
 )
 
 
 class Worst(Command):
     """Display a user's worst 100 quotes."""
 
-    supported_flags = {"metric", "raw", "gamemode", "status", "language", "number_range", "date_range"}
+    supported_flags = {"metric", "raw", "gamemode", "status", "language", "number_range", "length_range", "date_range"}
 
     @commands.command(aliases=info.aliases)
     async def worst(self, ctx: BotContext, username: str = None):

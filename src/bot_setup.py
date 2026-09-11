@@ -31,7 +31,7 @@ from utils.files import get_command_modules
 from utils.flags import FLAG_VALUES, PERIOD_VALUES, Flags, Language, apply_universe_status, resolve_universe
 from utils.logging import get_log_message, log
 from utils.messages import check_channel_permissions, command_milestone, welcome_message
-from utils.strings import get_argument, parse_number, parse_wpm_range
+from utils.strings import get_argument, parse_length_range, parse_number, parse_wpm_range
 from utils.urls import parse_solo_url
 from web_server.utils import assign_user_roles
 
@@ -131,6 +131,11 @@ def parse_flags(content: str) -> tuple[Flags, str, dict[str, str]]:
         if wpm_range := parse_wpm_range(value):
             flags.number_range = wpm_range
             explicit_flags["number_range"] = arg
+            continue
+
+        if length_range := parse_length_range(value):
+            flags.length_range = length_range
+            explicit_flags["length_range"] = arg
             continue
 
         flag = get_argument(FLAG_VALUES, value, _raise=False)

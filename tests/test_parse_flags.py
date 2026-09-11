@@ -134,6 +134,23 @@ def test_number_range_flag(token, expected):
     assert flags_for(f"-best {token}").number_range == expected
 
 
+@pytest.mark.parametrize(("token", "expected"), [
+    (">250c", (250, None)),
+    ("<100c", (None, 100)),
+    ("50-100c", (50, 100)),
+])
+def test_length_range_flag(token, expected):
+    """A `c` suffix reads the range as quote length and leaves the metric range alone."""
+    f = flags_for(f"-best {token}")
+    assert (f.length_range, f.number_range) == (expected, None)
+
+
+def test_a_length_range_is_not_left_behind_as_a_username():
+    """`-best eiko >250c` must not look up a user named `>250c`."""
+    assert cleaned("-best eiko >250c") == "-best eiko"
+    assert explicit("-best eiko >250c") == {"length_range"}
+
+
 # Languages
 
 def test_language_is_an_iso_code_not_a_name():

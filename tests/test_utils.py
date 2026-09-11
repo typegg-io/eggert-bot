@@ -21,6 +21,7 @@ from utils.strings import (
     format_duration,
     get_segments,
     ordinal_number,
+    parse_length_range,
     parse_number,
     parse_wpm_range,
     rank,
@@ -70,6 +71,24 @@ def test_parse_wpm_range(text, expected):
 @pytest.mark.parametrize("text", ["150", "abc", ">", "100-", "-150", ">150x"])
 def test_parse_wpm_range_returns_none_for_non_ranges(text):
     assert parse_wpm_range(text) is None
+
+
+# parse_length_range
+
+@pytest.mark.parametrize(("text", "expected"), [
+    (">250c", (250, None)),
+    ("<100c", (None, 100)),
+    ("50-100c", (50, 100)),
+])
+def test_parse_length_range(text, expected):
+    """A `c` suffix marks a range of quote lengths."""
+    assert parse_length_range(text) == expected
+
+
+@pytest.mark.parametrize("text", ["250c", ">250", "100-150", ">99.5c", "50-c", "c"])
+def test_parse_length_range_returns_none_for_non_ranges(text):
+    """A metric range, a bare length or a fractional length is not a length range."""
+    assert parse_length_range(text) is None
 
 
 # format_duration

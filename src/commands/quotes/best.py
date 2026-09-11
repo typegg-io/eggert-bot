@@ -21,7 +21,7 @@ COUNTER_SORTS = {"attempts": "attempts", "playtime": "playTime"}
 COUNTER_TITLES = {"attempts": "Most Attempted Quotes", "playtime": "Most Time Typed"}
 
 # Flags the counter sorts drop, since the API rejects every filter alongside them.
-UNFILTERABLE = {"metric", "gamemode", "number_range", "date_range"}
+UNFILTERABLE = {"metric", "gamemode", "number_range", "length_range", "date_range"}
 
 # A page this size costs the API no more than a page of 100, so ranked-only rarely needs a second.
 FETCH_SIZE = 500
@@ -33,14 +33,16 @@ info = CommandInfo(
     description="Displays a user's top 100 quote bests ordered by pp or WPM.\n"
                 "Use `pp` or `wpm` to set the metric.\n"
                 "Use `attempts` or `playtime` to rank your own quotes by how much you have typed them.\n"
-                "Filter by a range of the metric: `>150`, `<120`, or `100-150`.",
-    parameters="[username] [pp|wpm|attempts|playtime] [range]",
+                "Filter by a range of the metric: `>150`, `<120`, or `100-150`.\n"
+                "Filter by quote length: `>250c`, `<100c`, or `50-100c`.",
+    parameters="[username] [pp|wpm|attempts|playtime] [range] [length]",
     examples=[
         "-b",
         "-b eiko",
         "-b eiko wpm",
         "-b eiko wpm >150",
         "-b eiko <100 pp",
+        "-b eiko 50-100c",
         "-most attempts",
         "-most playtime",
     ],
@@ -51,7 +53,7 @@ info = CommandInfo(
 class Best(Command):
     """Display a user's best 100 quotes."""
 
-    supported_flags = {"metric", "raw", "gamemode", "status", "language", "number_range", "date_range"}
+    supported_flags = {"metric", "raw", "gamemode", "status", "language", "number_range", "length_range", "date_range"}
 
     @commands.command(aliases=info.aliases)
     async def best(self, ctx: BotContext, *args):
@@ -166,6 +168,16 @@ async def run_counters(ctx: BotContext, profile: Profile, sort: str) -> None:
     await message.send()
 
 
+def range_label(bounds: tuple, unit: str) -> str:
+    """Return a range for a title, like `100-150 WPM`, `≥150 WPM` or `<120 WPM`."""
+    min_value, max_value = bounds
+    if min_value is not None and max_value is not None:
+        return f"{min_value:g}-{max_value:g} {unit}"
+    if min_value is not None:
+        return f"≥{min_value:g} {unit}"
+    return f"<{max_value:g} {unit}"
+
+
 async def run(
     ctx: BotContext,
     profile: Profile,
@@ -215,12 +227,13 @@ async def run(
     title = f"{["Worst", "Best"][reverse]}{[" WPM", ""][metric == "pp"]} Quotes"
 
     unit = "pp" if metric == "pp" else "WPM"
-    if min_value is not None and max_value is not None:
-        title += f" {min_value:g}-{max_value:g} {unit}"
-    elif min_value is not None:
-        title += f" ≥{min_value:g} {unit}"
-    elif max_value is not None:
-        title += f" <{max_value:g} {unit}"
+    ranges = []
+    if ctx.flags.number_range:
+        ranges.append(range_label(ctx.flags.number_range, unit))
+    if ctx.flags.length_range:
+        ranges.append(range_label(ctx.flags.length_range, "chars"))
+    if ranges:
+        title += " " + ", ".join(ranges)
 
     message = Message(
         ctx,

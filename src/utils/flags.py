@@ -77,6 +77,7 @@ class Flags:
     language: str | Language | None = None
     number: int | None = None
     number_range: tuple | None = None
+    length_range: tuple | None = None
     quote_id: str | None = None
     date: datetime | None = None
     dates: tuple[datetime, ...] = ()
