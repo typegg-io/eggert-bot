@@ -19,7 +19,7 @@ from utils.strings import INCREASE, format_duration, quote_display
 
 info = CommandInfo(
     name="quote",
-    aliases=["q", "pb", "qh", "qg", "qa"],
+    aliases=["q", "pb", "qh", "qg", "qp", "qa"],
     description="Displays a user's stats on a specific quote.",
     parameters="[username] [quote_id:latest]",
     privacy=True,
@@ -29,6 +29,7 @@ info = CommandInfo(
         "-q eiko piykyai_3408",
     ],
 )
+PROGRESSION_LIMIT = 50
 
 
 class Quote(Command):
@@ -304,6 +305,45 @@ def build_graph_page(quote_races: list, ranked: bool, theme: Theme) -> Page:
     return page
 
 
+def build_progression_page(quote_races: list[dict], ranked: bool) -> Page:
+    """Build the page listing every race that raised a user's best on a quote, oldest first."""
+    metric = "pp" if ranked else "wpm"
+    races = sorted(quote_races, key=lambda x: parse_date(x["timestamp"]).timestamp())
+
+    progression = []
+    for attempt, race in enumerate(races, 1):
+        if not progression or race[metric] > progression[-1][1][metric]:
+            progression.append((attempt, race))
+
+    lines = []
+    for i, (attempt, race) in enumerate(progression):
+        gain = f" (+{race[metric] - progression[i - 1][1][metric]:,.2f})" if i else ""
+        if ranked:
+            score = f"{race["pp"]:,.2f} pp{gain} - {race["wpm"]:,.2f} WPM"
+        else:
+            score = f"{race["wpm"]:,.2f} WPM{gain}"
+        lines.append(f"{i + 1}. {score} - #{attempt:,} - {discord_date(race["timestamp"], "D")}")
+
+    # Discord caps an embed description at 4,096 characters.
+    if len(lines) > PROGRESSION_LIMIT:
+        hidden = len(lines) - PROGRESSION_LIMIT
+        lines = lines[:1] + [f"*{hidden:,} more improvements*"] + lines[-(PROGRESSION_LIMIT - 1):]
+
+    first, best = progression[0][1], progression[-1][1]
+    if ranked:
+        total_gain = f"+{best["pp"] - first["pp"]:,.2f} pp ({best["wpm"] - first["wpm"]:+,.2f} WPM)"
+    else:
+        total_gain = f"+{best["wpm"] - first["wpm"]:,.2f} WPM"
+
+    description = (
+        f"**Races:** {len(races):,}\n"
+        f"**Improvements:** {len(progression) - 1:,}\n"
+        f"**Total Gain:** {total_gain}\n\n"
+    ) + "\n".join(lines)
+
+    return Page(description=description, button_name="PB Progression")
+
+
 async def run(ctx: BotContext, profile: Profile, quote: dict) -> None:
     """Send a user's personal best, history and graph for one quote."""
     user_id = profile["userId"]
@@ -325,11 +365,12 @@ async def run(ctx: BotContext, profile: Profile, quote: dict) -> None:
         pages += [
             build_history_page(quote_races, is_ranked),
             build_graph_page(quote_races, is_ranked, ctx.user["theme"]),
+            build_progression_page(quote_races, is_ranked),
             build_attempts_page(stats, quote, quote_races),
         ]
 
     try:
-        default_page = {"qh": 1, "qg": 2, "qa": 3}.get(ctx.invoked_with, 0)
+        default_page = {"qh": 1, "qg": 2, "qp": 3, "qa": 4}.get(ctx.invoked_with, 0)
         pages[default_page].default = True
     except IndexError:
         raise BotError(

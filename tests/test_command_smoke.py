@@ -81,6 +81,7 @@ INVOCATIONS = [
     "-pplength",
     "-pplength raw",
     "-quote q1",
+    "-qp q1",
     "-quoteleaderboard q1",
     "-quotesover 100",
     "-quotestrength",
