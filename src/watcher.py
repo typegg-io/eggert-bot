@@ -46,12 +46,17 @@ class ReloadHandler(FileSystemEventHandler):
         self.file_hashes: dict[str, str] = {str(path): file_digest(path) for path in watched_files()}
 
     def on_modified(self, event) -> None:
-        """Queue a reload when a Python file's contents actually change."""
-        path = Path(event.src_path)
+        """Queue a reload when a Python file is written in place."""
+        if not event.is_directory:
+            self._check(Path(event.src_path))
 
-        if event.is_directory:
-            return
+    def on_moved(self, event) -> None:
+        """Queue a reload when a temp file is renamed over a Python file, as atomic saves do."""
+        if not event.is_directory:
+            self._check(Path(event.dest_path))
 
+    def _check(self, path: Path) -> None:
+        """Queue a reload if a Python file's contents differ from the last hash seen."""
         if path.suffix != ".py":
             return
 
@@ -66,11 +71,11 @@ class ReloadHandler(FileSystemEventHandler):
             return
         self.file_hashes[str(path)] = digest
 
-        if event.src_path in self.debounce_timers:
-            self.debounce_timers[event.src_path].cancel()
+        if str(path) in self.debounce_timers:
+            self.debounce_timers[str(path)].cancel()
 
         timer = threading.Timer(0.5, lambda: self._queue_change(path))
-        self.debounce_timers[event.src_path] = timer
+        self.debounce_timers[str(path)] = timer
         timer.start()
 
     def _queue_change(self, path: Path) -> None:

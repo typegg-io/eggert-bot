@@ -6,7 +6,7 @@ Windows reports attribute and access changes as modifications, so an event alone
 import time
 from types import SimpleNamespace
 
-from watchdog.events import FileModifiedEvent
+from watchdog.events import FileModifiedEvent, FileMovedEvent
 
 from watcher import ReloadHandler, watched_files
 
@@ -38,6 +38,18 @@ def test_an_event_on_changed_contents_queues_one_reload() -> None:
     handler.file_hashes[str(path)] = "stale"
 
     handler.on_modified(FileModifiedEvent(str(path)))
+    time.sleep(0.7)
+
+    assert queued == [path]
+
+
+def test_an_atomic_save_queues_one_reload() -> None:
+    """An editor that renames a temp file over the module must still reload it."""
+    handler, queued = build_handler()
+    path = watched_files()[0]
+    handler.file_hashes[str(path)] = "stale"
+
+    handler.on_moved(FileMovedEvent(f"{path}.tmp.1612.7a50f7429bdf", str(path)))
     time.sleep(0.7)
 
     assert queued == [path]
