@@ -11,14 +11,14 @@ from utils.messages import Message, Page
 from utils.schemas import Profile
 
 MILESTONE_STEPS = {"pp": 25, "wpm": 10}
-MILESTONE_LIMIT = 40
+PROGRESSION_LIMIT = 50
 LABELS = {"pp": "pp", "wpm": "WPM"}
 
 info = CommandInfo(
     name="personalbestgraph",
     aliases=["pbg", "milestones"],
     description="Displays a user's personal best progression across every race.\n"
-                "Lists the race that broke each milestone, every 25 pp or 10 WPM.",
+                "Lists every PB, marking each one that broke a 25 pp or 10 WPM milestone.",
     parameters="[username]",
     examples=[
         "-pbg",
@@ -62,34 +62,32 @@ def find_milestones(values: list[float], best_indices: list[int], step: int) -> 
     return milestones
 
 
-def build_milestone_lines(
+def build_progression_lines(
     races: list[dict],
     metric: str,
     best_indices: list[int],
     milestones: list[tuple[int, int]],
+    over_time: bool,
 ) -> list[str]:
-    """Return one line for the first race, each milestone, and the best race."""
-    suffix = f" {LABELS[metric]}"
-    entries = [("First Race", best_indices[0])]
-    entries += [(f"Broke {barrier:,}{suffix}", i) for i, barrier in milestones]
-
-    best = best_indices[-1]
-    if entries[-1][1] == best:
-        entries[-1] = (f"{entries[-1][0]} (Best)", best)
-    else:
-        entries.append(("Best", best))
-
+    """Return one line per personal best, tagged with the milestone it broke if any."""
+    barriers = dict(milestones)
     lines = []
-    for title, i in entries:
+    for i in best_indices:
         race = races[i]
+        line = f"{race[metric]:,.2f} {LABELS[metric]}"
+        if over_time:
+            line += f" - {discord_date(race["timestamp"], "D")}"
         # Some match races were imported without a race number.
-        number = f" - Race #{race["raceNumber"]:,}" if race["raceNumber"] is not None else ""
-        lines.append(f"**{title}:** {race[metric]:,.2f}{suffix}{number} - {discord_date(race["timestamp"], "D")}")
+        elif race["raceNumber"] is not None:
+            line += f" - #{race["raceNumber"]:,}"
+        if i in barriers:
+            line += f" - **Broke {barriers[i]:,}**"
+        lines.append(line)
 
     # Discord caps an embed description at 4,096 characters.
-    if len(lines) > MILESTONE_LIMIT:
-        hidden = len(lines) - MILESTONE_LIMIT
-        lines = lines[:1] + [f"*{hidden:,} more milestones*"] + lines[-(MILESTONE_LIMIT - 1):]
+    if len(lines) > PROGRESSION_LIMIT:
+        hidden = len(lines) - PROGRESSION_LIMIT
+        lines = lines[:1] + [f"*{hidden:,} more improvements*"] + lines[-(PROGRESSION_LIMIT - 1):]
 
     return lines
 
@@ -110,12 +108,16 @@ async def run(ctx: BotContext, profile: Profile) -> None:
     values = [race[metric] for race in race_list]
     best_indices = find_personal_bests(values)
     milestones = find_milestones(values, best_indices, MILESTONE_STEPS[metric])
-    lines = build_milestone_lines(race_list, metric, best_indices, milestones)
 
     header = (
         f"**Races:** {len(race_list):,}\n"
-        f"**PB Improvements:** {len(best_indices) - 1:,}\n\n"
-    ) + "\n".join(lines)
+        f"**PB Improvements:** {len(best_indices) - 1:,}\n"
+        f"**Milestones:** {len(milestones):,}\n"
+    )
+
+    def describe(over_time: bool) -> str:
+        """Return the progression list for one page."""
+        return "\n".join(build_progression_lines(race_list, metric, best_indices, milestones, over_time))
 
     label = LABELS[metric]
     milestone_indices = [i for i, _ in milestones]
@@ -138,11 +140,21 @@ async def run(ctx: BotContext, profile: Profile) -> None:
 
     message = Message(
         ctx,
-        title=f"{label} Milestones",
+        title=f"{label} PB Progression",
         header=header,
         pages=[
-            Page(button_name="Over Races", render=render(race_numbers, False), flag_title=True),
-            Page(button_name="Over Time", render=render(timestamps, True), flag_title=True),
+            Page(
+                description=describe(False),
+                button_name="Over Races",
+                render=render(race_numbers, False),
+                flag_title=True,
+            ),
+            Page(
+                description=describe(True),
+                button_name="Over Time",
+                render=render(timestamps, True),
+                flag_title=True,
+            ),
         ],
         profile=profile,
     )
