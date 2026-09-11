@@ -268,6 +268,13 @@ def get_quote_race_counts(user_id: str) -> list[sqlite3.Row]:
     return results
 
 
+def get_raced_quote_ids(user_id: str) -> set[str]:
+    """Return the ID of every quote a user has raced."""
+    results = db.fetch("SELECT DISTINCT quoteId FROM races WHERE userId = ?", [user_id])
+
+    return {row["quoteId"] for row in results}
+
+
 def get_completion_time(user_id: str) -> float:
     """Return the milliseconds a user spent finishing races, idle time excluded where known."""
     result = db.fetch_one("""

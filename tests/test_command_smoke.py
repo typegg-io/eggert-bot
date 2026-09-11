@@ -106,6 +106,8 @@ INVOCATIONS = [
     "-topgraph q1",
     "-10g q1 raw",
     "-toptens",
+    "-unraced",
+    "-ur keegan",
     "-week",
     "-worst",
     "-year",
@@ -138,6 +140,11 @@ RAW_PP_SUBSTITUTED = [
     "-dailystats raw",
     "-racegraph",
     "-racehistory raw",
+]
+
+# The whole command is a GG+ feature.
+GG_PLUS_REFUSED = [
+    "-unraced",
 ]
 
 # Commands left out, and the reason each one cannot run here.
@@ -707,6 +714,13 @@ def test_raw_pp_fields_still_render_without_gg_plus(seeded, invocation):
     ctx = asyncio.run(invoke(invocation, gg_plus=False))
 
     assert ctx.sent, f"{invocation} sent nothing without GG+"
+
+
+@pytest.mark.parametrize("invocation", GG_PLUS_REFUSED)
+def test_a_gg_plus_command_is_refused_without_gg_plus(seeded, invocation):
+    """A GG+ command refuses a non-subscriber."""
+    with pytest.raises(NotSubscribed):
+        asyncio.run(invoke(invocation, gg_plus=False))
 
 
 def test_the_seed_is_isolated_from_the_real_database(seeded):
