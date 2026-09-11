@@ -14,7 +14,6 @@ START_DATE = parse_date("2025-09-21")
 async def get_daily_quote(
     date: str = dates.now().strftime("%Y-%m-%d"),
     number: int = None,
-    distinct: bool = True,
     results: int = 10,
     country: str = None,
     get_keystrokes: bool = False,
@@ -33,7 +32,6 @@ async def get_daily_quote(
         url=f"{API_URL}/v1/daily",
         params={
             "date": date,
-            "distinct": distinct,
             "results": results,
             "country": country,
             "showKeystrokeData": get_keystrokes,

@@ -20,7 +20,6 @@ async def get_quotes(
     source_id: str = None,
     status: str = "ranked",
     sort: str = "created",
-    distinct: bool = True,
     reverse: bool = True,
     page: int = 1,
     per_page: int = 10,
@@ -42,7 +41,6 @@ async def get_quotes(
             "sourceId": source_id,
             "status": status,
             "sort": sort,
-            "distinct": distinct,
             "reverse": reverse,
             "page": page,
             "perPage": per_page,
@@ -50,14 +48,13 @@ async def get_quotes(
     )
 
 
-async def get_quote(quote_id: str, distinct: bool = True) -> dict[str, Any]:
+async def get_quote(quote_id: str) -> dict[str, Any]:
     """
     Calls GET /quotes/{quoteId}.
     Returns the JSON response as a dict.
     """
     return await request(
         url=f"{API_URL}/v1/quotes/{quote_id}",
-        params={"distinct": distinct},
         exceptions={404: UnknownQuote(quote_id)},
     )
 
