@@ -92,6 +92,21 @@ categories = {
         "title": "Characters Typed",
         "formatter": lambda user: f"{user["stats"]["charactersTyped"]:,}"
     },
+    "firsts": {
+        "sort": "firsts",
+        "title": "Quote Firsts",
+        "formatter": lambda user: f"{user["stats"]["firsts"]:,}"
+    },
+    "podiums": {
+        "sort": "podiums",
+        "title": "Quote Podiums",
+        "formatter": lambda user: f"{user["stats"]["podiums"]:,}"
+    },
+    "toptens": {
+        "sort": "topTens",
+        "title": "Quote Top 10s",
+        "formatter": lambda user: f"{user["stats"]["topTens"]:,}"
+    },
 
     # Multiplayer leaderboards
     "quickplay": {
@@ -204,6 +219,7 @@ class Leaderboard(Command):
 UNIVERSE_SORTS = frozenset({
     "totalPp", "nWpm", "bestPp", "bestWpm",
     "races", "quotesTyped", "charactersTyped", "playTime",
+    "firsts", "podiums", "topTens",
 })
 
 
@@ -233,7 +249,7 @@ def is_statusless(leaderboard: str) -> bool:
         "wins", "level", "nwpm", "views",
         "daily", "streak", "dailyquotes", "quickplay",
         "dailywins", "dailyseconds", "dailytoptens",
-        "quotechars",
+        "quotechars", "firsts", "podiums", "toptens",
     ]
 
 

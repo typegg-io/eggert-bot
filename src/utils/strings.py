@@ -64,6 +64,9 @@ OPTION_ALIASES = {
     # "pt" is Portuguese, so play time cannot have the obvious alias.
     "playtime": ["time", "ptime"],
     "level": ["experience", "xp"],
+    "firsts": ["first"],
+    "podiums": ["podium"],
+    "toptens": ["top10s", "top10"],
     "day": ["d"],
     "week": ["wk", "w"],
     "month": ["mo", "m"],

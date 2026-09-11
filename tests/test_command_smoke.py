@@ -64,6 +64,9 @@ INVOCATIONS = [
     "-endurance raw",
     "-histogram",
     "-leaderboard qo 100",
+    "-leaderboard firsts",
+    "-lb podium -solo",
+    "-lb top10s -fr",
     "-improvement",
     "-improvement acc",
     "-simp acc",
@@ -297,6 +300,9 @@ def fake_profile(user_id: str, races: int) -> dict:
             "bestPp": {"value": 240.0},
             "bestWpm": {"value": 168.0},
             "dailyQuotes": {"streak": 6, "bestStreak": 19, "completed": seed_data.DAILY_DAYS},
+            "firsts": 3,
+            "podiums": 7,
+            "topTens": 11,
         },
     }
 
@@ -499,6 +505,10 @@ async def fake_request(url: str, params: dict = None, **kwargs) -> dict:
     """Answer the API calls the seeded commands make, and name any that is unaccounted for."""
     if url.endswith("/v1/daily"):
         return daily_payload()
+
+    # The leaderboard writes its rank and formatter into each row.
+    if url.endswith("/v1/leaders"):
+        return {"users": [dict(profile) for profile in PROFILES.values()]}
 
     for user_id, profile in PROFILES.items():
         if url.endswith(f"/users/{user_id}"):

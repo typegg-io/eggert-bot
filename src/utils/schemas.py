@@ -55,6 +55,9 @@ class ProfileStats(TypedDict):
     bestPp: BestRecord
     bestWpm: BestRecord
     dailyQuotes: DailyQuoteStats
+    firsts: int
+    podiums: int
+    topTens: int
 
 
 class Profile(TypedDict):
