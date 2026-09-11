@@ -48,13 +48,15 @@ async def get_quotes(
     )
 
 
-async def get_quote(quote_id: str) -> dict[str, Any]:
+async def get_quote(quote_id: str, results: int | None = None) -> dict[str, Any]:
     """
     Calls GET /quotes/{quoteId}.
     Returns the JSON response as a dict.
     """
+    # The leaderboard defaults to 10 rows, caps at 100 and never carries keystrokes.
     return await request(
         url=f"{API_URL}/v1/quotes/{quote_id}",
+        params={"results": results},
         exceptions={404: UnknownQuote(quote_id)},
     )
 

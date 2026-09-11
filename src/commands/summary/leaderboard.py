@@ -171,7 +171,7 @@ class Leaderboard(Command):
             if ctx.flags.quote_id == "daily":
                 category = "daily"
             else:
-                quote = await self.get_quote(ctx, ctx.flags.quote_id, from_api=True)
+                quote = await self.get_quote(ctx, ctx.flags.quote_id, from_api=True, results=100)
                 enforce_daily_quote(ctx, quote["quoteId"])
                 return await run_quoteleaderboard(ctx, quote)
 

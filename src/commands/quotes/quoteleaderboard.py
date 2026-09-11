@@ -7,14 +7,14 @@ from context import BotContext
 from database.bot.recent_quotes import get_recent_quote
 from utils.dates import discord_date
 from utils.errors import MissingArguments
-from utils.messages import Message, Page, usable_in
+from utils.messages import Message, Page, paginate_leaderboard, usable_in
 from utils.strings import quote_display, rank, username_with_flag
 from utils.urls import race_url
 
 info = CommandInfo(
     name="quoteleaderboard",
     aliases=["qlb", "10"],
-    description="Displays the top 10 leaderboard for a specific quote.",
+    description="Displays the top 100 leaderboard for a specific quote.",
     parameters="<quote_id>",
     examples=[
         "-10 piykyai_3408",
@@ -23,7 +23,7 @@ info = CommandInfo(
 
 
 class QuoteLeaderboard(Command):
-    """Display the top 10 leaderboard for one quote."""
+    """Display the top 100 leaderboard for one quote."""
 
     supported_flags = {"quote_id"}
 
@@ -35,45 +35,55 @@ class QuoteLeaderboard(Command):
             ctx.flags.quote_id = get_recent_quote(ctx.channel.id)
             if ctx.flags.quote_id is None:
                 raise MissingArguments
-        quote = await self.get_quote(ctx, ctx.flags.quote_id, from_api=True)
+        quote = await self.get_quote(ctx, ctx.flags.quote_id, from_api=True, results=100)
         enforce_daily_quote(ctx, quote["quoteId"])
         await run(ctx, quote)
 
 
 async def run(ctx: BotContext, quote: dict) -> None:
-    """Send a quote and the 10 fastest races on it."""
-    description = quote_display(
+    """Send a quote and the fastest race of each of its top 100 users, 10 per page."""
+
+    def format_row(index: int, score: dict) -> str:
+        """Format one leaderboard row, bolded when it belongs to the caller."""
+        bold = "**" if score["userId"] == ctx.user["userId"] else ""
+
+        rank_display = rank(index + 1)
+        if bold:
+            rank_display = rank_display.replace("*", "")
+
+        pp = f"{score["pp"]:,.0f} pp - " if quote["ranked"] else ""
+        return (
+            f"{bold}{rank_display} {username_with_flag(score)} - "
+            f"{score["wpm"]:,.2f} WPM ({score["accuracy"]:.2%}) - {pp}"
+            f"{discord_date(score["timestamp"])}{bold}\n"
+        )
+
+    if quote["leaderboard"]:
+        pages, jump_page = paginate_leaderboard(quote["leaderboard"], format_row, ctx.user["userId"])
+    else:
+        pages, jump_page = [Page(description="No one has raced this quote.")], None
+
+    message = Message(
+        ctx,
+        title=quote["quoteId"],
+        header=quote_leaderboard_display(quote) + "\n**Leaderboard**",
+        pages=pages,
+        url=race_url(quote["quoteId"]),
+        thumbnail=quote["source"]["thumbnailUrl"],
+        jump_page=jump_page,
+        remember=True,
+    )
+
+    await message.send()
+
+
+def quote_leaderboard_display(quote: dict) -> str:
+    """Format a quote's text and metadata for the top of its leaderboard."""
+    return quote_display(
         quote,
         display_author=True,
         display_status=True,
         display_racers_users=True,
         display_submitted_by=True,
         max_text_chars=1000,
-    ) + "\n**Top 10**\n"
-
-    leaderboard_string = ""
-
-    if not quote["leaderboard"]:
-        leaderboard_string = "No one has raced this quote."
-    else:
-        for i, score in enumerate(quote["leaderboard"]):
-            pp = f"{score["pp"]:,.0f} pp - " if quote["ranked"] else ""
-            leaderboard_string += (
-                f"{rank(i + 1)} {username_with_flag(score)} - "
-                f"{score["wpm"]:,.2f} WPM ({score["accuracy"]:.2%}) - {pp}"
-                f"{discord_date(score["timestamp"])}\n"
-            )
-
-    page = Page(
-        title=quote["quoteId"],
-        description=description + leaderboard_string,
     )
-
-    message = Message(
-        ctx,
-        page=page,
-        url=race_url(quote["quoteId"]),
-        thumbnail=quote["source"]["thumbnailUrl"],
-    )
-
-    await message.send()

@@ -265,6 +265,7 @@ class Command(commands.Cog):
         quote_id: str | None = None,
         user_id: str | None = None,
         from_api: bool | None = False,
+        results: int | None = None,
     ) -> dict:
         """Fetches a quote from database or API, optionally pass a user ID to take their latest quote ID."""
         if quote_id is None and user_id is not None:
@@ -282,7 +283,7 @@ class Command(commands.Cog):
         quote_id = unquote(quote_id)
 
         if from_api:
-            quote = await get_quote_api(quote_id)
+            quote = await get_quote_api(quote_id, results)
         else:
             quote = get_quote_db(quote_id)
 
