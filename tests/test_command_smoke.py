@@ -90,6 +90,8 @@ INVOCATIONS = [
     "-marathon",
     "-marathon pp 1h",
     "-matchgraph",
+    "-milestone 5",
+    "-ms 100 wpm",
     "-month",
     "-personalbestgraph",
     "-pbg -wpm",
