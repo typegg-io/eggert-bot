@@ -7,6 +7,26 @@ from utils.errors import ProfileNotFound
 from utils.logging import log_error, log_server
 from utils.strings import compact_pretty_print
 
+ERROR_PAGES = {
+    403: ("Forbidden", "You don't have access to this."),
+    404: ("Page Not Found", "This page doesn't exist."),
+    405: ("Method Not Allowed", "This page doesn't accept that request."),
+}
+
+
+def error_page(request: web.Request, status: int, error: str, message: str = "") -> web.Response:
+    """Render the error template for one status."""
+    return aiohttp_jinja2.render_template(
+        template_name="error.html",
+        request=request,
+        context={
+            "status": status,
+            "error": error,
+            "message": message,
+        },
+        status=status,
+    )
+
 
 @web.middleware
 async def request_logging_middleware(request, handler) -> web.StreamResponse:
@@ -69,42 +89,19 @@ async def error_middleware(request, handler) -> web.StreamResponse:
     try:
         return await handler(request)
 
-    except web.HTTPNotFound:
-        return aiohttp_jinja2.render_template(
-            template_name="error.html",
-            request=request,
-            context={
-                "status": 404,
-                "error": "Page Not Found",
-                "message": "This page doesn't exist.",
-            },
-            status=404,
-        )
-
     except ProfileNotFound as e:
-        return aiohttp_jinja2.render_template(
-            "error.html",
-            request=request,
-            context={
-                "status": 404,
-                "error": "User Not Found",
-                "message": str(e),
-            },
-            status=404,
-        )
+        return error_page(request, 404, "User Not Found", str(e))
 
-    except web.HTTPMethodNotAllowed:
-        return web.Response(status=405, text="Method Not Allowed")
+    except web.HTTPError as e:
+        # A client error is the router refusing a bad request, so only a server error is worth reporting.
+        if e.status >= 500:
+            log_error("WebServer Error", e)
+
+        error, message = ERROR_PAGES.get(e.status, (e.reason, ""))
+
+        return error_page(request, e.status, error, message)
 
     except Exception as e:
         log_error("WebServer Error", e)
 
-        return aiohttp_jinja2.render_template(
-            template_name="error.html",
-            request=request,
-            context={
-                "status": 500,
-                "error": "Internal Server Error",
-            },
-            status=500,
-        )
+        return error_page(request, 500, "Internal Server Error")
