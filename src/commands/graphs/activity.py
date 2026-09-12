@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timezone
 
 from discord.ext import commands
 
@@ -7,7 +7,7 @@ from commands.base import Command
 from context import BotContext
 from database.typegg.races import get_races
 from graphs import activity
-from utils.dates import format_utc_offset
+from utils.dates import current_utc_offset, format_utc_offset
 from utils.errors import NoRacesFiltered
 from utils.messages import Message, Page
 from utils.schemas import Profile
@@ -73,20 +73,21 @@ async def run(ctx: BotContext, profile: Profile) -> None:
     if not race_list:
         raise NoRacesFiltered(profile["username"])
 
-    timezone = ctx.user["timezone"]
+    utc_offset = current_utc_offset(ctx.user["timezone"])
+    # Today's offset applies to every race, so the graph stays a rigid rotation of the UTC clock.
+    fixed = timezone(utc_offset)
     hourly = [0] * 24
     weekly = [0] * 7
 
     for race in race_list:
-        # Each race carries its own DST offset, so the title's single offset only labels today's.
-        date = datetime.fromisoformat(race["timestamp"]).astimezone(timezone)
+        date = datetime.fromisoformat(race["timestamp"]).astimezone(fixed)
         hourly[date.hour] += 1
         # Python weeks open on Monday and the graph opens on Sunday.
         weekly[(date.weekday() + 1) % 7] += 1
 
     username = profile["username"]
     total = len(race_list)
-    offset = format_utc_offset(timezone)
+    offset = format_utc_offset(utc_offset)
 
     pages = [
         Page(

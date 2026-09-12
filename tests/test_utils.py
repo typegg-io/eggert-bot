@@ -1,11 +1,11 @@
 """Tests for the pure helpers in utils/, which take no database, API or matplotlib."""
 
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 from zoneinfo import ZoneInfo
 
 import pytest
 
-from utils.dates import format_utc_offset, is_date_like, parse_date
+from utils.dates import current_utc_offset, format_utc_offset, is_date_like, parse_date
 from utils.errors import InvalidDate, InvalidNumber
 from utils.keystrokes import calculate_wpm
 from utils.stats import (
@@ -205,17 +205,20 @@ def test_parse_date_rejects_nonsense():
         parse_date("not-a-date")
 
 
-# Every zone here stays on one offset all year, so the expectation holds whenever the suite runs.
-@pytest.mark.parametrize(("zone", "expected"), [
-    ("UTC", "UTC"),
-    ("America/Phoenix", "UTC-7"),
-    ("Asia/Tokyo", "UTC+9"),
-    ("Asia/Kolkata", "UTC+5:30"),
-    ("Asia/Kathmandu", "UTC+5:45"),
-    ("Pacific/Marquesas", "UTC-9:30"),
+@pytest.mark.parametrize(("offset", "expected"), [
+    (timedelta(0), "UTC"),
+    (timedelta(hours=-7), "UTC-7"),
+    (timedelta(hours=9), "UTC+9"),
+    (timedelta(hours=5, minutes=30), "UTC+5:30"),
+    (timedelta(hours=5, minutes=45), "UTC+5:45"),
+    (timedelta(hours=-9, minutes=-30), "UTC-9:30"),
 ])
-def test_format_utc_offset_labels_a_timezone(zone, expected):
-    assert format_utc_offset(ZoneInfo(zone)) == expected
+def test_format_utc_offset_labels_an_offset(offset, expected):
+    assert format_utc_offset(offset) == expected
+
+
+def test_current_utc_offset_reads_a_zone_that_never_shifts():
+    assert current_utc_offset(ZoneInfo("Asia/Kolkata")) == timedelta(hours=5, minutes=30)
 
 
 # Stats

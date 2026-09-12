@@ -35,9 +35,14 @@ def epoch() -> datetime:
     return datetime(1970, 1, 1, tzinfo=UTC)
 
 
-def format_utc_offset(tz: ZoneInfo) -> str:
-    """Return a timezone's offset from UTC right now, like UTC-5 or UTC+5:30."""
-    total_minutes = round(now().astimezone(tz).utcoffset().total_seconds() / 60)
+def current_utc_offset(tz: ZoneInfo) -> timedelta:
+    """Return how far a timezone stands from UTC right now."""
+    return now().astimezone(tz).utcoffset()
+
+
+def format_utc_offset(offset: timedelta) -> str:
+    """Return an offset from UTC for display, like UTC-5 or UTC+5:30."""
+    total_minutes = round(offset.total_seconds() / 60)
     if total_minutes == 0:
         return "UTC"
 
