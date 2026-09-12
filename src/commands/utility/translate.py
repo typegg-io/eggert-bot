@@ -9,7 +9,7 @@ from utils.errors import BotError, MissingArguments
 from utils.keyboard_layouts import K, get_keymap, keymaps as external_keymaps
 from utils.messages import Message, Page, usable_in
 
-supported_layouts_string = "Supported layouts: `QWERTY`, `Dvorak`, `Colemak`, `Gallium`"
+supported_layouts_string = "Supported layouts: " + ", ".join(f"`{name}`" for name in external_keymaps)
 
 info = CommandInfo(
     name="translate",

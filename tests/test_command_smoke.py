@@ -76,6 +76,7 @@ INVOCATIONS = [
     "-improvement acc",
     "-simp acc",
     "-keystrokes",
+    "-ks azerty",
     "-keystrokelog",
     "-kl 1",
     "-lastonline",

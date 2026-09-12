@@ -6,11 +6,11 @@ from context import BotContext
 from database.typegg.races import get_quote_race_counts
 from graphs.keystrokes import render
 from utils.data_structures import ScaledCounter
-from utils.keyboard_layouts import get_keymap
+from utils.keyboard_layouts import get_keymap, keymaps
 from utils.messages import Field, Message, Page
 from utils.schemas import Profile
 
-keyboard_layouts = ["qwerty", "dvorak"]
+keyboard_layouts = list(keymaps)
 info = CommandInfo(
     name="keystrokes",
     aliases=["ks"],
@@ -23,6 +23,7 @@ info = CommandInfo(
         "-ks",
         "-ks eiko",
         "-ks skypromp dvorak",
+        "-ks eiko azerty",
     ],
     author=231721357484752896,
 )
