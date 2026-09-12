@@ -32,7 +32,8 @@ class WebServer(commands.Cog):
         """Build the application, register every route, and start the server."""
         self.bot = bot
         self.app = web.Application(
-            middlewares=[request_logging_middleware, error_middleware, security_headers_middleware]
+            # Security headers sit outside the error handler so its pages carry them too.
+            middlewares=[request_logging_middleware, security_headers_middleware, error_middleware]
         )
         self.runner = None
         self.site = None
