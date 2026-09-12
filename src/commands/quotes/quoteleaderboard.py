@@ -8,7 +8,7 @@ from database.bot.recent_quotes import get_recent_quote
 from utils.dates import discord_date
 from utils.errors import MissingArguments
 from utils.messages import Message, Page, paginate_leaderboard, usable_in
-from utils.strings import quote_display, rank, username_with_flag
+from utils.strings import pp_display, quote_display, rank, username_with_flag
 from utils.urls import race_url
 
 info = CommandInfo(
@@ -25,7 +25,7 @@ info = CommandInfo(
 class QuoteLeaderboard(Command):
     """Display the top 100 leaderboard for one quote."""
 
-    supported_flags = {"quote_id"}
+    supported_flags = {"quote_id", "raw"}
 
     @commands.command(aliases=info.aliases)
     @usable_in(DAILY_QUOTE_CHANNEL_ID)
@@ -42,6 +42,12 @@ class QuoteLeaderboard(Command):
 
 async def run(ctx: BotContext, quote: dict) -> None:
     """Send a quote and the fastest race of each of its top 100 users, 10 per page."""
+    wpm_key, pp_key = ("rawWpm", "rawPp") if ctx.flags.raw else ("wpm", "pp")
+    hide_raw_pp = ctx.flags.raw and not ctx.user["isGgPlus"]
+
+    # The API ranks on wpm, so raw ranks only hold within the 100 entries fetched.
+    if ctx.flags.raw:
+        quote["leaderboard"].sort(key=lambda score: -score["rawWpm"])
 
     def format_row(index: int, score: dict) -> str:
         """Format one leaderboard row, bolded when it belongs to the caller."""
@@ -51,10 +57,10 @@ async def run(ctx: BotContext, quote: dict) -> None:
         if bold:
             rank_display = rank_display.replace("*", "")
 
-        pp = f"{score["pp"]:,.0f} pp - " if quote["ranked"] else ""
+        pp = f"{pp_display(score[pp_key], hide_raw_pp, 0)} - " if quote["ranked"] else ""
         return (
             f"{bold}{rank_display} {username_with_flag(score)} - "
-            f"{score["wpm"]:,.2f} WPM ({score["accuracy"]:.2%}) - {pp}"
+            f"{score[wpm_key]:,.2f} WPM ({score["accuracy"]:.2%}) - {pp}"
             f"{discord_date(score["timestamp"])}{bold}\n"
         )
 
@@ -66,7 +72,7 @@ async def run(ctx: BotContext, quote: dict) -> None:
     message = Message(
         ctx,
         title=quote["quoteId"],
-        header=quote_leaderboard_display(quote) + "\n**Leaderboard**",
+        header=quote_leaderboard_display(quote) + f"\n**Leaderboard{" (Raw)" if ctx.flags.raw else ""}**",
         pages=pages,
         url=race_url(quote["quoteId"]),
         thumbnail=quote["source"]["thumbnailUrl"],

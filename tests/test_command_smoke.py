@@ -106,6 +106,7 @@ INVOCATIONS = [
     "-quoteimprovements",
     "-qi wpm best",
     "-quoteleaderboard q1",
+    "-qlb q1 raw",
     "-quoteranks",
     "-qr eiko 1",
     "-quotesover 100",
@@ -159,6 +160,7 @@ RAW_PP_SUBSTITUTED = [
     "-best attempts raw",
     "-dailyleaderboard raw",
     "-dailystats raw",
+    "-qlb q1 raw",
     "-racegraph",
     "-racehistory raw",
 ]
@@ -448,6 +450,7 @@ def leaderboard_entry(race: dict, position: int) -> dict:
         "isGgPlus": race["userId"] == seed_data.USER_ID,
         "raceNumber": race["raceNumber"],
         "pp": race["pp"],
+        "rawPp": race["rawPp"],
         "wpm": race["wpm"],
         "rawWpm": race["rawWpm"],
         "accuracy": race["accuracy"],
