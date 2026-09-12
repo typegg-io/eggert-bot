@@ -66,7 +66,7 @@ def render_over_time(
 
     low = np.percentile(downsampled_values, 1)
     if ceiling is None:
-        ax.set_ylim(top=np.percentile(downsampled_values, 95) * 1.05, bottom=low * 1.05)
+        ax.set_ylim(top=np.percentile(downsampled_values, 95) * 1.05, bottom=low * 0.95)
     else:
         # Values crowd the ceiling, so scaling the low percentile would lift the axis past every point.
         margin = max((ceiling - low) * 0.05, 0.5)
