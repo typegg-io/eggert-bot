@@ -1,3 +1,5 @@
+from statistics import stdev
+
 from discord.ext import commands
 
 from command_info import CommandInfo
@@ -14,7 +16,8 @@ from utils.strings import format_duration, pp_display
 info = CommandInfo(
     name="average",
     aliases=["avg", "a", "rsa", "rawsa"],
-    description="Displays the average stats of a user's last n races.",
+    description="Displays the average stats of a user's last n races.\n"
+                "Speed carries its standard deviation over finished races as ±.",
     parameters="[username] [n:25]",
     examples=[
         "-a",
@@ -63,11 +66,16 @@ async def run(ctx: BotContext, profile: Profile, n: int) -> None:
         "rawPp": 0, "rawWpm": 0, "flow": 0, "errorReactionTime": 0, "errorRecoveryTime": 0,
     }
     dnf_stats = {"pp", "wpm", "rawPp", "rawWpm", "difficulty"}
+    # A quit counts as 0 WPM in the mean, but would swamp the spread.
+    speeds, raw_speeds = [], []
 
     for race in race_list:
         race = dict(race)
         if multiplayer and race.get("completionType") in ["quit", "dnf"]:
             dnf_count += 1
+        else:
+            speeds.append(race["wpm"])
+            raw_speeds.append(race["rawWpm"])
         for key in stats:
             if key == "difficulty":
                 stats[key] += quote_list[race["quoteId"]]["difficulty"]
@@ -96,7 +104,7 @@ async def run(ctx: BotContext, profile: Profile, n: int) -> None:
                 title="Stats",
                 content=(
                     f"**Score:** {stats["pp"]:,.2f} pp\n"
-                    f"**Speed:** {stats["wpm"]:,.2f} WPM\n"
+                    f"**Speed:** {stats["wpm"]:,.2f}{spread_display(speeds)} WPM\n"
                     f"**Accuracy:** {stats["accuracy"]:.2%}\n"
                     f"**Race Time:** {format_duration(stats["duration"] / 1000, round_seconds=False)}\n"
                     f"**Difficulty:** {stats["difficulty"]:,.2f}★"
@@ -107,7 +115,7 @@ async def run(ctx: BotContext, profile: Profile, n: int) -> None:
                 title="Raw Stats",
                 content=(
                     f"**Score:** {raw_pp_display}\n"
-                    f"**Speed:** {stats["rawWpm"]:,.2f} WPM\n"
+                    f"**Speed:** {stats["rawWpm"]:,.2f}{spread_display(raw_speeds)} WPM\n"
                     f"**Flow:** {stats["flow"]:.2%}\n"
                     f"**Error Reaction:** {stats["errorReactionTime"]:,.0f}ms\n"
                     f"**Error Recovery:** {stats["errorRecoveryTime"]:,.0f}ms"
@@ -125,3 +133,10 @@ async def run(ctx: BotContext, profile: Profile, n: int) -> None:
     )
 
     await message.send()
+
+
+def spread_display(speeds: list[float]) -> str:
+    """Return the sample standard deviation as ' ± x', or nothing below two races."""
+    if len(speeds) < 2:
+        return ""
+    return f" ± {stdev(speeds):,.2f}"

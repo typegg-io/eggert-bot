@@ -834,6 +834,15 @@ def test_an_admin_can_compare_another_users_races(seeded):
     assert ctx.sent[-1]["embed"].title.startswith("Race Comparison")
 
 
+def test_average_shows_a_speed_spread_from_two_races(seeded):
+    """Speed carries a ± spread, which a single race is too few to have."""
+    spread = asyncio.run(invoke("-average")).sent[-1]["embed"].fields[0].value
+    single = asyncio.run(invoke("-average 1")).sent[-1]["embed"].fields[0].value
+
+    assert "±" in spread
+    assert "±" not in single
+
+
 def test_the_seed_is_isolated_from_the_real_database(seeded):
     """The suite must never read the 3 GB production database."""
     assert isinstance(typegg_db.reader, sqlite3.Connection)
