@@ -101,7 +101,8 @@ def build_race(rng, quotes, user_id: str, number: int, timestamp: datetime) -> d
         "rawPp": round(pp * 1.05, 3),
         "wpm": wpm,
         "rawWpm": round(wpm * rng.uniform(1.01, 1.15), 2),
-        "duration": round(len(quote["text"]) / 5 / wpm * 60, 3),
+        # TypeGG stores a race duration in milliseconds.
+        "duration": round(len(quote["text"]) * 12000 / wpm, 3),
         "accuracy": round(rng.uniform(0.9, 1.0), 4),
         "errorReactionTime": round(rng.uniform(0, 400), 2),
         "errorRecoveryTime": round(rng.uniform(0, 900), 2),
