@@ -98,6 +98,8 @@ INVOCATIONS = [
     "-pplength raw",
     "-quote q1",
     "-qp q1",
+    "-quoteimprovements",
+    "-qi wpm best",
     "-quoteleaderboard q1",
     "-quoteranks",
     "-qr eiko 1",
