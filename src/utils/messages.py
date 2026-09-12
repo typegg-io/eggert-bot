@@ -254,6 +254,17 @@ class Message(View):
         self.add_item(self.next_button)
         self.add_item(self.last_button)
 
+    async def interaction_check(self, interaction) -> bool:
+        """Let only the caller press a button, so a stranger cannot move their page."""
+        if self.ctx.author.id == interaction.user.id:
+            return True
+
+        # discord.py never answers the interaction itself when this returns False.
+        if not interaction.response.is_done():
+            await interaction.response.defer()
+
+        return False
+
     async def first(self, interaction) -> None:
         """Jump to the first page."""
         if self.page_index > 0:
@@ -292,7 +303,7 @@ class Message(View):
             await interaction.response.defer()
 
         # The caller's page can be the top page, and 👤 still chooses their position.
-        if self.remember and interaction.user.id == self.ctx.author.id:
+        if self.remember:
             self.choose("me")
 
     def choose(self, page: str) -> None:
@@ -314,7 +325,7 @@ class Message(View):
 
         async def callback(interaction) -> None:
             """Switch to this page, rendering its image if needed."""
-            if self.ctx.author.id != interaction.user.id or index == self.page_index:
+            if index == self.page_index:
                 return await interaction.response.defer()
 
             self.page_index = index
@@ -352,11 +363,6 @@ class Message(View):
 
     async def update_embed(self, interaction) -> None:
         """Updates the embed and buttons for a given page."""
-        if self.ctx.author.id != interaction.user.id:
-            if not interaction.response.is_done():
-                await interaction.response.defer()
-            return
-
         if self.remember and self.page_index == 0:
             self.choose("top")
         elif self.remember and self.page_index == self.jump_page:

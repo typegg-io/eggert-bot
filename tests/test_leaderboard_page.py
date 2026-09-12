@@ -42,6 +42,12 @@ def press(user_id: str = DISCORD_ID) -> SimpleNamespace:
     )
 
 
+async def dispatch(message: Message, handler, interaction: SimpleNamespace) -> None:
+    """Run a press the way discord.py does, through the view's check before the callback."""
+    if await message.interaction_check(interaction):
+        await handler(interaction)
+
+
 # Opening page
 
 
@@ -124,14 +130,15 @@ def test_a_caller_who_did_not_place_keeps_their_choice(caller):
 
 
 def test_another_users_press_is_not_a_choice(caller):
-    """Only the caller's presses count."""
+    """A stranger's press saves nothing and leaves the caller's page where it was."""
 
-    async def run() -> None:
+    async def run() -> int:
         """Press the top as someone else."""
-        await make_message(jump_page=2).first(press(user_id="2"))
+        message = make_message(jump_page=2)
+        await dispatch(message, message.first, press(user_id="2"))
+        return message.page_index
 
-    asyncio.run(run())
-
+    assert asyncio.run(run()) == 2
     assert stored_page() == "me"
 
 
