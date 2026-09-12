@@ -108,6 +108,16 @@ def get_key_by_alias(alias_dict, alias) -> str | None:
 
 # Number Formatting
 
+_DURATION_RE = re.compile(
+    r"(?:(\d+(?:\.\d+)?)d)?"
+    r"(?:(\d+(?:\.\d+)?)h)?"
+    r"(?:(\d+(?:\.\d+)?)m)?"
+    r"(?:(\d+(?:\.\d+)?)s)?"
+)
+
+_DURATION_UNITS = (86400, 3600, 60, 1)
+
+
 def ordinal_number(number) -> str:
     """Convert a number to its ordinal string representation (e.g., 1st, 2nd, 3rd)."""
     suffix = {1: "st", 2: "nd", 3: "rd"}.get(number % 10, "th")
@@ -144,6 +154,27 @@ def parse_number(value) -> int | float:
             continue
 
     raise InvalidNumber
+
+
+def parse_duration(text: str) -> float | None:
+    """Parse a duration string (1d, 90m, 1h30m) into seconds, or None when it is not one."""
+    match = _DURATION_RE.fullmatch(str(text).strip().lower())
+    if not match or not any(match.groups()):
+        return None
+
+    return sum(
+        float(amount) * unit
+        for amount, unit in zip(match.groups(), _DURATION_UNITS, strict=True)
+        if amount
+    )
+
+
+def parse_duration_args(args) -> float | None:
+    """Total the duration tokens among a command's arguments, or return None when it has none."""
+    durations = [parse_duration(str(arg).lstrip("-")) for arg in args]
+    durations = [duration for duration in durations if duration is not None]
+
+    return sum(durations) if durations else None
 
 
 def parse_wpm_range(s: str) -> tuple[float | None, float | None] | None:

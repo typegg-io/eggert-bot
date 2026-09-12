@@ -21,6 +21,8 @@ from utils.strings import (
     format_duration,
     get_segments,
     ordinal_number,
+    parse_duration,
+    parse_duration_args,
     parse_length_range,
     parse_number,
     parse_wpm_range,
@@ -89,6 +91,41 @@ def test_parse_length_range(text, expected):
 def test_parse_length_range_returns_none_for_non_ranges(text):
     """A metric range, a bare length or a fractional length is not a length range."""
     assert parse_length_range(text) is None
+
+
+# parse_duration
+
+@pytest.mark.parametrize(("text", "expected"), [
+    ("30s", 30),
+    ("90m", 5400),
+    ("1h", 3600),
+    ("1d", 86400),
+    ("1h30m", 5400),
+    ("1d2h3m4s", 93784),
+    ("  1H  ", 3600),
+    ("1.5h", 5400),
+])
+def test_parse_duration(text, expected):
+    assert parse_duration(text) == expected
+
+
+@pytest.mark.parametrize("text", ["", "100", "abc", "30x", "1m30", "m", "30s1h"])
+def test_parse_duration_returns_none_for_non_durations(text):
+    """Units must appear at most once and in descending order, or it is not a duration."""
+    assert parse_duration(text) is None
+
+
+def test_parse_duration_args_totals_every_duration_token():
+    assert parse_duration_args(["eiko", "1h", "30m"]) == 5400
+
+
+def test_parse_duration_args_reads_a_token_the_flag_parser_negated():
+    """A duration can reach raw_args with the flag dash still attached."""
+    assert parse_duration_args(["-30m"]) == 1800
+
+
+def test_parse_duration_args_returns_none_without_a_duration():
+    assert parse_duration_args(["eiko", "pp"]) is None
 
 
 # format_duration
