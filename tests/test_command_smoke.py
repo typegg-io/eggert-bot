@@ -164,6 +164,8 @@ RAW_PP_SUBSTITUTED = [
 
 # The whole command is a GG+ feature.
 GG_PLUS_REFUSED = [
+    "-calculatepp",
+    "-sumofbest",
     "-unraced",
 ]
 
