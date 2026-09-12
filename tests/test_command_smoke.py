@@ -96,6 +96,7 @@ INVOCATIONS = [
     "-personalbestgraph",
     "-pbg -wpm",
     "-milestones solo",
+    "-positionstats",
     "-pplength",
     "-pplength raw",
     "-quote q1",
