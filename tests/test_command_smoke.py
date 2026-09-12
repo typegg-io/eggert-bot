@@ -26,7 +26,7 @@ from database.bot import db as bot_db
 from database.typegg import db as typegg_db
 from utils.colors import DEFAULT_THEME
 from utils.dates import resolve_date_range
-from utils.errors import NotSubscribed
+from utils.errors import BotError, NotSubscribed
 from utils.flags import apply_universe_status, resolve_universe
 
 matplotlib.use("Agg")
@@ -73,6 +73,8 @@ INVOCATIONS = [
     "-improvement acc",
     "-simp acc",
     "-keystrokes",
+    "-keystrokelog",
+    "-kl 1",
     "-lastonline",
     "-lengthgraph",
     "-lengthgraph raw",
@@ -621,11 +623,13 @@ async def invoke(
     stored=(None, None),
     universe: str | None = None,
     gg_plus: bool = True,
+    admin: bool = False,
 ) -> FakeContext:
     """Run one invocation end to end and return the context it sent through."""
     name = invocation.split()[0].lstrip("-")
     cog_class, command = find_command(name)
     user = build_user()
+    user["isAdmin"] = admin
     user["isGgPlus"] = gg_plus
     user["theme"]["isGgPlus"] = gg_plus
     ctx = FakeContext(invocation, user, bot=SimpleNamespace(get_channel=lambda _: None))
@@ -731,6 +735,49 @@ def test_daily_narrows_comparegraph_without_a_warning(seeded):
 
     assert not any("no effect" in (sent.get("content") or "") for sent in ctx.sent)
     assert "Daily Quotes" in ctx.sent[-1]["embed"].title
+
+
+def logged_race_number(longest: bool) -> int:
+    """Return the seeded user's race with the longest or shortest keystroke log."""
+    return typegg_db.reader.execute(f"""
+        SELECT r.raceNumber FROM races r
+        JOIN keystroke_data k ON k.raceId = r.raceId
+        WHERE r.userId = ?
+        ORDER BY LENGTH(k.keystrokeData) {"DESC" if longest else "ASC"}
+        LIMIT 1
+    """, [seed_data.USER_ID]).fetchone()[0]
+
+
+def test_keystrokelog_refuses_another_users_race(seeded):
+    """A raw keystroke log is shown only to its racer."""
+    with pytest.raises(BotError) as error:
+        asyncio.run(invoke(f"-keystrokelog {seed_data.RIVAL_ID}"))
+
+    assert error.value.title == "Privacy Error"
+
+
+def test_an_admin_can_view_another_users_keystroke_log(seeded):
+    """An admin bypasses the privacy check."""
+    ctx = asyncio.run(invoke(f"-keystrokelog {seed_data.RIVAL_ID}", admin=True))
+
+    assert ctx.sent[-1]["content"].startswith("**Keystroke Log")
+
+
+def test_a_short_keystroke_log_is_a_code_block(seeded):
+    """A log that fits one message lands in a plain code block with no embed or attachment."""
+    ctx = asyncio.run(invoke(f"-keystrokelog {logged_race_number(longest=False)}"))
+
+    assert "```json" in ctx.sent[-1]["content"]
+    assert not any("file" in sent or "embed" in sent for sent in ctx.sent)
+
+
+def test_a_long_keystroke_log_is_attached_as_a_file(seeded):
+    """A log too long for one message arrives as a file under the header."""
+    number = logged_race_number(longest=True)
+    ctx = asyncio.run(invoke(f"-keystrokelog {number}"))
+
+    assert "```" not in ctx.sent[-1]["content"]
+    assert ctx.sent[-1]["file"].filename == f"{seed_data.USER_ID}_{number}.json"
 
 
 def test_the_seed_is_isolated_from_the_real_database(seeded):
