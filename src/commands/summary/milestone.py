@@ -135,7 +135,7 @@ async def run(ctx: BotContext, profile: Profile, category: str, number: float | 
         description += f"Took {format_duration(elapsed, show_seconds=False)} since joining\n"
 
     description += (
-        f"\n{quote_display(quote, 1000, display_status=True)}"
+        f"\n{quote_display(quote, 1000, display_status=True)}\n"
         f"**Score:** {pp_display(race["pp"], ctx.flags.raw and not ctx.user["isGgPlus"])}\n"
         f"**Speed:** {race["wpm"]:,.2f} WPM\n"
         f"**Accuracy:** {race["accuracy"]:.2%}\n"
