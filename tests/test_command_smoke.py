@@ -207,7 +207,7 @@ SKIPPED = {
     "support": "static embed, no data path",
     "theme": "mutates the invoking user",
     "thonk": "static embed, no data path",
-    "translate": "calls a translation API",
+    "translate": "restricted to the general channel",
     "unadmin": "moderation, needs a real Discord member",
     "unban": "moderation, needs a real Discord member",
     "unlink": "mutates the invoking user",
