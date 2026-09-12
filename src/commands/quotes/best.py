@@ -10,7 +10,7 @@ from database.typegg.users import get_quote_bests
 from utils.dates import discord_date
 from utils.errors import BotError, NoRacesFiltered
 from utils.flags import Flags
-from utils.messages import Message, Page, paginate_data
+from utils.messages import Message, paginate_data
 from utils.schemas import Profile
 from utils.strings import format_duration, pp_display, quote_display
 
@@ -212,16 +212,6 @@ async def run(
             f"{pp} - {data["wpm"]:,.2f} WPM ({data["accuracy"]:.2%} Accuracy) - "
             f"{discord_date(data["timestamp"])}\n\n"
         )
-
-    per_page = 5
-    page_count = 20
-    page_count = min(page_count, ((len(quote_bests) - 1) // per_page) + 1)
-    pages = []
-    for i in range(page_count):
-        description = ""
-        for quote in quote_bests[i * per_page:(i + 1) * per_page]:
-            description += entry_formatter(quote)
-        pages.append(Page(description=description, flag_title=True))
 
     pages = paginate_data(quote_bests, entry_formatter, 20, 5)
     title = f"{["Worst", "Best"][reverse]}{[" WPM", ""][metric == "pp"]} Quotes"
