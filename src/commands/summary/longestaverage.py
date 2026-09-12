@@ -141,7 +141,12 @@ async def run(ctx: BotContext, profile: Profile, wpm: float) -> None:
     longest_averages = top_10_longest_averages(values, wpm)
     longest_averages.sort(key=lambda x: (-x["length"], -x["average"]))
 
-    fields = build_stat_fields(profile, streak_races, ctx.flags)
+    fields = build_stat_fields(
+        profile,
+        streak_races,
+        ctx.flags,
+        hide_raw_pp=ctx.flags.raw and not ctx.user["isGgPlus"],
+    )
 
     pages = [Page(
         title=f"Longest Average of {wpm:,.2f} WPM+",

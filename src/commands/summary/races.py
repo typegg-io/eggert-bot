@@ -15,7 +15,7 @@ from utils.flags import is_multiplayer
 from utils.messages import Field, Message, Page
 from utils.schemas import Profile
 from utils.stats import calculate_quote_bests, calculate_quote_length, calculate_total_pp
-from utils.strings import date_range_display, format_duration
+from utils.strings import date_range_display, format_duration, pp_display
 
 info = CommandInfo(
     name="races",
@@ -42,7 +42,7 @@ class Races(Command):
         await run(ctx, profile)
 
 
-def build_stat_fields(profile, race_list, flags, all_time=False) -> list:
+def build_stat_fields(profile, race_list, flags, all_time=False, hide_raw_pp=False) -> list:
     """Build the performance, speed, activity and quote fields for a set of races."""
     quote_list = get_quotes()
     multiplayer = is_multiplayer(flags)
@@ -147,10 +147,11 @@ def build_stat_fields(profile, race_list, flags, all_time=False) -> list:
         Field(
             title=":trophy: Performance",
             content=(
-                f"**Total:** {period_total_pp:,.0f} pp " +
-                (f"(+{total_pp - old_total_pp:,.2f} gain)\n" if show_gain else "\n") +
-                f"**Average Score:** {cumulative_values["pp"]:.2f} pp\n"
-                f"**Best Score:** {best["pp"]["pp"]:,.2f} pp (Race #{best["pp"]["raceNumber"]:,})\n"
+                f"**Total:** {pp_display(period_total_pp, hide_raw_pp, decimals=0)} " +
+                (f"(+{pp_gain:,.2f} gain)\n" if show_gain and not hide_raw_pp else "\n") +
+                f"**Average Score:** {pp_display(cumulative_values["pp"], hide_raw_pp)}\n"
+                f"**Best Score:** {pp_display(best["pp"]["pp"], hide_raw_pp)} "
+                f"(Race #{best["pp"]["raceNumber"]:,})\n"
             )
         ),
         Field(
