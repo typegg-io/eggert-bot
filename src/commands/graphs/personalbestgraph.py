@@ -16,7 +16,7 @@ LABELS = {"pp": "pp", "wpm": "WPM"}
 
 info = CommandInfo(
     name="personalbestgraph",
-    aliases=["pbg", "milestones"],
+    aliases=["pbg"],
     description="Displays a user's personal best progression across every race.\n"
                 "Lists every PB, marking each one that broke a 25 pp or 10 WPM milestone.",
     parameters="[username]",
