@@ -92,6 +92,7 @@ INVOCATIONS = [
     "-matchgraph",
     "-milestone 5",
     "-ms 100 wpm",
+    "-ms 50 pp",
     "-month",
     "-personalbestgraph",
     "-pbg -wpm",

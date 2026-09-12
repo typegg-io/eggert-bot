@@ -4,12 +4,12 @@ from discord.ext import commands
 
 from command_info import CommandInfo
 from commands.base import Command
-from commands.summary.marathon import WindowData, get_window_data
 from context import BotContext
 from database.bot.recent_quotes import set_recent_quote
 from database.typegg.quotes import get_quote
+from database.typegg.races import get_races
 from utils.dates import discord_date, parse_date
-from utils.errors import BotError, MissingArguments, NumberGreaterThan
+from utils.errors import BotError, MissingArguments, NoRacesFiltered, NumberGreaterThan
 from utils.messages import Message, Page
 from utils.schemas import Profile
 from utils.strings import format_duration, pp_display, quote_display
@@ -21,12 +21,13 @@ info = CommandInfo(
     name="milestone",
     aliases=["ms"],
     description="Displays the race on which a user reached a milestone.\n"
-                "Category can be `races`, `quotes`, `pp` or `wpm`.",
+                "Category can be `races`, `quotes`, `pp` or `wpm`.\n"
+                "A pp or WPM milestone is the first race to score that high.",
     parameters="[username] [milestone] <category:races|quotes|pp|wpm>",
     examples=[
         "-milestone 1000",
         "-ms 10k races",
-        "-ms eiko 5000 pp",
+        "-ms eiko 500 pp",
         "-ms eiko 200 wpm",
     ],
 )
@@ -64,28 +65,28 @@ def amount_display(category: str, milestone: float) -> str:
     return f"{value} {UNITS[category]}"
 
 
-def progress_values(data: WindowData, category: str) -> list[float]:
+def progress_values(race_list: list, category: str) -> list[float]:
     """Return the running amount each race leaves a user at, for one category."""
     if category == "quotes":
         seen = set()
         counts = []
-        for race in data.races:
+        for race in race_list:
             seen.add(race["quoteId"])
             counts.append(float(len(seen)))
 
         return counts
 
-    if category == "wpm":
-        # The search bisects this list, so a speed has to be carried forward as a running maximum.
+    if category in ["pp", "wpm"]:
+        # The search bisects this list, so a score has to be carried forward as a running maximum.
         best = 0.0
         peaks = []
-        for race in data.races:
-            best = max(best, race["wpm"])
+        for race in race_list:
+            best = max(best, race[category])
             peaks.append(best)
 
         return peaks
 
-    return data.after
+    return [float(i + 1) for i in range(len(race_list))]
 
 
 async def run(ctx: BotContext, profile: Profile, category: str, number: float | None) -> None:
@@ -99,8 +100,21 @@ async def run(ctx: BotContext, profile: Profile, category: str, number: float | 
     if milestone <= 0:
         raise NumberGreaterThan(0)
 
-    data = await get_window_data(ctx, profile, category == "pp")
-    progress = progress_values(data, category)
+    if category == "pp" and ctx.flags.status != "ranked":
+        await ctx.send("-# :warning: only ranked races earn pp")
+        ctx.flags.status = "ranked"
+
+    race_list = await get_races(
+        user_id=profile["userId"],
+        columns=["quoteId", "raceNumber", "pp", "wpm", "accuracy", "timestamp"],
+        include_dnf=False,
+        flags=ctx.flags,
+    )
+
+    if not race_list:
+        raise NoRacesFiltered(profile["username"])
+
+    progress = progress_values(race_list, category)
     index = bisect_left(progress, milestone)
     amount = amount_display(category, milestone)
 
@@ -110,7 +124,7 @@ async def run(ctx: BotContext, profile: Profile, category: str, number: float | 
             f"User has not reached {amount}",
         )
 
-    race = data.races[index]
+    race = race_list[index]
     quote = get_quote(race["quoteId"])
     set_recent_quote(ctx.channel.id, race["quoteId"])
 
