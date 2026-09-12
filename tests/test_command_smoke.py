@@ -98,7 +98,9 @@ INVOCATIONS = [
     "-quotesover 100",
     "-quotestrength",
     "-quotestrength raw",
-    "-racecompare 599 600",
+    "-racecompare",
+    "-racecompare 60 120",
+    "-rc q1 1 -1",
     "-racegraph",
     "-racehistory",
     "-racehistory raw",
@@ -778,6 +780,58 @@ def test_a_long_keystroke_log_is_attached_as_a_file(seeded):
 
     assert "```" not in ctx.sent[-1]["content"]
     assert ctx.sent[-1]["file"].filename == f"{seed_data.USER_ID}_{number}.json"
+
+
+def comparison_line(ctx: FakeContext, label: str) -> str:
+    """Return the description line a race comparison wrote under one label."""
+    description = ctx.sent[-1]["embed"].description
+    return next(line for line in description.splitlines() if line.startswith(f"**{label}:**"))
+
+
+def test_numbers_after_a_quote_id_are_attempts_on_that_quote(seeded):
+    """Attempt N is the user's Nth race on the quote, as the site's replay history counts it."""
+    quote_races = sorted(
+        (race for race in RACES if race["userId"] == seed_data.USER_ID and race["quoteId"] == "q1"),
+        key=lambda race: race["timestamp"],
+    )
+    ctx = asyncio.run(invoke("-rc q1 2 -1"))
+
+    assert f"{quote_races[1]["wpm"]:,.2f}" in comparison_line(ctx, "Attempt #2")
+    assert f"{quote_races[-2]["wpm"]:,.2f}" in comparison_line(ctx, f"Attempt #{len(quote_races) - 1}")
+
+
+def test_one_race_number_is_compared_with_the_best(seeded):
+    """A single number overlays that race on the user's best race on its quote."""
+    quote_races = [race for race in RACES if race["userId"] == seed_data.USER_ID and race["quoteId"] == "q1"]
+    best = max(quote_races, key=lambda race: race["wpm"])
+    number = next(race["raceNumber"] for race in quote_races if race is not best)
+    ctx = asyncio.run(invoke(f"-rc {number}"))
+
+    assert f"{best["wpm"]:,.2f}" in comparison_line(ctx, "Best")
+    assert comparison_line(ctx, f"Race #{number:,}")
+
+
+def test_race_numbers_on_different_quotes_are_refused(seeded):
+    """Races picked by account number must share a quote to overlay."""
+    with pytest.raises(BotError) as error:
+        asyncio.run(invoke("-rc 1 2"))
+
+    assert error.value.title == "Different Quotes"
+
+
+def test_racecompare_keeps_another_users_races_private(seeded):
+    """Picked races may be non-PB solo races, which only their racer can see."""
+    with pytest.raises(BotError) as error:
+        asyncio.run(invoke(f"-rc {seed_data.RIVAL_ID} 60 120"))
+
+    assert error.value.title == "Privacy Error"
+
+
+def test_an_admin_can_compare_another_users_races(seeded):
+    """An admin bypasses the privacy check on picked races."""
+    ctx = asyncio.run(invoke(f"-rc {seed_data.RIVAL_ID} 60 120", admin=True))
+
+    assert ctx.sent[-1]["embed"].title.startswith("Race Comparison")
 
 
 def test_the_seed_is_isolated_from_the_real_database(seeded):

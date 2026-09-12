@@ -76,6 +76,7 @@ class Flags:
     status: str | None = "ranked"
     language: str | Language | None = None
     number: int | None = None
+    numbers: tuple[int, ...] = ()
     number_range: tuple | None = None
     length_range: tuple | None = None
     quote_id: str | None = None

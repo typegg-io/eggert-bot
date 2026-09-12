@@ -7,11 +7,12 @@ from command_info import CommandInfo
 from commands.base import Command, enforce_daily_quote
 from config import DAILY_QUOTE_CHANNEL_ID
 from context import BotContext
-from database.typegg.races import get_races
+from database.typegg.races import get_race as get_race_db, get_races
 from database.typegg.users import get_quote_bests
 from graphs import match
 from utils.dates import discord_date
 from utils.errors import BotError, NoQuoteRaces
+from utils.flags import Flags
 from utils.keystrokes import get_keystroke_data
 from utils.messages import Message, Page, usable_in
 from utils.schemas import Profile, Theme
@@ -23,11 +24,15 @@ info = CommandInfo(
     name="racecompare",
     aliases=["rc"],
     description="Overlays multiple users' best races on the same quote on a single graph.\n"
-                f"Supports up to {max_users} users.",
-    parameters=f"[quote_id:latest] [username1] ... [username{max_users}]",
+                f"Supports up to {max_users} users.\n"
+                "Race numbers compare your own races instead, and one number compares a race with your best.\n"
+                "After a quote ID, the numbers are attempt numbers from the site's replay history.",
+    parameters=f"[quote_id:latest] [username1] ... [username{max_users}] [race_number1] ... [race_number{max_users}]",
     examples=[
         "-rc me eiko",
         "-rc piykyai_3408 me eiko",
+        "-rc 1500 1520",
+        "-rc piykyai_3408 12 15",
     ],
 )
 
@@ -35,14 +40,18 @@ info = CommandInfo(
 class RaceCompare(Command):
     """Overlay several users' best races on one quote."""
 
-    supported_flags = {"raw", "gamemode", "quote_id"}
+    supported_flags = {"raw", "gamemode", "quote_id", "number"}
 
     @commands.command(aliases=info.aliases)
     @usable_in(DAILY_QUOTE_CHANNEL_ID)
     async def racecompare(self, ctx: BotContext, *args: str):
-        """Compare the named users on a quote, or one user against themselves."""
+        """Compare the named users on a quote, one user against themselves, or races picked by number."""
         ctx.flags.status = None
         profiles = await self.get_profiles(ctx, args, max_users)
+
+        if ctx.flags.numbers:
+            await self.compare_picked(ctx, profiles)
+            return
 
         if ctx.flags.quote_id:
             quote = await self.get_quote(ctx, ctx.flags.quote_id)
@@ -55,6 +64,75 @@ class RaceCompare(Command):
             await run(ctx, quote, profiles)
         else:
             await run_self(ctx, quote, profiles[0])
+
+    async def compare_picked(self, ctx: BotContext, profiles: list[Profile]) -> None:
+        """Compare one user's races picked by race number, or by attempt number after a quote ID."""
+        if len(profiles) > 1:
+            raise BotError("Too Many Users", "Race numbers pick races from one account at a time")
+
+        profile = profiles[0]
+
+        # The API shows a non-PB solo race only to its racer.
+        if profile["userId"] != ctx.user["userId"] and not ctx.user["isAdmin"]:
+            raise BotError("Privacy Error", "You may only compare specific races on your own account")
+
+        numbers = list(dict.fromkeys(ctx.flags.numbers))[:max_users]
+
+        if ctx.flags.quote_id:
+            quote = await self.get_quote(ctx, ctx.flags.quote_id)
+            picks = await pick_attempts(profile, quote["quoteId"], numbers)
+        else:
+            race_numbers = [number if number > 0 else await self.get_race_number(profile, number) for number in numbers]
+            races = [get_race_db(profile["userId"], number) for number in race_numbers]
+            if len({race["quoteId"] for race in races}) > 1:
+                raise BotError(
+                    "Different Quotes",
+                    "Those races are on different quotes.\nPass a quote ID to pick by attempt number instead."
+                )
+            quote = await self.get_quote(ctx, races[0]["quoteId"])
+            picks = [(f"Race #{race["raceNumber"]:,}", race) for race in races]
+
+        enforce_daily_quote(ctx, quote["quoteId"])
+
+        # Two numbers can name the same race, like 0 and the latest race number.
+        picks = list({race["raceNumber"]: (label, race) for label, race in picks}.values())
+
+        if len(picks) == 1:
+            label, race = picks[0]
+            quote_races = await get_races(profile["userId"], quote_id=quote["quoteId"], flags=ctx.flags)
+            if not quote_races:
+                raise NoQuoteRaces(profile["username"])
+            best_race = max(quote_races, key=lambda quote_race: quote_race["wpm"])
+            if best_race["raceNumber"] == race["raceNumber"]:
+                raise BotError(
+                    "Same Race",
+                    f"{label} is the best race on this quote.\nPass a second number to compare it with."
+                )
+            picks.insert(0, ("Best", best_race))
+
+        title = f"Race Comparison - {quote['quoteId']}"
+        await compare_own_races(ctx, quote, profile, picks, title)
+
+
+async def pick_attempts(profile: Profile, quote_id: str, numbers: list[int]) -> list[tuple[str, dict]]:
+    """Return the races behind attempt numbers on a quote, counting back from the latest when not positive."""
+    races = await get_races(profile["userId"], quote_id=quote_id, flags=Flags(status="any"))
+    # A race with no number has no replay, so the site's history skips it.
+    attempts = [race for race in races if race["raceNumber"] is not None]
+    if not attempts:
+        raise NoQuoteRaces(profile["username"])
+
+    picks = []
+    for number in numbers:
+        attempt = number if number > 0 else len(attempts) + number
+        if not 1 <= attempt <= len(attempts):
+            raise BotError(
+                "Attempt Not Found",
+                f"{profile["username"]} has {len(attempts):,} attempts on this quote"
+            )
+        picks.append((f"Attempt #{attempt:,}", attempts[attempt - 1]))
+
+    return picks
 
 
 async def run(ctx: BotContext, quote: dict, profiles: list[Profile]) -> None:
@@ -103,8 +181,6 @@ async def run(ctx: BotContext, quote: dict, profiles: list[Profile]) -> None:
 
 async def run_self(ctx: BotContext, quote: dict, profile: Profile) -> None:
     """Compare a user's best and recent races on the same quote."""
-    description = quote_display(quote, 1000, display_status=True) + "\n"
-
     quote_races = await get_races(
         profile["userId"],
         quote_id=quote["quoteId"],
@@ -117,42 +193,43 @@ async def run_self(ctx: BotContext, quote: dict, profile: Profile) -> None:
             "User must have at least 2 races\non this quote to compare."
         )
 
-    recent_race = dict(quote_races[-1])
+    recent_race = quote_races[-1]
     sorted_by_wpm = sorted(quote_races, key=lambda x: x["wpm"])
-    best_race = dict(sorted_by_wpm[-1])
+    best_race = sorted_by_wpm[-1]
 
     # New PB
     if recent_race["raceId"] == best_race["raceId"]:
-        old_best = dict(sorted_by_wpm[-2])
-        description += format_race(profile, best_race, "New Best")
-        description += format_race(profile, old_best, "Previous Best")
-        race_numbers = [recent_race["raceNumber"], old_best["raceNumber"]]
-        race_data = [
-            recent_race | {"username": "New Best"},
-            old_best | {"username": "Previous Best"},
-        ]
+        picks = [("New Best", recent_race), ("Previous Best", sorted_by_wpm[-2])]
 
     # Not a PB
     else:
-        description += format_race(profile, best_race, "Best")
-        description += format_race(profile, recent_race, "Recent")
-        race_numbers = [best_race["raceNumber"], recent_race["raceNumber"]]
-        race_data = [
-            best_race | {"username": "Best"},
-            recent_race | {"username": "Recent"},
-        ]
-
-    # Fetch keystroke data in parallel
-    races_with_keystrokes = await asyncio.gather(*[
-        get_race_keystrokes(profile["userId"], rn, raw=ctx.flags.raw)
-        for rn in race_numbers
-    ])
-
-    for i, race in enumerate(races_with_keystrokes):
-        del race["username"]
-        race_data[i].update(race)
+        picks = [("Best", best_race), ("Recent", recent_race)]
 
     title = f"Quote Best Comparison - {quote['quoteId']}"
+    await compare_own_races(ctx, quote, profile, picks, title)
+
+
+async def compare_own_races(
+    ctx: BotContext,
+    quote: dict,
+    profile: Profile,
+    picks: list[tuple[str, dict]],
+    title: str,
+) -> None:
+    """Overlay one user's labelled races on a quote and send the page."""
+    description = quote_display(quote, 1000, display_status=True) + "\n"
+
+    # Fetch keystroke data in parallel
+    races = await asyncio.gather(*[
+        get_race_keystrokes(profile["userId"], race["raceNumber"], ctx.flags.raw)
+        for _, race in picks
+    ])
+
+    race_data = []
+    for (label, _), race in zip(picks, races, strict=True):
+        description += format_race(profile, race, label)
+        race_data.append(race | {"username": label})
+
     page = create_comparison_page(
         title=title,
         description=description,

@@ -113,7 +113,8 @@ def parse_flags(content: str) -> tuple[Flags, str, dict[str, str]]:
                 raise InvalidNumber
             sign = -1 if arg.startswith("-") else 1
             flags.number = number * sign
-            explicit_flags["number"] = arg
+            flags.numbers = (flags.number, *flags.numbers)
+            explicit_flags["number"] = f"{arg} {explicit_flags["number"]}" if "number" in explicit_flags else arg
             continue
         except InvalidNumber:
             pass

@@ -120,6 +120,14 @@ def test_number_flag(token, expected):
     assert flags_for(f"-best {token}").number == expected
 
 
+def test_every_number_is_kept_in_typed_order():
+    """`-rc 12 -3 15` picks three races, and `number` stays the first of them."""
+    flags, _, explicit_flags = parse_flags("-rc 12 -3 15")
+    assert flags.numbers == (12, -3, 15)
+    assert flags.number == 12
+    assert explicit_flags["number"] == "12 -3 15"
+
+
 def test_underscores_are_not_treated_as_a_number():
     """1_000 is valid Python but is a username here, not a count."""
     assert flags_for("-best 1_000").number is None
