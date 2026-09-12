@@ -52,6 +52,8 @@ INVOCATIONS = [
     "-bestgraph -pp",
     "-commandleaderboard",
     "-comparegraph eiko keegan",
+    "-comparegraph eiko keegan daily",
+    "-comparegraph eiko keegan 0-15 daily",
     "-dailygraph",
     "-dailygraph raw",
     "-dailyleaderboard",
@@ -721,6 +723,14 @@ def test_a_gg_plus_command_is_refused_without_gg_plus(seeded, invocation):
     """A GG+ command refuses a non-subscriber."""
     with pytest.raises(NotSubscribed):
         asyncio.run(invoke(invocation, gg_plus=False))
+
+
+def test_daily_narrows_comparegraph_without_a_warning(seeded):
+    """`daily` reaches -comparegraph as a filter, not as an unsupported quote ID."""
+    ctx = asyncio.run(invoke("-comparegraph eiko keegan daily"))
+
+    assert not any("no effect" in (sent.get("content") or "") for sent in ctx.sent)
+    assert "Daily Quotes" in ctx.sent[-1]["embed"].title
 
 
 def test_the_seed_is_isolated_from_the_real_database(seeded):

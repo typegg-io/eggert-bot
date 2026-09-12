@@ -70,6 +70,7 @@ def get_quotes(
     max_difficulty: float = None,
     min_length: int = None,
     max_length: int = None,
+    daily: bool = False,
 ) -> list[dict] | dict[str, dict]:
     """Returns a list or dictionary of existing quotes."""
     conditions = []
@@ -86,6 +87,8 @@ def get_quotes(
     if max_length is not None:
         conditions.append("LENGTH(text) <= ?")
         params.append(max_length)
+    if daily:
+        conditions.append("quoteId IN (SELECT quoteId FROM daily_quotes)")
 
     where_clause = "WHERE " + " AND ".join(conditions) if conditions else ""
 

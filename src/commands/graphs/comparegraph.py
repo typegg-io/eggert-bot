@@ -27,13 +27,15 @@ info = CommandInfo(
     description="Compares quote best scores between two users across difficulty levels.\n"
                 "• Pass a difficulty range (e.g. `3-5`) for a detailed head-to-head in that range.\n"
                 "• Pass a character-length range (e.g. `50-100`) to filter by quote length.\n"
-                "• Ranges starting at 20+ are read as length; below that, as difficulty.",
-    parameters="[username1] [username2] [difficulty_range] [length_range]",
+                "• Ranges starting at 20+ are read as length; below that, as difficulty.\n"
+                "• Pass `daily` to compare only quotes from finished daily quotes.",
+    parameters="[username1] [username2] [difficulty_range] [length_range] [daily]",
     examples=[
         "-cg eiko",
         "-cg eiko keegan",
         "-cg eiko keegan 3-5",
         "-cg eiko keegan 3-5 50-100",
+        "-cg eiko keegan daily",
     ],
 )
 
@@ -66,15 +68,28 @@ def length_label(min_length, max_length) -> str:
     return f"{min_length:,}-{max_length:,} chars"
 
 
+def comparison_title(*labels: str | None) -> str:
+    """Return the comparison title with its labels in brackets, skipping any that are None."""
+    labels = [label for label in labels if label]
+    if not labels:
+        return "Quote Best Comparison"
+    return f"Quote Best Comparison ({", ".join(labels)})"
+
+
 class CompareGraph(Command):
     """Compare two users' quote bests across difficulty levels."""
 
-    supported_flags = {"metric", "raw", "gamemode", "status", "language", "number_range", "date_range"}
+    supported_flags = {"metric", "raw", "gamemode", "status", "language", "number_range", "date_range", "quote_id"}
 
     @commands.command(aliases=info.aliases)
     async def comparegraph(self, ctx: BotContext, *args: str):
         """Pick the overall or ranged comparison based on the ranges given."""
         self.check_raw_pp(ctx, ctx.flags.metric == "pp")
+        # parse_flags claims "daily" as a quote ID alias, so it never reaches args.
+        daily = ctx.flags.quote_id == "daily"
+        if ctx.flags.quote_id is not None and not daily:
+            await ctx.send(f"-# :warning: `{ctx.explicit_flags["quote_id"]}` has no effect on this command")
+
         if not args:
             raise MissingArguments
 
@@ -97,10 +112,10 @@ class CompareGraph(Command):
         if difficulty_range_:
             min_diff, max_diff = difficulty_range_
             await comparegraph_ranged(
-                ctx, profile1, profile2, min_diff, max_diff, ctx.flags.metric, min_length, max_length
+                ctx, profile1, profile2, min_diff, max_diff, ctx.flags.metric, min_length, max_length, daily
             )
         else:
-            await comparegraph_main(ctx, profile1, profile2, min_length, max_length)
+            await comparegraph_main(ctx, profile1, profile2, min_length, max_length, daily)
 
 
 class NoCommonTexts(BotError):
@@ -151,9 +166,10 @@ async def comparegraph_main(
     profile2: Profile,
     min_length: int | None = None,
     max_length: int | None = None,
+    daily: bool = False,
 ) -> None:
     """Send a head-to-head graph of quote wins bucketed by difficulty."""
-    quotes = get_quotes(min_length=min_length, max_length=max_length)
+    quotes = get_quotes(min_length=min_length, max_length=max_length, daily=daily)
     quote_bests1 = get_quote_bests(profile1["userId"], as_dictionary=True, flags=ctx.flags)
     quote_bests2 = get_quote_bests(profile2["userId"], as_dictionary=True, flags=ctx.flags)
     quote_ids1 = quote_bests1.keys() & quotes.keys()
@@ -258,13 +274,12 @@ async def comparegraph_main(
         inline=True,
     )
 
-    title = "Quote Best Comparison"
-    if min_length is not None:
-        title += f" ({length_label(min_length, max_length)})"
-
     message = Message(
         ctx, page=Page(
-            title=title,
+            title=comparison_title(
+                length_label(min_length, max_length) if min_length is not None else None,
+                "Daily Quotes" if daily else None,
+            ),
             description=description,
             fields=[field1, field2],
             render=lambda: compare_bar.render(
@@ -292,6 +307,7 @@ async def comparegraph_ranged(
     metric: str,
     min_length: int | None = None,
     max_length: int | None = None,
+    daily: bool = False,
 ) -> None:
     """Send a detailed head-to-head graph over one difficulty range."""
     quotes = get_quotes(
@@ -299,6 +315,7 @@ async def comparegraph_ranged(
         max_difficulty=max_difficulty,
         min_length=min_length,
         max_length=max_length,
+        daily=daily,
     )
     quote_bests1 = get_quote_bests(profile1["userId"], as_dictionary=True, flags=ctx.flags)
     quote_bests2 = get_quote_bests(profile2["userId"], as_dictionary=True, flags=ctx.flags)
@@ -379,13 +396,12 @@ async def comparegraph_ranged(
         )
     )
 
-    title = f"Quote Best Comparison ({difficulty_range(min_difficulty, max_difficulty)}"
-    if min_length is not None:
-        title += f", {length_label(min_length, max_length)}"
-    title += ")"
-
     page = Page(
-        title=title,
+        title=comparison_title(
+            difficulty_range(min_difficulty, max_difficulty),
+            length_label(min_length, max_length) if min_length is not None else None,
+            "Daily Quotes" if daily else None,
+        ),
         fields=fields,
         render=lambda: compare_histogram.render(
             profile1["username"],
