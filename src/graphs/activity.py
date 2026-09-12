@@ -12,7 +12,7 @@ DAY_LABELS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
 SAMPLES_PER_HOUR = 50
 
 
-def render_clock(username: str, counts: list[int], timezone: str, theme: Theme) -> str:
+def render_clock(username: str, counts: list[int], offset: str, theme: Theme) -> str:
     """Render races by hour of the day around a clock face and return the file name."""
     fig = plt.figure()
     ax = fig.add_subplot(111, polar=True)
@@ -31,7 +31,7 @@ def render_clock(username: str, counts: list[int], timezone: str, theme: Theme) 
     ax.set_xticks(hours)
     ax.set_xticklabels([str(hour) for hour in range(len(counts))])
     ax.set_yticks([])
-    ax.set_title(f"Daily Activity ({timezone}) - {username}")
+    ax.set_title(f"Daily Activity ({offset}) - {username}")
 
     apply_theme(ax, theme)
 
@@ -67,7 +67,7 @@ def apply_clock_colormap(ax, counts: list[int], theme: Theme) -> None:
     )
 
 
-def render_weekly(username: str, counts: list[int], timezone: str, theme: Theme) -> str:
+def render_weekly(username: str, counts: list[int], offset: str, theme: Theme) -> str:
     """Render races by day of the week as bars and return the file name."""
     fig, ax = plt.subplots()
 
@@ -84,7 +84,7 @@ def render_weekly(username: str, counts: list[int], timezone: str, theme: Theme)
     ax.set_xticklabels(DAY_LABELS)
     ax.yaxis.set_major_formatter(FuncFormatter(format_big_number))
     ax.set_ylabel("Races")
-    ax.set_title(f"Weekly Activity ({timezone}) - {username}")
+    ax.set_title(f"Weekly Activity ({offset}) - {username}")
 
     apply_theme(ax, theme)
 

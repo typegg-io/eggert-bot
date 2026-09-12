@@ -1,10 +1,11 @@
 """Tests for the pure helpers in utils/, which take no database, API or matplotlib."""
 
 from datetime import UTC, datetime
+from zoneinfo import ZoneInfo
 
 import pytest
 
-from utils.dates import is_date_like, parse_date
+from utils.dates import format_utc_offset, is_date_like, parse_date
 from utils.errors import InvalidDate, InvalidNumber
 from utils.keystrokes import calculate_wpm
 from utils.stats import (
@@ -202,6 +203,19 @@ def test_parse_date_reads_an_iso_date_as_utc_midnight():
 def test_parse_date_rejects_nonsense():
     with pytest.raises(InvalidDate):
         parse_date("not-a-date")
+
+
+# Every zone here stays on one offset all year, so the expectation holds whenever the suite runs.
+@pytest.mark.parametrize(("zone", "expected"), [
+    ("UTC", "UTC"),
+    ("America/Phoenix", "UTC-7"),
+    ("Asia/Tokyo", "UTC+9"),
+    ("Asia/Kolkata", "UTC+5:30"),
+    ("Asia/Kathmandu", "UTC+5:45"),
+    ("Pacific/Marquesas", "UTC-9:30"),
+])
+def test_format_utc_offset_labels_a_timezone(zone, expected):
+    assert format_utc_offset(ZoneInfo(zone)) == expected
 
 
 # Stats

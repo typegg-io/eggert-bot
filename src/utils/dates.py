@@ -35,6 +35,18 @@ def epoch() -> datetime:
     return datetime(1970, 1, 1, tzinfo=UTC)
 
 
+def format_utc_offset(tz: ZoneInfo) -> str:
+    """Return a timezone's offset from UTC right now, like UTC-5 or UTC+5:30."""
+    total_minutes = round(now().astimezone(tz).utcoffset().total_seconds() / 60)
+    if total_minutes == 0:
+        return "UTC"
+
+    hours, minutes = divmod(abs(total_minutes), 60)
+    sign = "+" if total_minutes > 0 else "-"
+
+    return f"UTC{sign}{hours}" + (f":{minutes:02d}" if minutes else "")
+
+
 # String & Date Conversion
 
 def normalize_datetime(date_string: str) -> str:

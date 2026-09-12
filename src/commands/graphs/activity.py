@@ -7,6 +7,7 @@ from commands.base import Command
 from context import BotContext
 from database.typegg.races import get_races
 from graphs import activity
+from utils.dates import format_utc_offset
 from utils.errors import NoRacesFiltered
 from utils.messages import Message, Page
 from utils.schemas import Profile
@@ -77,6 +78,7 @@ async def run(ctx: BotContext, profile: Profile) -> None:
     weekly = [0] * 7
 
     for race in race_list:
+        # Each race carries its own DST offset, so the title's single offset only labels today's.
         date = datetime.fromisoformat(race["timestamp"]).astimezone(timezone)
         hourly[date.hour] += 1
         # Python weeks open on Monday and the graph opens on Sunday.
@@ -84,21 +86,21 @@ async def run(ctx: BotContext, profile: Profile) -> None:
 
     username = profile["username"]
     total = len(race_list)
-    zone_name = str(timezone)
+    offset = format_utc_offset(timezone)
 
     pages = [
         Page(
             title="Daily Typing Activity",
             description=describe(hour_labels(), hourly, total),
             button_name="Daily",
-            render=lambda: activity.render_clock(username, hourly, zone_name, ctx.user["theme"]),
+            render=lambda: activity.render_clock(username, hourly, offset, ctx.user["theme"]),
             flag_title=True,
         ),
         Page(
             title="Weekly Typing Activity",
             description=describe(DAY_NAMES, weekly, total),
             button_name="Weekly",
-            render=lambda: activity.render_weekly(username, weekly, zone_name, ctx.user["theme"]),
+            render=lambda: activity.render_weekly(username, weekly, offset, ctx.user["theme"]),
             flag_title=True,
         ),
     ]
