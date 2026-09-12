@@ -82,6 +82,9 @@ metrics = {
 LEVEL_TICK_STEPS = (1, 2, 5, 10, 20, 25, 50, 100)
 MS_PER_HOUR = 3_600_000
 
+# Flags nWPM drops, since it replays fixed race streams rather than a filtered query.
+NWPM_FILTERS = {"raw", "gamemode", "status", "language", "date_range"}
+
 # A level costs the square of its number in XP, so the low ones crowd the bottom of the axis.
 MIN_TICK_GAP = 0.04
 
@@ -267,10 +270,15 @@ def get_characters_over_time(race_list: list[dict]) -> list[int]:
 
 async def run(ctx: BotContext, metric: str, profiles: list[Profile]) -> None:
     """Send one line per user for the metric requested."""
-    # get_nwpm_line replays English races alone, so a universe would title data the graph never held.
-    if metric == "nwpm" and ctx.flags.language:
-        await ctx.send("-# :warning: nWPM is English only")
+    # A filtered title would name data get_nwpm_line never read.
+    if metric == "nwpm":
+        if ctx.explicit_flags.keys() & NWPM_FILTERS or ctx.flags.language or ctx.flags.date_range:
+            await ctx.send("-# :warning: nWPM counts quickplay and ranked English races only")
+        ctx.flags.gamemode = None
+        ctx.flags.status = "any"
         ctx.flags.language = None
+        ctx.flags.raw = False
+        ctx.flags.date_range = None
 
     # Unranked typing earns no XP, so plotting it would draw a level nobody can reach.
     if metric == "level" and ctx.flags.status != "ranked":
