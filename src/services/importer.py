@@ -14,6 +14,7 @@ from database.typegg.races import add_races, get_latest_race
 from database.typegg.sources import add_source, get_sources
 from database.typegg.users import create_user, get_user
 from utils.dates import date_to_string, epoch, parse_date, string_to_date
+from utils.errors import UnknownQuote
 from utils.logging import log
 from utils.messages import Message, Page
 from utils.schemas import Profile
@@ -23,14 +24,22 @@ from utils.strings import LOADING, escape_formatting
 _active_imports: set[str] = set()
 
 
-async def import_new_quotes(new_quote_ids) -> None:
-    """Add every quote the database is missing, pulling its source first."""
+async def import_new_quotes(new_quote_ids) -> set[str]:
+    """Add every quote the database is missing and return the ones TypeGG has deleted."""
     source_ids = set(get_sources().keys())
+    deleted_quote_ids = set()
     log("New quotes found: " + ", ".join(new_quote_ids))
 
     async def process_quote(quote_id) -> None:
         """Add one quote, adding its source first when that is missing too."""
-        quote = await get_quote(quote_id)
+        try:
+            quote = await get_quote(quote_id)
+        # The races endpoint still returns races on a quote TypeGG has deleted.
+        except UnknownQuote:
+            log(f"Skipping deleted quote: {quote_id}")
+            deleted_quote_ids.add(quote_id)
+            return
+
         source_id = quote["source"]["sourceId"]
 
         if source_id not in source_ids:
@@ -44,6 +53,8 @@ async def import_new_quotes(new_quote_ids) -> None:
 
     for quote_id in new_quote_ids:
         await process_quote(quote_id)
+
+    return deleted_quote_ids
 
 
 async def run(
@@ -114,6 +125,7 @@ async def run(
             return
 
         quote_ids = set(get_quotes().keys())
+        deleted_quote_ids = set()
         start_date = latest_date + relativedelta(microseconds=1000)
 
         while True:
@@ -185,7 +197,11 @@ async def run(
                     message = Message(ctx, page, show_range=False)
                     await message.send()
 
-                await import_new_quotes(list(new_quote_ids))
+                deleted_quote_ids |= await import_new_quotes(list(new_quote_ids))
+
+            # Mirrors the cascade in database/typegg/quotes.py delete_quote.
+            race_list_no_dnf = [race for race in race_list_no_dnf if race["quoteId"] not in deleted_quote_ids]
+            match_list = [match for match in match_list if match["quoteId"] not in deleted_quote_ids]
 
             keystroke_races = [
                 race for race in race_list_no_dnf
