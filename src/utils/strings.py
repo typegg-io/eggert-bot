@@ -254,12 +254,8 @@ def date_range_display(start, end, tz, short: bool = False) -> str:
 
 
 def month_display(date, short: bool = False) -> str:
-    """Return a date's month name, or its abbreviation like 'Dec.' when short."""
-    month = date.strftime("%B")
-    abbreviation = date.strftime("%b")
-    if not short or abbreviation == month:
-        return month
-    return f"{abbreviation}."
+    """Return a date's month name, or its abbreviation like 'Dec' when short."""
+    return date.strftime("%b" if short else "%B")
 
 
 def date_range_subtext(start, end, tz) -> str:
