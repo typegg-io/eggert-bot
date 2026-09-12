@@ -275,7 +275,7 @@ async def run(ctx: BotContext, metric: str, profiles: list[Profile]) -> None:
         if ctx.explicit_flags.keys() & NWPM_FILTERS or ctx.flags.language or ctx.flags.date_range:
             await ctx.send("-# :warning: nWPM counts quickplay and ranked English races only")
         ctx.flags.gamemode = None
-        ctx.flags.status = "any"
+        ctx.flags.status = "ranked"
         ctx.flags.language = None
         ctx.flags.raw = False
         ctx.flags.date_range = None
