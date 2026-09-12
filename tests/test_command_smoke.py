@@ -86,6 +86,7 @@ INVOCATIONS = [
     "-linegraph level",
     "-linegraph playtime",
     "-longestaverage 100",
+    "-longestbreak",
     "-marathon",
     "-marathon pp 1h",
     "-matchgraph",
