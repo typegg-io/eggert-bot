@@ -37,6 +37,7 @@ NOW = datetime.now(UTC)
 
 # One invocation per line, written the way a user types it.
 INVOCATIONS = [
+    "-activity",
     "-average",
     "-average eiko",
     "-bestaverages",
