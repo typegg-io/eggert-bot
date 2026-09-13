@@ -111,7 +111,7 @@ def render(
     cbar.ax.tick_params(axis="x", colors=text_color, labelsize=11)
     cbar.ax.xaxis.label.set_y(-1.5)
 
-    fig.set_constrained_layout_pads(w_pad=0.05, h_pad=0.05, hspace=0.05, wspace=0.05)
+    fig.get_layout_engine().set(w_pad=0.05, h_pad=0.05, hspace=0.05, wspace=0.05)
 
     file_name = generate_file_name("keystrokes")
 
