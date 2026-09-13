@@ -26,6 +26,7 @@ info = CommandInfo(
     examples=[
         "-sob",
         "-sob piykyai_3408",
+        "-sob raw",
     ],
     plus=True,
 )
@@ -34,7 +35,7 @@ info = CommandInfo(
 class SumOfBest(Command):
     """Graph a theoretical best race built from a user's fastest segments."""
 
-    supported_flags = {"gamemode", "number", "quote_id"}
+    supported_flags = {"gamemode", "number", "quote_id", "raw"}
 
     @commands.command(aliases=info.aliases)
     @usable_in(DAILY_QUOTE_CHANNEL_ID)
@@ -77,11 +78,9 @@ async def run(ctx: BotContext, profile: Profile, quote: dict) -> None:
         except InvalidKeystrokeData:
             continue
 
-        segments = build_segments(
-            text_segments,
-            keystroke_data.wpmCharacterTimes,
-            keystroke_data.rawCharacterTimes,
-        )
+        # Raw picks each segment's fastest raw time, so a raw race is built from raw delays alone.
+        delays = keystroke_data.rawCharacterTimes if ctx.flags.raw else keystroke_data.wpmCharacterTimes
+        segments = build_segments(text_segments, delays, keystroke_data.rawCharacterTimes)
 
         if not sum_of_best_segments:
             sum_of_best_segments = copy.deepcopy(segments)

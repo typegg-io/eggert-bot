@@ -124,6 +124,7 @@ INVOCATIONS = [
     "-session time 1h",
     "-stats",
     "-sumofbest",
+    "-sumofbest raw",
     "-timetravel",
     "-topgraph q1",
     "-10g q1 raw",
@@ -897,6 +898,18 @@ def test_an_admin_can_graph_another_users_private_race(seeded):
     ctx = asyncio.run(invoke(f"-racegraph {seed_data.RIVAL_ID} {rival_race_number("hidden")}", admin=True))
 
     assert ctx.sent
+
+
+def sum_of_best_speed(invocation: str) -> float:
+    """Return the Speed line a sum of best invocation renders."""
+    description = asyncio.run(invoke(invocation)).sent[-1]["embed"].description
+    line = next(line for line in description.split("\n") if line.startswith("**Speed:**"))
+    return float(line.split()[1].replace(",", ""))
+
+
+def test_raw_sum_of_best_builds_from_raw_segments(seeded):
+    """Raw times drop mistake recovery, so the seeded raw sum of best comes out faster."""
+    assert sum_of_best_speed("-sumofbest raw") > sum_of_best_speed("-sumofbest")
 
 
 def test_average_shows_a_speed_spread_from_two_races(seeded):
