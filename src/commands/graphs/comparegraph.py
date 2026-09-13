@@ -6,6 +6,7 @@ from discord.ext import commands
 
 from command_info import CommandInfo
 from commands.base import Command
+from commands.quotes.best import range_label
 from context import BotContext
 from database.typegg.quotes import get_quotes
 from database.typegg.users import get_quote_bests
@@ -18,7 +19,6 @@ from utils.urls import compare_url
 
 metrics = ["pp", "wpm"]
 
-LENGTH_BOUNDARY = 20
 RANGE_RE = re.compile(r"^(\d+(?:\.\d+)?)-(\d+(?:\.\d+)?)$")
 
 info = CommandInfo(
@@ -26,46 +26,28 @@ info = CommandInfo(
     aliases=["cg", "flaneur"],
     description="Compares quote best scores between two users across difficulty levels.\n"
                 "• Pass a difficulty range (e.g. `3-5`) for a detailed head-to-head in that range.\n"
-                "• Pass a character-length range (e.g. `50-100`) to filter by quote length.\n"
-                "• Ranges starting at 20+ are read as length; below that, as difficulty.\n"
+                "• Pass a character-length range (e.g. `50-100c`) to filter by quote length.\n"
                 "• Pass `daily` to compare only quotes from finished daily quotes.",
     parameters="[username1] [username2] [difficulty_range] [length_range] [daily]",
     examples=[
         "-cg eiko",
         "-cg eiko keegan",
         "-cg eiko keegan 3-5",
-        "-cg eiko keegan 3-5 50-100",
+        "-cg eiko keegan 3-5 50-100c",
         "-cg eiko keegan daily",
     ],
 )
 
 
-def parse_ranges(raw_args) -> tuple[tuple[float, float] | None, tuple[int, int] | None]:
-    """Extract difficulty and length ranges from raw args, classified by lower bound."""
-    difficulty = None
-    length = None
-
+def parse_difficulty_range(raw_args) -> tuple[float, float] | None:
+    """Return the first a-b range in raw args as a difficulty range."""
     for arg in raw_args:
         match = RANGE_RE.match(arg)
-        if not match:
-            continue
+        if match:
+            lower, upper = float(match.group(1)), float(match.group(2))
+            return min(lower, upper), max(lower, upper)
 
-        lower, upper = float(match.group(1)), float(match.group(2))
-        if lower > upper:
-            lower, upper = upper, lower
-
-        if lower >= LENGTH_BOUNDARY:
-            if length is None:
-                length = (int(lower), int(upper))
-        elif difficulty is None:
-            difficulty = (lower, upper)
-
-    return difficulty, length
-
-
-def length_label(min_length, max_length) -> str:
-    """Return a character-length range formatted for a title."""
-    return f"{min_length:,}-{max_length:,} chars"
+    return None
 
 
 def comparison_title(*labels: str | None) -> str:
@@ -79,7 +61,9 @@ def comparison_title(*labels: str | None) -> str:
 class CompareGraph(Command):
     """Compare two users' quote bests across difficulty levels."""
 
-    supported_flags = {"metric", "raw", "gamemode", "status", "language", "number_range", "date_range", "quote_id"}
+    supported_flags = {
+        "metric", "raw", "gamemode", "status", "language", "number_range", "length_range", "date_range", "quote_id"
+    }
 
     @commands.command(aliases=info.aliases)
     async def comparegraph(self, ctx: BotContext, *args: str):
@@ -102,20 +86,19 @@ class CompareGraph(Command):
             raise SameUsername
         profile1, profile2 = profiles[0], profiles[1]
 
-        difficulty_range_, length_range = parse_ranges(ctx.raw_args)
-        min_length, max_length = length_range if length_range else (None, None)
+        difficulty_range_ = parse_difficulty_range(ctx.raw_args)
 
-        # parse_ranges reads only the a-b form, so an open-ended range would pass unnoticed.
-        if ctx.flags.number_range and not (difficulty_range_ or length_range):
-            await ctx.send("-# :warning: pass a range as `3-5` for difficulty or `50-100` for length")
+        # parse_difficulty_range reads only the a-b form, so an open-ended range would pass unnoticed.
+        if ctx.flags.number_range and not difficulty_range_:
+            await ctx.send("-# :warning: pass a difficulty range as `3-5`")
 
         if difficulty_range_:
             min_diff, max_diff = difficulty_range_
             await comparegraph_ranged(
-                ctx, profile1, profile2, min_diff, max_diff, ctx.flags.metric, min_length, max_length, daily
+                ctx, profile1, profile2, min_diff, max_diff, ctx.flags.metric, daily
             )
         else:
-            await comparegraph_main(ctx, profile1, profile2, min_length, max_length, daily)
+            await comparegraph_main(ctx, profile1, profile2, daily)
 
 
 class NoCommonTexts(BotError):
@@ -164,12 +147,10 @@ async def comparegraph_main(
     ctx: BotContext,
     profile1: Profile,
     profile2: Profile,
-    min_length: int | None = None,
-    max_length: int | None = None,
     daily: bool = False,
 ) -> None:
     """Send a head-to-head graph of quote wins bucketed by difficulty."""
-    quotes = get_quotes(min_length=min_length, max_length=max_length, daily=daily)
+    quotes = get_quotes(daily=daily)
     quote_bests1 = get_quote_bests(profile1["userId"], as_dictionary=True, flags=ctx.flags)
     quote_bests2 = get_quote_bests(profile2["userId"], as_dictionary=True, flags=ctx.flags)
     quote_ids1 = quote_bests1.keys() & quotes.keys()
@@ -277,7 +258,7 @@ async def comparegraph_main(
     message = Message(
         ctx, page=Page(
             title=comparison_title(
-                length_label(min_length, max_length) if min_length is not None else None,
+                range_label(ctx.flags.length_range, "chars") if ctx.flags.length_range else None,
                 "Daily Quotes" if daily else None,
             ),
             description=description,
@@ -305,16 +286,12 @@ async def comparegraph_ranged(
     min_difficulty: float,
     max_difficulty: float,
     metric: str,
-    min_length: int | None = None,
-    max_length: int | None = None,
     daily: bool = False,
 ) -> None:
     """Send a detailed head-to-head graph over one difficulty range."""
     quotes = get_quotes(
         min_difficulty=min_difficulty,
         max_difficulty=max_difficulty,
-        min_length=min_length,
-        max_length=max_length,
         daily=daily,
     )
     quote_bests1 = get_quote_bests(profile1["userId"], as_dictionary=True, flags=ctx.flags)
@@ -399,7 +376,7 @@ async def comparegraph_ranged(
     page = Page(
         title=comparison_title(
             difficulty_range(min_difficulty, max_difficulty),
-            length_label(min_length, max_length) if min_length is not None else None,
+            range_label(ctx.flags.length_range, "chars") if ctx.flags.length_range else None,
             "Daily Quotes" if daily else None,
         ),
         fields=fields,

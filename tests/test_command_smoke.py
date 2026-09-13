@@ -55,6 +55,8 @@ INVOCATIONS = [
     "-comparegraph eiko keegan",
     "-comparegraph eiko keegan daily",
     "-comparegraph eiko keegan 0-15 daily",
+    "-comparegraph eiko keegan 0-15 >50c",
+    "-comparegraph eiko keegan <500c",
     "-dailygraph",
     "-dailygraph raw",
     "-dailyleaderboard",
@@ -758,6 +760,14 @@ def test_daily_narrows_comparegraph_without_a_warning(seeded):
 
     assert not any("no effect" in (sent.get("content") or "") for sent in ctx.sent)
     assert "Daily Quotes" in ctx.sent[-1]["embed"].title
+
+
+def test_a_length_range_narrows_comparegraph_without_a_warning(seeded):
+    """A `c` length range reaches -comparegraph as a flag and names itself in the title."""
+    ctx = asyncio.run(invoke("-comparegraph eiko keegan <500c"))
+
+    assert not any("no effect" in (sent.get("content") or "") for sent in ctx.sent)
+    assert "<500 chars" in ctx.sent[-1]["embed"].title
 
 
 def logged_race_number(longest: bool) -> int:
