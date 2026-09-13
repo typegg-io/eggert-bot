@@ -155,6 +155,11 @@ def universe_code(flags: Flags) -> str | None:
     return None
 
 
+def is_foreign_universe(flags: Flags) -> bool:
+    """Return whether the active language is a universe other than English."""
+    return universe_code(flags) not in (None, DEFAULT_UNIVERSE)
+
+
 def apply_universe_status(flags: Flags) -> None:
     """Force unranked for a language that has no ranked pool of its own."""
     if flags.language and not flags.language.is_universe:

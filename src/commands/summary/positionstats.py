@@ -3,7 +3,7 @@ from collections import Counter
 from discord.ext import commands
 
 from command_info import CommandInfo
-from commands.base import Command
+from commands.base import Command, keep_multiplayer_english
 from context import BotContext
 from database.typegg.races import get_races
 from utils.errors import NoRacesFiltered
@@ -32,6 +32,7 @@ class PositionStats(Command):
     async def positionstats(self, ctx: BotContext, *args: str):
         """Cover every multiplayer mode unless one was asked for, then render the placements."""
         ctx.flags.gamemode = ctx.flags.gamemode or "multiplayer"
+        await keep_multiplayer_english(ctx)
         profile = await self.get_profile(ctx, args[0] if args else None)
 
         await run(ctx, profile)

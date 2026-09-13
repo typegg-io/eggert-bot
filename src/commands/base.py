@@ -26,7 +26,7 @@ from utils.errors import (
     NoRacesFiltered,
     NotSubscribed,
 )
-from utils.flags import Flags, is_multiplayer, multiplayer_race_count, universe_code
+from utils.flags import Flags, is_foreign_universe, is_multiplayer, multiplayer_race_count, universe_code
 from utils.messages import command_milestone, privacy_warning
 from utils.schemas import Profile
 from utils.strings import get_argument, parse_number
@@ -58,6 +58,21 @@ async def take_universe(ctx: BotContext) -> str | None:
         ctx.flags.language = None
 
     return code
+
+
+async def keep_multiplayer_english(ctx: BotContext) -> None:
+    """Clear a non-English universe from a multiplayer command, warning that it has no effect."""
+    if is_multiplayer(ctx.flags) and is_foreign_universe(ctx.flags):
+        await ctx.send("-# :warning: your universe has no effect on multiplayer races")
+        ctx.flags.language = None
+
+
+async def default_to_quickplay(ctx: BotContext) -> None:
+    """Default the gamemode to quickplay, or to solo in a universe quickplay does not serve."""
+    if not ctx.flags.gamemode:
+        ctx.flags.gamemode = "solo" if is_foreign_universe(ctx.flags) else "quickplay"
+
+    await keep_multiplayer_english(ctx)
 
 
 class Command(commands.Cog):

@@ -1,7 +1,7 @@
 from discord.ext import commands
 
 from command_info import CommandInfo
-from commands.base import Command
+from commands.base import Command, default_to_quickplay
 from commands.summary.races import build_stat_fields
 from context import BotContext
 from database.typegg.races import get_races
@@ -29,7 +29,7 @@ class LongestAverage(Command):
     @commands.command(aliases=info.aliases)
     async def longestaverage(self, ctx: BotContext, *args: str):
         """Require a WPM threshold, then find the longest runs that clear it."""
-        ctx.flags.gamemode = ctx.flags.gamemode or "quickplay"
+        await default_to_quickplay(ctx)
 
         if ctx.flags.number is None:
             raise MissingArguments

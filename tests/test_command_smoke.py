@@ -922,6 +922,28 @@ def test_raw_sum_of_best_builds_from_raw_segments(seeded):
     assert sum_of_best_speed("-sumofbest raw") > sum_of_best_speed("-sumofbest")
 
 
+def sent_warnings(ctx: FakeContext) -> list[str]:
+    """Return the subtext warnings a command sent before its embed."""
+    return [message["content"] for message in ctx.sent if (message.get("content") or "").startswith("-# ")]
+
+
+def test_a_foreign_universe_averages_solo_races(seeded):
+    """Quickplay serves only English quotes, so a non-English universe averages solo races instead."""
+    ctx = asyncio.run(invoke("-average", universe="es"))
+
+    assert ctx.flags.gamemode == "solo"
+    assert "Spanish" in ctx.sent[-1]["embed"].title
+
+
+@pytest.mark.parametrize("invocation", ["-average quickplay", "-positionstats"])
+def test_a_multiplayer_command_drops_a_foreign_universe(seeded, invocation):
+    """Multiplayer runs in English, and says so rather than finding no races."""
+    ctx = asyncio.run(invoke(invocation, universe="es"))
+
+    assert ctx.flags.language is None
+    assert "-# :warning: your universe has no effect on multiplayer races" in sent_warnings(ctx)
+
+
 def test_a_histogram_without_typos_notes_its_empty_timing_pages(seeded, monkeypatch):
     """A clean race times its typos as 0, which once left the quartiles nothing to read."""
     from commands.graphs import histogram

@@ -1,7 +1,7 @@
 from discord.ext import commands
 
 from command_info import CommandInfo
-from commands.base import Command
+from commands.base import Command, default_to_quickplay
 from context import BotContext
 from database.typegg.quotes import get_quotes
 from database.typegg.races import get_races
@@ -38,7 +38,7 @@ class BestAverages(Command):
     @commands.command(aliases=info.aliases)
     async def bestaverages(self, ctx: BotContext, *args: str):
         """Default to 25 quickplay races, then rank the best non-overlapping windows."""
-        ctx.flags.gamemode = ctx.flags.gamemode or "quickplay"
+        await default_to_quickplay(ctx)
         n = int(abs(ctx.flags.number)) if ctx.flags.number is not None else 25
         params = self.extract_params(args, ["accuracy"])
         # Flags.metric defaults to pp, so only a typed metric counts here.

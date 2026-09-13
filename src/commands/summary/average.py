@@ -3,7 +3,7 @@ from statistics import stdev
 from discord.ext import commands
 
 from command_info import CommandInfo
-from commands.base import Command
+from commands.base import Command, default_to_quickplay
 from context import BotContext
 from database.typegg.quotes import get_quotes
 from database.typegg.races import get_races
@@ -35,7 +35,7 @@ class Average(Command):
     @commands.command(aliases=info.aliases)
     async def average(self, ctx: BotContext, *args: str):
         """Default to the last 25 quickplay races, then average them."""
-        ctx.flags.gamemode = ctx.flags.gamemode or "quickplay"
+        await default_to_quickplay(ctx)
         n = int(abs(ctx.flags.number)) if ctx.flags.number is not None else 25
         profile = await self.get_profile(ctx, args[0] if args else None)
 
