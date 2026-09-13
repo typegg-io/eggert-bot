@@ -1,6 +1,7 @@
 """Tests for the nWPM ratchet, a port of recomputeStats in typegg's leaderboard/model.go."""
 
-from utils.nwpm import CALIBRATION_MIN_QUOTES, NWPM_BRIDGE_A, NWPM_BRIDGE_B, NwpmState
+from utils import nwpm
+from utils.nwpm import CALIBRATION_MIN_QUOTES, NwpmState
 
 
 def calibrate(state: NwpmState, ratio: float, prefix: str = "q") -> None:
@@ -28,4 +29,4 @@ def test_ratchet_ignores_a_spike_before_calibration():
 
     calibrate(state, 1.0)
 
-    assert state.recompute() == round(NWPM_BRIDGE_A + NWPM_BRIDGE_B * 1.0, 2)
+    assert state.recompute() == round(nwpm.PARAMS["bridge_a"] + nwpm.PARAMS["bridge_b"] * 1.0, 2)

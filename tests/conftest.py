@@ -9,7 +9,14 @@ import pytest
 
 from commands.base import Command
 from database.bot import db
+from utils import nwpm
 from utils.files import get_command_modules
+
+# The real parameters are private to src/data, so a checkout without them runs on placeholders.
+if nwpm.PARAMS is None:
+    nwpm.PARAMS = {
+        "ref_pwpm": 100.0, "adj_clip_lo": 0.5, "adj_clip_hi": 1.5, "window": 40, "bridge_a": 0.0, "bridge_b": 100.0,
+    }
 
 
 @pytest.fixture(scope="session", autouse=True)

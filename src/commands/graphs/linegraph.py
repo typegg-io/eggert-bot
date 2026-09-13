@@ -12,7 +12,7 @@ from graphs import line
 from utils.errors import BotError, NoRacesFiltered
 from utils.flags import get_flag_title
 from utils.messages import range_subtext
-from utils.nwpm import CALIBRATION_MIN_QUOTES
+from utils.nwpm import CALIBRATION_MIN_QUOTES, model_is_loaded
 from utils.schemas import Profile
 from utils.stats import (
     calculate_experience,
@@ -127,6 +127,9 @@ class LineGraph(Command):
 
 def get_nwpm_line(username: str, user_id: str) -> tuple[list[str], list[float]]:
     """Return a user's nWPM timestamps and values, oldest first."""
+    if not model_is_loaded():
+        raise BotError("Missing nWPM Model", "nWPM needs src/data/nwpm_params.json.")
+
     if not quotes_are_rated():
         raise BotError(
             "Missing Quote Ratings",

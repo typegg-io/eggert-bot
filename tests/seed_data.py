@@ -6,26 +6,17 @@ The seed is otherwise deterministic.
 
 import json
 import math
-import os
 import random
 import sqlite3
 from datetime import UTC, datetime, timedelta
 
-FIXTURE_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "fixtures", "keystrokes", "codec")
+# Lengths span short quotes to a multi-paragraph one, so length filters and graphs have range.
+QUOTE_LENGTHS = [54, 56, 64, 75, 84, 133, 176, 822, 1231, 2872]
 
-# The quote text has to match its keystroke log, so both are read out of one vendored fixture.
-QUOTE_FIXTURES = [
-    "keegan_15944.json",
-    "keegan_5313.json",
-    "keegan_15981.json",
-    "keegan_15990.json",
-    "keegan_16008.json",
-    "keegan_2696.json",
-    "keegan_9200.json",
-    "keegan_1970.json",
-    "keegan_4093.json",
-    "keegan_5888.json",
-]
+WORDS = (
+    "the quiet river carried a paper boat past old stone bridges while children counted every "
+    "lantern glowing along the bank and nobody wanted the evening to end before the music stopped"
+).split()
 
 DISCORD_ID = "100000000000000001"
 RIVAL_DISCORD_ID = "100000000000000002"
@@ -57,18 +48,41 @@ def stamp(date: datetime) -> str:
     return date.strftime(TIMESTAMP_FORMAT)
 
 
+def build_text(length: int, offset: int) -> str:
+    """Return a sentence of roughly the given length, cycling through WORDS from an offset."""
+    words = []
+    i = offset
+    while len(" ".join(words)) < length:
+        words.append(WORDS[i % len(WORDS)])
+        i += 1
+
+    return " ".join(words).capitalize() + "."
+
+
+def build_keystrokes(text: str, seed: int) -> list:
+    """Return a compact keystroke payload that types the text with a corrected typo every 20 characters."""
+    rng = random.Random(seed)
+    strokes = []
+    for i, char in enumerate(text):
+        if i and i % 20 == 0:
+            strokes.append(f"{rng.randint(40, 90)}+#")
+            strokes.append(f"{rng.randint(90, 160)}<")
+        strokes.append(f"{0 if i == 0 else rng.randint(40, 90)}+{char}")
+
+    return [1, text, 0, "|".join(strokes)]
+
+
 def load_quotes() -> list[dict]:
-    """Return the quote rows, each carrying the keystroke payload its text came from."""
+    """Return the quote rows, each carrying a keystroke payload that types its text."""
     quotes = []
     for i in range(QUOTE_COUNT):
-        file = QUOTE_FIXTURES[i % len(QUOTE_FIXTURES)]
-        with open(os.path.join(FIXTURE_DIR, file), encoding="utf-8") as f:
-            payload = json.load(f)
+        text = build_text(QUOTE_LENGTHS[i % len(QUOTE_LENGTHS)], i)
+        payload = build_keystrokes(text, i)
 
         quotes.append({
             "quoteId": f"q{i + 1}",
             "sourceId": SOURCE_ID,
-            "text": payload[1],
+            "text": text,
             "explicit": 0,
             "difficulty": 1 + (i % 5) * 0.4,
             "complexity": 1 + (i % 3) * 0.3,

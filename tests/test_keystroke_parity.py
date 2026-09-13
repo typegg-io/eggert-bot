@@ -21,6 +21,10 @@ import os
 import pytest
 from keystroke_diff import EXCLUDED, FIXTURE_DIR, compare, load_golden, load_manifest
 
+# The fixtures derive from typegg's private corpus, so they live only in local checkouts.
+if not os.path.isfile(os.path.join(FIXTURE_DIR, "golden.json")):
+    pytest.skip("keystroke fixtures are not in this checkout", allow_module_level=True)
+
 GOLDEN = load_golden()
 MANIFEST = load_manifest()
 CASES = [pytest.param(g, id=f"{g['format']}/{g['file']}") for g in GOLDEN]

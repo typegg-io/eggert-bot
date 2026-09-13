@@ -3,25 +3,41 @@
 nWPM is the higher of two legs, shown only once the user has best races on
 `CALIBRATION_MIN_QUOTES` distinct ranked English quotes:
 
-    leg A  best mean of `WINDOW` consecutive quickplay races, each difficulty-adjusted
+    leg A  best mean over a window of consecutive quickplay races, each difficulty-adjusted
     leg B  a linear bridge off the median of best_wpm / predictedWpm across ranked English quotes
 
-Parameters load from the private src/data/nwpm_params.json.
+Parameters load from the private src/data/nwpm_params.json, copied to each install by hand.
 
 Once calibrated, the value only rises, as recomputeStats in model.go ratchets it.
 """
 
 import bisect
+import json
+
+from config import SOURCE_DIR
 
 # Constants
 
-REF_PWPM = None
-ADJ_CLIP_LO = None
-ADJ_CLIP_HI = None
-WINDOW = None
 CALIBRATION_MIN_QUOTES = 50
-NWPM_BRIDGE_A = None
-NWPM_BRIDGE_B = None
+PARAMS_FILE = SOURCE_DIR / "data" / "nwpm_params.json"
+
+
+def load_params() -> dict[str, float] | None:
+    """Return the private model parameters, or None when this install has none."""
+    if not PARAMS_FILE.is_file():
+        return None
+
+    with open(PARAMS_FILE, encoding="utf-8") as f:
+        return json.load(f)
+
+
+# Read at call time, so tests can substitute placeholder values.
+PARAMS = load_params()
+
+
+def model_is_loaded() -> bool:
+    """Return whether this install has the parameters nWPM needs."""
+    return PARAMS is not None
 
 
 def adjust_race_wpm(wpm: float, predicted_wpm: float) -> float:
@@ -29,7 +45,8 @@ def adjust_race_wpm(wpm: float, predicted_wpm: float) -> float:
     if predicted_wpm <= 0:
         return wpm
 
-    return wpm * min(max(REF_PWPM / predicted_wpm, ADJ_CLIP_LO), ADJ_CLIP_HI)
+    ratio = PARAMS["ref_pwpm"] / predicted_wpm
+    return wpm * min(max(ratio, PARAMS["adj_clip_lo"]), PARAMS["adj_clip_hi"])
 
 
 def median(values: list[float]) -> float:
@@ -54,14 +71,15 @@ class QPWindow:
 
     def push(self, adjusted: float) -> None:
         """Add one race's adjusted WPM, retiring the oldest once the window is full."""
+        window = PARAMS["window"]
         self.ring.append(adjusted)
         self.total += adjusted
 
-        if len(self.ring) > WINDOW:
+        if len(self.ring) > window:
             self.total -= self.ring.pop(0)
 
-        if len(self.ring) == WINDOW:
-            self.best = max(self.best, self.total / WINDOW)
+        if len(self.ring) == window:
+            self.best = max(self.best, self.total / window)
 
 
 class SkillMedian:
@@ -116,5 +134,6 @@ class NwpmState:
             return 0.0
 
         # Ratcheting before calibration would lock in an early spike of the skill median.
-        self.nwpm_max = max(self.nwpm_max, self.window.best, NWPM_BRIDGE_A + NWPM_BRIDGE_B * self.skill.value)
+        bridge = PARAMS["bridge_a"] + PARAMS["bridge_b"] * self.skill.value
+        self.nwpm_max = max(self.nwpm_max, self.window.best, bridge)
         return round(self.nwpm_max, 2)

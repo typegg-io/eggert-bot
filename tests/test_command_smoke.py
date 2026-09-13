@@ -328,7 +328,7 @@ def fake_profile(user_id: str, races: int) -> dict:
             "races": races,
             "soloRaces": races - seed_data.MATCH_COUNT,
             "quickplayRaces": seed_data.MATCH_COUNT,
-            "quotesTyped": len(seed_data.QUOTE_FIXTURES),
+            "quotesTyped": len(seed_data.QUOTE_LENGTHS),
             "charactersTyped": 480000.0,
             "wins": 12,
             "playTime": 90000.0,

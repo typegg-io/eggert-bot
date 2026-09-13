@@ -190,3 +190,6 @@ Makefile
 # Scratch notes kept at the repo root
 /*.txt
 !/requirements.txt
+
+# Derived from typegg's private corpus
+/tests/fixtures/keystrokes/
