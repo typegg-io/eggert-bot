@@ -3,7 +3,7 @@ from discord.ext import commands
 
 from api.users import get_quote as get_quote_stats
 from command_info import CommandInfo
-from commands.base import Command, enforce_daily_quote
+from commands.base import Command, enforce_daily_quote, take_race_universe
 from config import DAILY_QUOTE_CHANNEL_ID
 from context import BotContext
 from database.typegg.races import get_race, get_races
@@ -35,7 +35,7 @@ PROGRESSION_LIMIT = 50
 class Quote(Command):
     """Display a user's stats on one quote."""
 
-    supported_flags = {"number", "quote_id"}
+    supported_flags = {"number", "quote_id", "language"}
 
     @commands.command(aliases=info.aliases)
     @usable_in(DAILY_QUOTE_CHANNEL_ID)
@@ -43,9 +43,10 @@ class Quote(Command):
         """Resolve the quote from a flag, a race number, or the caller's latest race."""
         ctx.flags.status = None
         profile = await self.get_profile(ctx, args[0] if args else None)
+        universe = take_race_universe(ctx)
 
         if ctx.flags.number is not None or ctx.flags.quote_id is None:
-            race_number = await self.get_race_number(profile, ctx.flags.number)
+            race_number = await self.get_race_number(profile, ctx.flags.number, universe)
             race = get_race(profile["userId"], race_number)
             quote = await self.get_quote(ctx, race["quoteId"])
         else:

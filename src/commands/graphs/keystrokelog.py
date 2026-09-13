@@ -5,7 +5,7 @@ from discord import File
 from discord.ext import commands
 
 from command_info import CommandInfo
-from commands.base import Command, enforce_daily_quote
+from commands.base import Command, enforce_daily_quote, take_race_universe
 from config import DAILY_QUOTE_CHANNEL_ID
 from context import BotContext
 from database.bot.recent_quotes import set_recent_quote
@@ -39,7 +39,7 @@ info = CommandInfo(
 class KeystrokeLog(Command):
     """Show the raw keystroke log for one of the caller's races."""
 
-    supported_flags = {"number", "quote_id"}
+    supported_flags = {"number", "quote_id", "language"}
 
     @commands.command(aliases=info.aliases)
     @usable_in(DAILY_QUOTE_CHANNEL_ID)
@@ -47,13 +47,14 @@ class KeystrokeLog(Command):
         """Show the log for the race number given, or the caller's best race on a quote."""
         ctx.flags.status = None
         profile = await self.get_profile(ctx, args[0] if args else None)
+        universe = take_race_universe(ctx)
 
         # The API returns raw keystrokes only to the racer.
         if profile["userId"] != ctx.user["userId"] and not ctx.user["isAdmin"]:
             raise BotError("Privacy Error", "You may only view keystroke logs for your own account")
 
         if ctx.flags.number is not None or ctx.flags.quote_id is None:
-            race_number = await self.get_race_number(profile, ctx.flags.number)
+            race_number = await self.get_race_number(profile, ctx.flags.number, universe)
         else:
             quote = await self.get_quote(ctx, ctx.flags.quote_id, profile["userId"])
             quote_bests = get_quote_bests(profile["userId"], quote_id=quote["quoteId"], flags=ctx.flags)

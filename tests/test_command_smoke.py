@@ -945,6 +945,38 @@ def test_a_multiplayer_command_drops_a_foreign_universe(seeded, invocation):
     assert "-# :warning: your universe has no effect on multiplayer races" in sent_warnings(ctx)
 
 
+def universe_race_numbers(seeded, language: str) -> list[int]:
+    """Return the seeded user's race numbers on quotes in one language, latest first."""
+    return [row[0] for row in seeded.typegg.execute("""
+        SELECT r.raceNumber FROM races r JOIN quotes q ON q.quoteId = r.quoteId
+        WHERE r.userId = ? AND q.language = ? AND r.raceNumber IS NOT NULL
+        ORDER BY r.raceNumber DESC
+    """, [seed_data.USER_ID, language])]
+
+
+@pytest.mark.parametrize("invocation, back", [("-r", 0), ("-r -1", 1)])
+def test_a_universe_picks_the_latest_race_within_it(seeded, invocation, back):
+    """Latest and negative race numbers count through the universe's races alone."""
+    ctx = asyncio.run(invoke(invocation, universe="es"))
+
+    assert ctx.sent[-1]["embed"].title == f"Race Graph - Race #{universe_race_numbers(seeded, "Spanish")[back]:,}"
+
+
+def test_a_positive_race_number_ignores_the_universe(seeded):
+    """A positive number names one race on the whole account."""
+    number = next(n for n in range(1, 100) if n not in universe_race_numbers(seeded, "Spanish"))
+    ctx = asyncio.run(invoke(f"-r {number}", universe="es"))
+
+    assert ctx.sent[-1]["embed"].title == f"Race Graph - Race #{number:,}"
+
+
+def test_a_quote_outside_the_universe_still_finds_its_races(seeded):
+    """The universe only picks the latest race, so a quote from another language keeps its races."""
+    ctx = asyncio.run(invoke("-segments q1", universe="es"))
+
+    assert "embed" in ctx.sent[-1] and not sent_warnings(ctx)
+
+
 def test_a_histogram_without_typos_notes_its_empty_timing_pages(seeded, monkeypatch):
     """A clean race times its typos as 0, which once left the quartiles nothing to read."""
     from commands.graphs import histogram

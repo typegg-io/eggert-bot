@@ -5,7 +5,7 @@ from discord.ext import commands
 
 from api.quotes import calculate_metric
 from command_info import CommandInfo
-from commands.base import Command, enforce_daily_quote
+from commands.base import Command, enforce_daily_quote, take_race_universe
 from commands.graphs.segments import build_segments, format_segment
 from config import DAILY_QUOTE_CHANNEL_ID
 from context import BotContext
@@ -35,7 +35,7 @@ info = CommandInfo(
 class SumOfBest(Command):
     """Graph a theoretical best race built from a user's fastest segments."""
 
-    supported_flags = {"gamemode", "number", "quote_id", "raw"}
+    supported_flags = {"gamemode", "number", "quote_id", "raw", "language"}
 
     @commands.command(aliases=info.aliases)
     @usable_in(DAILY_QUOTE_CHANNEL_ID)
@@ -45,9 +45,10 @@ class SumOfBest(Command):
 
         ctx.flags.status = None
         profile = await self.get_profile(ctx, args[0] if args else None)
+        universe = take_race_universe(ctx)
 
         if ctx.flags.number is not None or ctx.flags.quote_id is None:
-            race_number = await self.get_race_number(profile, ctx.flags.number)
+            race_number = await self.get_race_number(profile, ctx.flags.number, universe)
             race = get_race(profile["userId"], race_number)
             quote = await self.get_quote(ctx, race["quoteId"])
         else:

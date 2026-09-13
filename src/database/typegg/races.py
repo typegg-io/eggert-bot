@@ -231,6 +231,19 @@ def get_latest_race(user_id: str) -> sqlite3.Row | None:
     return result
 
 
+def get_race_in_language(user_id: str, language: str, back: int = 0) -> sqlite3.Row | None:
+    """Return the race `back` places before a user's latest on quotes in one language."""
+    return db.fetch_one("""
+        SELECT r.raceNumber, r.quoteId FROM races r
+        JOIN quotes q ON q.quoteId = r.quoteId
+        WHERE r.userId = ?
+        AND q.language = ?
+        AND r.raceNumber IS NOT NULL
+        ORDER BY r.raceNumber DESC
+        LIMIT 1 OFFSET ?
+    """, [user_id, language, back])
+
+
 def get_race(user_id: str, number: int, get_keystrokes: bool = False) -> dict:
     """Return one race by number, raising if the user never ran it."""
     result = db.fetch_one("""

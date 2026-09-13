@@ -1,5 +1,6 @@
 """The base class and shared helpers every command file builds on."""
 
+import sqlite3
 from typing import NamedTuple
 from urllib.parse import unquote
 
@@ -14,10 +15,11 @@ from database.bot.recent_quotes import get_recent_quote, set_recent_quote
 from database.bot.users import get_user_by_user_id, update_gg_plus_status, update_warning
 from database.typegg.daily_quotes import get_daily_quote_id
 from database.typegg.quotes import get_quote as get_quote_db
-from database.typegg.races import get_latest_race
+from database.typegg.races import get_latest_race, get_race_in_language
 from services.importer import get_total_races, run as import_races
 from utils.colors import ERROR
 from utils.errors import (
+    BotError,
     DailyQuoteChannel,
     InvalidNumber,
     MissingArguments,
@@ -26,7 +28,7 @@ from utils.errors import (
     NoRacesFiltered,
     NotSubscribed,
 )
-from utils.flags import Flags, is_foreign_universe, is_multiplayer, multiplayer_race_count, universe_code
+from utils.flags import Flags, Language, is_foreign_universe, is_multiplayer, multiplayer_race_count, universe_code
 from utils.messages import command_milestone, privacy_warning
 from utils.schemas import Profile
 from utils.strings import get_argument, parse_number
@@ -58,6 +60,23 @@ async def take_universe(ctx: BotContext) -> str | None:
         ctx.flags.language = None
 
     return code
+
+
+def take_race_universe(ctx: BotContext) -> Language | None:
+    """Return the universe that picks the latest race, clearing it so the race's quote decides from there."""
+    universe = ctx.flags.language
+    ctx.flags.language = None
+    return universe
+
+
+def get_universe_race(user_id: str, universe: Language, back: int = 0) -> sqlite3.Row:
+    """Return a user's latest race in a universe, or the one `back` places before it."""
+    race = get_race_in_language(user_id, universe.name, back)
+    if race is None:
+        where = f" {back:,} races back" if back else ""
+        raise BotError("Race Not Found", f"No {universe.name} race found{where}")
+
+    return race
 
 
 async def keep_multiplayer_english(ctx: BotContext) -> None:
@@ -281,10 +300,11 @@ class Command(commands.Cog):
         user_id: str | None = None,
         from_api: bool | None = False,
         results: int | None = None,
+        universe: Language | None = None,
     ) -> dict:
         """Fetches a quote from database or API, optionally pass a user ID to take their latest quote ID."""
         if quote_id is None and user_id is not None:
-            latest_race = get_latest_race(user_id)
+            latest_race = get_universe_race(user_id, universe) if universe else get_latest_race(user_id)
             quote_id = latest_race["quoteId"]
         elif (solo_quote_id := parse_solo_url(quote_id)) is not None:
             quote_id = solo_quote_id
@@ -305,25 +325,27 @@ class Command(commands.Cog):
         set_recent_quote(ctx.channel.id, quote_id)
         return quote
 
-    async def get_race_number(self, profile, race_number) -> int:
+    async def get_race_number(self, profile, race_number, universe: Language | None = None) -> int:
         """Resolve a race number, defaulting to the latest and counting backwards when negative."""
+        if race_number is not None:
+            try:
+                race_number = parse_number(race_number)
+            except ValueError:
+                raise InvalidNumber
+            # A positive number names one race on the whole account, whatever the universe.
+            if race_number >= 1:
+                return int(race_number)
+
+        if universe:
+            return get_universe_race(profile["userId"], universe, -int(race_number or 0))["raceNumber"]
+
         # Fetch the API's true latest race number, fall back to the latest stored race
         total_races = await get_total_races(profile["userId"])
         if not total_races:
             latest_race = get_latest_race(profile["userId"])
             total_races = latest_race["raceNumber"] if latest_race else profile["stats"]["races"]
 
-        if race_number is None:
-            race_number = total_races
-        else:
-            try:
-                race_number = parse_number(race_number)
-            except ValueError:
-                raise InvalidNumber
-            if race_number < 1:
-                race_number = total_races + race_number
-
-        return int(race_number)
+        return int(total_races + (race_number or 0))
 
     def check_gg_plus(self, ctx: BotContext, feature: str = None) -> None:
         """Raise unless the invoking user has a GG+ subscription."""

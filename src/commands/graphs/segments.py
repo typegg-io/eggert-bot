@@ -2,7 +2,7 @@ from dateutil import parser
 from discord.ext import commands
 
 from command_info import CommandInfo
-from commands.base import Command, enforce_daily_quote
+from commands.base import Command, enforce_daily_quote, take_race_universe
 from config import DAILY_QUOTE_CHANNEL_ID
 from context import BotContext
 from database.bot.recent_quotes import set_recent_quote
@@ -35,7 +35,7 @@ info = CommandInfo(
 class Segments(Command):
     """Graph WPM segments across a race."""
 
-    supported_flags = {"number", "quote_id"}
+    supported_flags = {"number", "quote_id", "language"}
 
     @commands.command(aliases=info.aliases)
     @usable_in(DAILY_QUOTE_CHANNEL_ID)
@@ -43,9 +43,10 @@ class Segments(Command):
         """Graph the race number given, or the user's best race on a quote."""
         ctx.flags.status = None
         profile = await self.get_profile(ctx, args[0] if args else None)
+        universe = take_race_universe(ctx)
 
         if ctx.flags.number is not None or ctx.flags.quote_id is None:
-            race_number = await self.get_race_number(profile, ctx.flags.number)
+            race_number = await self.get_race_number(profile, ctx.flags.number, universe)
         else:
             quote = await self.get_quote(ctx, ctx.flags.quote_id, profile["userId"])
             quote_bests = get_quote_bests(profile["userId"], quote_id=quote["quoteId"], flags=ctx.flags)

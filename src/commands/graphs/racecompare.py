@@ -4,7 +4,7 @@ from discord.ext import commands
 
 from api.users import get_race
 from command_info import CommandInfo
-from commands.base import Command, enforce_daily_quote
+from commands.base import Command, enforce_daily_quote, take_race_universe
 from config import DAILY_QUOTE_CHANNEL_ID
 from context import BotContext
 from database.typegg.races import get_race as get_race_db, get_races
@@ -12,7 +12,7 @@ from database.typegg.users import get_quote_bests
 from graphs import match
 from utils.dates import discord_date
 from utils.errors import BotError, NoQuoteRaces
-from utils.flags import Flags
+from utils.flags import Flags, Language
 from utils.keystrokes import get_keystroke_data
 from utils.messages import Message, Page, usable_in
 from utils.schemas import Profile, Theme
@@ -40,7 +40,7 @@ info = CommandInfo(
 class RaceCompare(Command):
     """Overlay several users' best races on one quote."""
 
-    supported_flags = {"raw", "gamemode", "quote_id", "number"}
+    supported_flags = {"raw", "gamemode", "quote_id", "number", "language"}
 
     @commands.command(aliases=info.aliases)
     @usable_in(DAILY_QUOTE_CHANNEL_ID)
@@ -48,15 +48,16 @@ class RaceCompare(Command):
         """Compare the named users on a quote, one user against themselves, or races picked by number."""
         ctx.flags.status = None
         profiles = await self.get_profiles(ctx, args, max_users)
+        universe = take_race_universe(ctx)
 
         if ctx.flags.numbers:
-            await self.compare_picked(ctx, profiles)
+            await self.compare_picked(ctx, profiles, universe)
             return
 
         if ctx.flags.quote_id:
             quote = await self.get_quote(ctx, ctx.flags.quote_id)
         else:
-            quote = await self.get_quote(ctx, user_id=profiles[0]["userId"])
+            quote = await self.get_quote(ctx, user_id=profiles[0]["userId"], universe=universe)
 
         enforce_daily_quote(ctx, quote["quoteId"])
 
@@ -65,7 +66,7 @@ class RaceCompare(Command):
         else:
             await run_self(ctx, quote, profiles[0])
 
-    async def compare_picked(self, ctx: BotContext, profiles: list[Profile]) -> None:
+    async def compare_picked(self, ctx: BotContext, profiles: list[Profile], universe: Language | None) -> None:
         """Compare one user's races picked by race number, or by attempt number after a quote ID."""
         if len(profiles) > 1:
             raise BotError("Too Many Users", "Race numbers pick races from one account at a time")
@@ -82,7 +83,9 @@ class RaceCompare(Command):
             quote = await self.get_quote(ctx, ctx.flags.quote_id)
             picks = await pick_attempts(profile, quote["quoteId"], numbers)
         else:
-            race_numbers = [number if number > 0 else await self.get_race_number(profile, number) for number in numbers]
+            race_numbers = [
+                number if number > 0 else await self.get_race_number(profile, number, universe) for number in numbers
+            ]
             races = [get_race_db(profile["userId"], number) for number in race_numbers]
             if len({race["quoteId"] for race in races}) > 1:
                 raise BotError(
