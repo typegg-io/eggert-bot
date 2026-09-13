@@ -938,6 +938,13 @@ def test_a_histogram_without_typos_notes_its_empty_timing_pages(seeded, monkeypa
     assert "No races with a typo" in ctx.sent[-1]["embed"].description
 
 
+def test_a_raw_histogram_hides_its_pp_page_without_gg_plus(seeded):
+    """Only the typed metric is gated, so the pp button must not carry raw pp past it."""
+    ctx = asyncio.run(invoke("-histogram wpm raw", gg_plus=False))
+
+    assert "pp" not in [button.label for button in ctx.sent[-1]["view"].children]
+
+
 def test_raw_race_history_titles_raw_once(seeded):
     """The flag title already carries Raw, so the page title must not add its own."""
     ctx = asyncio.run(invoke("-racehistory raw"))

@@ -117,10 +117,11 @@ async def run(ctx: BotContext, profile: Profile, metric: str) -> None:
             ctx.user["theme"],
         )
 
+    hide_raw_pp = ctx.flags.raw and not ctx.user["isGgPlus"]
     pages = []
 
     for column in metrics.keys():
-        if ctx.flags.status != "ranked" and column == "pp":
+        if column == "pp" and (ctx.flags.status != "ranked" or hide_raw_pp):
             continue
 
         solo_values = typo_values([race[column] for race in solo_quote_bests if race[column] is not None], column)
