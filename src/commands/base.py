@@ -98,6 +98,7 @@ class Command(commands.Cog):
     """Base command class providing common command utilities."""
 
     supported_flags: set[str] = set()
+    quiet_settings = False
 
     def __init__(self, bot) -> None:
         """Store the bot instance the cog was loaded onto."""
@@ -141,10 +142,10 @@ class Command(commands.Cog):
                 if hasattr(ctx.flags, name):
                     setattr(ctx.flags, name, getattr(defaults, name))
 
-        if unranged and stored_range:
+        if unranged and stored_range and not self.quiet_settings:
             await ctx.send("-# :warning: time travel has no effect on this command")
 
-        if universeless and stored_universe:
+        if universeless and stored_universe and not self.quiet_settings:
             await ctx.send("-# :warning: your universe has no effect on this command")
 
     async def celebrate_milestone(self, ctx: BotContext, milestone: int) -> None:

@@ -22,6 +22,9 @@ info = CommandInfo(
 class LastOnline(Command):
     """Display when a user was last active."""
 
+    supported_flags = set()
+    quiet_settings = True
+
     @commands.command(aliases=info.aliases)
     async def lastonline(self, ctx: BotContext, username: str = None):
         """Send how long ago the profile was last seen, and the exact time."""

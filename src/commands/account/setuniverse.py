@@ -27,6 +27,7 @@ class SetUniverse(Command):
     """Set or clear the universe applied across a user's commands."""
 
     supported_flags = {"language"}
+    quiet_settings = True
 
     @commands.command(aliases=info.aliases)
     async def setuniverse(self, ctx: BotContext, language: str = None):

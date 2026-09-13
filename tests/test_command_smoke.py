@@ -977,6 +977,15 @@ def test_a_quote_outside_the_universe_still_finds_its_races(seeded):
     assert "embed" in ctx.sent[-1] and not sent_warnings(ctx)
 
 
+@pytest.mark.parametrize("invocation", ["-timetravel", "-lastonline"])
+def test_a_command_with_no_use_for_the_settings_stays_quiet(seeded, invocation):
+    """Commands that set or ignore the stored settings do not warn about them."""
+    stored = ((NOW - timedelta(days=120)).timestamp(), NOW.timestamp())
+    ctx = asyncio.run(invoke(invocation, stored=stored, universe="es"))
+
+    assert not [warning for warning in sent_warnings(ctx) if ":warning:" in warning]
+
+
 def test_a_histogram_without_typos_notes_its_empty_timing_pages(seeded, monkeypatch):
     """A clean race times its typos as 0, which once left the quartiles nothing to read."""
     from commands.graphs import histogram

@@ -24,6 +24,7 @@ class TimeTravel(Command):
     """Set or clear the date range applied across a user's commands."""
 
     supported_flags = {"date_range"}
+    quiet_settings = True
 
     @commands.command(aliases=info.aliases)
     async def timetravel(self, ctx: BotContext):
