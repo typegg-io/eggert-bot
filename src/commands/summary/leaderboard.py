@@ -4,7 +4,7 @@ from api.leaders import get_leaders, get_multiplayer_leaders
 from command_info import CommandInfo
 from commands.base import Command, enforce_daily_quote, take_universe as resolve_universe
 from commands.quotes.quoteleaderboard import run as run_quoteleaderboard
-from config import DAILY_QUOTE_CHANNEL_ID
+from config import DAILY_QUOTE_CHANNEL_ID, DEFAULT_UNIVERSE
 from context import BotContext
 from database.typegg.daily_quotes import get_daily_rank_leaderboard
 from database.typegg.quotes import get_ranked_quote_chars, get_ranked_quote_count, get_top_submitters
@@ -230,7 +230,8 @@ async def take_universe(ctx: BotContext, supported: bool) -> str | None:
         return None
 
     if not supported:
-        await ctx.send("-# :warning: this leaderboard has no universe of its own")
+        if code != DEFAULT_UNIVERSE:
+            await ctx.send("-# :warning: this leaderboard has no universe of its own")
         ctx.flags.language = None
         return None
 

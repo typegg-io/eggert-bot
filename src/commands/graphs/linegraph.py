@@ -10,7 +10,7 @@ from database.typegg.nwpm import get_nwpm_over_time, quotes_are_rated
 from database.typegg.races import get_completion_time, get_races
 from graphs import line
 from utils.errors import BotError, NoRacesFiltered
-from utils.flags import get_flag_title
+from utils.flags import get_flag_title, is_non_english
 from utils.messages import range_subtext
 from utils.nwpm import CALIBRATION_MIN_QUOTES, model_is_loaded
 from utils.schemas import Profile
@@ -275,7 +275,7 @@ async def run(ctx: BotContext, metric: str, profiles: list[Profile]) -> None:
     """Send one line per user for the metric requested."""
     # A filtered title would name data get_nwpm_line never read.
     if metric == "nwpm":
-        if ctx.explicit_flags.keys() & NWPM_FILTERS or ctx.flags.language or ctx.flags.date_range:
+        if ctx.explicit_flags.keys() & NWPM_FILTERS or is_non_english(ctx.flags) or ctx.flags.date_range:
             await ctx.send("-# :warning: nWPM counts quickplay and ranked English races only")
         ctx.flags.gamemode = None
         ctx.flags.status = "ranked"
@@ -290,7 +290,7 @@ async def run(ctx: BotContext, metric: str, profiles: list[Profile]) -> None:
 
     # A profile's play time spans every gamemode, status and language.
     if metric == "playtime":
-        if ctx.flags.gamemode or ctx.flags.language or "status" in ctx.explicit_flags:
+        if ctx.flags.gamemode or is_non_english(ctx.flags) or "status" in ctx.explicit_flags:
             await ctx.send("-# :warning: play time counts every race")
         ctx.flags.gamemode = None
         ctx.flags.status = "any"

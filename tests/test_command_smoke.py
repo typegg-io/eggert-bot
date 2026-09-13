@@ -571,6 +571,9 @@ async def fake_request(url: str, params: dict = None, **kwargs) -> dict:
         if f"/users/{user_id}/races/" in url:
             return api_race(user_id, int(url.rsplit("/", 1)[-1]))
 
+    if url.endswith("/calculate"):
+        return {"pp": 100.0, "wpm": 100.0}
+
     if "/v1/quotes/" in url:
         return api_quote(url.rsplit("/", 1)[-1])
 
@@ -960,6 +963,13 @@ def test_a_universe_picks_the_latest_race_within_it(seeded, invocation, back):
     ctx = asyncio.run(invoke(invocation, universe="es"))
 
     assert ctx.sent[-1]["embed"].title == f"Race Graph - Race #{universe_race_numbers(seeded, "Spanish")[back]:,}"
+
+
+def test_no_universe_means_english_not_every_language(seeded):
+    """The seeded latest race is Spanish, so a mixed default would land on it."""
+    ctx = asyncio.run(invoke("-r"))
+
+    assert ctx.sent[-1]["embed"].title == f"Race Graph - Race #{universe_race_numbers(seeded, "English")[0]:,}"
 
 
 def test_a_positive_race_number_ignores_the_universe(seeded):

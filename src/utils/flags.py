@@ -122,7 +122,7 @@ def multiplayer_race_count(flags: Flags, stats: dict) -> int:
 def get_flag_title(flags: Flags) -> str:
     """Build a parenthetical title string from command flags (e.g., '(Raw, Solo)')."""
     flag_titles = []
-    if flags.language:
+    if is_non_english(flags):
         flag_titles.append(flags.language.name)
     if flags.status:
         flag_titles.append(flags.status.title())
@@ -139,11 +139,7 @@ def get_flag_title(flags: Flags) -> str:
 
 def resolve_universe(flags: Flags, stored: str | None) -> Language | None:
     """Return the universe a command runs in, preferring a typed flag over the stored one."""
-    if flags.language:
-        return flags.language
-    if stored and stored != DEFAULT_UNIVERSE:
-        return Language(stored)
-    return None
+    return flags.language or Language(stored or DEFAULT_UNIVERSE)
 
 
 def universe_code(flags: Flags) -> str | None:
@@ -153,6 +149,11 @@ def universe_code(flags: Flags) -> str | None:
         return str(flags.language)
 
     return None
+
+
+def is_non_english(flags: Flags) -> bool:
+    """Return whether the active language is anything but English, universe or not."""
+    return flags.language is not None and flags.language.code != DEFAULT_UNIVERSE
 
 
 def is_foreign_universe(flags: Flags) -> bool:

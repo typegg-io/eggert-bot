@@ -5,6 +5,7 @@ from commands.base import Command, take_universe
 from context import BotContext
 from utils.colors import DEFAULT, PLUS
 from utils.dates import discord_date, format_date, now, parse_date
+from utils.flags import is_foreign_universe
 from utils.messages import Field, Message, Page
 from utils.schemas import Profile
 from utils.strings import GG_PLUS, format_duration
@@ -48,7 +49,8 @@ async def run(ctx: BotContext, profile: Profile) -> None:
     join_date = parse_date(profile["joinDate"])
     today = now()
     is_anniversary = join_date.month == today.month and join_date.day == today.day
-    universe = ctx.flags.language if await take_universe(ctx) else None
+    await take_universe(ctx)
+    universe = ctx.flags.language if is_foreign_universe(ctx.flags) else None
 
     fields = [
         Field(

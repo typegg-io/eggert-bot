@@ -218,9 +218,10 @@ def test_a_stored_universe_applies_with_nothing_typed():
     assert resolve_universe(flags_for("-best"), "de") == Language("de")
 
 
-def test_a_stored_english_universe_reads_as_no_universe():
-    """English is the default world, so storing it leaves titles and queries untouched."""
-    assert resolve_universe(flags_for("-best"), "en") is None
+def test_no_stored_universe_reads_as_english():
+    """Every universe has its own pp model, so no command may fall back to mixing them."""
+    assert resolve_universe(flags_for("-best"), "en") == Language("en")
+    assert resolve_universe(flags_for("-best"), None) == Language("en")
 
 
 def test_an_unrecognised_word_is_left_alone():

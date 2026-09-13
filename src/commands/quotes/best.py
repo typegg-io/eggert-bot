@@ -9,7 +9,7 @@ from database.typegg.sources import get_sources
 from database.typegg.users import get_quote_bests
 from utils.dates import discord_date
 from utils.errors import BotError, NoRacesFiltered
-from utils.flags import Flags
+from utils.flags import Flags, is_non_english
 from utils.messages import Message, paginate_data
 from utils.schemas import Profile
 from utils.strings import format_duration, pp_display, quote_display
@@ -100,7 +100,7 @@ async def drop_unfilterable(ctx: BotContext) -> None:
         await ctx.send("-# :warning: time travel has no effect on a lifetime counter")
 
     # The endpoint takes no universe parameter, so this one is unavailable rather than refused.
-    if ctx.flags.language:
+    if is_non_english(ctx.flags):
         await ctx.send("-# :warning: attempt counts are not scoped to a universe")
         ctx.flags.language = None
 

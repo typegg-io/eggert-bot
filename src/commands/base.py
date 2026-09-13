@@ -28,7 +28,15 @@ from utils.errors import (
     NoRacesFiltered,
     NotSubscribed,
 )
-from utils.flags import Flags, Language, is_foreign_universe, is_multiplayer, multiplayer_race_count, universe_code
+from utils.flags import (
+    Flags,
+    Language,
+    is_foreign_universe,
+    is_multiplayer,
+    is_non_english,
+    multiplayer_race_count,
+    universe_code,
+)
 from utils.messages import command_milestone, privacy_warning
 from utils.schemas import Profile
 from utils.strings import get_argument, parse_number
@@ -110,7 +118,7 @@ class Command(commands.Cog):
         unranged = "date_range" not in self.supported_flags
         stored_range = bool(ctx.flags.date_range) and "date_range" not in explicit
         universeless = "language" not in self.supported_flags
-        stored_universe = bool(ctx.flags.language) and "language" not in explicit
+        stored_universe = is_non_english(ctx.flags) and "language" not in explicit
 
         # A stored range applies with nothing typed, so ignore_flags commands still have to clear it.
         if unranged:

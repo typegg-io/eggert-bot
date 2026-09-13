@@ -7,7 +7,7 @@ from context import BotContext
 from database.typegg.quotes import get_quotes
 from database.typegg.users import get_quote_bests
 from graphs import pplength
-from utils.flags import Flags
+from utils.flags import Flags, is_non_english
 from utils.messages import range_subtext
 from utils.schemas import Profile
 
@@ -41,7 +41,7 @@ class PpLengthGraph(Command):
 async def run(ctx: BotContext, profile: Profile) -> None:
     """Send a scatterplot of the user's ranked quote bests by length."""
     raw_title = "Raw " if ctx.flags.raw else ""
-    universe_title = f" ({ctx.flags.language.name})" if ctx.flags.language else ""
+    universe_title = f" ({ctx.flags.language.name})" if is_non_english(ctx.flags) else ""
     quote_bests = get_quote_bests(
         profile["userId"],
         flags=Flags(status="ranked", raw=ctx.flags.raw, date_range=ctx.flags.date_range, language=ctx.flags.language),
