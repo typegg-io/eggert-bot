@@ -3,13 +3,13 @@ import numpy as np
 from discord.ext import commands
 
 from command_info import CommandInfo
-from commands.base import Command
+from commands.base import Command, take_universe
 from context import BotContext
 from database.typegg.quotes import get_quotes
 from database.typegg.users import get_quote_bests
 from graphs import quotestrength as qs_graph
 from utils.errors import NoRankedRaces
-from utils.flags import Flags
+from utils.flags import Flags, get_flag_title
 from utils.messages import Message, Page
 from utils.schemas import Profile
 from utils.stats import PP_DECAY_FACTOR, PP_WEIGHT_DECAY_SHARE, PP_WEIGHT_FLOOR
@@ -37,12 +37,13 @@ info = CommandInfo(
 class QuoteStrength(Command):
     """Graph a compass showing where a user's pp comes from."""
 
-    supported_flags = {"raw", "date_range"}
+    supported_flags = {"raw", "date_range", "language"}
 
     @commands.command(aliases=info.aliases)
     async def quotestrength(self, ctx: BotContext, *args: str):
         """Graph the strength compass for each user named."""
         self.check_raw_pp(ctx)
+        await take_universe(ctx)
         profiles = await self.get_profiles(ctx, args, max_users)
         await run(ctx, profiles)
 
@@ -61,7 +62,13 @@ async def run(ctx: BotContext, profiles: list[Profile]) -> None:
     """Send a compass placing each user by the quotes their pp comes from."""
     quote_list = get_quotes()
 
-    ranked_quotes = [q for q in quote_list.values() if q.get("ranked")]
+    language = ctx.flags.language
+    ranked_quotes = [
+        q for q in quote_list.values()
+        if q.get("ranked") and (language is None or q["language"] == language.name)
+    ]
+    if not ranked_quotes:
+        raise NoRankedRaces(profiles[0]["username"])
     lengths = np.array([len(q["text"]) for q in ranked_quotes])
     log_lengths = np.log(lengths)
     complexities = np.array([q["complexity"] for q in ranked_quotes])
@@ -69,6 +76,9 @@ async def run(ctx: BotContext, profiles: list[Profile]) -> None:
 
     len_p10 = np.percentile(log_lengths, 10)
     len_p90 = np.percentile(log_lengths, 90)
+    # A small universe can have no spread in length to divide by.
+    if len_p90 == len_p10:
+        len_p90 = len_p10 + 1
 
     users = []
     quote_bests = None
@@ -79,7 +89,7 @@ async def run(ctx: BotContext, profiles: list[Profile]) -> None:
             columns=["pp", "quoteId"],
             order_by="pp",
             limit=250,
-            flags=Flags(raw=ctx.flags.raw, date_range=ctx.flags.date_range),
+            flags=Flags(raw=ctx.flags.raw, date_range=ctx.flags.date_range, language=ctx.flags.language),
         )
 
         if not quote_bests:
@@ -131,7 +141,9 @@ async def run(ctx: BotContext, profiles: list[Profile]) -> None:
         ]
 
     page = Page(
-        title="Quote Strength Compass" + (" (Raw)" if ctx.flags.raw else ""),
+        title="Quote Strength Compass" + get_flag_title(
+            Flags(raw=ctx.flags.raw, status=None, language=ctx.flags.language)
+        ),
         render=lambda: qs_graph.render(users, ctx.user["theme"], heatmap_points),
     )
 

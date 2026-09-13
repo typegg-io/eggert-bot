@@ -27,7 +27,7 @@ from database.typegg import db as typegg_db
 from error_handler import ErrorHandler
 from utils.colors import DEFAULT_THEME
 from utils.dates import resolve_date_range
-from utils.errors import BotError, NoRacesFiltered, NotSubscribed
+from utils.errors import BotError, NoRacesFiltered, NoRankedRaces, NotSubscribed
 from utils.flags import apply_universe_status, resolve_universe
 
 matplotlib.use("Agg")
@@ -984,6 +984,19 @@ def test_a_command_with_no_use_for_the_settings_stays_quiet(seeded, invocation):
     ctx = asyncio.run(invoke(invocation, stored=stored, universe="es"))
 
     assert not [warning for warning in sent_warnings(ctx) if ":warning:" in warning]
+
+
+def test_the_quote_strength_compass_runs_in_a_universe(seeded):
+    """The compass reads the universe's quote bests and says which universe it placed them in."""
+    ctx = asyncio.run(invoke("-quotestrength raw", universe="es"))
+
+    assert ctx.sent[-1]["embed"].title == "Quote Strength Compass (Spanish, Raw)"
+
+
+def test_the_quote_strength_compass_rejects_a_universe_with_no_ranked_quotes(seeded):
+    """An empty pool has no percentiles, so it must stop before measuring one."""
+    with pytest.raises(NoRankedRaces):
+        asyncio.run(invoke("-quotestrength", universe="fr"))
 
 
 def test_a_histogram_without_typos_notes_its_empty_timing_pages(seeded, monkeypatch):
