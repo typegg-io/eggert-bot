@@ -77,7 +77,7 @@ async def run(ctx: BotContext, profile: Profile) -> None:
 
     message = Message(
         ctx,
-        title="Race History" + (" (Raw)" if ctx.flags.raw else ""),
+        title="Race History",
         pages=pages,
         profile=profile,
     )

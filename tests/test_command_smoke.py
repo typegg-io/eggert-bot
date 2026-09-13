@@ -922,6 +922,13 @@ def test_raw_sum_of_best_builds_from_raw_segments(seeded):
     assert sum_of_best_speed("-sumofbest raw") > sum_of_best_speed("-sumofbest")
 
 
+def test_raw_race_history_titles_raw_once(seeded):
+    """The flag title already carries Raw, so the page title must not add its own."""
+    ctx = asyncio.run(invoke("-racehistory raw"))
+
+    assert ctx.sent[-1]["embed"].title.count("Raw") == 1
+
+
 def test_average_shows_a_speed_spread_from_two_races(seeded):
     """Speed carries a ± spread, which a single race is too few to have."""
     spread = asyncio.run(invoke("-average")).sent[-1]["embed"].fields[0].value
