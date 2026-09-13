@@ -250,6 +250,22 @@ def get_race(user_id: str, number: int, get_keystrokes: bool = False) -> dict:
     return race
 
 
+def get_public_best(user_id: str, quote_id: str) -> dict | None:
+    """Return the race TypeGG shows the public as a user's best on a quote."""
+    # Mirrors bestReplayOrderBy in typegg's v1 users handler.
+    # A race with no replay has no raceNumber and is never a candidate.
+    result = db.fetch_one("""
+        SELECT * FROM races
+        WHERE userId = ?
+        AND quoteId = ?
+        AND raceNumber IS NOT NULL
+        ORDER BY pp DESC, wpm DESC, raceId ASC
+        LIMIT 1
+    """, [user_id, quote_id])
+
+    return dict(result) if result else None
+
+
 def delete_races(user_id: str) -> None:
     """Deletes all of a user's races."""
     db.run("DELETE FROM races WHERE userId = ?", [user_id])

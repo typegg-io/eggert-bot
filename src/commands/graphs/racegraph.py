@@ -6,11 +6,10 @@ from config import DAILY_QUOTE_CHANNEL_ID
 from context import BotContext
 from database.bot.recent_quotes import set_recent_quote
 from database.typegg.quotes import get_quote
-from database.typegg.races import get_race
-from database.typegg.users import get_quote_bests
+from database.typegg.races import get_public_best, get_race
 from graphs import race as race_graph
 from utils.dates import discord_date
-from utils.errors import NoQuoteRaces
+from utils.errors import BotError, NoQuoteRaces
 from utils.keystrokes import get_keystroke_data
 from utils.messages import Field, Message, Page, usable_in
 from utils.schemas import Profile
@@ -47,10 +46,10 @@ class RaceGraph(Command):
             race_number = await self.get_race_number(profile, ctx.flags.number)
         else:
             quote = await self.get_quote(ctx, ctx.flags.quote_id, profile["userId"])
-            quote_bests = get_quote_bests(profile["userId"], quote_id=quote["quoteId"], flags=ctx.flags)
-            if not quote_bests:
+            best = get_public_best(profile["userId"], quote["quoteId"])
+            if best is None:
                 raise NoQuoteRaces(profile["username"])
-            race_number = quote_bests[0]["raceNumber"]
+            race_number = best["raceNumber"]
 
         await run(ctx, profile, race_number)
 
@@ -58,6 +57,12 @@ class RaceGraph(Command):
 async def run(ctx: BotContext, profile: Profile, race_number: int) -> None:
     """Send a WPM over keystrokes graph for one race."""
     race = get_race(profile["userId"], race_number, get_keystrokes=True)
+
+    # The API shows a non-PB solo race only to its racer.
+    if profile["userId"] != ctx.user["userId"] and not ctx.user["isAdmin"] and race["matchId"] is None:
+        if race["raceId"] != get_public_best(profile["userId"], race["quoteId"])["raceId"]:
+            raise BotError("Privacy Error", "You may only view another user's best race on a quote, or a match")
+
     quote = get_quote(race["quoteId"])
     set_recent_quote(ctx.channel.id, race["quoteId"])
 

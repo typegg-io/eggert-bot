@@ -854,6 +854,51 @@ def test_an_admin_can_compare_another_users_races(seeded):
     assert ctx.sent[-1]["embed"].title.startswith("Race Comparison")
 
 
+def rival_race_number(kind: str) -> int:
+    """Return one of the rival's races that is a hidden solo race, their best on a quote, or a match."""
+    public_best = """(
+        SELECT b.raceId FROM races b
+        WHERE b.userId = r.userId AND b.quoteId = r.quoteId AND b.raceNumber IS NOT NULL
+        ORDER BY b.pp DESC, b.wpm DESC, b.raceId ASC
+        LIMIT 1
+    )"""
+    condition = {
+        "hidden": f"r.matchId IS NULL AND r.raceId != {public_best}",
+        "best": f"r.matchId IS NULL AND r.raceId = {public_best}",
+        "match": "r.matchId IS NOT NULL",
+    }[kind]
+
+    return typegg_db.reader.execute(f"""
+        SELECT r.raceNumber FROM races r
+        JOIN keystroke_data k ON k.raceId = r.raceId
+        WHERE r.userId = ? AND r.raceNumber IS NOT NULL AND {condition}
+        LIMIT 1
+    """, [seed_data.RIVAL_ID]).fetchone()[0]
+
+
+def test_racegraph_keeps_another_users_other_solo_races_private(seeded):
+    """A solo race that is not the racer's best on its quote is shown only to them."""
+    with pytest.raises(BotError) as error:
+        asyncio.run(invoke(f"-racegraph {seed_data.RIVAL_ID} {rival_race_number("hidden")}"))
+
+    assert error.value.title == "Privacy Error"
+
+
+@pytest.mark.parametrize("kind", ["best", "match"])
+def test_racegraph_shows_another_users_public_races(seeded, kind):
+    """Another user's best race on a quote and their matches are public."""
+    ctx = asyncio.run(invoke(f"-racegraph {seed_data.RIVAL_ID} {rival_race_number(kind)}"))
+
+    assert ctx.sent
+
+
+def test_an_admin_can_graph_another_users_private_race(seeded):
+    """An admin bypasses the privacy check on race graphs."""
+    ctx = asyncio.run(invoke(f"-racegraph {seed_data.RIVAL_ID} {rival_race_number("hidden")}", admin=True))
+
+    assert ctx.sent
+
+
 def test_average_shows_a_speed_spread_from_two_races(seeded):
     """Speed carries a ± spread, which a single race is too few to have."""
     spread = asyncio.run(invoke("-average")).sent[-1]["embed"].fields[0].value
