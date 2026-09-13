@@ -6,6 +6,7 @@ from context import BotContext
 from database.typegg.races import get_quote_race_counts
 from graphs.keystrokes import render
 from utils.data_structures import ScaledCounter
+from utils.flags import is_non_english
 from utils.keyboard_layouts import get_keymap, keymaps
 from utils.messages import Field, Message, Page
 from utils.schemas import Profile
@@ -32,6 +33,8 @@ info = CommandInfo(
 class Keystrokes(Command):
     """Graph a keystroke heatmap across all of a user's races."""
 
+    supported_flags = {"language"}
+
     @commands.command(aliases=info.aliases)
     async def keystrokes(self, ctx: BotContext, *args: str):
         """Graph the heatmap on the layout given, or the one on the user's profile."""
@@ -48,7 +51,7 @@ async def run(ctx: BotContext, profile: Profile, keyboard_layout: str) -> None:
     """Send a keyboard heatmap with the user's most frequent characters."""
     username = profile["username"]
     keymap, keyboard_layout = get_keymap(keyboard_layout)
-    keypresses = get_keypresses(profile["userId"])
+    keypresses = get_keypresses(profile["userId"], ctx.flags.language.name)
 
     description = (
         f"**Keyboard Layout:** {keyboard_layout.upper()}\n\n"
@@ -68,7 +71,7 @@ async def run(ctx: BotContext, profile: Profile, keyboard_layout: str) -> None:
         fields.append(Field(title="", content=content, inline=True))
 
     page = Page(
-        title="Keystrokes",
+        title="Keystrokes" + (f" ({ctx.flags.language.name})" if is_non_english(ctx.flags) else ""),
         description=description,
         fields=fields,
         render=lambda: render(
@@ -91,10 +94,10 @@ REPLACEMENT_CHARACTERS = {
 }
 
 
-def get_keypresses(user_id: str) -> ScaledCounter:
-    """Return every character the user has typed, weighted by race count."""
+def get_keypresses(user_id: str, language: str) -> ScaledCounter:
+    """Return every character the user has typed in one language, weighted by race count."""
     keypresses = ScaledCounter()
-    quote_frequencies = get_quote_race_counts(user_id)
+    quote_frequencies = get_quote_race_counts(user_id, language)
 
     for text, race_count in quote_frequencies:
         keypresses += ScaledCounter(text) * race_count

@@ -284,15 +284,15 @@ def delete_races(user_id: str) -> None:
     db.run("DELETE FROM races WHERE userId = ?", [user_id])
 
 
-def get_quote_race_counts(user_id: str) -> list[sqlite3.Row]:
-    """Returns a user's quotes by race count."""
+def get_quote_race_counts(user_id: str, language: str) -> list[sqlite3.Row]:
+    """Returns a user's quotes in one language by race count."""
     results = db.fetch("""
         SELECT q.text, COUNT(q.text) as races
         FROM races r
         JOIN quotes q on q.quoteId = r.quoteId
-        WHERE userId = ?
+        WHERE userId = ? AND q.language = ?
         GROUP BY q.text
-    """, [user_id])
+    """, [user_id, language])
 
     return results
 

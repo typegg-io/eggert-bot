@@ -299,7 +299,7 @@ async def run(ctx: BotContext, category: dict) -> None:
 
     footer = None
     if category["sort"] == "quotesTyped" and gamemode == "any":
-        quote_count = get_ranked_quote_count()
+        quote_count = get_ranked_quote_count(ctx.flags.language.name)
         footer = f"{quote_count:,} Total Quotes"
 
     message.title = title
@@ -336,7 +336,7 @@ async def run_custom(ctx: BotContext, category: dict, args: tuple = ()) -> None:
     pages = []
 
     if category["title"] == "Quote Submissions":
-        leaderboard = get_top_submitters()
+        leaderboard = get_top_submitters(ctx.flags.language.name)
         for i in range(len(leaderboard)):
             leaderboard[i] = dict(leaderboard[i]) | {"rank": i + 1}
         def formatter(quote) -> str:
@@ -406,7 +406,7 @@ async def run_custom(ctx: BotContext, category: dict, args: tuple = ()) -> None:
 
     elif category["title"] == "Quote Characters Typed":
         ctx.flags.status = "ranked"
-        leaderboard_data = get_quote_chars_typed(limit=20)
+        leaderboard_data = get_quote_chars_typed(ctx.flags.language.name, limit=20)
         user_lookup = get_user_lookup()
 
         leaderboard = [
@@ -425,7 +425,7 @@ async def run_custom(ctx: BotContext, category: dict, args: tuple = ()) -> None:
             bold = "**" if entry["highlight"] else ""
             return f"{rank(entry["rank"])} {bold}{username_with_flag(entry)} - {entry["quoteCharsTyped"]:,}{bold}\n"
 
-        total_chars = get_ranked_quote_chars()
+        total_chars = get_ranked_quote_chars(ctx.flags.language.name)
         pages = [Page(
             description="".join(chars_formatter(e) for e in leaderboard),
             footer=f"{total_chars:,} Total Quote Characters",

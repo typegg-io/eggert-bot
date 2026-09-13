@@ -24,6 +24,7 @@ from bot_setup import parse_flags
 from commands.base import Command
 from database.bot import db as bot_db
 from database.typegg import db as typegg_db
+from database.typegg.races import get_quote_race_counts
 from error_handler import ErrorHandler
 from utils.colors import DEFAULT_THEME
 from utils.dates import resolve_date_range
@@ -1007,6 +1008,58 @@ def test_the_quote_strength_compass_rejects_a_universe_with_no_ranked_quotes(see
     """An empty pool has no percentiles, so it must stop before measuring one."""
     with pytest.raises(NoRankedRaces):
         asyncio.run(invoke("-quotestrength", universe="fr"))
+
+
+def test_a_language_without_a_universe_places_the_compass_in_english(seeded):
+    """Latin has no pp model, so the compass falls back to English rather than mixing every language."""
+    ctx = asyncio.run(invoke("-quotestrength la"))
+
+    assert sent_warnings(ctx) == ["-# :warning: Latin has no universe of its own"]
+    assert ctx.sent[-1]["embed"].title == "Quote Strength Compass"
+
+
+@pytest.mark.parametrize("invocation", ["-lengthgraph", "-endurance"])
+def test_a_length_graph_says_which_universe_it_drew(seeded, invocation):
+    """The graph is an image with no title to carry the universe."""
+    ctx = asyncio.run(invoke(invocation, universe="es"))
+
+    assert ctx.sent[-1]["content"] == "-# :earth_africa: Spanish universe"
+
+
+def test_the_endurance_graph_rejects_a_universe_with_no_ranked_quotes(seeded):
+    """An empty universe once reached the unpacking with nothing to unpack."""
+    with pytest.raises(NoRankedRaces):
+        asyncio.run(invoke("-endurance", universe="fr"))
+
+
+def test_the_keystroke_heatmap_counts_only_the_universe(seeded):
+    """Every character typed on an English quote would otherwise land on the Spanish heatmap."""
+    ctx = asyncio.run(invoke("-keystrokes", universe="es"))
+
+    assert ctx.sent[-1]["embed"].title == "Keystrokes (Spanish)"
+    assert get_quote_race_counts(seed_data.USER_ID, "Spanish")
+    assert not get_quote_race_counts(seed_data.USER_ID, "French")
+
+
+def test_the_quote_characters_board_totals_only_the_universe(seeded, monkeypatch):
+    """The footer once summed ranked quotes in every language."""
+    from commands.summary import leaderboard
+
+    footers = []
+
+    def recording_page(*args, **kwargs):
+        """Record each page footer, since the fake message drops the edit that carries it."""
+        footers.append(kwargs.get("footer"))
+        return Page(*args, **kwargs)
+
+    Page = leaderboard.Page
+    monkeypatch.setattr(leaderboard, "Page", recording_page)
+    spanish = seeded.typegg.execute("""
+        SELECT SUM(LENGTH(text)) FROM quotes WHERE ranked = 1 AND language = 'Spanish'
+    """).fetchone()[0]
+    asyncio.run(invoke("-leaderboard quotechars", universe="es"))
+
+    assert footers[-1] == f"{spanish:,} Total Quote Characters"
 
 
 def test_a_histogram_without_typos_notes_its_empty_timing_pages(seeded, monkeypatch):

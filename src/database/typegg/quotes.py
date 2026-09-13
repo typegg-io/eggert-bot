@@ -155,38 +155,38 @@ async def reimport_quotes() -> None:
         add_quotes(page_quotes)
 
 
-def get_top_submitters() -> list[sqlite3.Row]:
-    """Return the 100 users who submitted the most ranked quotes."""
+def get_top_submitters(language: str) -> list[sqlite3.Row]:
+    """Return the 100 users who submitted the most ranked quotes in one language."""
     top = db.fetch("""
         SELECT submittedByUsername, COUNT(*) as submissions
         FROM quotes
-        WHERE ranked = 1
+        WHERE ranked = 1 AND language = ?
         GROUP BY submittedByUsername
         ORDER BY submissions DESC
         LIMIT 100
-    """)
+    """, [language])
 
     return top
 
 
-def get_ranked_quote_count() -> int:
-    """Return how many quotes are ranked."""
+def get_ranked_quote_count(language: str) -> int:
+    """Return how many quotes in one language are ranked."""
     result = db.fetch_one("""
         SELECT COUNT(*) AS total FROM quotes
-        WHERE ranked = 1
-    """)
+        WHERE ranked = 1 AND language = ?
+    """, [language])
 
     return result["total"]
 
 
-def get_ranked_quote_chars() -> int:
-    """Return the total character count across ranked quotes."""
+def get_ranked_quote_chars(language: str) -> int:
+    """Return the total character count across ranked quotes in one language."""
     result = db.fetch_one("""
         SELECT SUM(LENGTH(text)) AS total FROM quotes
-        WHERE ranked = 1
-    """)
+        WHERE ranked = 1 AND language = ?
+    """, [language])
 
-    return result["total"]
+    return result["total"] or 0
 
 
 async def update_quote(quote_id: str, updates: dict) -> None:

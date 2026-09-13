@@ -62,11 +62,8 @@ async def run(ctx: BotContext, profiles: list[Profile]) -> None:
     """Send a compass placing each user by the quotes their pp comes from."""
     quote_list = get_quotes()
 
-    language = ctx.flags.language
-    ranked_quotes = [
-        q for q in quote_list.values()
-        if q.get("ranked") and (language is None or q["language"] == language.name)
-    ]
+    language = ctx.flags.language.name
+    ranked_quotes = [q for q in quote_list.values() if q.get("ranked") and q["language"] == language]
     if not ranked_quotes:
         raise NoRankedRaces(profiles[0]["username"])
     lengths = np.array([len(q["text"]) for q in ranked_quotes])

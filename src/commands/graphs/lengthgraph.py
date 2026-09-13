@@ -2,10 +2,11 @@ from discord import File
 from discord.ext import commands
 
 from command_info import CommandInfo
-from commands.base import Command
+from commands.base import Command, take_universe
 from context import BotContext
 from database.typegg.users import get_best_by_length
 from graphs import length
+from utils.messages import universe_subtext
 
 max_users = 5
 
@@ -28,12 +29,13 @@ info = CommandInfo(
 class LengthGraph(Command):
     """Graph peak pp or WPM at each quote length."""
 
-    supported_flags = {"metric", "raw"}
+    supported_flags = {"metric", "raw", "language"}
 
     @commands.command(aliases=info.aliases)
     async def lengthgraph(self, ctx: BotContext, *args: str):
         """Graph the length curve for each user named."""
         self.check_raw_pp(ctx, ctx.flags.metric == "pp")
+        await take_universe(ctx)
         profiles = await self.get_profiles(ctx, args, max_users)
         await run(ctx, profiles)
 
@@ -45,7 +47,7 @@ async def run(ctx: BotContext, profiles: list) -> None:
     username = profiles[0]["username"]
 
     for profile in profiles:
-        rows = get_best_by_length(profile["userId"], metric, ctx.flags.raw)
+        rows = get_best_by_length(profile["userId"], ctx.flags.language.name, metric, ctx.flags.raw)
         if not rows:
             continue
         values, lengths = zip(*((r["value"], r["length"]) for r in rows))
@@ -63,4 +65,4 @@ async def run(ctx: BotContext, profiles: list) -> None:
     )
 
     file = File(file_name, filename=file_name)
-    await ctx.send(file=file)
+    await ctx.send(content=universe_subtext(ctx) or None, file=file)

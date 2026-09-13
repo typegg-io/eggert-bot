@@ -9,7 +9,7 @@ from discord.ext import commands
 
 from api.quotes import get_quote as get_quote_api
 from api.users import get_profile
-from config import DAILY_QUOTE_CHANNEL_ID, STATS_CHANNEL_ID
+from config import DAILY_QUOTE_CHANNEL_ID, DEFAULT_UNIVERSE, STATS_CHANNEL_ID
 from context import BotContext
 from database.bot.recent_quotes import get_recent_quote, set_recent_quote
 from database.bot.users import get_user_by_user_id, update_gg_plus_status, update_warning
@@ -58,14 +58,15 @@ def enforce_daily_quote(ctx: BotContext, quote_id: str) -> None:
 
 
 async def take_universe(ctx: BotContext) -> str | None:
-    """Return the universe code to send, warning and clearing a language that has no universe."""
+    """Return the universe code to send, warning and falling back to English for a language with none."""
     if not ctx.flags.language:
         return None
 
     code = universe_code(ctx.flags)
     if not code:
         await ctx.send(f"-# :warning: {ctx.flags.language.name} has no universe of its own")
-        ctx.flags.language = None
+        ctx.flags.language = Language(DEFAULT_UNIVERSE)
+        code = DEFAULT_UNIVERSE
 
     return code
 

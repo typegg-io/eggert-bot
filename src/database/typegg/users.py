@@ -238,7 +238,7 @@ async def reimport_nwpm() -> None:
             log(f"[nwpm migrate] Failed for {user_id}: {e.__class__.__name__}: {e}")
 
 
-def get_best_by_length(user_id: str, metric: str = "pp", raw: bool = False) -> list[sqlite3.Row]:
+def get_best_by_length(user_id: str, language: str, metric: str = "pp", raw: bool = False) -> list[sqlite3.Row]:
     """Return each user's best race per quote length."""
     col = "r.pp" if metric == "pp" else "r.wpm"
     if raw:
@@ -247,13 +247,13 @@ def get_best_by_length(user_id: str, metric: str = "pp", raw: bool = False) -> l
         SELECT MAX({col}) AS value, LENGTH(q.text) AS length
         FROM races r
         JOIN quotes q ON q.quoteId = r.quoteId
-        WHERE r.userId = ? AND q.ranked
+        WHERE r.userId = ? AND q.ranked AND q.language = ?
         GROUP BY LENGTH(q.text)
         ORDER BY length
-    """, [user_id])
+    """, [user_id, language])
 
 
-def get_running_maximum_by_length(user_id: str, raw: bool = False) -> list[sqlite3.Row]:
+def get_running_maximum_by_length(user_id: str, language: str, raw: bool = False) -> list[sqlite3.Row]:
     """Return each user's best race at or below every quote length."""
     col = "r.rawWpm" if raw else "r.wpm"
     return db.fetch(f"""
@@ -261,7 +261,7 @@ def get_running_maximum_by_length(user_id: str, raw: bool = False) -> list[sqlit
             SELECT MAX({col}) AS wpm, LENGTH(q.text) AS length
             FROM races as r
             JOIN quotes q ON q.quoteId = r.quoteId
-            WHERE r.userId = ? AND q.ranked
+            WHERE r.userId = ? AND q.ranked AND q.language = ?
             GROUP BY LENGTH(q.text)
         ),
         running AS (
@@ -276,20 +276,20 @@ def get_running_maximum_by_length(user_id: str, raw: bool = False) -> list[sqlit
         FROM running
         WHERE wpm = running_max_wpm
         ORDER BY length;
-    """, [user_id])
+    """, [user_id, language])
 
 
-def get_quote_chars_typed(limit: int = 20) -> list[sqlite3.Row]:
-    """Return the total characters each user has typed."""
+def get_quote_chars_typed(language: str, limit: int = 20) -> list[sqlite3.Row]:
+    """Return the total characters each user has typed on ranked quotes in one language."""
     return db.fetch("""
         SELECT r.userId, SUM(LENGTH(q.text)) AS quoteCharsTyped
         FROM (SELECT DISTINCT userId, quoteId FROM races) r
         JOIN quotes q ON q.quoteId = r.quoteId
-        WHERE q.ranked = 1
+        WHERE q.ranked = 1 AND q.language = ?
         GROUP BY r.userId
         ORDER BY quoteCharsTyped DESC
         LIMIT ?
-    """, [limit])
+    """, [language, limit])
 
 
 def get_quotes_over_leaderboard(
