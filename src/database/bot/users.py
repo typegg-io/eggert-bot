@@ -33,9 +33,10 @@ def add_user(discord_id: str) -> dict:
         "universe": DEFAULT_UNIVERSE,
         "leaderboardPage": "me",
     }
-    user_values = user.values()
-
-    db.run(f"INSERT INTO users VALUES ({",".join(["?"] * len(user_values))})", list(user_values))
+    db.run(
+        f"INSERT INTO users ({", ".join(user)}) VALUES ({", ".join(["?"] * len(user))})",
+        list(user.values()),
+    )
 
     return user
 
