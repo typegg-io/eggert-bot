@@ -14,6 +14,7 @@ import sys
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.join(HERE, "..", "src"))
 
+import database.typegg  # noqa: E402, F401  adds predictedWpm to a database the new code never opened
 from api.quotes import get_quotes  # noqa: E402  needs src on the path
 
 DB = os.path.normpath(os.path.join(HERE, "..", "src", "data", "typegg.db"))
