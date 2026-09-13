@@ -12,8 +12,8 @@ from config import BOT_PREFIX, STATS_CHANNEL_ID, TYPEGG_GUILD_ID
 from context import BotContext
 from database.bot.users import update_leaderboard_page
 from utils import files
-from utils.colors import SUCCESS, WARNING
-from utils.flags import get_flag_title
+from utils.colors import ERROR, SUCCESS, WARNING
+from utils.flags import get_flag_title, is_foreign_universe
 from utils.schemas import Profile
 from utils.strings import LOADING, date_range_subtext
 from utils.urls import profile_url
@@ -26,6 +26,20 @@ def range_subtext(ctx: BotContext) -> str:
         return ""
 
     return date_range_subtext(*date_range, ctx.user["timezone"])
+
+
+def universe_subtext(ctx: BotContext) -> str:
+    """Return the universe line for a non-English universe, or an empty string."""
+    flags = getattr(ctx, "flags", None)
+    if not flags or not is_foreign_universe(flags):
+        return ""
+
+    return f"-# :earth_africa: {flags.language.name} universe"
+
+
+def error_subtext(ctx: BotContext) -> str:
+    """Return the time travel and universe lines that can explain an error."""
+    return "\n".join(line for line in (range_subtext(ctx), universe_subtext(ctx)) if line)
 
 
 welcome_message = (
@@ -134,7 +148,8 @@ class Message(View):
         super().__init__(timeout=60 if self.page_count > 1 else 0.01)
         self.message = None
 
-        subtext = range_subtext(ctx) if show_range else ""
+        error = bool(self.pages) and all((page.color or color) == ERROR for page in self.pages)
+        subtext = (error_subtext(ctx) if error else range_subtext(ctx)) if show_range else ""
         self.content = f"{subtext}\n{content}" if subtext and content else subtext or content
 
         self.title = title

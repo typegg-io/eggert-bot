@@ -20,7 +20,7 @@ from utils.errors import (
     UserBanned,
 )
 from utils.logging import get_log_message, log_error
-from utils.messages import check_channel_permissions
+from utils.messages import check_channel_permissions, error_subtext
 
 
 class ErrorHandler(commands.Cog):
@@ -33,6 +33,8 @@ class ErrorHandler(commands.Cog):
     @commands.Cog.listener()
     async def on_command_error(self, ctx, error) -> None:
         """Turn a command error into the embed it carries."""
+        # An error raised before cog_before_invoke still carries flags the command would have cleared.
+        invoked = isinstance(error, commands.CommandInvokeError)
         error = getattr(error, "original", error)
 
         if isinstance(error, UserBanned):
@@ -65,7 +67,7 @@ class ErrorHandler(commands.Cog):
                 return await send_error(ctx, MessageTooLong().embed)
 
         if hasattr(error, "embed"):
-            return await send_error(ctx, error.embed)
+            return await send_error(ctx, error.embed, explain=invoked)
 
         # Ignore other channel permission failures
         if isinstance(error, commands.CheckFailure):
@@ -89,7 +91,8 @@ async def setup(bot) -> None:
     await bot.add_cog(ErrorHandler(bot))
 
 
-async def send_error(ctx, embed) -> None:
-    """Send an error embed, defaulting its color to red."""
+async def send_error(ctx, embed, explain: bool = False) -> None:
+    """Send an error embed in red, explaining it with the active range and universe when asked."""
     embed.color = embed.color or ERROR
-    await ctx.send(embed=embed)
+    content = error_subtext(ctx) if explain else ""
+    await ctx.send(content=content or None, embed=embed)

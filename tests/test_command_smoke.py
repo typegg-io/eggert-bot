@@ -18,15 +18,16 @@ from zoneinfo import ZoneInfo
 import matplotlib
 import pytest
 import seed_data
-from discord.ext.commands import CommandError
+from discord.ext.commands import CommandError, CommandInvokeError
 
 from bot_setup import parse_flags
 from commands.base import Command
 from database.bot import db as bot_db
 from database.typegg import db as typegg_db
+from error_handler import ErrorHandler
 from utils.colors import DEFAULT_THEME
 from utils.dates import resolve_date_range
-from utils.errors import BotError, NotSubscribed
+from utils.errors import BotError, NoRacesFiltered, NotSubscribed
 from utils.flags import apply_universe_status, resolve_universe
 
 matplotlib.use("Agg")
@@ -972,6 +973,31 @@ def test_raw_race_history_titles_raw_once(seeded):
     ctx = asyncio.run(invoke("-racehistory raw"))
 
     assert ctx.sent[-1]["embed"].title.count("Raw") == 1
+
+
+def test_an_error_page_names_the_universe_that_emptied_it(seeded):
+    """A stored universe is easy to forget, so an empty result says which one ran."""
+    ctx = asyncio.run(invoke("-simp", universe="de"))
+
+    assert ctx.sent[-1]["content"] == "-# :earth_africa: German universe"
+
+
+@pytest.mark.parametrize("wrap", [True, False])
+def test_only_an_invoked_error_names_the_range_and_universe(seeded, wrap):
+    """An error raised before cog_before_invoke still holds flags the command would have cleared."""
+    ctx = FakeContext("-average", build_user(), bot=None)
+    stored = ((NOW - timedelta(days=1)).timestamp(), NOW.timestamp())
+    ctx.flags.date_range = resolve_date_range(ctx.flags, ctx.user["timezone"], stored)
+    ctx.flags.language = resolve_universe(ctx.flags, "es")
+    error = NoRacesFiltered(seed_data.USER_ID)
+
+    asyncio.run(ErrorHandler(None).on_command_error(ctx, CommandInvokeError(error) if wrap else error))
+    content = ctx.sent[-1]["content"]
+
+    if wrap:
+        assert content.startswith("-# <:galaxy:") and content.endswith("\n-# :earth_africa: Spanish universe")
+    else:
+        assert content is None
 
 
 def test_average_shows_a_speed_spread_from_two_races(seeded):
