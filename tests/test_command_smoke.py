@@ -922,6 +922,22 @@ def test_raw_sum_of_best_builds_from_raw_segments(seeded):
     assert sum_of_best_speed("-sumofbest raw") > sum_of_best_speed("-sumofbest")
 
 
+def test_a_histogram_without_typos_notes_its_empty_timing_pages(seeded, monkeypatch):
+    """A clean race times its typos as 0, which once left the quartiles nothing to read."""
+    from commands.graphs import histogram
+
+    quote_bests = histogram.get_quote_bests
+
+    def clean_quote_bests(*args, **kwargs) -> list[dict]:
+        """Return the seeded quote bests with every typo timing zeroed."""
+        return [dict(race, errorReactionTime=0, errorRecoveryTime=0) for race in quote_bests(*args, **kwargs)]
+
+    monkeypatch.setattr(histogram, "get_quote_bests", clean_quote_bests)
+    ctx = asyncio.run(invoke("-histogram react"))
+
+    assert "No races with a typo" in ctx.sent[-1]["embed"].description
+
+
 def test_raw_race_history_titles_raw_once(seeded):
     """The flag title already carries Raw, so the page title must not add its own."""
     ctx = asyncio.run(invoke("-racehistory raw"))

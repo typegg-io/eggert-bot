@@ -69,10 +69,17 @@ class Histogram(Command):
         await run(ctx, profile, metric)
 
 
+def typo_values(values: list[float], column: str) -> list[float]:
+    """Return a metric's values, keeping only races with a typo for the timing metrics."""
+    if metrics[column]["suffix"] != "ms":
+        return values
+
+    return [v for v in values if v > 0]
+
+
 def make_field(data: list[float], suffix: str, title: str = None, profile: Profile = None) -> Field:
     """Return the average, median, quartiles and deviation as an embed field."""
     if suffix == "ms":
-        data = [v for v in data if v > 0]
         precision = 0
     else:
         precision = 2
@@ -116,8 +123,8 @@ async def run(ctx: BotContext, profile: Profile, metric: str) -> None:
         if ctx.flags.status != "ranked" and column == "pp":
             continue
 
-        solo_values = [race[column] for race in solo_quote_bests if race[column] is not None]
-        multi_values = [race[column] for race in multi_quote_bests if race[column] is not None]
+        solo_values = typo_values([race[column] for race in solo_quote_bests if race[column] is not None], column)
+        multi_values = typo_values([race[column] for race in multi_quote_bests if race[column] is not None], column)
 
         if column == "accuracy":
             solo_values = np.array(solo_values) * 100
@@ -134,8 +141,9 @@ async def run(ctx: BotContext, profile: Profile, metric: str) -> None:
 
         pages.append(Page(
             title=f"{metric_title} Histogram",
+            description="" if fields else "No races with a typo",
             fields=fields,
-            render=make_render(solo_values, multi_values, column),
+            render=make_render(solo_values, multi_values, column) if fields else None,
             button_name=metric_title,
             default=column == metric,
             flag_title=True,
@@ -164,8 +172,8 @@ async def run_compare(ctx: BotContext, profile1: Profile, profile2: Profile, met
     pages = []
 
     for column in metrics.keys():
-        values1 = [race[column] for race in quote_bests1]
-        values2 = [race[column] for race in quote_bests2]
+        values1 = typo_values([race[column] for race in quote_bests1], column)
+        values2 = typo_values([race[column] for race in quote_bests2], column)
 
         if column == "accuracy":
             values1 = np.array(values1) * 100
@@ -182,8 +190,9 @@ async def run_compare(ctx: BotContext, profile1: Profile, profile2: Profile, met
 
         pages.append(Page(
             title=f"{metric_title} Histogram",
+            description="" if fields else "No races with a typo",
             fields=fields,
-            render=make_render(values1, values2, column),
+            render=make_render(values1, values2, column) if fields else None,
             button_name=metric_title,
             default=column == metric,
             flag_title=True,
