@@ -135,6 +135,7 @@ INVOCATIONS = [
     "-toptens",
     "-unraced",
     "-ur keegan",
+    "-ur 50-100c",
     "-week",
     "-worst",
     "-year",

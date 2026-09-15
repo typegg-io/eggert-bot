@@ -1,6 +1,6 @@
 """Which unraced quotes -unraced recommends, and in what order."""
 
-from commands.quotes.unraced import recommend
+from commands.quotes.unraced import in_length_range, recommend
 
 
 def make_quote(quote_id: str, length: int, complexity: float = 5.0, difficulty: float = 5.0) -> dict:
@@ -52,3 +52,11 @@ def test_a_best_on_a_quote_outside_the_pool_is_ignored():
     recommendations = recommend(POOL, quote_bests, {"long0"})
 
     assert recommendations[0]["quoteId"].startswith("long")
+
+
+def test_a_length_range_keeps_its_low_end_and_drops_its_high_end():
+    """The range matches the one -best filters by, so `50-100c` holds 50 but not 100."""
+    assert in_length_range(make_quote("low", 50), (50, 100))
+    assert not in_length_range(make_quote("high", 100), (50, 100))
+    assert in_length_range(make_quote("open", 5000), (250, None))
+    assert not in_length_range(make_quote("under", 99), (None, 50))

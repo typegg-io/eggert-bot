@@ -3,6 +3,7 @@ from discord.ext import commands
 
 from command_info import CommandInfo
 from commands.base import Command
+from commands.quotes.best import range_label
 from config import DEFAULT_UNIVERSE
 from context import BotContext
 from database.typegg.quotes import get_quotes
@@ -23,12 +24,14 @@ info = CommandInfo(
     name="unraced",
     aliases=["ur"],
     description="Recommends ranked quotes a user has never raced, most like the quotes their pp comes from.\n"
-                "Quotes are matched on length, complexity and difficulty against the top 250 ranked quotes.",
-    parameters="[username]",
+                "Quotes are matched on length, complexity and difficulty against the top 250 ranked quotes.\n"
+                "Pass a length range like `50-100c` to only list quotes in that range.",
+    parameters="[username] [length_range]",
     examples=[
         "-unraced",
         "-unraced eiko",
         "-unraced fr",
+        "-unraced 50-100c",
     ],
     plus=True,
 )
@@ -37,7 +40,7 @@ info = CommandInfo(
 class Unraced(Command):
     """Recommend ranked quotes a user has never raced."""
 
-    supported_flags = {"language"}
+    supported_flags = {"language", "length_range"}
 
     @commands.command(aliases=info.aliases)
     async def unraced(self, ctx: BotContext, *args: str):
@@ -71,6 +74,13 @@ def recommend(pool: list[dict], quote_bests: list, raced: set[str]) -> list[dict
     return [pool[i] for i in np.argsort(-scores, kind="stable") if pool[i]["quoteId"] not in raced]
 
 
+def in_length_range(quote: dict, bounds: tuple) -> bool:
+    """Return whether a quote's length falls in the range, keeping the low end and not the high."""
+    min_length, max_length = bounds
+    length = len(quote["text"])
+    return (min_length is None or length >= min_length) and (max_length is None or length < max_length)
+
+
 async def run(ctx: BotContext, profile: Profile) -> None:
     """Send the 100 unraced ranked quotes that best suit a user, paginated."""
     language = ctx.flags.language or Language(DEFAULT_UNIVERSE)
@@ -89,6 +99,14 @@ async def run(ctx: BotContext, profile: Profile) -> None:
 
     pool = [quote for quote in get_quotes().values() if quote["ranked"] and quote["language"] == language.name]
     recommendations = recommend(pool, quote_bests, get_raced_quote_ids(profile["userId"]))
+    title = "Unraced Quote Recommendations"
+
+    # Filter after recommending, so the range narrows the list without moving the percentiles.
+    if ctx.flags.length_range:
+        pool = [quote for quote in pool if in_length_range(quote, ctx.flags.length_range)]
+        recommendations = [quote for quote in recommendations if in_length_range(quote, ctx.flags.length_range)]
+        title += " " + range_label(ctx.flags.length_range, "chars")
+
     sources = get_sources()
 
     def entry_formatter(quote: dict) -> str:
@@ -100,11 +118,13 @@ async def run(ctx: BotContext, profile: Profile) -> None:
     if recommendations:
         pages = paginate_data(recommendations, entry_formatter, 20, 5)
     else:
-        pages = [Page(description="Every ranked quote has been raced.", flag_title=True)]
+        where = " in this range" if ctx.flags.length_range else ""
+        description = f"Every ranked quote{where} has been raced." if pool else f"No ranked quotes{where}."
+        pages = [Page(description=description, flag_title=True)]
 
     message = Message(
         ctx,
-        title="Unraced Quote Recommendations",
+        title=title,
         header=f"**Unraced:** {len(recommendations):,} of {len(pool):,}\n",
         pages=pages,
         profile=profile,
