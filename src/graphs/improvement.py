@@ -18,6 +18,8 @@ def render_over_time(
     window_size: int,
     dnf_indices: list[int] = None,
     ceiling: float | None = None,
+    unit: str = "Races",
+    invert: bool = False,
 ) -> str:
     """Render a metric over dates and return the file name."""
     fig, ax = plt.subplots()
@@ -62,7 +64,7 @@ def render_over_time(
     title = f"{metric} Improvement"
 
     if window_size > 1:
-        title += f"\nMoving Average of {window_size} Races"
+        title += f"\nMoving Average of {window_size} {unit}"
 
     low = np.percentile(downsampled_values, 1)
     if ceiling is None:
@@ -71,6 +73,9 @@ def render_over_time(
         # Values crowd the ceiling, so scaling the low percentile would lift the axis past every point.
         margin = max((ceiling - low) * 0.05, 0.5)
         ax.set_ylim(top=ceiling + margin, bottom=low - margin)
+
+    if invert:
+        ax.invert_yaxis()
 
     ax.set_title(title)
     ax.grid()
@@ -87,24 +92,23 @@ def render_over_time(
 
 def render_over_races(
     values: list[float],
-    difficulties: list[float],
+    difficulties: list[float] | None,
     metric: str,
     theme: Theme,
     window_size: int,
     dnf_indices: list[int] = None,
+    unit: str = "Races",
+    invert: bool = False,
 ) -> str:
-    """Render a metric over race numbers and return the file name."""
+    """Render a metric over race numbers, with a difficulty line when given, and return the file name."""
     fig, ax = plt.subplots()
-    ax2 = ax.twinx()
+    ax2 = ax.twinx() if difficulties is not None else None
 
     values = np.asarray(values)
-    difficulties = np.asarray(difficulties)
-
     kernel = np.ones(window_size) / window_size
 
     x_points = np.arange(window_size - 1, len(values))
     moving_average = np.convolve(values, kernel, mode="valid")
-    difficulty_average = np.convolve(difficulties, kernel, mode="valid")
 
     x_points = [r + 1 for r in x_points]
     ax.xaxis.set_major_formatter(FuncFormatter(format_big_number))
@@ -112,12 +116,17 @@ def render_over_races(
     segment_count = 50 // (len(moving_average) - 1) if len(moving_average) > 1 else 1
     if segment_count > 1:
         x_average, y_average = interpolate_segments(x_points, moving_average)
-        x_difficulty, y_difficulty = interpolate_segments(x_points, difficulty_average)
         ax.plot(x_average, y_average, label="_")
-        ax2.plot(x_difficulty, y_difficulty, label="_", alpha=0.5)
     else:
         ax.plot(x_points, moving_average, label="_")
-        ax2.plot(x_points, difficulty_average, label="_", alpha=0.5)
+
+    if ax2:
+        difficulty_average = np.convolve(np.asarray(difficulties), kernel, mode="valid")
+        if segment_count > 1:
+            x_difficulty, y_difficulty = interpolate_segments(x_points, difficulty_average)
+            ax2.plot(x_difficulty, y_difficulty, label="_", alpha=0.5)
+        else:
+            ax2.plot(x_points, difficulty_average, label="_", alpha=0.5)
 
     if dnf_indices:
         dnf_indices = np.asarray(dnf_indices)
@@ -127,20 +136,24 @@ def render_over_races(
         ax.scatter(dnf_x, dnf_y, color=theme["crosses"], s=1, zorder=999, label="_")
 
     ax.set_ylabel(metric)
-    ax.set_xlabel("Races")
-    ax2.invert_yaxis()
-    ax2.set_ylabel("Difficulty")
+    ax.set_xlabel(unit)
+    if invert:
+        ax.invert_yaxis()
+    if ax2:
+        ax2.invert_yaxis()
+        ax2.set_ylabel("Difficulty")
     title = f"{metric} Improvement"
 
     if window_size > 1:
-        title += f"\nMoving Average of {window_size} Races"
+        title += f"\nMoving Average of {window_size} {unit}"
 
     ax.set_title(title)
     ax.grid()
     ax.set_title(title)
 
     apply_theme(ax, theme)
-    apply_theme(ax2, theme | {"line": "#808080", "grid_opacity": 0})
+    if ax2:
+        apply_theme(ax2, theme | {"line": "#808080", "grid_opacity": 0})
 
     file_name = generate_file_name("improvement")
     plt.savefig(file_name)

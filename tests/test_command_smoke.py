@@ -10,6 +10,7 @@ cannot see, a command that raises the moment it is invoked.
 
 import asyncio
 import json
+import os
 import sqlite3
 from datetime import UTC, datetime, timedelta
 from types import SimpleNamespace
@@ -1061,6 +1062,31 @@ def test_the_quote_characters_board_totals_only_the_universe(seeded, monkeypatch
     asyncio.run(invoke("-leaderboard quotechars", universe="es"))
 
     assert footers[-1] == f"{spanish:,} Total Quote Characters"
+
+
+@pytest.mark.parametrize("invocation, gg_plus, buttons", [
+    ("-ds", False, ["Stats", "pp", "pp Over Time", "Rank", "Rank Over Time"]),
+    ("-ds raw", False, ["Stats", "Rank", "Rank Over Time"]),
+    ("-ds raw", True, ["Stats", "pp", "pp Over Time", "Rank", "Rank Over Time"]),
+])
+def test_every_daily_stats_graph_renders(seeded, monkeypatch, invocation, gg_plus, buttons):
+    """Only the shown page renders, so the graph pages are drawn here by hand."""
+    from commands.daily import dailystats
+
+    pages = []
+
+    def recording_message(*args, **kwargs):
+        """Record the pages a daily stats message is built with."""
+        pages.extend(kwargs["pages"])
+        return Message(*args, **kwargs)
+
+    Message = dailystats.Message
+    monkeypatch.setattr(dailystats, "Message", recording_message)
+    asyncio.run(invoke(invocation, gg_plus=gg_plus))
+
+    assert [page.button_name for page in pages] == buttons
+    for page in pages[1:]:
+        os.remove(page.render())
 
 
 def test_a_histogram_without_typos_notes_its_empty_timing_pages(seeded, monkeypatch):

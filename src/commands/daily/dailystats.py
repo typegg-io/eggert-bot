@@ -9,16 +9,19 @@ from commands.base import Command
 from config import DAILY_QUOTE_CHANNEL_ID
 from context import BotContext
 from database.typegg.daily_quotes import get_daily_quote_id, get_today_result, get_user_results
+from database.typegg.quotes import get_quotes
+from graphs import improvement
 from utils import dates
 from utils.messages import Field, Message, Page, usable_in
-from utils.schemas import Profile
+from utils.schemas import Profile, Theme
 from utils.strings import get_streak_emoji, pp_display
 
 info = CommandInfo(
     name="dailystats",
     aliases=["ds"],
     description="Displays stats about a user's daily quote history.\n"
-                "Includes streaks, participation rate, average pp/WPM, and top placements.",
+                "Includes streaks, participation rate, average pp/WPM, and top placements.\n"
+                "Graphs a user's pp and rank over the dailies they played, or over time.",
     parameters="[username]",
     examples=[
         "-ds",
@@ -40,11 +43,53 @@ class DailyStats(Command):
         await run(ctx, profile)
 
 
+def graph_pages(
+    metric: str,
+    values: list[float],
+    timestamps: list[str],
+    theme: Theme,
+    difficulties: list[float] | None = None,
+    invert: bool = False,
+) -> list[Page]:
+    """Return a metric's pages over dailies played and over time, or none with too few dailies to draw."""
+    if len(values) < 2:
+        return []
+
+    window = min(max(len(values) // 10, 1), 30)
+
+    return [
+        Page(
+            button_name=metric,
+            render=lambda: improvement.render_over_races(
+                values=values,
+                difficulties=difficulties,
+                metric=metric,
+                theme=theme,
+                window_size=window,
+                unit="Dailies",
+                invert=invert,
+            ),
+        ),
+        Page(
+            button_name=f"{metric} Over Time",
+            render=lambda: improvement.render_over_time(
+                values=values,
+                metric=metric,
+                theme=theme,
+                dates=timestamps,
+                window_size=window,
+                unit="Dailies",
+                invert=invert,
+            ),
+        ),
+    ]
+
+
 async def run(ctx: BotContext, profile: Profile) -> None:
     """Send a user's daily streaks, participation rate, averages and placements."""
     daily_stats = profile["stats"]["dailyQuotes"]
     streak = daily_stats["streak"]
-    results = get_user_results(profile["userId"])
+    results = sorted(get_user_results(profile["userId"]), key=lambda row: row["dayNumber"])
 
     if not results:
         message = Message(
@@ -114,14 +159,32 @@ async def run(ctx: BotContext, profile: Profile) -> None:
         )
     ))
 
-    page = Page(
-        title="Daily Quote Stats" + (" (Raw)" if ctx.flags.raw else ""),
-        fields=fields,
+    title = "Daily Quote Stats" + (" (Raw)" if ctx.flags.raw else "")
+    pages = [Page(fields=fields, button_name="Stats")]
+
+    if not hide_raw_pp:
+        quote_list = get_quotes()
+        scored = [row for row in results if row[pp_key] > 0]
+        pages += graph_pages(
+            "pp",
+            [row[pp_key] for row in scored],
+            [row["timestamp"] for row in scored],
+            ctx.user["theme"],
+            difficulties=[quote_list[row["quoteId"]]["difficulty"] for row in scored],
+        )
+
+    pages += graph_pages(
+        "Rank",
+        [row["rank"] for row in results],
+        [row["timestamp"] for row in results],
+        ctx.user["theme"],
+        invert=True,
     )
 
     message = Message(
         ctx,
-        page=page,
+        title=title,
+        pages=pages,
         profile=profile,
     )
 
