@@ -107,17 +107,19 @@ def render_over_time(
 
 def render_over_races(
     values: list[float],
-    difficulties: list[float] | None,
+    secondary: list[float] | None,
     metric: str,
     theme: Theme,
     window_size: int,
     dnf_indices: list[int] = None,
     unit: str = "Races",
     placements: bool = False,
+    secondary_label: str = "Difficulty",
+    invert_secondary: bool = True,
 ) -> str:
-    """Render a metric over race numbers, with a difficulty line when given, and return the file name."""
+    """Render a metric over race numbers, with a secondary line when given, and return the file name."""
     fig, ax = plt.subplots()
-    ax2 = ax.twinx() if difficulties is not None else None
+    ax2 = ax.twinx() if secondary is not None else None
 
     values = np.asarray(values)
     kernel = np.ones(window_size) / window_size
@@ -136,12 +138,12 @@ def render_over_races(
         ax.plot(x_points, moving_average, label="_")
 
     if ax2:
-        difficulty_average = np.convolve(np.asarray(difficulties), kernel, mode="valid")
+        secondary_average = np.convolve(np.asarray(secondary), kernel, mode="valid")
         if segment_count > 1:
-            x_difficulty, y_difficulty = interpolate_segments(x_points, difficulty_average)
-            ax2.plot(x_difficulty, y_difficulty, label="_", alpha=0.5)
+            x_secondary, y_secondary = interpolate_segments(x_points, secondary_average)
+            ax2.plot(x_secondary, y_secondary, label="_", alpha=0.5)
         else:
-            ax2.plot(x_points, difficulty_average, label="_", alpha=0.5)
+            ax2.plot(x_points, secondary_average, label="_", alpha=0.5)
 
     if dnf_indices:
         dnf_indices = np.asarray(dnf_indices)
@@ -155,8 +157,9 @@ def render_over_races(
     if placements:
         fit_placements(ax, values, moving_average)
     if ax2:
-        ax2.invert_yaxis()
-        ax2.set_ylabel("Difficulty")
+        if invert_secondary:
+            ax2.invert_yaxis()
+        ax2.set_ylabel(secondary_label)
     title = f"{metric} Improvement"
 
     if window_size > 1:

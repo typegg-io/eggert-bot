@@ -128,8 +128,14 @@ def get_daily_rank_leaderboard(max_rank: int, exact: bool = False, limit: int = 
 
 
 def get_user_results(user_id: str) -> list[sqlite3.Row]:
-    """Return every daily quote result for a user."""
-    return db.fetch("SELECT * FROM daily_quote_results WHERE userId = ?", [user_id])
+    """Return every daily quote result for a user with its participant count, oldest first."""
+    return db.fetch("""
+        SELECT r.*, d.uniqueUsers
+        FROM daily_quote_results r
+        JOIN daily_quotes d ON d.dayNumber = r.dayNumber
+        WHERE r.userId = ?
+        ORDER BY r.dayNumber
+    """, [user_id])
 
 
 def get_today_result(user_id: str, quote_id: str, raw: bool = False) -> sqlite3.Row | None:

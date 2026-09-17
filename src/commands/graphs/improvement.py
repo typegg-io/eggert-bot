@@ -167,7 +167,7 @@ async def multiplayer_improvement(ctx: BotContext, profile: Profile, metric: str
                 button_name="Over Races",
                 render=lambda: improvement.render_over_races(
                     values=values,
-                    difficulties=difficulties,
+                    secondary=difficulties,
                     metric=label,
                     theme=ctx.user["theme"],
                     window_size=window,
@@ -249,7 +249,7 @@ async def solo_improvement(ctx: BotContext, profile: Profile, metric: str) -> No
                 button_name="Over Races",
                 render=lambda: improvement.render_over_races(
                     values=values,
-                    difficulties=difficulties,
+                    secondary=difficulties,
                     metric=label,
                     theme=ctx.user["theme"],
                     window_size=window,

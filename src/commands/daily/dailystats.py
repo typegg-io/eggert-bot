@@ -48,7 +48,8 @@ def graph_pages(
     values: list[float],
     timestamps: list[str],
     theme: Theme,
-    difficulties: list[float] | None = None,
+    secondary: list[float] | None = None,
+    secondary_label: str = "Difficulty",
     placements: bool = False,
 ) -> list[Page]:
     """Return a metric's pages over dailies played and over time, or none with too few dailies to draw."""
@@ -65,7 +66,9 @@ def graph_pages(
             button_name=metric,
             render=lambda: improvement.render_over_races(
                 values=values,
-                difficulties=difficulties,
+                secondary=secondary,
+                secondary_label=secondary_label,
+                invert_secondary=not placements,
                 metric=metric,
                 theme=theme,
                 window_size=window,
@@ -92,7 +95,7 @@ async def run(ctx: BotContext, profile: Profile) -> None:
     """Send a user's daily streaks, participation rate, averages and placements."""
     daily_stats = profile["stats"]["dailyQuotes"]
     streak = daily_stats["streak"]
-    results = sorted(get_user_results(profile["userId"]), key=lambda row: row["dayNumber"])
+    results = get_user_results(profile["userId"])
 
     if not results:
         message = Message(
@@ -173,7 +176,7 @@ async def run(ctx: BotContext, profile: Profile) -> None:
             [row[pp_key] for row in scored],
             [row["timestamp"] for row in scored],
             ctx.user["theme"],
-            difficulties=[quote_list[row["quoteId"]]["difficulty"] for row in scored],
+            secondary=[quote_list[row["quoteId"]]["difficulty"] for row in scored],
         )
 
     pages += graph_pages(
@@ -181,6 +184,8 @@ async def run(ctx: BotContext, profile: Profile) -> None:
         [row["rank"] for row in results],
         [row["timestamp"] for row in results],
         ctx.user["theme"],
+        secondary=[row["uniqueUsers"] for row in results],
+        secondary_label="Participants",
         placements=True,
     )
 
