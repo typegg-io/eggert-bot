@@ -14,8 +14,9 @@ from utils.errors import NoRacesFiltered
 from utils.flags import is_multiplayer
 from utils.messages import Field, Message, Page
 from utils.schemas import Profile
-from utils.stats import calculate_quote_bests, calculate_quote_length, calculate_total_pp
+from utils.stats import calculate_quote_bests, calculate_total_pp
 from utils.strings import date_range_display, format_duration, pp_display
+from utils.windows import race_times
 
 info = CommandInfo(
     name="races",
@@ -89,8 +90,6 @@ def build_stat_fields(profile, race_list, flags, all_time=False, hide_raw_pp=Fal
             else:
                 cumulative_values[key].append(value)
 
-        quote_length = calculate_quote_length(race["wpm"], race["duration"])
-
         if race["rawWpm"] == 0:  # temporary catch for invalid raw speeds
             race = dict(race)
             race["rawWpm"] = race["wpm"]
@@ -109,7 +108,7 @@ def build_stat_fields(profile, race_list, flags, all_time=False, hide_raw_pp=Fal
         quote = quote_list[race["quoteId"]]
         words = quote["text"].split()
         words_typed += len(words)
-        chars_typed += quote_length
+        chars_typed += len(quote["text"])
         difficulty += quote["difficulty"]
 
     for key in cumulative_values:
@@ -173,9 +172,8 @@ def build_stat_fields(profile, race_list, flags, all_time=False, hide_raw_pp=Fal
 
     start_date = race_list[0]["timestamp"]
     end_date = race_list[-1]["timestamp"]
-    start_time = parse_date(start_date).timestamp()
-    end_time = parse_date(end_date).timestamp()
-    timespan = end_time - start_time
+    starts, ends = race_times([race_list[0], race_list[-1]])
+    timespan = ends[1] - starts[0]
 
     fields.append(Field(
         title=":bar_chart: Activity",

@@ -49,11 +49,6 @@ def calculate_quote_bests(race_list: list[dict]) -> list[dict]:
     return quote_bests
 
 
-def calculate_quote_length(wpm, duration) -> int:
-    """Returns the length of a quote given WPM and duration values."""
-    return int(round(wpm * duration / 12000) + 1)
-
-
 def calculate_duration(wpm, chars_typed) -> float:
     """Returns the ms duration given WPM and number of characters typed."""
     return (chars_typed * 12000) / wpm if wpm else 0

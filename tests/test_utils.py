@@ -14,7 +14,6 @@ from utils.stats import (
     calculate_experience_for_level,
     calculate_level,
     calculate_non_afk_duration,
-    calculate_quote_length,
     calculate_total_pp,
 )
 from utils.strings import (
@@ -247,10 +246,6 @@ def test_total_pp_weights_each_quote_on_the_keegan_curve():
 def test_total_pp_stops_at_a_quote_worth_less_than_a_point():
     """A floored pp below 1 ends the sum rather than contributing a fraction."""
     assert calculate_total_pp([50.0, 0.5]) == pytest.approx(50)
-
-
-def test_calculate_quote_length_is_positive():
-    assert calculate_quote_length(wpm=100, duration=30000) > 0
 
 
 # Level

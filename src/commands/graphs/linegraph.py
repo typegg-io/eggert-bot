@@ -7,6 +7,7 @@ from command_info import CommandInfo
 from commands.base import Command
 from context import BotContext
 from database.typegg.nwpm import get_nwpm_over_time, quotes_are_rated
+from database.typegg.quotes import get_quotes
 from database.typegg.races import get_completion_time, get_races
 from graphs import line
 from utils.errors import BotError, NoRacesFiltered
@@ -18,7 +19,6 @@ from utils.stats import (
     calculate_experience,
     calculate_experience_for_level,
     calculate_level,
-    calculate_quote_length,
     calculate_total_pp,
 )
 
@@ -54,7 +54,7 @@ metrics = {
         "sort": lambda p: p["stats"]["quotesTyped"],
     },
     "characters": {
-        "columns": "wpm duration",
+        "columns": "quoteId wpm",
         "title": "Characters Typed",
         "alias": "cl",
         "sort": lambda p: p["stats"]["charactersTyped"],
@@ -263,9 +263,12 @@ def get_characters_over_time(race_list: list[dict]) -> list[int]:
     characters_typed = []
     total = 0
 
+    quote_list = get_quotes()
+
     for race in race_list:
-        quote_length = calculate_quote_length(race["wpm"], race["duration"])
-        total += quote_length
+        # A quit scores 0 WPM and typed only part of the quote.
+        if race["wpm"]:
+            total += len(quote_list[race["quoteId"]]["text"])
         characters_typed.append(total)
 
     return characters_typed
