@@ -123,6 +123,12 @@ INVOCATIONS = [
     "-racegraph",
     "-racehistory",
     "-racehistory raw",
+    "-rh week",
+    "-rh eiko day wpm",
+    "-rh month pp least",
+    "-rh year time",
+    "-rh week any",
+    "-rh week raw",
     "-races",
     "-segments",
     "-session",
@@ -156,6 +162,7 @@ RAW_PP_REFUSED = [
     "-pplength raw",
     "-quotesover 100 raw",
     "-quotestrength raw",
+    "-rh week pp raw",
     "-worst raw",
 ]
 
@@ -170,6 +177,7 @@ RAW_PP_SUBSTITUTED = [
     "-qlb q1 raw",
     "-racegraph",
     "-racehistory raw",
+    "-rh week raw",
 ]
 
 # The whole command is a GG+ feature.
