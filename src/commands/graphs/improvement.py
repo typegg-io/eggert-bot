@@ -20,13 +20,16 @@ metrics = {
 info = CommandInfo(
     name="improvement",
     aliases=["imp", "simp"],
-    description="Displays a user's pp, WPM or accuracy improvement over races.\n"
-                "Use `-simp` to view solo PBs by pp instead of multiplayer.\n",
-    parameters="[username] [wpm|pp|acc]",
+    description="Displays a user's pp, WPM or accuracy improvement over quickplay races.\n"
+                "Add `lobby` or `multiplayer` to graph those races instead.\n"
+                "Add `solo`, or use `-simp`, to view solo PBs by pp.\n",
+    parameters="[username] [wpm|pp|acc] [gamemode:quickplay]",
     examples=[
         "-imp",
         "-imp eiko wpm",
         "-imp eiko acc",
+        "-imp lobby",
+        "-imp solo",
         "-simp eiko",
     ],
 )
@@ -35,12 +38,14 @@ info = CommandInfo(
 class Improvement(Command):
     """Graph a user's pp, WPM or accuracy improvement over races."""
 
-    supported_flags = {"metric", "raw", "status", "language", "date_range"}
+    supported_flags = {"metric", "raw", "gamemode", "status", "language", "date_range"}
 
     @commands.command(aliases=info.aliases)
     async def improvement(self, ctx: BotContext, *args: str):
         """Pick the solo or multiplayer graph, then draw it for one user."""
-        solo = ctx.invoked_with == "simp"
+        if "gamemode" not in ctx.explicit_flags:
+            ctx.flags.gamemode = "solo" if ctx.invoked_with == "simp" else "quickplay"
+        solo = ctx.flags.gamemode == "solo"
         metric = "pp" if solo else "wpm"
         params = self.extract_params(args, ["accuracy"])
 
@@ -69,8 +74,7 @@ def get_window_size(n: int, min_n: int = 25, max_n: int = 500) -> int:
 
 
 async def multiplayer_improvement(ctx: BotContext, profile: Profile, metric: str) -> None:
-    """Send an improvement graph over a user's quickplay races."""
-    ctx.flags.gamemode = "quickplay"
+    """Send an improvement graph over a user's multiplayer races."""
     race_list = await get_races(
         user_id=profile["userId"],
         columns=["quoteId", metric, "timestamp", "completionType"],
@@ -81,8 +85,8 @@ async def multiplayer_improvement(ctx: BotContext, profile: Profile, metric: str
         message = Message(
             ctx, page=Page(
                 title="No Races",
-                description=f"User `{profile["username"]}` has no quickplay races",
-                footer="Use -simp to view solo improvement!",
+                description=f"User `{profile["username"]}` has no {ctx.flags.gamemode} races",
+                footer="Use -imp solo to view solo improvement!",
                 color=ERROR,
             )
         )
@@ -198,7 +202,6 @@ async def multiplayer_improvement(ctx: BotContext, profile: Profile, metric: str
 
 async def solo_improvement(ctx: BotContext, profile: Profile, metric: str) -> None:
     """Send an improvement graph over a user's solo personal bests."""
-    ctx.flags.gamemode = "solo"
     race_list = await get_races(
         user_id=profile["userId"],
         columns=["quoteId", metric, "timestamp"],

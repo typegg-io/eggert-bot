@@ -80,6 +80,8 @@ INVOCATIONS = [
     "-lb top10s -fr",
     "-improvement",
     "-improvement acc",
+    "-imp multiplayer pp",
+    "-imp solo wpm",
     "-simp acc",
     "-keystrokes",
     "-ks azerty",
