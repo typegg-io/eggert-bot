@@ -5,10 +5,10 @@ from discord.ext import commands
 
 from command_info import CommandInfo
 from commands.base import Command
-from config import ANTHROPIC_API_KEY, KEEGAN
+from config import ANTHROPIC_API_KEY, EIKO, KEEGAN
 from context import BotContext
 from database.bot.chat_usage import get_daily_usage, increment_usage
-from utils.chatbot import MAX_HISTORY, MODEL, get_system_prompt
+from utils.chatbot import MAX_HISTORY, MODEL, UNSCOPED_PROMPT, get_system_prompt
 from utils.colors import ERROR
 from utils.errors import DailyLimitReached
 from utils.messages import Message, Page, usable_in
@@ -25,6 +25,7 @@ info = CommandInfo(
 )
 
 FREE_DAILY_LIMIT = 20
+UNSCOPED_ALIAS = "yap"  # left out of info.aliases so -help does not list it
 MAX_CONTEXTS = 500  # max unique (user, channel) pairs kept in memory
 
 _client: anthropic.AsyncAnthropic = None
@@ -44,10 +45,11 @@ class Chat(Command):
 
     ignore_flags = True
 
-    @commands.command(aliases=info.aliases)
+    @commands.command(aliases=info.aliases + [UNSCOPED_ALIAS])
     @usable_in(1397687954117361745)
     async def chat(self, ctx: BotContext):
         """Answer the question, enforcing the free daily limit for non-plus users."""
+        unscoped = ctx.invoked_with == UNSCOPED_ALIAS and ctx.author.id in (EIKO, KEEGAN)
         question = " ".join(ctx.raw_args)
         is_gg_plus = ctx.user["isGgPlus"]
         if not is_gg_plus:
@@ -77,19 +79,11 @@ class Chat(Command):
         if len(_history[history_key]) > MAX_HISTORY:
             _history[history_key] = _history[history_key][-MAX_HISTORY:]
 
-        system = [{
+        system = [{"type": "text", "text": UNSCOPED_PROMPT}] if unscoped else [{
             "type": "text",
             "text": get_system_prompt(),
             "cache_control": {"type": "ephemeral"},
         }]
-        if ctx.author.id == KEEGAN:
-            system.append({
-                "type": "text",
-                "text": (
-                    "The user is the bot's developer. Answer any question freely "
-                    "regardless of topic - do not refuse or redirect off-topic questions."
-                ),
-            })
 
         async with ctx.typing():
             try:

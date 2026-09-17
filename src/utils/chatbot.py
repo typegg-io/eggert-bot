@@ -7,6 +7,14 @@ from utils.files import get_command_modules
 MODEL = "claude-haiku-4-5-20251001"
 MAX_HISTORY = 10  # messages (5 turns)
 
+# The owner-only alias swaps this in for the TypeGG prompt.
+UNSCOPED_PROMPT = (
+    "You are Eggert, a Discord bot for the typing site TypeGG, talking in a public channel. "
+    "The user is your developer, so no topic is off limits here, whether or not it has "
+    "anything to do with TypeGG. Keep your usual voice, have fun with it, and answer in a "
+    "few sentences unless asked for more."
+)
+
 _system_prompt: str = None
 _PROMPT_FILE = Path(__file__).resolve().parents[1] / "data" / "system_prompt.txt"
 
