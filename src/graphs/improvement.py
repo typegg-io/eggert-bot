@@ -2,12 +2,28 @@
 
 import numpy as np
 from matplotlib.colors import hex2color
-from matplotlib.ticker import FuncFormatter
+from matplotlib.ticker import FuncFormatter, MaxNLocator
+from numpy.lib.stride_tricks import sliding_window_view
 
 from graphs.core import apply_date_ticks, apply_theme, generate_file_name, interpolate_segments, plt
 from utils.dates import get_timestamp_list
 from utils.schemas import Theme
 from utils.strings import format_big_number
+
+
+def moving_line(values: np.ndarray, window_size: int, placements: bool) -> np.ndarray:
+    """Return the moving average, or the moving median for placements."""
+    if placements:
+        return np.median(sliding_window_view(values, window_size), axis=1)
+    return np.convolve(values, np.ones(window_size) / window_size, mode="valid")
+
+
+def fit_placements(ax, values: np.ndarray, line: np.ndarray) -> None:
+    """Show placements on a whole number axis with first place at the top."""
+    low = min(values.min(), line.min())
+    high = max(np.percentile(values, 95), line.max(), low + 1)
+    ax.set_ylim(high + 0.5, low - 0.5)
+    ax.yaxis.set_major_locator(MaxNLocator(integer=True))
 
 
 def render_over_time(
@@ -19,7 +35,7 @@ def render_over_time(
     dnf_indices: list[int] = None,
     ceiling: float | None = None,
     unit: str = "Races",
-    invert: bool = False,
+    placements: bool = False,
 ) -> str:
     """Render a metric over dates and return the file name."""
     fig, ax = plt.subplots()
@@ -32,7 +48,7 @@ def render_over_time(
     if len(values) > 10000:
         downsample_factor *= 10
 
-    moving_average = np.convolve(values, np.ones(window_size) / window_size, mode="valid")[0::downsample_factor]
+    moving_average = moving_line(values, window_size, placements)[0::downsample_factor]
     x_points = np.arange(window_size - 1, len(values))[0::downsample_factor]
 
     timestamps = np.asarray(get_timestamp_list(dates))
@@ -64,18 +80,17 @@ def render_over_time(
     title = f"{metric} Improvement"
 
     if window_size > 1:
-        title += f"\nMoving Average of {window_size} {unit}"
+        title += f"\nMoving {'Median' if placements else 'Average'} of {window_size} {unit}"
 
     low = np.percentile(downsampled_values, 1)
-    if ceiling is None:
+    if placements:
+        fit_placements(ax, values, moving_average)
+    elif ceiling is None:
         ax.set_ylim(top=np.percentile(downsampled_values, 95) * 1.05, bottom=low * 0.95)
     else:
         # Values crowd the ceiling, so scaling the low percentile would lift the axis past every point.
         margin = max((ceiling - low) * 0.05, 0.5)
         ax.set_ylim(top=ceiling + margin, bottom=low - margin)
-
-    if invert:
-        ax.invert_yaxis()
 
     ax.set_title(title)
     ax.grid()
@@ -98,7 +113,7 @@ def render_over_races(
     window_size: int,
     dnf_indices: list[int] = None,
     unit: str = "Races",
-    invert: bool = False,
+    placements: bool = False,
 ) -> str:
     """Render a metric over race numbers, with a difficulty line when given, and return the file name."""
     fig, ax = plt.subplots()
@@ -108,7 +123,7 @@ def render_over_races(
     kernel = np.ones(window_size) / window_size
 
     x_points = np.arange(window_size - 1, len(values))
-    moving_average = np.convolve(values, kernel, mode="valid")
+    moving_average = moving_line(values, window_size, placements)
 
     x_points = [r + 1 for r in x_points]
     ax.xaxis.set_major_formatter(FuncFormatter(format_big_number))
@@ -137,15 +152,15 @@ def render_over_races(
 
     ax.set_ylabel(metric)
     ax.set_xlabel(unit)
-    if invert:
-        ax.invert_yaxis()
+    if placements:
+        fit_placements(ax, values, moving_average)
     if ax2:
         ax2.invert_yaxis()
         ax2.set_ylabel("Difficulty")
     title = f"{metric} Improvement"
 
     if window_size > 1:
-        title += f"\nMoving Average of {window_size} {unit}"
+        title += f"\nMoving {'Median' if placements else 'Average'} of {window_size} {unit}"
 
     ax.set_title(title)
     ax.grid()

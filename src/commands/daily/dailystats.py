@@ -49,13 +49,16 @@ def graph_pages(
     timestamps: list[str],
     theme: Theme,
     difficulties: list[float] | None = None,
-    invert: bool = False,
+    placements: bool = False,
 ) -> list[Page]:
     """Return a metric's pages over dailies played and over time, or none with too few dailies to draw."""
     if len(values) < 2:
         return []
 
     window = min(max(len(values) // 10, 1), 30)
+    if placements:
+        # An even window can land a median halfway between two ranks.
+        window |= 1
 
     return [
         Page(
@@ -67,7 +70,7 @@ def graph_pages(
                 theme=theme,
                 window_size=window,
                 unit="Dailies",
-                invert=invert,
+                placements=placements,
             ),
         ),
         Page(
@@ -79,7 +82,7 @@ def graph_pages(
                 dates=timestamps,
                 window_size=window,
                 unit="Dailies",
-                invert=invert,
+                placements=placements,
             ),
         ),
     ]
@@ -178,7 +181,7 @@ async def run(ctx: BotContext, profile: Profile) -> None:
         [row["rank"] for row in results],
         [row["timestamp"] for row in results],
         ctx.user["theme"],
-        invert=True,
+        placements=True,
     )
 
     message = Message(
