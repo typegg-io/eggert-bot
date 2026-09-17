@@ -33,7 +33,7 @@ class About(Command):
                 f"Developed by <@{KEEGAN}>, written in <:python_logo:1219588087383064647> Python.\n"
                 f"For source code and contributing, visit the <:github:1421565431533273269> "
                 f"[GitHub Repository](https://github.com/typegg-io/eggert-bot)\n\n"
-                f"**Bot Admins**\n" + ",".join(f"<@{user["discordId"]}>" for user in get_admin_users())
+                f"**Bot Admins**\n" + ", ".join(f"<@{user["discordId"]}>" for user in get_admin_users())
             ),
         ))
 
