@@ -12,6 +12,14 @@ from utils.keystrokes import (
 )
 
 
+def atoi(s: str) -> int | None:
+    """Return s as Go's strconv.Atoi reads it, or None where Go returns an error."""
+    digits = s[1:] if s[:1] in ("+", "-") else s
+    if not digits or not all("0" <= c <= "9" for c in digits):
+        return None
+    return int(s)
+
+
 def normalize_newlines(s: str) -> str:
     """Return the string with the newline glyph and CRLF collapsed to LF."""
     s = s.replace('⏎', '\n')
@@ -258,7 +266,9 @@ def decode_keystroke_data(raw: str) -> KeystrokeData:
                 pos_str += runes[i]
                 i += 1
             i += 1  # skip ','
-            pos = int(pos_str)
+            pos = atoi(pos_str)
+            if pos is None:
+                continue
             if i >= len(runes):
                 break
             key, i = read_key_until_delimiter(runes, i)
@@ -278,7 +288,9 @@ def decode_keystroke_data(raw: str) -> KeystrokeData:
             while i < len(runes) and runes[i].isdigit():
                 start_str += runes[i]
                 i += 1
-            d_start = int(start_str)
+            d_start = atoi(start_str)
+            if d_start is None:
+                continue
 
             if i < len(runes) and runes[i] == ',':
                 i += 1
@@ -286,7 +298,9 @@ def decode_keystroke_data(raw: str) -> KeystrokeData:
                 while i < len(runes) and runes[i].isdigit():
                     end_str += runes[i]
                     i += 1
-                d_end = int(end_str)
+                d_end = atoi(end_str)
+                if d_end is None:
+                    continue
             else:
                 d_end = expected_next_pos
 
@@ -299,7 +313,9 @@ def decode_keystroke_data(raw: str) -> KeystrokeData:
                 start_str += runes[i]
                 i += 1
             i += 1  # skip ','
-            r_start = int(start_str)
+            r_start = atoi(start_str)
+            if r_start is None:
+                continue
 
             # Check for full format
             look_ahead = i
@@ -315,7 +331,9 @@ def decode_keystroke_data(raw: str) -> KeystrokeData:
                 if i >= len(runes):
                     break
                 key, i = read_key_until_delimiter(runes, i)
-                r_end = int(end_str)
+                r_end = atoi(end_str)
+                if r_end is None:
+                    continue
             else:
                 if i >= len(runes):
                     break
@@ -333,7 +351,9 @@ def decode_keystroke_data(raw: str) -> KeystrokeData:
             while i < len(runes) and runes[i].isdigit():
                 pos_str += runes[i]
                 i += 1
-            r_start = int(pos_str)
+            r_start = atoi(pos_str)
+            if r_start is None:
+                continue
             if r_start < 0:
                 action = KeystrokeReplace(rStart=0, rEnd=0, key="", redundant=True)
             else:
