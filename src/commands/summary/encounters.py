@@ -1,3 +1,5 @@
+from dataclasses import replace
+
 import numpy as np
 from discord.ext import commands
 
@@ -19,6 +21,11 @@ from utils.schemas import Profile
 from utils.strings import quote_display, rank, username_with_flag
 
 sorts = ["wins", "losses", "winrate", "wpm", "-winrate", "-wpm"]
+
+
+class MissingRaceData(Exception):
+    """Raised when a match is on record but one side's race is not."""
+
 info = CommandInfo(
     name="encounters",
     aliases=["en"],
@@ -290,14 +297,21 @@ async def run_head_to_head(ctx: BotContext, profile1: Profile, profile2: Profile
 
     async def load_race_data(match: dict) -> list:
         """Fetch both users' races in one match and decode their keystrokes."""
-        races = await get_races(match_id=match["matchId"], get_keystrokes=True, flags=ctx.flags)
+        # The match id pins the races, so a date range here would only drop one side of it.
+        races = await get_races(
+            match_id=match["matchId"],
+            get_keystrokes=True,
+            flags=replace(ctx.flags, date_range=None),
+        )
 
         race_data = []
         for profile, prefix in [
             (profile1, "user"),
             (profile2, "opponent"),
         ]:
-            race = next(r for r in races if r["userId"] == profile["userId"])
+            race = next((r for r in races if r["userId"] == profile["userId"]), None)
+            if race is None:
+                raise MissingRaceData(profile["username"])
             start_time = match[prefix + "StartTime"]
             ks = get_keystroke_data(race["keystrokeData"], True, start_time)
 
@@ -394,6 +408,13 @@ async def run_head_to_head(ctx: BotContext, profile1: Profile, profile2: Profile
                 button_name=f"Biggest Win (p{i + 1})",
                 color=ERROR,
             ))
+        except MissingRaceData as e:
+            pages.append(Page(
+                title="Race Data Unavailable",
+                description=f"`{e}` has no imported race for this match",
+                button_name=f"Biggest Win (p{i + 1})",
+                color=ERROR,
+            ))
 
     # Closest race
     if closest_race is not None:
@@ -422,6 +443,13 @@ async def run_head_to_head(ctx: BotContext, profile1: Profile, profile2: Profile
             pages.append(Page(
                 title="Keystroke Codec Error",
                 description=str(e) + f"\nPlease tell <@{EIKO}> to fix this",
+                button_name="Closest Race",
+                color=ERROR,
+            ))
+        except MissingRaceData as e:
+            pages.append(Page(
+                title="Race Data Unavailable",
+                description=f"`{e}` has no imported race for this match",
                 button_name="Closest Race",
                 color=ERROR,
             ))

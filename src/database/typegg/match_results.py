@@ -3,6 +3,7 @@
 import sqlite3
 
 from database.typegg import db
+from utils.dates import to_timestamp_string
 from utils.flags import Flags, gamemode_filter
 
 
@@ -42,6 +43,12 @@ def get_encounter_stats(user_id: str, flags: Flags = None) -> list[sqlite3.Row]:
     if gamemode := gamemode_filter(flags):
         conditions.append("gamemode = ?")
         params.append(gamemode)
+
+    if flags.date_range:
+        start_date, end_date = flags.date_range
+        conditions.append("e.timestamp >= ?")
+        conditions.append("e.timestamp < ?")
+        params += [to_timestamp_string(start_date), to_timestamp_string(end_date)]
 
     join_clauses = []
     if flags.status == "ranked":
@@ -90,6 +97,12 @@ def get_match_stats(user_id: str, flags: Flags = None) -> list[sqlite3.Row]:
         conditions.append("gamemode = ?")
         params.append(gamemode)
 
+    if flags.date_range:
+        start_date, end_date = flags.date_range
+        conditions.append("e.timestamp >= ?")
+        conditions.append("e.timestamp < ?")
+        params += [to_timestamp_string(start_date), to_timestamp_string(end_date)]
+
     join_clauses = []
     if flags.status == "ranked":
         join_clauses.append("JOIN quotes q ON q.quoteId = e.quoteId")
@@ -127,6 +140,12 @@ def get_opponent_encounters(user_id: str, opponent_id: str, flags: Flags = None)
     if gamemode := gamemode_filter(flags):
         conditions.append("gamemode = ?")
         params.append(gamemode)
+
+    if flags.date_range:
+        start_date, end_date = flags.date_range
+        conditions.append("e.timestamp >= ?")
+        conditions.append("e.timestamp < ?")
+        params += [to_timestamp_string(start_date), to_timestamp_string(end_date)]
 
     join_clauses = []
     if flags.status == "ranked":
