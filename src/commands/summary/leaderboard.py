@@ -308,8 +308,7 @@ async def run(ctx: BotContext, category: dict) -> None:
     message.paginated = True
     message.footer = footer
 
-    await initial_send
-    await message.edit()
+    await message.finish(initial_send)
 
 
 async def run_custom(ctx: BotContext, category: dict, args: tuple = ()) -> None:
@@ -353,12 +352,10 @@ async def run_custom(ctx: BotContext, category: dict, args: tuple = ()) -> None:
         )
 
         if not leaderboard_data:
-            await initial_send
-
             message.title = title
             message.pages = [Page(description="No users above this threshold.", flag_title=True)]
 
-            return await message.edit()
+            return await message.finish(initial_send)
 
         user_lookup = get_user_lookup()
 
@@ -432,13 +429,11 @@ async def run_custom(ctx: BotContext, category: dict, args: tuple = ()) -> None:
             flag_title=True,
         )]
 
-    await initial_send
-
     message.title = title
     message.pages = pages
     message.page_count = len(pages)
 
-    await message.edit()
+    await message.finish(initial_send)
 
 
 async def run_multiplayer(ctx: BotContext, category: dict) -> None:
@@ -475,11 +470,9 @@ async def run_multiplayer(ctx: BotContext, category: dict) -> None:
 
     pages = paginate_data(leaderboard, mp_formatter, page_count=5, per_page=20)
 
-    await initial_send
-
     message.title = title
     message.pages = pages
     message.page_count = len(pages)
     message.paginated = True
 
-    await message.edit()
+    await message.finish(initial_send)

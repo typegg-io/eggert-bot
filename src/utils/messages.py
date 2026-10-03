@@ -18,6 +18,8 @@ from utils.schemas import Profile
 from utils.strings import LOADING, date_range_subtext
 from utils.urls import profile_url
 
+SKELETON_DELAY = 1  # seconds a command may take before it shows loading rows
+
 
 def range_subtext(ctx: BotContext) -> str:
     """Return the time travel line for an active date range, or an empty string."""
@@ -147,6 +149,7 @@ class Message(View):
 
         super().__init__(timeout=60 if self.page_count > 1 else 0.01)
         self.message = None
+        self.sending = False
 
         error = bool(self.pages) and all((page.color or color) == ERROR for page in self.pages)
         subtext = (error_subtext(ctx) if error else range_subtext(ctx)) if show_range else ""
@@ -435,15 +438,32 @@ class Message(View):
 
         await self.message.edit(**kwargs)
 
-    def start(self) -> asyncio.Task:
-        """Returns a fire-and-forget message, used for skeleton commands."""
+    def start(self, delay: float = SKELETON_DELAY) -> asyncio.Task:
+        """Return a task that sends the loading rows, but only once the caller has been slow."""
 
         async def runner() -> None:
-            """Send the message without awaiting the caller."""
+            """Wait out the delay, then send."""
+            await asyncio.sleep(delay)
+            self.sending = True
             await self.send()
-            # await self.edit()
 
         return asyncio.create_task(runner())
+
+    async def finish(self, task: asyncio.Task) -> None:
+        """Edit the loading rows into the finished message, or send it whole if they never went out."""
+        # Cancelling a send in flight would abort the POST and strand the message.
+        if not self.sending:
+            task.cancel()
+
+        try:
+            await task
+        except asyncio.CancelledError:
+            pass
+
+        if self.message is None:
+            await self.send()
+        else:
+            await self.edit()
 
     async def on_timeout(self) -> None:
         """Strip the buttons and delete any rendered images."""

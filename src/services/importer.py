@@ -187,8 +187,7 @@ async def run(
                 if message is not None:
                     page.title = title
                     page.description = description
-                    await initial_send
-                    await message.edit()
+                    await message.finish(initial_send)
                 elif new_quote_count > 10 and not background_import:
                     page = Page(
                         title=title,
@@ -216,12 +215,9 @@ async def run(
             start_date = string_to_date(race_list[-1]["timestamp"]) + relativedelta(microseconds=1000)
 
         if send_message:
-            await initial_send
-
-        if send_message:
             page.title = "Import Request"
             page.description = f"Finished importing races for {formatted_username}"
-            await message.edit()
+            await message.finish(initial_send)
         elif message is not None:
             page.title = "New Quotes Import"
             page.description = "Finished adding new quotes"

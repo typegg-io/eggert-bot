@@ -96,5 +96,4 @@ async def run(ctx: BotContext, profile: Profile) -> None:
         ),
     ]
 
-    await initial_send
-    await message.edit()
+    await message.finish(initial_send)
