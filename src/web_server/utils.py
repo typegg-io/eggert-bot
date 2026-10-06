@@ -13,6 +13,11 @@ from utils.logging import log_server
 
 # Request Utilities
 
+def skipped_response(reason: str) -> web.Response:
+    """Answer an event there is nothing to do for, so TypeGG's outbox does not retry it."""
+    return web.json_response({"success": True, "skipped": reason})
+
+
 def error_response(message: str, status: int = 500) -> web.Response:
     """Create a JSON error response."""
     log_server(f"Error response ({status}): {message}")
