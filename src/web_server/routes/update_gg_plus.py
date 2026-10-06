@@ -9,7 +9,7 @@ from aiohttp import web
 from database.bot.users import get_discord_id, update_gg_plus_status, update_theme
 from utils.colors import DEFAULT_THEME, GG_PLUS_THEME
 from utils.logging import log_server
-from web_server.utils import error_response, validate_authorization
+from web_server.utils import error_response, skipped_response, validate_authorization
 
 if TYPE_CHECKING:
     from web_server.server import WebServer
@@ -43,7 +43,7 @@ async def update_gg_plus(cog: "WebServer", request: web.Request) -> web.Response
     # Check if user exists
     discord_id = get_discord_id(user_id)
     if not discord_id:
-        return error_response("User not found or not linked.", 404)
+        return skipped_response("User has not linked Discord.")
 
     # Update GG+ status
     update_gg_plus_status(user_id, is_gg_plus)

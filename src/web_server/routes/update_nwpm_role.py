@@ -8,7 +8,7 @@ from aiohttp import web
 
 from database.bot.users import get_discord_id
 from utils.logging import log_server
-from web_server.utils import error_response, get_nwpm_role_name, validate_authorization
+from web_server.utils import error_response, get_nwpm_role_name, skipped_response, validate_authorization
 
 if TYPE_CHECKING:
     from web_server.server import WebServer
@@ -33,12 +33,12 @@ async def update_nwpm_role(cog: "WebServer", request: web.Request) -> web.Respon
 
     discord_id = get_discord_id(user_id)
     if not discord_id:
-        return error_response("User not verified.", 401)
+        return skipped_response("User has not linked Discord.")
 
     guild = cog.guild
     member = guild.get_member(int(discord_id))
     if not member:
-        return error_response("User not found in guild.", 404)
+        return skipped_response("User is not in the guild.")
 
     role_name = get_nwpm_role_name(nwpm)
     if not role_name:
