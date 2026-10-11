@@ -19,7 +19,9 @@ info = CommandInfo(
     name="bestgraph",
     aliases=["top", "bg", "50", "100", "250", "500", "1000"],
     description="Displays a user's top n quote PBs ordered by pp.\n"
-                f"Supports up to {max_users} users.",
+                f"Supports up to {max_users} users.\n"
+                "`Optimized` rates how even your top 250 pp scores are.\n"
+                "It compares them to your best, ignoring your top 2% so one lucky run cannot set the bar.",
     parameters=f"[username1] ... [username{max_users}] [n:250]",
     examples=[
         "-top",
@@ -49,7 +51,7 @@ class BestGraph(Command):
 
 
 def get_optimization_level(pp_values) -> float:
-    """Returns an optimization level for a list of values based on curvature."""
+    """Return how closely a list of values sits to its own near-best, as a share of that value."""
     anchor_percentile = 98  # Ignoring "farm" outliers
     pp = np.array(pp_values, dtype=float)
     pp_anchor = np.percentile(pp, anchor_percentile)
