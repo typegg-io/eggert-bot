@@ -4,7 +4,7 @@ from pathlib import Path
 
 from utils.files import get_command_modules
 
-MODEL = "claude-haiku-4-5-20251001"
+MODEL = "claude-haiku-5-5"
 MAX_HISTORY = 10  # messages (5 turns)
 
 # The owner-only alias swaps this in for the TypeGG prompt.

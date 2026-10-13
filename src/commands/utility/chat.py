@@ -27,6 +27,8 @@ info = CommandInfo(
 FREE_DAILY_LIMIT = 20
 UNSCOPED_ALIAS = "yap"  # left out of info.aliases so -help does not list it
 MAX_CONTEXTS = 500  # max unique (user, channel) pairs kept in memory
+MAX_TOKENS = 2048  # thinking counts against this, so a few sentences needs more than it looks
+MAX_REPLY_CHARS = 2000  # Discord message limit
 
 _client: anthropic.AsyncAnthropic = None
 _history: OrderedDict[tuple, list] = OrderedDict()
@@ -89,11 +91,17 @@ class Chat(Command):
             try:
                 response = await get_client().messages.create(
                     model=MODEL,
-                    max_tokens=512,
+                    max_tokens=MAX_TOKENS,
+                    # The pinned SDK has no output_config parameter of its own.
+                    extra_body={"output_config": {"effort": "low"}},
                     system=system,
                     messages=_history[history_key],
                 )
-                reply = response.content[0].text
+                # A response can open with a thinking block, so never read content[0].
+                reply = next((block.text for block in response.content if block.type == "text"), "")
+                if not reply:
+                    raise ValueError("the model returned no text")
+                reply = reply[:MAX_REPLY_CHARS]
                 _history[history_key].append({"role": "assistant", "content": reply})
                 _history.move_to_end(history_key)
                 await ctx.message.reply(reply, mention_author=False)
