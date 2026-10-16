@@ -19,8 +19,6 @@ ANTHROPIC_API_KEY = os.getenv("ANTHROPIC_API_KEY")
 MESSAGE_WEBHOOK = os.getenv("MESSAGE_WEBHOOK")
 ERROR_WEBHOOK = os.getenv("ERROR_WEBHOOK")
 WEB_SERVER_WEBHOOK = os.getenv("WEB_SERVER_WEBHOOK")
-# Defaults to #errors. Unset everywhere leaves the uptime watcher off.
-UPTIME_WEBHOOK = os.getenv("UPTIME_WEBHOOK") or ERROR_WEBHOOK
 CHATBOT_WEBHOOK_URL = os.getenv("CHATBOT_WEBHOOK_URL")
 CHAT_WEBHOOK_URL = os.getenv("CHAT_WEBHOOK_URL")
 SITE_CHAT_URL = os.getenv("SITE_CHAT_URL")

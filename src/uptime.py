@@ -6,7 +6,7 @@ import time
 import aiohttp
 from discord.ext import commands, tasks
 
-from config import DEVELOPER_ROLE_ID, MAINTENANCE_URL, UPTIME_TARGETS, UPTIME_WEBHOOK
+from config import DEVELOPER_ROLE_ID, ERROR_WEBHOOK, MAINTENANCE_URL, UPTIME_TARGETS
 from services.uptime import Alert, UptimeMonitor
 from utils.logging import log_error
 
@@ -53,9 +53,9 @@ def webhook_payload(alert: Alert) -> dict:
 
 async def post(session: aiohttp.ClientSession, alert: Alert) -> None:
     """Send one alert to the webhook."""
-    if not UPTIME_WEBHOOK:
+    if not ERROR_WEBHOOK:
         return
-    async with session.post(UPTIME_WEBHOOK, json=webhook_payload(alert)) as response:
+    async with session.post(ERROR_WEBHOOK, json=webhook_payload(alert)) as response:
         if response.status >= 400:
             log_error("Uptime post", RuntimeError(f"webhook answered HTTP {response.status}"))
 
