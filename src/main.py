@@ -5,7 +5,7 @@ import asyncio
 import discord
 
 from bot_setup import Eggert, load_commands, register_bot_checks
-from config import BOT_PREFIX, BOT_TOKEN, STAGING
+from config import BOT_PREFIX, BOT_TOKEN, STAGING, UPTIME_WEBHOOK
 from utils.files import clear_image_cache
 from utils.logging import log, log_error
 from watcher import start_watcher
@@ -39,6 +39,8 @@ async def on_ready() -> None:
 
         if not STAGING:
             await bot.load_extension("tasks")
+            if UPTIME_WEBHOOK:
+                await bot.load_extension("uptime")
         else:
             loop = asyncio.get_running_loop()
             start_watcher(bot, loop)

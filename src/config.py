@@ -19,6 +19,8 @@ ANTHROPIC_API_KEY = os.getenv("ANTHROPIC_API_KEY")
 MESSAGE_WEBHOOK = os.getenv("MESSAGE_WEBHOOK")
 ERROR_WEBHOOK = os.getenv("ERROR_WEBHOOK")
 WEB_SERVER_WEBHOOK = os.getenv("WEB_SERVER_WEBHOOK")
+# Defaults to #errors. Unset everywhere leaves the uptime watcher off.
+UPTIME_WEBHOOK = os.getenv("UPTIME_WEBHOOK") or ERROR_WEBHOOK
 CHATBOT_WEBHOOK_URL = os.getenv("CHATBOT_WEBHOOK_URL")
 CHAT_WEBHOOK_URL = os.getenv("CHAT_WEBHOOK_URL")
 SITE_CHAT_URL = os.getenv("SITE_CHAT_URL")
@@ -32,6 +34,15 @@ GENERAL_CHANNEL_ID = 1291419824504705114
 VERIFIED_ROLE_NAME = "🥚 Verified Egg"
 DAILY_QUOTE_CHANNEL_ID = 1419332457060372633
 DAILY_QUOTE_ROLE_ID = 1421957288385712230
+DEVELOPER_ROLE_ID = 703605805815169046
+
+# === Uptime watcher ===
+UPTIME_TARGETS = {
+    "API": "https://api.typegg.io/api/health",
+    "Multiplayer": "https://us.multi.typegg.io/status",
+    "Website": "https://typegg.io/",
+}
+MAINTENANCE_URL = "https://typegg.io/maintenance.json"
 
 LANGUAGE_ROLE_IDS = {
     "french": 1520389620007833790,  # Français
