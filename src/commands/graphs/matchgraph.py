@@ -16,7 +16,7 @@ from utils.keystrokes import get_keystroke_data
 from utils.messages import Message, Page
 from utils.schemas import Profile
 from utils.stats import get_pauseless_delays
-from utils.strings import quote_display, rank, username_with_flag
+from utils.strings import format_percent, format_stat, quote_display, rank, username_with_flag
 
 info = CommandInfo(
     name="matchgraph",
@@ -92,7 +92,7 @@ async def run(ctx: BotContext, profile: Profile, race_number: int) -> None:
 
             description += (
                 f"{rank(i + 1)} {bot} {username_with_flag(player, False)} - "
-                f"{player["matchWpm"]:,.2f} WPM ({player["accuracy"]:.2%} Acc, "
+                f"{format_stat(player["matchWpm"])} WPM ({format_percent(player["accuracy"])} Acc, "
                 f"{player["startTime"]:,.0f}ms Start)\n"
             )
         else:
@@ -119,7 +119,7 @@ async def run(ctx: BotContext, profile: Profile, race_number: int) -> None:
 
             raw_description += (
                 f"{rank(i + 1)} {bot} {username_with_flag(player, False)} - "
-                f"{player["rawMatchWpm"]:,.2f} WPM ({flow:.2%} Flow, "
+                f"{format_stat(player["rawMatchWpm"])} WPM ({flow:.2%} Flow, "
                 f"{pause_percent:.2%} Pause)\n"
             )
         else:

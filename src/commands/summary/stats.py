@@ -8,7 +8,7 @@ from utils.dates import discord_date, format_date, now, parse_date
 from utils.flags import is_foreign_universe
 from utils.messages import Field, Message, Page
 from utils.schemas import Profile
-from utils.strings import GG_PLUS, format_duration
+from utils.strings import GG_PLUS, format_duration, format_percent, format_stat
 from utils.urls import profile_url
 
 info = CommandInfo(
@@ -41,7 +41,7 @@ def nwpm_line(stats: dict) -> str:
     if not stats["nWpm"]:
         return "**nWPM:** ?\n"
 
-    return f"**nWPM:** {stats["nWpm"]:.2f} ({stats["accuracy"]:.2%} accuracy)\n"
+    return f"**nWPM:** {format_stat(stats["nWpm"])} ({format_percent(stats["accuracy"])} accuracy)\n"
 
 
 async def run(ctx: BotContext, profile: Profile) -> None:
@@ -56,8 +56,8 @@ async def run(ctx: BotContext, profile: Profile) -> None:
         Field(
             title="Performance",
             content=(
-                f"**Total:** {profile["stats"]["totalPp"]:,.0f} pp\n"
-                f"**Best:** {profile["stats"]["bestPp"]["value"]:,.2f} pp\n"
+                f"**Total:** {format_stat(profile["stats"]["totalPp"], 0)} pp\n"
+                f"**Best:** {format_stat(profile["stats"]["bestPp"]["value"])} pp\n"
                 + nwpm_line(profile["stats"])
                 + f"**Top Speed:** {profile["stats"]["bestWpm"]["value"]} WPM\n\n"
             )
@@ -73,7 +73,7 @@ async def run(ctx: BotContext, profile: Profile) -> None:
                 f"({0 if profile["stats"]["quickplayRaces"] == 0
                 else profile["stats"]["wins"] / profile["stats"]["quickplayRaces"]:.2%} win rate)\n"
                 f"**Characters Typed:** {profile["stats"]["charactersTyped"]:,.0f}\n"
-                f"**Level:** {profile["stats"]["level"]:,.2f} "
+                f"**Level:** {format_stat(profile["stats"]["level"])} "
                 f"({profile["stats"]["experience"]:,.0f} XP)\n"
                 f"**Play Time:** {format_duration(profile["stats"]["playTime"] / 1000)}"
             )

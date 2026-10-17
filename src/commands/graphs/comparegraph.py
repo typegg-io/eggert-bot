@@ -14,7 +14,7 @@ from graphs import compare_bar, compare_histogram
 from utils.errors import BotError, MissingArguments, SameUsername
 from utils.messages import Field, Message, Page
 from utils.schemas import Profile
-from utils.strings import username_with_flag
+from utils.strings import format_stat, truncate_stat, username_with_flag
 from utils.urls import compare_url
 
 metrics = ["pp", "wpm"]
@@ -115,8 +115,8 @@ class NoCommonTexts(BotError):
 
 def difficulty_range(lower, upper) -> str:
     """Return a difficulty range formatted with a star."""
-    lower = round(lower, 2)
-    upper = round(upper, 2)
+    lower = truncate_stat(lower)
+    upper = truncate_stat(upper)
     return f"{lower:.10g} - {upper:.10g}★"
 
 
@@ -315,7 +315,7 @@ async def comparegraph_ranged(
 
     def display_gain(value, decimals=2) -> str:
         """Return a value signed, so a gain reads as positive."""
-        gain = f"{value:,.{decimals}f}"
+        gain = format_stat(value, decimals)
         if value >= 0:
             gain = "+" + gain
 
@@ -331,11 +331,11 @@ async def comparegraph_ranged(
             f"**Gain:** {display_gain(gain)} {metric}\n"
             f"**Average Gain:** {display_gain(average_gain)} {metric}\n"
             f"**{"Biggest Gain" if max_gap > 0 else "Closest"}:** {display_gain(max_gap)} {metric}\n"
-            f"{metric1:,.2f} {metric} vs. {metric2:,.2f} {metric}\n"
+            f"{format_stat(metric1)} {metric} vs. {format_stat(metric2)} {metric}\n"
         )
 
         if match:
-            content += f"{match[0]} - {match[1]:,.2f} {metric} :handshake:"
+            content += f"{match[0]} - {format_stat(match[1])} {metric} :handshake:"
 
         return Field(
             title=username_with_flag(profile, link_user=False),

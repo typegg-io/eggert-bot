@@ -15,7 +15,7 @@ from utils.flags import is_multiplayer
 from utils.messages import Field, Message, Page
 from utils.schemas import Profile
 from utils.stats import calculate_quote_bests, calculate_total_pp
-from utils.strings import date_range_display, format_duration, pp_display
+from utils.strings import date_range_display, format_duration, format_stat, pp_display, stat_difference
 from utils.windows import race_times
 
 info = CommandInfo(
@@ -139,7 +139,7 @@ def build_stat_fields(profile, race_list, flags, all_time=False, hide_raw_pp=Fal
         flags=flags,
     )
     old_total_pp = calculate_total_pp(old_quote_bests)
-    pp_gain = total_pp - old_total_pp
+    pp_gain = stat_difference(total_pp, old_total_pp)
     show_gain = 0 < pp_gain < period_total_pp
 
     fields = [
@@ -147,7 +147,7 @@ def build_stat_fields(profile, race_list, flags, all_time=False, hide_raw_pp=Fal
             title=":trophy: Performance",
             content=(
                 f"**Total:** {pp_display(period_total_pp, hide_raw_pp, decimals=0)} " +
-                (f"(+{pp_gain:,.2f} gain)\n" if show_gain and not hide_raw_pp else "\n") +
+                (f"(+{format_stat(pp_gain)} gain)\n" if show_gain and not hide_raw_pp else "\n") +
                 f"**Average Score:** {pp_display(cumulative_values["pp"], hide_raw_pp)}\n"
                 f"**Best Score:** {pp_display(best["pp"]["pp"], hide_raw_pp)} "
                 f"(Race #{best["pp"]["raceNumber"]:,})\n"
@@ -156,11 +156,11 @@ def build_stat_fields(profile, race_list, flags, all_time=False, hide_raw_pp=Fal
         Field(
             title=":stopwatch: Speed",
             content=(
-                f"**Average Speed:** {cumulative_values["wpm"]:,.2f} WPM "
+                f"**Average Speed:** {format_stat(cumulative_values["wpm"])} WPM "
                 f"({cumulative_values["accuracy"]:.2%} Accuracy)\n"
-                f"**Raw Speed:** {cumulative_values["rawWpm"]:,.2f} WPM "
+                f"**Raw Speed:** {format_stat(cumulative_values["rawWpm"])} WPM "
                 f"({cumulative_values["wpm"] / cumulative_values["rawWpm"]:.2%} Flow)\n"
-                f"**Top Speed:** {best["wpm"]["wpm"]:,.2f} WPM (Race #{best["wpm"]["raceNumber"]:,})\n"
+                f"**Top Speed:** {format_stat(best["wpm"]["wpm"])} WPM (Race #{best["wpm"]["raceNumber"]:,})\n"
                 f"**Error Reaction:** {cumulative_values["errorReactionTime"]:,.0f}ms | "
                 f"**Error Recovery:** {cumulative_values["errorRecoveryTime"]:,.0f}ms"
             )
@@ -193,7 +193,7 @@ def build_stat_fields(profile, race_list, flags, all_time=False, hide_raw_pp=Fal
         content=(
             f"**Total:** {unique_quotes:,}" +
             (f" ({new_quotes:,} new)\n" if new_quotes > 0 and not all_time else "\n") +
-            f"**Difficulty:** {difficulty / total_races:.2f}★\n"
+            f"**Difficulty:** {format_stat(difficulty / total_races)}★\n"
             f"**Repeats:** {total_races / unique_quotes:,.2f}\n"
         )
     ))

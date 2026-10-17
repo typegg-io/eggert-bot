@@ -8,7 +8,7 @@ from utils.dates import discord_date
 from utils.errors import BotError
 from utils.messages import Message, paginate_data
 from utils.schemas import Profile, ProfileStats
-from utils.strings import pp_display, quote_display, rank
+from utils.strings import format_stat, pp_display, quote_display, rank
 
 # The API rejects a maxRank outside 1 to 100.
 MAX_RANK = 100
@@ -55,7 +55,7 @@ def lead_display(margin: float | None) -> str:
         return "No one below"
     if margin == 0:
         return "Tied"
-    return f"+{margin:,.2f} pp ahead"
+    return f"+{format_stat(margin)} pp ahead"
 
 
 def placement_line(stats: ProfileStats) -> str:
@@ -89,7 +89,7 @@ async def run(ctx: BotContext, profile: Profile, max_rank: int | None) -> None:
         best_race = data["bestRace"]
         return quote_display(data["quote"]) + (
             f"{rank(data["globalRank"])} {lead_display(data["margin"])} - "
-            f"{pp_display(best_race["pp"])} - {best_race["wpm"]:,.2f} WPM - "
+            f"{pp_display(best_race["pp"])} - {format_stat(best_race["wpm"])} WPM - "
             f"{discord_date(best_race["timestamp"])}\n\n"
         )
 

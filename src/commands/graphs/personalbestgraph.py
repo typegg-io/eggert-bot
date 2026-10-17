@@ -9,6 +9,7 @@ from utils.dates import discord_date, get_timestamp_list
 from utils.errors import NoRacesFiltered
 from utils.messages import Message, Page
 from utils.schemas import Profile
+from utils.strings import format_stat
 
 MILESTONE_STEPS = {"pp": 25, "wpm": 10}
 PROGRESSION_LIMIT = 50
@@ -74,7 +75,7 @@ def build_progression_lines(
     lines = []
     for i in best_indices:
         race = races[i]
-        line = f"{race[metric]:,.2f} {LABELS[metric]}"
+        line = f"{format_stat(race[metric])} {LABELS[metric]}"
         if over_time:
             line += f" - {discord_date(race["timestamp"], "D")}"
         # Some match races were imported without a race number.

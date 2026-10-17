@@ -14,7 +14,7 @@ from graphs import improvement
 from utils import dates
 from utils.messages import Field, Message, Page, usable_in
 from utils.schemas import Profile, Theme
-from utils.strings import get_streak_emoji, pp_display
+from utils.strings import format_stat, get_streak_emoji, pp_display
 
 info = CommandInfo(
     name="dailystats",
@@ -143,8 +143,8 @@ async def run(ctx: BotContext, profile: Profile) -> None:
             content=(
                 f"**Average Performance:** {pp_display(average_pp, hide_raw_pp)}\n"
                 f"**Best Performance:** {pp_display(max(pp), hide_raw_pp)}\n"
-                f"**Average Speed:** {np.average(wpm):,.2f} WPM\n"
-                f"**Best Speed:** {max(wpm):,.2f} WPM\n"
+                f"**Average Speed:** {format_stat(np.average(wpm))} WPM\n"
+                f"**Best Speed:** {format_stat(max(wpm))} WPM\n"
             ),
         )
     ]

@@ -18,7 +18,7 @@ from utils.keystroke_codec import KeystrokeCodecError
 from utils.keystrokes import get_keystroke_data
 from utils.messages import Field, Message, Page
 from utils.schemas import Profile
-from utils.strings import quote_display, rank, username_with_flag
+from utils.strings import format_stat, quote_display, rank, stat_difference, username_with_flag
 
 sorts = ["wins", "losses", "winrate", "wpm", "-winrate", "-wpm"]
 
@@ -150,9 +150,9 @@ async def run(ctx: BotContext, profile: Profile, sort: str) -> None:
         if not en["userWpm"] or not en["opponentWpm"]:
             average = "n/a"
         else:
-            wpm_diff = en["userWpm"] - en["opponentWpm"]
+            wpm_diff = stat_difference(en["userWpm"], en["opponentWpm"])
             plus = "+" if wpm_diff >= 0 else ""
-            average = f"{plus}{wpm_diff:,.2f} WPM"
+            average = f"{plus}{format_stat(wpm_diff)} WPM"
 
         description += (
             f"{i + 1}. **{opponent}** - {count:,}x | "
@@ -203,7 +203,7 @@ async def run_head_to_head(ctx: BotContext, profile1: Profile, profile2: Profile
         f"**Total Encounters:** {total_encounters}\n"
         f"**First Encounter:** {discord_date(encounters[0]["timestamp"], "R")}\n"
         f"**Latest Encounter:** {discord_date(encounters[-1]["timestamp"], "R")}\n"
-        f"**Average Difficulty:** {np.mean(difficulties):,.2f}★\n"
+        f"**Average Difficulty:** {format_stat(np.mean(difficulties))}★\n"
     )
 
     # Building stats
@@ -269,8 +269,8 @@ async def run_head_to_head(ctx: BotContext, profile1: Profile, profile2: Profile
         biggest = stats["biggestWin"]
 
         content = (
-            f"**Average Speed:** {stats["wpm"]:,.2f} WPM\n"
-            f"**Raw Speed:** {stats["rawWpm"]:,.2f} WPM\n"
+            f"**Average Speed:** {format_stat(stats["wpm"])} WPM\n"
+            f"**Raw Speed:** {format_stat(stats["rawWpm"])} WPM\n"
             f"**Accuracy:** {stats["accuracy"]:.2%}\n"
             f"**Completion:** {stats["completion"]:.0%}\n"
             f"**Average Placement:** {stats["placement"]:,.2f}\n"
@@ -287,7 +287,7 @@ async def run_head_to_head(ctx: BotContext, profile1: Profile, profile2: Profile
 
             label = "Biggest Win" if delta > 0 else "Closest Loss"
             sign = "+" if delta > 0 else ""
-            content += f"**{label}:** {sign}{delta:,.2f} WPM\n"
+            content += f"**{label}:** {sign}{format_stat(stat_difference(user_wpm, opp_wpm))} WPM\n"
 
         return Field(
             title=username_with_flag(profile, link_user=False),
@@ -330,7 +330,7 @@ async def run_head_to_head(ctx: BotContext, profile1: Profile, profile2: Profile
         """Format one match as a quote display followed by the finishing order."""
         race_data.sort(key=lambda r: -r["wpm"])
         rankings = "".join(
-            f"{rank(i + 1)} {r["displayName"]} - {r["wpm"]:,.2f} WPM "
+            f"{rank(i + 1)} {r["displayName"]} - {format_stat(r["wpm"])} WPM "
             f"({r["accuracy"]:.2%} Acc, {r["startTime"]:,.0f}ms Start)\n"
             for i, r in enumerate(race_data)
         )
@@ -382,12 +382,14 @@ async def run_head_to_head(ctx: BotContext, profile1: Profile, profile2: Profile
         if delta <= 0:
             continue
 
+        shown_delta = abs(stat_difference(biggest["userWpm"], biggest["opponentWpm"]))
+
         try:
             race_data = await load_race_data(biggest)
             quote = get_quote(biggest["quoteId"])
 
             pages.append(Page(
-                title=f"Biggest Win - {profile["username"]} (+{delta:,.2f} WPM)",
+                title=f"Biggest Win - {profile["username"]} (+{format_stat(shown_delta)} WPM)",
                 description=build_race_description(race_data, quote),
                 button_name=f"Biggest Win (p{i + 1})",
                 render=lambda id=i, rd=race_data: match_graph.render(
@@ -419,13 +421,13 @@ async def run_head_to_head(ctx: BotContext, profile1: Profile, profile2: Profile
     # Closest race
     if closest_race is not None:
         try:
-            close_delta = abs(closest_race["userWpm"] - closest_race["opponentWpm"])
+            close_delta = abs(stat_difference(closest_race["userWpm"], closest_race["opponentWpm"]))
             close_race_data = await load_race_data(closest_race)
             close_quote = get_quote(closest_race["quoteId"])
             p1_race_number = next(r for r in close_race_data if r["userId"] == profile1["userId"])["raceNumber"]
 
             pages.append(Page(
-                title=f"Closest Race (+{close_delta:,.2f} WPM)",
+                title=f"Closest Race (+{format_stat(close_delta)} WPM)",
                 description=build_race_description(close_race_data, close_quote),
                 button_name="Closest Race",
                 render=lambda: match_graph.render(

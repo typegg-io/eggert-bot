@@ -9,7 +9,7 @@ from utils.dates import discord_date
 from utils.errors import BotError, ProfileNotFound
 from utils.messages import Message, Page
 from utils.schemas import Profile
-from utils.strings import GG_PLUS_LINKED
+from utils.strings import GG_PLUS_LINKED, format_stat
 from utils.urls import profile_url
 
 info = CommandInfo(
@@ -79,8 +79,8 @@ async def run(ctx: BotContext, bot_profile: dict = None, site_profile: Profile =
             f"### TypeGG: [{site_profile["username"]}]({profile_url(site_profile["username"])})"
             f"{" " + GG_PLUS_LINKED if site_profile["isGgPlus"] else ""}\n"
             f"**Rank:** {rank_string}\n"
-            f"**Total pp:** {site_profile["stats"]["totalPp"]:,.0f} pp\n"
-            f"**nWPM:** {site_profile["stats"]["nWpm"]:.2f}\n"
+            f"**Total pp:** {format_stat(site_profile["stats"]["totalPp"], 0)} pp\n"
+            f"**nWPM:** {format_stat(site_profile["stats"]["nWpm"])}\n"
             f"**Races:** {site_profile["stats"]["races"]:,}\n"
             f"**Join Date:** {discord_date(site_profile["joinDate"], "D")}\n"
         )

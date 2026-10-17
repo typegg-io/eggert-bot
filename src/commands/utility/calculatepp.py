@@ -7,7 +7,7 @@ from config import DAILY_QUOTE_CHANNEL_ID
 from context import BotContext
 from utils.errors import MissingArguments
 from utils.messages import Message, Page, usable_in
-from utils.strings import quote_display
+from utils.strings import format_stat, quote_display
 from utils.urls import race_url
 
 info = CommandInfo(
@@ -60,7 +60,7 @@ class CalculatePp(Command):
         description = (
             f"{quote_description}\n"
             f"```{ctx.flags.number:,.2f} {labels[metric == "wpm"]} = "
-            f"{calculated_value[labels[metric == "pp"].lower()]:,.2f} "
+            f"{format_stat(calculated_value[labels[metric == "pp"].lower()])} "
             f"{labels[metric == "pp"]}```"
         )
 

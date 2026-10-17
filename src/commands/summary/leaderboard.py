@@ -13,34 +13,45 @@ from utils import strings
 from utils.errors import BotError, DailyQuoteChannel
 from utils.flags import is_multiplayer
 from utils.messages import Message, Page, paginate_data, usable_in
-from utils.strings import LOADING, get_argument, get_streak_emoji, parse_number, rank, username_with_flag
+from utils.strings import (
+    LOADING,
+    format_percent,
+    format_stat,
+    get_argument,
+    get_streak_emoji,
+    parse_number,
+    rank,
+    username_with_flag,
+)
 
 categories = {
     # API leaderboards
     "pp": {
         "sort": "totalPp",
         "title": "Total pp",
-        "formatter": lambda user: f"{user["stats"]["totalPp"]:,.0f} pp ({user["stats"]["accuracy"]:.2%} Accuracy)"
+        "formatter": lambda user: (
+            f"{format_stat(user["stats"]["totalPp"], 0)} pp ({format_percent(user["stats"]["accuracy"])} Accuracy)"
+        )
     },
     "best": {
         "sort": "bestPp",
         "title": "Best pp",
-        "formatter": lambda user: f"{user["stats"]["bestPp"]["value"]:,.2f} pp"
+        "formatter": lambda user: f"{format_stat(user["stats"]["bestPp"]["value"])} pp"
     },
     "wpm": {
         "sort": "bestWpm",
         "title": "Best WPM",
-        "formatter": lambda user: f"{user["stats"]["bestWpm"]["value"]:,.2f} WPM"
+        "formatter": lambda user: f"{format_stat(user["stats"]["bestWpm"]["value"])} WPM"
     },
     "nwpm": {
         "sort": "nWpm",
         "title": "nWPM",
-        "formatter": lambda user: f"{user["stats"]["nWpm"]:,.2f} WPM"
+        "formatter": lambda user: f"{format_stat(user["stats"]["nWpm"])} WPM"
     },
     "level": {
         "sort": "level",
         "title": "Level",
-        "formatter": lambda user: f"{user["stats"]["level"]:,.2f} ({user["stats"]["experience"]:,.0f} XP)"
+        "formatter": lambda user: f"{format_stat(user["stats"]["level"])} ({user["stats"]["experience"]:,.0f} XP)"
     },
     "playtime": {
         "sort": "playTime",
@@ -112,7 +123,7 @@ categories = {
     "quickplay": {
         "title": "Quickplay",
         "multiplayer": True,
-        "formatter": lambda user: f"{user["average"]:,.2f} WPM ({user["difficulty"]:.2f}★)",
+        "formatter": lambda user: f"{format_stat(user["average"])} WPM ({format_stat(user["difficulty"])}★)",
     },
 
     # Custom leaderboards

@@ -15,7 +15,7 @@ from utils.errors import InvalidKeystrokeData, NoQuoteRaces
 from utils.keystrokes import calculate_wpm, get_keystroke_data, get_keystroke_wpm
 from utils.messages import Message, Page, usable_in
 from utils.schemas import Profile
-from utils.strings import format_duration, get_segments, quote_display
+from utils.strings import format_duration, format_stat, get_segments, quote_display
 
 info = CommandInfo(
     name="sumofbest",
@@ -122,8 +122,8 @@ async def run(ctx: BotContext, profile: Profile, quote: dict) -> None:
         time_span_display = "0s"
 
     stats_description = (
-        f"**Score:** {sum_of_best_pp:,.2f} pp\n"
-        f"**Speed:** {sum_of_best_wpm:,.2f} WPM\n"
+        f"**Score:** {format_stat(sum_of_best_pp)} pp\n"
+        f"**Speed:** {format_stat(sum_of_best_wpm)} WPM\n"
         f"**Unique Races:** {unique_race_count:,}\n"
         f"**Timespan:** {time_span_display}\n"
     )

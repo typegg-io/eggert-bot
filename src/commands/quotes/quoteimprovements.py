@@ -10,7 +10,7 @@ from utils.dates import discord_date
 from utils.errors import BotError, NoRacesFiltered
 from utils.messages import Message, paginate_data
 from utils.schemas import Profile
-from utils.strings import quote_display
+from utils.strings import format_stat, quote_display, stat_difference
 
 SORTS = ["recent", "best", "worst"]
 TITLES = {"recent": "Recent", "best": "Biggest", "worst": "Smallest"}
@@ -94,12 +94,13 @@ async def run(ctx: BotContext, profile: Profile, sort: str) -> None:
 
     def entry_formatter(data) -> str:
         """Format one improvement as the quote, the two scores and the gain between them."""
-        previous, race, gain = data
+        previous, race, _ = data
+        gain = stat_difference(race[metric], previous[metric])
         quote = dict(quotes[race["quoteId"]])
         quote["source"] = sources[quote["sourceId"]]
 
         return quote_display(quote) + (
-            f"{previous[metric]:,.2f} ➜ {race[metric]:,.2f} {unit} (+{gain:,.2f}) - "
+            f"{format_stat(previous[metric])} ➜ {format_stat(race[metric])} {unit} (+{format_stat(gain)}) - "
             f"#{previous["raceNumber"]:,} ➜ #{race["raceNumber"]:,} - "
             f"{discord_date(race["timestamp"])}\n\n"
         )

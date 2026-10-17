@@ -11,6 +11,7 @@ from utils.colors import ERROR
 from utils.dates import parse_date
 from utils.messages import Field, Message, Page
 from utils.schemas import Profile
+from utils.strings import format_stat
 
 metrics = {
     "pp": {"label": "pp", "suffix": " pp", "scale": 1},
@@ -144,19 +145,19 @@ async def multiplayer_improvement(ctx: BotContext, profile: Profile, metric: str
     if window > 25:
         fields.append(Field(
             title="Average of 25",
-            content=f"– Recent: {last_25:,.2f}{suffix} | Best: {best_25:,.2f}{suffix}",
+            content=f"– Recent: {format_stat(last_25)}{suffix} | Best: {format_stat(best_25)}{suffix}",
         ))
 
     if window > 100:
         fields.append(Field(
             title="Average of 100",
-            content=f"– Recent: {last_100:,.2f}{suffix} | Best: {best_100:,.2f}{suffix}",
+            content=f"– Recent: {format_stat(last_100)}{suffix} | Best: {format_stat(best_100)}{suffix}",
         ))
 
     fields.append(Field(
         title=f"Average of {window}",
         content=(
-            f"– Recent: {last_average:,.2f}{suffix} | Best: {best_average:,.2f}{suffix}\n"
+            f"– Recent: {format_stat(last_average)}{suffix} | Best: {format_stat(best_average)}{suffix}\n"
             f"– Completion: {window / (window + quits_in_average):.2%}"
         ),
     ))
@@ -239,8 +240,8 @@ async def solo_improvement(ctx: BotContext, profile: Profile, metric: str) -> No
     label, suffix = metrics[metric]["label"], metrics[metric]["suffix"]
     description = (
         f"**PB Improvements:** {len(values):,}\n"
-        f"**PB Average:** {np.mean(values):,.2f}{suffix}\n"
-        f"**Best:** {max(values):,.2f}{suffix}\n"
+        f"**PB Average:** {format_stat(np.mean(values))}{suffix}\n"
+        f"**Best:** {format_stat(max(values))}{suffix}\n"
     )
 
     message = Message(

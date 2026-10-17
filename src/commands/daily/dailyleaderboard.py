@@ -10,7 +10,7 @@ from database.bot.recent_quotes import set_recent_quote
 from utils import dates
 from utils.dates import discord_date, format_date, parse_date
 from utils.messages import Message, Page, paginate_leaderboard, usable_in
-from utils.strings import pp_display, quote_display, rank, username_with_flag
+from utils.strings import format_percent, format_stat, pp_display, quote_display, rank, username_with_flag
 from utils.urls import race_url
 
 info = CommandInfo(
@@ -77,7 +77,8 @@ async def display_daily_quote(
             """Format one podium entry as a single line."""
             return (
                 f"{username_with_flag(data)} - "
-                f"{data[wpm_key]:,.2f} WPM ({data["accuracy"]:.2%}) - {pp_display(data[pp_key], hide_raw_pp, 0)}\n"
+                f"{format_stat(data[wpm_key])} WPM ({format_percent(data["accuracy"])}) - "
+                f"{pp_display(data[pp_key], hide_raw_pp, 0)}\n"
             )
 
         quote_description = (
@@ -99,7 +100,8 @@ async def display_daily_quote(
 
         return (
             f"{bold}{rank_display} {username_with_flag(score)} - "
-            f"{score[wpm_key]:,.2f} WPM ({score["accuracy"]:.2%}) - {pp_display(score[pp_key], hide_raw_pp, 0)} - "
+            f"{format_stat(score[wpm_key])} WPM ({format_percent(score["accuracy"])}) - "
+            f"{pp_display(score[pp_key], hide_raw_pp, 0)} - "
             f"{discord_date(score["timestamp"])}{bold}\n"
         )
 

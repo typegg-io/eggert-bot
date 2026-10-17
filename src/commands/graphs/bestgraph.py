@@ -12,6 +12,7 @@ from utils.errors import NoRankedRaces
 from utils.messages import Message, Page
 from utils.schemas import Profile
 from utils.stats import calculate_total_pp
+from utils.strings import truncate_stat
 
 max_users = 5
 
@@ -111,6 +112,11 @@ async def run(ctx: BotContext, profiles: list[Profile], n: int, metric: str) -> 
 
     decimals = 2 if metric == "wpm" else 0
     dec_format = f",.{decimals}f"
+
+    for row in rows:
+        row["total"] = truncate_stat(row["total"], 0)
+        for key in ("max", "avg", "min"):
+            row[key] = truncate_stat(row[key], decimals)
 
     username_width = max(len("Username"), max(len(row["username"]) for row in rows))
     username_width = min(username_width, 10)
