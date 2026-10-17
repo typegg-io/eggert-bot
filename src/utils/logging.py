@@ -13,6 +13,8 @@ from database.bot.users import get_user
 
 start = 0
 
+LOG_TIMEOUT = 10  # seconds, and blocking: requests runs on the event loop
+
 ADMIN_ALIASES = {
     155481579005804544: "K\u200beegan",
     87926662364160000: "E\u200biko",
@@ -56,17 +58,21 @@ def get_log_message(message) -> str:
 
 # Logging Functions
 
-def send_log(webhook, message, file=None) -> requests.Response:
-    """Send a log message to a Discord webhook, optionally with a file attachment."""
+def send_log(webhook, message, file=None) -> requests.Response | None:
+    """Send a log message to a Discord webhook, falling back to the console on failure."""
     payload = {
         "content": message,
         "allowed_mentions": {"parse": ["users"]}
     }
 
-    if file:
-        return requests.post(webhook, data=payload, files={"file": file})
+    try:
+        if file:
+            return requests.post(webhook, data=payload, files={"file": file}, timeout=LOG_TIMEOUT)
 
-    return requests.post(webhook, json=payload)
+        return requests.post(webhook, json=payload, timeout=LOG_TIMEOUT)
+    except requests.RequestException as error:
+        # A raise here would replace the error being reported and take its caller down.
+        print(f"Failed to send log: {error}\n{message}")
 
 
 def log(message, file=None) -> None:
