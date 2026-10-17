@@ -39,6 +39,7 @@ async def on_ready() -> None:
 
         if not STAGING:
             await bot.load_extension("tasks")
+            await bot.load_extension("thread_tagger")
         else:
             loop = asyncio.get_running_loop()
             start_watcher(bot, loop)
