@@ -16,7 +16,7 @@ from utils.flags import Flags, Language
 from utils.keystrokes import get_keystroke_data
 from utils.messages import Message, Page, usable_in
 from utils.schemas import Profile, Theme
-from utils.strings import quote_display, username_with_flag
+from utils.strings import format_stat, quote_display, username_with_flag
 
 max_users = 5
 
@@ -261,7 +261,7 @@ def format_race(profile: Profile, race: dict, label: str = None) -> str:
     """Format race information with username, WPM, accuracy, and timestamp."""
     prefix = f"**{label}:** " if label else ""
     return (
-        f"{prefix}{username_with_flag(profile)} - {race['wpm']:,.2f} "
+        f"{prefix}{username_with_flag(profile)} - {format_stat(race['wpm'])} "
         f"({race['accuracy']:.2%}) - {discord_date(race['timestamp'])}\n"
     )
 

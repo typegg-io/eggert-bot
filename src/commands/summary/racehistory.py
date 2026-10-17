@@ -14,7 +14,7 @@ from utils.errors import NoRacesFiltered
 from utils.flags import is_multiplayer
 from utils.messages import Message, paginate_data
 from utils.schemas import Profile
-from utils.strings import date_range_display, format_duration, pp_display
+from utils.strings import date_range_display, format_duration, format_percent, format_stat, pp_display
 
 PERIODS = {"day": "Days", "week": "Weeks", "month": "Months", "year": "Years"}
 SORTS = ["date", "races", "playtime", "accuracy"]
@@ -96,13 +96,13 @@ async def run(ctx: BotContext, profile: Profile) -> None:
             desc = "DNF - "
         else:
             desc = (
-                f"{race["wpm"]:,.2f} WPM - "
+                f"{format_stat(race["wpm"])} WPM - "
                 f"{race["accuracy"]:.2%} - " +
                 (f"{pp_display(race["pp"], hide_raw_pp)} - " if race["pp"] > 0 else "")
             )
 
         desc += (
-            f"{quote_list[race["quoteId"]]["difficulty"]:.2f}★ - "
+            f"{format_stat(quote_list[race["quoteId"]]["difficulty"])}★ - "
             f"{discord_date(race["timestamp"])} - "
             f"[<:quote_link:1483237184482836540>](https://typegg.io/solo/{race["quoteId"]})\n"
         )
@@ -195,7 +195,7 @@ async def run_periods(ctx: BotContext, profile: Profile, period: str, sort: str,
         return (
             f"**{period_label(entry, period, tz)}**\n"
             f"{entry["races"]:,} Races / {pp}{format_duration(entry["playtime"])}\n"
-            f"{entry["wpm"]:,.2f} WPM ({entry["accuracy"]:.2%} Accuracy)\n\n"
+            f"{format_stat(entry["wpm"])} WPM ({format_percent(entry["accuracy"])} Accuracy)\n\n"
         )
 
     prefix = "" if reverse else ("Oldest " if sort == "date" else "Least ")

@@ -8,6 +8,7 @@ from database.typegg.races import get_races
 from utils.errors import BotError, MissingArguments, NoRaces
 from utils.messages import Message, Page
 from utils.schemas import Profile
+from utils.strings import format_stat
 
 info = CommandInfo(
     name="longestaverage",
@@ -165,7 +166,7 @@ async def run(ctx: BotContext, profile: Profile, wpm: float) -> None:
     for i, streak in enumerate(longest_averages, start=1):
         top_10 += (
             f"{i}. **{streak["length"]:,}** races - "
-            f"{streak["average"]:,.2f} WPM ("
+            f"{format_stat(streak["average"])} WPM ("
             f"#{race_list[streak["start"]]['raceNumber']:,} "
             f"– #{race_list[streak["end"]]['raceNumber']:,})\n"
         )

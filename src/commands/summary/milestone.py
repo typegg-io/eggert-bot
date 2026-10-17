@@ -12,7 +12,7 @@ from utils.dates import discord_date, parse_date
 from utils.errors import BotError, MissingArguments, NoRacesFiltered, NumberGreaterThan
 from utils.messages import Message, Page
 from utils.schemas import Profile
-from utils.strings import format_duration, pp_display, quote_display
+from utils.strings import format_duration, format_stat, pp_display, quote_display
 
 CATEGORIES = ["races", "quotes"]
 UNITS = {"races": "Races", "quotes": "Quotes", "pp": "pp", "wpm": "WPM"}
@@ -137,7 +137,7 @@ async def run(ctx: BotContext, profile: Profile, category: str, number: float | 
     description += (
         f"\n{quote_display(quote, 1000, display_status=True)}\n"
         f"**Score:** {pp_display(race["pp"], ctx.flags.raw and not ctx.user["isGgPlus"])}\n"
-        f"**Speed:** {race["wpm"]:,.2f} WPM\n"
+        f"**Speed:** {format_stat(race["wpm"])} WPM\n"
         f"**Accuracy:** {race["accuracy"]:.2%}\n"
     )
 

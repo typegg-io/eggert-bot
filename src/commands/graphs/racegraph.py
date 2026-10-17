@@ -13,7 +13,7 @@ from utils.errors import BotError, NoQuoteRaces
 from utils.keystrokes import get_keystroke_data
 from utils.messages import Field, Message, Page, usable_in
 from utils.schemas import Profile
-from utils.strings import format_duration, pp_display, quote_display
+from utils.strings import format_duration, format_stat, pp_display, quote_display
 
 info = CommandInfo(
     name="racegraph",
@@ -86,8 +86,8 @@ async def run(ctx: BotContext, profile: Profile, race_number: int) -> None:
             Field(
                 title="Stats",
                 content=(
-                    f"**Score:** {race["pp"]:,.2f} pp\n"
-                    f"**Speed:** {race["wpm"]:,.2f} WPM\n"
+                    f"**Score:** {format_stat(race["pp"])} pp\n"
+                    f"**Speed:** {format_stat(race["wpm"])} WPM\n"
                     f"**Accuracy:** {race["accuracy"]:.2%}\n"
                     f"**Race Time:** {format_duration(race["duration"] / 1000, round_seconds=False)}"
                 ),
@@ -97,7 +97,7 @@ async def run(ctx: BotContext, profile: Profile, race_number: int) -> None:
                 title="Raw Stats",
                 content=(
                     f"**Score:** {raw_pp_display}\n"
-                    f"**Speed:** {race["rawWpm"]:,.2f} WPM\n"
+                    f"**Speed:** {format_stat(race["rawWpm"])} WPM\n"
                     f"**Error Reaction:** {race["errorReactionTime"]:,.0f}ms\n"
                     f"**Error Recovery:** {race["errorRecoveryTime"]:,.0f}ms"
                 ),

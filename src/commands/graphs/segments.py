@@ -15,7 +15,7 @@ from utils.errors import NoQuoteRaces
 from utils.keystrokes import calculate_wpm, get_keystroke_data
 from utils.messages import Field, Message, Page, usable_in
 from utils.schemas import Profile
-from utils.strings import escape_formatting, get_segments, quote_display
+from utils.strings import escape_formatting, format_percent, format_stat, get_segments, quote_display
 
 info = CommandInfo(
     name="segments",
@@ -77,11 +77,11 @@ def format_segment(segment: dict, show_race: bool = False) -> str:
             tooltip = f"Race #{race_num:,}\n{formatted_date}"
         else:
             tooltip = f"Race #{race_num}"
-        wpm_text = f"**[{wpm:,.2f}](http://a \"{tooltip}\")**"
+        wpm_text = f"**[{format_stat(wpm)}](http://a \"{tooltip}\")**"
     elif raw_wpm > wpm:
-        wpm_text = f"**[{wpm:,.2f}](http://a \"{raw_wpm:,.2f} Raw\")**"
+        wpm_text = f"**[{format_stat(wpm)}](http://a \"{format_stat(raw_wpm)} Raw\")**"
     else:
-        wpm_text = f"**{wpm:,.2f}**"
+        wpm_text = f"**{format_stat(wpm)}**"
 
     count = segment.get("count", 1)
     count_text = f" (x{count})" if count > 1 else ""
@@ -203,15 +203,15 @@ async def run(ctx: BotContext, profile: Profile, race_number: int) -> None:
         key=lambda x: x["wpm"],
     )
 
-    separator_stats = f"**Space Speed:** {avg_space_wpm:,.2f} WPM"
+    separator_stats = f"**Space Speed:** {format_stat(avg_space_wpm)} WPM"
     if avg_newline_wpm:
-        separator_stats += f"\n**Newline Speed:** {avg_newline_wpm:,.2f} WPM"
+        separator_stats += f"\n**Newline Speed:** {format_stat(avg_newline_wpm)} WPM"
 
     description = (
         f"Completed {discord_date(race['timestamp'])}\n\n"
         f"{quote_display(quote, display_status=True, display_text=False)}\n"
-        f"**Speed:** {race['wpm']:,.2f} WPM ({race['accuracy']:.2%} Accuracy)\n"
-        f"**Raw Speed:** {race['rawWpm']:,.2f} WPM ({race['wpm'] / race['rawWpm']:.2%} Flow)\n"
+        f"**Speed:** {format_stat(race['wpm'])} WPM ({format_percent(race['accuracy'])} Accuracy)\n"
+        f"**Raw Speed:** {format_stat(race['rawWpm'])} WPM ({race['wpm'] / race['rawWpm']:.2%} Flow)\n"
         f"{separator_stats}\n\n"
     )
     segment_description = description + "**WPM - Segment**\n" + "\n".join(format_segment(s) for s in segments)

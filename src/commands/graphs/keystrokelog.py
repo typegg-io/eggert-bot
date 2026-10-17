@@ -15,7 +15,7 @@ from utils.dates import discord_date
 from utils.errors import BotError, NoQuoteRaces
 from utils.messages import usable_in
 from utils.schemas import Profile
-from utils.strings import format_duration
+from utils.strings import format_duration, format_stat
 from utils.urls import race_url
 
 # Discord rejects a message longer than this.
@@ -91,7 +91,7 @@ async def run(ctx: BotContext, profile: Profile, race_number: int) -> None:
         f"**Keystroke Log - Race #{race_number:,}**\n"
         # The angle brackets stop Discord from unfurling a link preview under the log.
         f"Completed {discord_date(race["timestamp"])} on [{race["quoteId"]}](<{race_url(race["quoteId"])}>)\n"
-        f"**Score:** {race["pp"]:,.2f} pp | **Speed:** {race["wpm"]:,.2f} WPM | "
+        f"**Score:** {format_stat(race["pp"])} pp | **Speed:** {format_stat(race["wpm"])} WPM | "
         f"**Accuracy:** {race["accuracy"]:.2%} | "
         f"**Time:** {format_duration(race["duration"] / 1000, round_seconds=False)}"
     )

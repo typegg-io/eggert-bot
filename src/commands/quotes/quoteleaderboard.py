@@ -8,7 +8,7 @@ from database.bot.recent_quotes import get_recent_quote
 from utils.dates import discord_date
 from utils.errors import MissingArguments
 from utils.messages import Message, Page, paginate_leaderboard, usable_in
-from utils.strings import pp_display, quote_display, rank, username_with_flag
+from utils.strings import format_percent, format_stat, pp_display, quote_display, rank, username_with_flag
 from utils.urls import race_url
 
 info = CommandInfo(
@@ -60,7 +60,7 @@ async def run(ctx: BotContext, quote: dict) -> None:
         pp = f"{pp_display(score[pp_key], hide_raw_pp, 0)} - " if quote["ranked"] else ""
         return (
             f"{bold}{rank_display} {username_with_flag(score)} - "
-            f"{score[wpm_key]:,.2f} WPM ({score["accuracy"]:.2%}) - {pp}"
+            f"{format_stat(score[wpm_key])} WPM ({format_percent(score["accuracy"])}) - {pp}"
             f"{discord_date(score["timestamp"])}{bold}\n"
         )
 

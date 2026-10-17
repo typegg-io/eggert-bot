@@ -9,6 +9,7 @@ from database.typegg.users import get_quote_bests
 from utils.errors import MissingArguments
 from utils.messages import Message, Page
 from utils.schemas import Profile
+from utils.strings import format_stat
 
 info = CommandInfo(
     name="quotesover",
@@ -72,12 +73,12 @@ async def run(ctx: BotContext, profile: Profile, threshold: int, metric: str) ->
 
     if over_count > 0:
         description += (
-            f"**Best:** {best_value:,.2f} {metric}\n"
-            f"**Average:** {avg_value:,.2f} {metric}\n"
+            f"**Best:** {format_stat(best_value)} {metric}\n"
+            f"**Average:** {format_stat(avg_value)} {metric}\n"
         )
 
     if over_count > 0:
-        description += f"**Average Difficulty:** {avg_difficulty:.2f}★\n"
+        description += f"**Average Difficulty:** {format_stat(avg_difficulty)}★\n"
 
     page = Page(
         title=f"Quotes Over {threshold:,} {metric}",

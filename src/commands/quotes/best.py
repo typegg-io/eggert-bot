@@ -12,7 +12,7 @@ from utils.errors import BotError, NoRacesFiltered
 from utils.flags import Flags, is_non_english
 from utils.messages import Message, paginate_data
 from utils.schemas import Profile
-from utils.strings import format_duration, pp_display, quote_display
+from utils.strings import format_duration, format_percent, format_stat, pp_display, quote_display
 
 metrics = ["pp", "wpm"]
 
@@ -146,7 +146,7 @@ async def run_counters(ctx: BotContext, profile: Profile, sort: str) -> None:
         """Format one quote as a quote display, its best race, then its lifetime counters."""
         best_race = data["bestRace"]
         return quote_display(data["quote"]) + (
-            f"{pp_display(best_race[pp_key], hide_raw_pp)} - {best_race[wpm_key]:,.2f} WPM "
+            f"{pp_display(best_race[pp_key], hide_raw_pp)} - {format_stat(best_race[wpm_key])} WPM "
             f"({best_race["accuracy"]:.2%} Accuracy) - {discord_date(best_race["timestamp"])}\n"
             f"{data["attempts"]:,} attempts - {format_duration(data["playTime"] / 1000)} typed\n\n"
         )
@@ -209,7 +209,7 @@ async def run(
         quote["source"] = sources[quote["sourceId"]]
         pp = pp_display(data["pp"], hide_raw_pp)
         return quote_display(quote) + (
-            f"{pp} - {data["wpm"]:,.2f} WPM ({data["accuracy"]:.2%} Accuracy) - "
+            f"{pp} - {format_stat(data["wpm"])} WPM ({format_percent(data["accuracy"])} Accuracy) - "
             f"{discord_date(data["timestamp"])}\n\n"
         )
 

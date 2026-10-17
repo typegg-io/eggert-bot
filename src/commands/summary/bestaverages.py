@@ -10,7 +10,7 @@ from utils.errors import NotEnoughRaces, NumberGreaterThan
 from utils.flags import is_multiplayer
 from utils.messages import Message, Page
 from utils.schemas import Profile
-from utils.strings import date_range_display, pp_display
+from utils.strings import date_range_display, format_percent, format_stat, pp_display
 
 info = CommandInfo(
     name="bestaverages",
@@ -140,13 +140,13 @@ async def run(ctx: BotContext, profile: Profile, n: int, metric: str = "wpm") ->
                 desc = "DNF - "
             else:
                 desc = (
-                    f"{race["wpm"]:,.2f} WPM - "
+                    f"{format_stat(race["wpm"])} WPM - "
                     f"{race["accuracy"]:.2%} - " +
                     (f"{pp_display(race["pp"], hide_raw_pp)} - " if race["pp"] > 0 else "")
                 )
 
             desc += (
-                f"{quote_list[race["quoteId"]]["difficulty"]:.2f}★ - "
+                f"{format_stat(quote_list[race["quoteId"]]["difficulty"])}★ - "
                 f"{discord_date(race["timestamp"])} - "
                 f"[<:quote_link:1483237184482836540>](https://typegg.io/solo/{race["quoteId"]})\n"
             )
@@ -179,10 +179,10 @@ def format_window(window: list, quote_list: dict, show_pp: bool, hide_raw_pp: bo
     accuracy = sum(race["accuracy"] or 0 for race in window) / n
     difficulty = sum(quote_list[race["quoteId"]]["difficulty"] for race in window) / n
 
-    parts = [f"{wpm:,.2f} WPM", f"{accuracy:.2%}"]
+    parts = [f"{format_stat(wpm)} WPM", f"{format_percent(accuracy)}"]
     if show_pp:
         pp = sum(race["pp"] or 0 for race in window) / n
         parts.append(pp_display(pp, hide_raw_pp))
-    parts.append(f"{difficulty:.2f}★")
+    parts.append(f"{format_stat(difficulty)}★")
 
     return " - ".join(parts)

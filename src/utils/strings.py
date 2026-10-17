@@ -3,6 +3,7 @@
 import json
 import math
 import re
+import sys
 
 from dateutil.relativedelta import relativedelta
 
@@ -118,6 +119,32 @@ _DURATION_RE = re.compile(
 _DURATION_UNITS = (86400, 3600, 60, 1)
 
 
+def truncate_stat(value: float, decimals: int = 2) -> float:
+    """Floor a TypeGG stat to a number of decimals, the way the site displays it."""
+    scale = 10 ** decimals
+    scaled = value * scale
+    nearest = round(scaled)
+    # TypeGG snaps within 8 epsilons first, so 250.00 never floors to 249.99.
+    if abs(scaled - nearest) <= abs(scaled) * 8 * sys.float_info.epsilon:
+        scaled = nearest
+    return math.floor(scaled) / scale
+
+
+def stat_difference(a: float, b: float, decimals: int = 2) -> float:
+    """Return a minus b after truncating each, so the gap matches the two numbers shown."""
+    return truncate_stat(a, decimals) - truncate_stat(b, decimals)
+
+
+def format_stat(value: float, decimals: int = 2) -> str:
+    """Return a TypeGG stat truncated and formatted with thousands separators."""
+    return f"{truncate_stat(value, decimals):,.{decimals}f}"
+
+
+def format_percent(fraction: float, decimals: int = 2) -> str:
+    """Return a TypeGG fraction like accuracy as a truncated percentage."""
+    return f"{truncate_stat(fraction * 100, decimals):.{decimals}f}%"
+
+
 def ordinal_number(number) -> str:
     """Convert a number to its ordinal string representation (e.g., 1st, 2nd, 3rd)."""
     suffix = {1: "st", 2: "nd", 3: "rd"}.get(number % 10, "th")
@@ -210,7 +237,7 @@ def rank(number) -> str:
 
 def pp_display(pp: float, hide_raw: bool = False, decimals: int = 2) -> str:
     """Return a pp value for display, or the GG+ link when raw pp needs a subscription."""
-    return GG_PLUS_LINKED if hide_raw else f"{pp:,.{decimals}f} pp"
+    return GG_PLUS_LINKED if hide_raw else f"{format_stat(pp, decimals)} pp"
 
 
 def get_streak_emoji(streak: int) -> str:
@@ -403,7 +430,7 @@ def quote_display(
     else:
         display_string += " | "
 
-    truncated_difficulty = int(quote["difficulty"] * 100) / 100
+    truncated_difficulty = truncate_stat(quote["difficulty"])
     display_string += f"{truncated_difficulty}★ | {len(text):,}c"
 
     if display_status:

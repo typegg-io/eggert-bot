@@ -13,7 +13,7 @@ from database.typegg.races import get_races
 from utils.errors import BotError, NoRacesFiltered, NumberGreaterThan
 from utils.messages import Message, Page
 from utils.schemas import Profile
-from utils.strings import format_duration, parse_duration, parse_duration_args
+from utils.strings import format_duration, format_stat, parse_duration, parse_duration_args
 from utils.windows import Window, marathon_windows, race_span, race_times, top_disjoint_windows
 
 DEFAULT_PERIOD = 86400
@@ -129,7 +129,7 @@ def window_line(data: WindowData, window: Window, category: str) -> str:
     numbers = race_span(data.races[start], data.races[end - 1])
 
     if category == "pp":
-        return f"**+{value:,.2f} pp** over {races:,} races in {span} {numbers}"
+        return f"**+{format_stat(value)} pp** over {races:,} races in {span} {numbers}"
 
     return f"**{races:,}** races in {span} {numbers}"
 

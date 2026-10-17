@@ -19,6 +19,8 @@ from utils.stats import (
 from utils.strings import (
     escape_formatting,
     format_duration,
+    format_percent,
+    format_stat,
     get_segments,
     ordinal_number,
     parse_duration,
@@ -27,6 +29,8 @@ from utils.strings import (
     parse_number,
     parse_wpm_range,
     rank,
+    stat_difference,
+    truncate_stat,
     truncate_text,
 )
 
@@ -176,6 +180,43 @@ def test_get_segments_preserves_the_original_text():
 ])
 def test_ordinal_number(number, expected):
     assert ordinal_number(number) == expected
+
+
+# truncate_stat
+
+@pytest.mark.parametrize(("value", "decimals", "expected"), [
+    (970.896, 0, "970"),
+    (99.996, 2, "99.99"),
+    (250, 2, "250.00"),
+    (250.0, 2, "250.00"),
+    (0.29 * 100, 0, "29"),
+    (0, 2, "0.00"),
+    (0, 0, "0"),
+    (1234.567, 2, "1,234.56"),
+    (41.996, 2, "41.99"),
+])
+def test_format_stat_floors_like_the_site(value, decimals, expected):
+    assert format_stat(value, decimals) == expected
+
+
+def test_truncate_stat_never_rounds_up():
+    assert truncate_stat(970.896, 0) == 970
+    assert truncate_stat(1.999, 2) == 1.99
+
+
+@pytest.mark.parametrize(("fraction", "expected"), [
+    (0.99996, "99.99%"),
+    (1.0, "100.00%"),
+    (0.95, "95.00%"),
+    (0, "0.00%"),
+])
+def test_format_percent_floors_accuracy(fraction, expected):
+    assert format_percent(fraction) == expected
+
+
+def test_stat_difference_matches_the_displayed_values():
+    assert format_stat(stat_difference(100.009, 99.999)) == "0.01"
+    assert format_stat(stat_difference(100.004, 100.001)) == "0.00"
 
 
 def test_rank_uses_emoji_for_the_top_twenty_and_bold_after():

@@ -15,7 +15,7 @@ from utils.errors import APIError, BotError
 from utils.messages import Field, Message, Page, usable_in
 from utils.schemas import Profile, Theme
 from utils.stats import calculate_total_pp
-from utils.strings import INCREASE, format_duration, quote_display
+from utils.strings import INCREASE, format_duration, format_percent, format_stat, quote_display, stat_difference
 
 info = CommandInfo(
     name="quote",
@@ -67,11 +67,11 @@ def score_display(score, show_pp=True) -> str:
     """Format one score as a single line, with or without its pp."""
     if show_pp:
         return (
-            f"{score["pp"]:,.2f} pp ({score["wpm"]:,.2f} WPM) - "
+            f"{format_stat(score["pp"])} pp ({format_stat(score["wpm"])} WPM) - "
             f"{discord_date(score["timestamp"])}"
         )
 
-    return f"{score["wpm"]:,.2f} WPM - {discord_date(score["timestamp"])}"
+    return f"{format_stat(score["wpm"])} WPM - {discord_date(score["timestamp"])}"
 
 
 def build_personal_best_page(quote: dict, quote_races: list[dict], user_id: str) -> Page:
@@ -94,11 +94,11 @@ def build_personal_best_page(quote: dict, quote_races: list[dict], user_id: str)
     best_rank = get_quote_best_rank(quote_bests, best_race["raceId"])
 
     if len(quote_races) == 1:
-        pp_gain = calculate_total_pp(quote_bests) - calculate_total_pp(quote_bests_without)
+        pp_gain = stat_difference(calculate_total_pp(quote_bests), calculate_total_pp(quote_bests_without))
         quote_best_rank = get_quote_best_rank(quote_bests, recent_race["raceId"])
         page.description += (
             f"**New Quote!**\n"
-            f"**Quote Rank:** #{quote_best_rank:,} (+{pp_gain:,.2f} epp)\n\n"
+            f"**Quote Rank:** #{quote_best_rank:,} (+{format_stat(pp_gain)} epp)\n\n"
             f"**Quote Score:** {score_display(recent_race)}\n"
         )
         page.color = SUCCESS
@@ -108,15 +108,15 @@ def build_personal_best_page(quote: dict, quote_races: list[dict], user_id: str)
         previous_best = max(quote_races[:-1], key=lambda x: x["pp"])
         quote_bests_without.append(previous_best)
         quote_bests_without.sort(key=lambda x: -x["pp"])
-        pp_gain = calculate_total_pp(quote_bests) - calculate_total_pp(quote_bests_without)
+        pp_gain = stat_difference(calculate_total_pp(quote_bests), calculate_total_pp(quote_bests_without))
 
-        pp_difference = best_race["pp"] - previous_best["pp"]
-        wpm_difference = best_race["wpm"] - previous_best["wpm"]
+        pp_difference = stat_difference(best_race["pp"], previous_best["pp"])
+        wpm_difference = stat_difference(best_race["wpm"], previous_best["wpm"])
         rank_difference = get_quote_best_rank(quote_bests_without, previous_best["raceId"]) - best_rank
 
         page.description += (
-            f"**New Quote Best!** +{pp_difference:,.2f} pp (+{wpm_difference:,.2f} WPM)\n"
-            f"**Quote Rank:** #{best_rank:,} {INCREASE}{rank_difference:,} (+{pp_gain:,.2f} epp)\n\n"
+            f"**New Quote Best!** +{format_stat(pp_difference)} pp (+{format_stat(wpm_difference)} WPM)\n"
+            f"**Quote Rank:** #{best_rank:,} {INCREASE}{rank_difference:,} (+{format_stat(pp_gain)} epp)\n\n"
             f"**New Best:** {score_display(best_race)}\n"
             f"**Previous Best:** {score_display(previous_best)}\n"
         )
@@ -159,10 +159,10 @@ def build_unranked_personal_best_page(quote: dict, quote_races: list[dict]) -> P
 
     if recent_race == best_race:
         previous_best = max(quote_races[:-1], key=lambda x: x["wpm"])
-        wpm_difference = best_race["wpm"] - previous_best["wpm"]
+        wpm_difference = stat_difference(best_race["wpm"], previous_best["wpm"])
 
         page.description += (
-            f"**New Quote Best!** +{wpm_difference:,.2f} WPM\n"
+            f"**New Quote Best!** +{format_stat(wpm_difference)} WPM\n"
             f"**New Best:** {score_display(best_race, show_pp=False)}\n"
             f"**Previous Best:** {score_display(previous_best, show_pp=False)}\n"
         )
@@ -238,12 +238,13 @@ def build_history_page(quote_races: list[dict], ranked: bool) -> Page:
             score = scores[i]
             if ranked:
                 display = (
-                    f"{i + 1}. {score["pp"]:,.2f} pp - {score["wpm"]:,.2f} WPM ({score["accuracy"]:.2%})"
+                    f"{i + 1}. {format_stat(score["pp"])} pp - {format_stat(score["wpm"])} WPM "
+                    f"({format_percent(score["accuracy"])})"
                     f" - {discord_date(score["timestamp"])}\n"
                 )
             else:
                 display = (
-                    f"{i + 1}. {score["wpm"]:,.2f} WPM ({score["accuracy"]:.2%}) - "
+                    f"{i + 1}. {format_stat(score["wpm"])} WPM ({format_percent(score["accuracy"])}) - "
                     f"{discord_date(score["timestamp"])}\n"
                 )
             history += display
@@ -282,13 +283,13 @@ def build_graph_page(quote_races: list, ranked: bool, theme: Theme) -> Page:
 
     if ranked:
         description += (
-            f"**Average:** {np.average(pp):,.2f} pp ({np.average(wpm):,.2f} WPM)\n"
-            f"**Best:** {max(pp):,.2f} pp ({max(wpm):,.2f} WPM)"
+            f"**Average:** {format_stat(np.average(pp))} pp ({format_stat(np.average(wpm))} WPM)\n"
+            f"**Best:** {format_stat(max(pp))} pp ({format_stat(max(wpm))} WPM)"
         )
     else:
         description += (
-            f"**Average:** {np.average(wpm):,.2f} WPM\n"
-            f"**Best:** {max(wpm):,.2f} WPM"
+            f"**Average:** {format_stat(np.average(wpm))} WPM\n"
+            f"**Best:** {format_stat(max(wpm))} WPM"
         )
 
     quote_races.sort(key=lambda x: parse_date(x["timestamp"]).timestamp())
@@ -318,11 +319,11 @@ def build_progression_page(quote_races: list[dict], ranked: bool) -> Page:
 
     lines = []
     for i, (attempt, race) in enumerate(progression):
-        gain = f" (+{race[metric] - progression[i - 1][1][metric]:,.2f})" if i else ""
+        gain = f" (+{format_stat(stat_difference(race[metric], progression[i - 1][1][metric]))})" if i else ""
         if ranked:
-            score = f"{race["pp"]:,.2f} pp{gain} - {race["wpm"]:,.2f} WPM"
+            score = f"{format_stat(race["pp"])} pp{gain} - {format_stat(race["wpm"])} WPM"
         else:
-            score = f"{race["wpm"]:,.2f} WPM{gain}"
+            score = f"{format_stat(race["wpm"])} WPM{gain}"
         lines.append(f"{i + 1}. {score} - #{attempt:,} - {discord_date(race["timestamp"], "D")}")
 
     # Discord caps an embed description at 4,096 characters.
@@ -332,9 +333,11 @@ def build_progression_page(quote_races: list[dict], ranked: bool) -> Page:
 
     first, best = progression[0][1], progression[-1][1]
     if ranked:
-        total_gain = f"+{best["pp"] - first["pp"]:,.2f} pp ({best["wpm"] - first["wpm"]:+,.2f} WPM)"
+        pp_gain = stat_difference(best["pp"], first["pp"])
+        wpm_gain = stat_difference(best["wpm"], first["wpm"])
+        total_gain = f"+{format_stat(pp_gain)} pp ({"+" if wpm_gain >= 0 else ""}{format_stat(wpm_gain)} WPM)"
     else:
-        total_gain = f"+{best["wpm"] - first["wpm"]:,.2f} WPM"
+        total_gain = f"+{format_stat(stat_difference(best["wpm"], first["wpm"]))} WPM"
 
     description = (
         f"**Races:** {len(races):,}\n"
