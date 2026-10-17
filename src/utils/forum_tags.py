@@ -2,7 +2,7 @@
 
 from collections.abc import Sequence
 
-from config import REVIEW_TAGS
+from config import REVIEW_EXCLUDED_THREAD_IDS, REVIEW_TAGS
 
 # Discord rejects a thread edit that applies more than five tags.
 MAX_APPLIED_TAGS = 5
@@ -13,8 +13,10 @@ def find_tag(available: Sequence, name: str):
     return next((tag for tag in available if tag.name.lower() == name.lower()), None)
 
 
-def review_tag_name(parent_id: int | None) -> str | None:
-    """Return the review tag a forum's new threads get, or None for other channels."""
+def review_tag_name(thread_id: int, parent_id: int | None) -> str | None:
+    """Return the review tag a thread gets, or None for other channels and excluded threads."""
+    if thread_id in REVIEW_EXCLUDED_THREAD_IDS:
+        return None
     return REVIEW_TAGS.get(parent_id)
 
 

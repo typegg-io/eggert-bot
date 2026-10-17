@@ -2,7 +2,13 @@ from types import SimpleNamespace
 
 import pytest
 
-from config import BUG_FORUM_CHANNEL_ID, BUG_UNSOLVED_TAG, SUGGESTION_FORUM_CHANNEL_ID, SUGGESTION_UNREAD_TAG
+from config import (
+    BUG_FORUM_CHANNEL_ID,
+    BUG_UNSOLVED_TAG,
+    REVIEW_EXCLUDED_THREAD_IDS,
+    SUGGESTION_FORUM_CHANNEL_ID,
+    SUGGESTION_UNREAD_TAG,
+)
 from utils.forum_tags import find_tag, is_unsolved, review_tag_name, tags_replacing, tags_with_review
 
 
@@ -25,7 +31,13 @@ DEFERRED = tag("deferred")
     (None, None),
 ])
 def test_review_tag_name_picks_the_forums_tag(parent_id, expected):
-    assert review_tag_name(parent_id) == expected
+    assert review_tag_name(1, parent_id) == expected
+
+
+@pytest.mark.parametrize("parent_id", [BUG_FORUM_CHANNEL_ID, SUGGESTION_FORUM_CHANNEL_ID])
+@pytest.mark.parametrize("thread_id", sorted(REVIEW_EXCLUDED_THREAD_IDS))
+def test_review_tag_name_skips_excluded_threads(thread_id, parent_id):
+    assert review_tag_name(thread_id, parent_id) is None
 
 
 def test_find_tag_ignores_case():

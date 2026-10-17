@@ -45,6 +45,12 @@ REVIEW_TAGS = {
     SUGGESTION_FORUM_CHANNEL_ID: SUGGESTION_UNREAD_TAG,
 }
 
+# Pinned threads that are not reports, so they never get a review tag.
+REVIEW_EXCLUDED_THREAD_IDS = {
+    1426965014899589140,  # Quote corrections thread in #bugs
+    1511534051784265879,  # Counting thread in #suggestions
+}
+
 LANGUAGE_ROLE_IDS = {
     "french": 1520389620007833790,  # Français
     "german": 1520388722728894515,  # Deutsch

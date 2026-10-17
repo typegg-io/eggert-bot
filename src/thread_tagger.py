@@ -11,7 +11,7 @@ from utils.logging import log, log_error
 async def apply_review_tag(thread: discord.Thread) -> bool:
     """Add its forum's review tag to a thread, returning whether it was tagged. Never raises."""
     try:
-        name = review_tag_name(thread.parent_id)
+        name = review_tag_name(thread.id, thread.parent_id)
         forum = thread.parent
         if name is None or not isinstance(forum, discord.ForumChannel):
             return False
