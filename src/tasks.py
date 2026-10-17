@@ -2,6 +2,7 @@
 
 import asyncio
 import random
+from datetime import date
 
 from discord import Embed, File, Forbidden, Game
 from discord.ext import commands, tasks
@@ -22,6 +23,11 @@ from utils.logging import log, log_error
 from utils.strings import get_streak_emoji
 
 STATUSES_FILE = SOURCE_DIR / "data" / "statuses.txt"
+JOB_TIMES = {  # UTC hour and minute each daily job runs at
+    "reminder": (20, 0),
+    "status": (0, 0),
+    "daily": (0, 5),
+}
 SEASONAL_STATUSES = {
     (1, 1): "New year, New egg 🥚",
     (2, 14): "Happy Valeggtine's Day 💝",
@@ -46,12 +52,34 @@ def get_status(today) -> Game | None:
         return Game(random.choice(statuses))
 
 
+async def rotate_status(bot: commands.Bot) -> None:
+    """Set the bot's status to a fresh pick."""
+    await bot.change_presence(activity=get_status(dates.now()))
+
+
+async def run_job(job, *args) -> None:
+    """Run one scheduled job, logging a failure instead of letting it reach the loop."""
+    try:
+        await job(*args)
+    except Exception as error:
+        # An escaped error kills the minute loop or skips the rest of the chain.
+        log_error(f"Tasks Loop: {job.__name__}", error)
+
+
 class BackgroundTasks(commands.Cog):
     """Cog that runs the bot's minute loop and its status loop."""
 
     def __init__(self, bot) -> None:
         """Start the minute loop and the status loop."""
         self.bot = bot
+        self._last_run: dict[str, date] = {}
+
+        # Seeding stops a restart from re-running a job it already did today.
+        now = dates.now()
+        for name, job_time in JOB_TIMES.items():
+            if (now.hour, now.minute) >= job_time:
+                self._last_run[name] = now.date()
+
         self.tasks_loop.start()
         self.status_loop.start()
 
@@ -63,23 +91,36 @@ class BackgroundTasks(commands.Cog):
     async def status_loop(self) -> None:
         """Set the bot's status once the bot is ready."""
         await self.bot.wait_until_ready()
-        await self.bot.change_presence(activity=get_status(dates.now()))
+        await rotate_status(self.bot)
+
+    def is_due(self, name: str, now) -> bool:
+        """Return whether a job's time has passed today and it has not run yet."""
+        return (now.hour, now.minute) >= JOB_TIMES[name] and self._last_run.get(name) != now.date()
 
     @tasks.loop(minutes=1)
     async def tasks_loop(self) -> None:
-        """Run the daily quote work at its scheduled minutes."""
+        """Run each daily job once its scheduled time has passed."""
         now = dates.now()
 
-        if now.hour == 20 and now.minute == 0:
-            await daily_quote_reminder(self.bot)
+        # Marking before the run stops a failing job from retrying every minute.
+        if self.is_due("reminder", now):
+            self._last_run["reminder"] = now.date()
+            await run_job(daily_quote_reminder, self.bot)
 
-        elif now.hour == 0 and now.minute == 0:
-            await self.bot.change_presence(activity=get_status(now))
+        if self.is_due("status", now):
+            self._last_run["status"] = now.date()
+            await run_job(rotate_status, self.bot)
 
-        elif now.hour == 0 and now.minute == 5:
-            await daily_quote_results(self.bot)
-            await daily_quote_ping(self.bot)
-            await import_daily_quotes()
+        if self.is_due("daily", now):
+            self._last_run["daily"] = now.date()
+            await run_job(daily_quote_results, self.bot)
+            await run_job(daily_quote_ping, self.bot)
+            await run_job(import_daily_quotes)
+
+    @tasks_loop.before_loop
+    async def before_tasks_loop(self) -> None:
+        """Wait for the bot cache so a job never starts against a missing channel."""
+        await self.bot.wait_until_ready()
 
     @tasks_loop.error
     async def tasks_loop_error(self, error) -> None:
