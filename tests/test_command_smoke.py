@@ -210,6 +210,7 @@ SKIPPED = {
     "echo": "admin, needs a channel to speak into",
     "exportbugs": "admin, needs a forum channel",
     "forcelink": "admin, needs a real Discord member",
+    "forceunlink": "admin, needs a real Discord member",
     "help": "static embed, covered by test_command_registry",
     "link": "starts a verification flow",
     "lockdown": "admin, mutates global bot state",
