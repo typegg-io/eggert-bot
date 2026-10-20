@@ -163,13 +163,26 @@ def update_date_range(discord_id: str, start: float | None, end: float | None) -
     """, [start, end, discord_id])
 
 
-def link_user(discord_id: str, user_id: str) -> None:
-    """Creates a link between a Discord ID and a User ID."""
+def link_user(discord_id: str, user_id: str) -> list[str]:
+    """Link a Discord ID to a User ID, unlinking and returning any Discord IDs that held it before."""
+    superseded = db.fetch("""
+        SELECT discordId FROM users
+        WHERE userId = ? AND discordId != ?
+    """, [user_id, discord_id])
+
+    db.run("""
+        UPDATE users
+        SET userId = NULL, isGgPlus = 0, theme = ?
+        WHERE userId = ? AND discordId != ?
+    """, [json.dumps(DEFAULT_THEME), user_id, discord_id])
+
     db.run("""
         UPDATE users
         SET userId = ?
         WHERE discordId = ?
     """, [user_id, discord_id])
+
+    return [row["discordId"] for row in superseded]
 
 
 def unlink_user(discord_id: str) -> None:

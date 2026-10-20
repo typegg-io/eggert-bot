@@ -11,7 +11,7 @@ from config import SECRET, TYPEGG_GUILD_ID
 from database.bot.users import link_user
 from utils.colors import SUCCESS
 from utils.logging import log_server
-from web_server.utils import assign_user_roles, error_response
+from web_server.utils import assign_user_roles, error_response, remove_user_roles
 
 if TYPE_CHECKING:
     from web_server.server import WebServer
@@ -51,8 +51,12 @@ async def verify_user(cog: "WebServer", request: web.Request) -> web.Response:
         return error_response("User not found in server.", 404)
 
     # Link user in database
-    link_user(discord_id, user_id)
+    superseded = link_user(discord_id, user_id)
     log_server(f"Linked user {discord_id} to user ID {user_id}")
+
+    for old_discord_id in superseded:
+        log_server(f"Unlinked user {old_discord_id} from user ID {user_id}, superseded by {discord_id}")
+        await remove_user_roles(guild, int(old_discord_id))
 
     # Assign all roles (verified, nWPM, GG+) and update database
     try:

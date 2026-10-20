@@ -228,3 +228,46 @@ async def assign_user_roles(guild: discord.Guild, discord_id: int, user_id: str)
                     log_server(f"Assigned GG+ role to {member.name}")
                 except (discord.Forbidden, discord.HTTPException) as e:
                     raise RuntimeError(f"Failed to assign GG+ role to {member.name}: {e}")
+
+
+async def remove_user_roles(guild: discord.Guild, discord_id: int) -> None:
+    """Strip the verified, GG+ and nWPM roles from a member of the guild."""
+    member = guild.get_member(discord_id)
+    if not member:
+        log_server(f"Member with ID {discord_id} not found in guild {guild.name}")
+        return
+
+    roles_to_remove = []
+
+    # Find verified role
+    verified_role = discord.utils.get(guild.roles, name=VERIFIED_ROLE_NAME)
+    if verified_role and verified_role in member.roles:
+        roles_to_remove.append(verified_role)
+
+    # Find GG+ role
+    gg_plus_role = discord.utils.get(guild.roles, name="GG+")
+    if gg_plus_role and gg_plus_role in member.roles:
+        roles_to_remove.append(gg_plus_role)
+
+    # Find nWPM roles
+    nwpm_roles = [
+        role for role in member.roles
+        if role.name == "250+" or (
+            "-" in role.name and
+            role.name.split("-")[0].isdigit() and
+            role.name.split("-")[-1].isdigit()
+        )
+    ]
+    roles_to_remove.extend(nwpm_roles)
+
+    if not roles_to_remove:
+        log_server(f"No roles to remove for {member.name}")
+        return
+
+    # Remove all roles
+    try:
+        await member.remove_roles(*roles_to_remove, reason="Unlinking account")
+        role_names = ", ".join([role.name for role in roles_to_remove])
+        log_server(f"Removed roles from {member.name}: {role_names}")
+    except (discord.Forbidden, discord.HTTPException) as e:
+        log_server(f"Failed to remove roles from {member.name}: {e}")
