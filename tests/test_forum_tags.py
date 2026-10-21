@@ -7,7 +7,7 @@ from config import (
     BUG_UNSOLVED_TAG,
     REVIEW_EXCLUDED_THREAD_IDS,
     SUGGESTION_FORUM_CHANNEL_ID,
-    SUGGESTION_UNREAD_TAG,
+    SUGGESTION_OPEN_TAG,
 )
 from utils.forum_tags import find_tag, is_unsolved, review_tag_name, tags_replacing, tags_with_review
 
@@ -17,7 +17,7 @@ def tag(name):
 
 
 UNSOLVED = tag("Unsolved")
-UNREAD = tag("UNREAD")
+OPEN = tag("OPEN")
 STAGED = tag("staged")
 DEFERRED = tag("deferred")
 
@@ -26,7 +26,7 @@ DEFERRED = tag("deferred")
 
 @pytest.mark.parametrize(("parent_id", "expected"), [
     (BUG_FORUM_CHANNEL_ID, BUG_UNSOLVED_TAG),
-    (SUGGESTION_FORUM_CHANNEL_ID, SUGGESTION_UNREAD_TAG),
+    (SUGGESTION_FORUM_CHANNEL_ID, SUGGESTION_OPEN_TAG),
     (123, None),
     (None, None),
 ])
@@ -42,7 +42,7 @@ def test_review_tag_name_skips_excluded_threads(thread_id, parent_id):
 
 def test_find_tag_ignores_case():
     assert find_tag([STAGED, UNSOLVED], "unsolved") is UNSOLVED
-    assert find_tag([UNREAD], "unread") is UNREAD
+    assert find_tag([OPEN], "open") is OPEN
     assert find_tag([STAGED], "unsolved") is None
 
 
@@ -50,7 +50,7 @@ def test_find_tag_ignores_case():
 
 def test_tags_with_review_keeps_the_posters_tags():
     question = tag("question")
-    assert tags_with_review([question], UNREAD) == [question, UNREAD]
+    assert tags_with_review([question], OPEN) == [question, OPEN]
 
 
 def test_tags_with_review_tags_an_untagged_thread():
