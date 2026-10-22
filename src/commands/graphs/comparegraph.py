@@ -23,7 +23,7 @@ RANGE_RE = re.compile(r"^(\d+(?:\.\d+)?)-(\d+(?:\.\d+)?)$")
 
 info = CommandInfo(
     name="comparegraph",
-    aliases=["cg", "flaneur"],
+    aliases=["cg"],
     description="Compares quote best scores between two users across difficulty levels.\n"
                 "• Pass a difficulty range (e.g. `3-5`) for a detailed head-to-head in that range.\n"
                 "• Pass a character-length range (e.g. `50-100c`) to filter by quote length.\n"
