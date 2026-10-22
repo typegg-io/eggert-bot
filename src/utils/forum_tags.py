@@ -33,6 +33,9 @@ def tags_replacing(applied: Sequence, tag, remove_name: str) -> list:
     return kept if tag in kept else [*kept, tag]
 
 
-def is_unsolved(applied: Sequence, unsolved_name: str) -> bool:
-    """Return whether every applied tag is the unsolved tag, which includes having none."""
-    return all(t.name.lower() == unsolved_name.lower() for t in applied)
+def is_unsolved(applied: Sequence, unsolved_name: str, filed_names: Sequence[str]) -> bool:
+    """Return whether a thread is untagged, or carries the unsolved tag and no filed tag."""
+    names = {t.name.lower() for t in applied}
+    if names & {n.lower() for n in filed_names}:
+        return False
+    return not names or unsolved_name.lower() in names
