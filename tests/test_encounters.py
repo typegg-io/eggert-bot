@@ -34,12 +34,17 @@ def encounters(tmp_path):
         MATCHES,
     )
     connection.executemany(
-        "INSERT INTO match_results VALUES (?, ?, NULL, ?, 1, 100, 100, 0, 0, 500, 1, ?, 'finished', ?)",
+        "INSERT INTO match_results VALUES (?, ?, NULL, ?, 1, 100, 100, 0, 0, 500, 1, ?, 'finished', ?, NULL)",
         [
             (match_id, user_id, user_id, placement, timestamp)
             for match_id, timestamp in MATCHES
             for user_id, placement in [(USER_ID, 1), (OPPONENT_ID, 2)]
         ],
+    )
+    connection.execute(
+        "INSERT INTO match_results VALUES ('new', NULL, NULL, 'rival', 0, 90, 90, 0, 0, 500, 1, 3, "
+        "'finished', '2026-10-02T12:00:00.000Z', ?)",
+        [OPPONENT_ID],
     )
     connection.commit()
 
@@ -78,3 +83,10 @@ def test_a_date_range_narrows_the_opponent_list(encounters):
     stats = get_encounter_stats(USER_ID, flags=october())
 
     assert [(row["opponentId"], row["totalEncounters"]) for row in stats] == [(OPPONENT_ID, 1)]
+
+
+def test_a_ghost_is_not_an_encounter(encounters):
+    """Beating a replay of the rival's old run is not a win over the rival."""
+    stats = get_encounter_stats(USER_ID, flags=Flags())
+
+    assert [(row["opponentId"], row["totalEncounters"]) for row in stats] == [(OPPONENT_ID, 2)]

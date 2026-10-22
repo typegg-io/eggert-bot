@@ -147,9 +147,18 @@ db.run("""
         accuracy REAL,
         placement INTEGER,
         completionType TEXT,
-        timestamp TEXT -- ISO 8601 string
+        timestamp TEXT, -- ISO 8601 string
+        ghostUserId TEXT -- the replay owner, when the player is a Quickplay ghost
     )
 """)
+
+if not db.fetch("SELECT 1 FROM pragma_table_info('match_results') WHERE name = 'ghostUserId'"):
+    db.run("ALTER TABLE match_results ADD COLUMN ghostUserId TEXT")
+    # Only ghosts and guests lack both IDs, and every guest is named Guest-N. The owner is unknown here.
+    db.run("""
+        UPDATE match_results SET ghostUserId = ''
+        WHERE userId IS NULL AND botId IS NULL AND username != '' AND username NOT LIKE 'Guest-%'
+    """)
 
 db.run("""CREATE UNIQUE INDEX IF NOT EXISTS idx_match_results_matchId_userId ON match_results(matchId, userId)""")
 
@@ -192,8 +201,9 @@ db.run("""
     JOIN matches m ON m.matchId = mr.matchId
 """)
 
+db.run("DROP VIEW IF EXISTS encounters")
 db.run("""
-    CREATE VIEW IF NOT EXISTS encounters AS
+    CREATE VIEW encounters AS
     SELECT
         mr.matchId,
         mr.userId AS userId,
@@ -219,6 +229,7 @@ db.run("""
     JOIN match_results opp
     ON opp.matchId = mr.matchId
     AND opp.userId IS NOT mr.userId
+    AND opp.ghostUserId IS NULL
     JOIN matches m
     ON m.matchId = mr.matchId
 """)

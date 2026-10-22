@@ -307,11 +307,11 @@ def seed_typegg(source: sqlite3.Connection, path, now: datetime) -> sqlite3.Conn
         (m["matchId"], m["quoteId"], m["startTime"], m["gamemode"], m["players"]) for m in matches
     ])
 
-    connection.executemany(f"INSERT INTO match_results VALUES ({marks(14)})", [
+    connection.executemany(f"INSERT INTO match_results VALUES ({marks(15)})", [
         (
             r["matchId"], r["userId"], r["botId"], r["username"], r["raceNumber"],
             r["matchWpm"], r["rawMatchWpm"], r["matchPp"], r["rawMatchPp"], r["startTime"],
-            r["accuracy"], r["placement"], r["completionType"], r["timestamp"],
+            r["accuracy"], r["placement"], r["completionType"], r["timestamp"], None,
         )
         for r in match_results
     ])

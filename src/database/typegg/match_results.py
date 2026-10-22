@@ -24,6 +24,7 @@ def match_result_insert(match_player) -> tuple:
         match_player["placement"],
         match_player["completionType"],
         match_player["timestamp"],
+        match_player.get("ghostUserId"),
     )
 
 
@@ -31,7 +32,7 @@ def add_match_results(match_players) -> None:
     """Batch insert match players."""
     db.run_many(f"""
         INSERT OR IGNORE INTO match_results
-        VALUES ({",".join(["?"] * 14)})
+        VALUES ({",".join(["?"] * 15)})
     """, [match_result_insert(player) for player in match_players])
 
 
