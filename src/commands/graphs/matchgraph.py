@@ -1,7 +1,9 @@
+import asyncio
 from copy import deepcopy
 
 from discord.ext import commands
 
+from api.races import get_race as get_race_by_id
 from api.users import get_race
 from command_info import CommandInfo
 from commands.base import Command
@@ -71,6 +73,7 @@ async def run(ctx: BotContext, profile: Profile, race_number: int) -> None:
     )
 
     players = match["players"]
+    await attach_ghost_keystrokes(players)
     players.sort(key=lambda x: -x["matchWpm"])
 
     raw_players = deepcopy(players)
@@ -80,7 +83,7 @@ async def run(ctx: BotContext, profile: Profile, race_number: int) -> None:
         if player.get("userId") == ctx.user["userId"]:
             themed_line = i
 
-        bot = ":robot:" if player.get("botId") else ""
+        bot = player_icon(player)
 
         if player.get("keystrokeData"):
             try:
@@ -96,13 +99,13 @@ async def run(ctx: BotContext, profile: Profile, race_number: int) -> None:
                 f"{player["startTime"]:,.0f}ms Start)\n"
             )
         else:
-            description += f":x: {bot} {username_with_flag(player, False)} - DNF"
+            description += f":x: {bot} {username_with_flag(player, False)} - DNF\n"
 
     for i, player in enumerate(raw_players):
         if player.get("userId") == ctx.user["userId"]:
             raw_themed_line = i
 
-        bot = ":robot:" if player.get("botId") else ""
+        bot = player_icon(player)
 
         if player.get("keystrokeData"):
             try:
@@ -123,7 +126,7 @@ async def run(ctx: BotContext, profile: Profile, race_number: int) -> None:
                 f"{pause_percent:.2%} Pause)\n"
             )
         else:
-            raw_description += f":x: {bot} {username_with_flag(player, False)} - DNF"
+            raw_description += f":x: {bot} {username_with_flag(player, False)} - DNF\n"
 
     players = [player for player in players if player.get("keystroke_wpm")]
     raw_players = [player for player in raw_players if player.get("keystroke_wpm")]
@@ -161,3 +164,24 @@ async def run(ctx: BotContext, profile: Profile, race_number: int) -> None:
     )
 
     await message.send()
+
+
+async def attach_ghost_keystrokes(players: list[dict]) -> None:
+    """Fetch each ghost's keystrokes from the replay it plays back."""
+    ghosts = [player for player in players if player.get("ghostReplayId")]
+    races = await asyncio.gather(*(
+        get_race_by_id(ghost["ghostReplayId"], get_keystrokes=True)
+        for ghost in ghosts
+    ))
+
+    for ghost, race in zip(ghosts, races, strict=True):
+        ghost["keystrokeData"] = race.get("keystrokeData")
+
+
+def player_icon(player: dict) -> str:
+    """Return the emoji marking a bot or a ghost."""
+    if player.get("botId"):
+        return ":robot:"
+    if player.get("ghostReplayId"):
+        return ":ghost:"
+    return ""
