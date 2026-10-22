@@ -87,8 +87,11 @@ def test_tags_replacing_does_not_duplicate_the_new_tag():
     ([], True),
     ([UNSOLVED], True),
     ([tag("UNSOLVED")], True),
+    ([UNSOLVED, tag("frontend")], True),
+    ([tag("frontend")], False),
     ([UNSOLVED, STAGED], False),
+    ([UNSOLVED, tag("frontend"), DEFERRED], False),
     ([DEFERRED], False),
 ])
 def test_is_unsolved_exports_only_untouched_reports(applied, expected):
-    assert is_unsolved(applied, "unsolved") is expected
+    assert is_unsolved(applied, "unsolved", ("staged", "deferred")) is expected

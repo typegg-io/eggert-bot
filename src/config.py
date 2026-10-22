@@ -38,6 +38,9 @@ DAILY_QUOTE_ROLE_ID = 1421957288385712230
 BUG_FORUM_CHANNEL_ID = 1422958421967372459
 SUGGESTION_FORUM_CHANNEL_ID = 1413878922051063921
 BUG_UNSOLVED_TAG = "unsolved"
+# Committed but not deployed, so the thread is not resolved until the day's push goes out.
+BUG_STAGED_TAG = "staged"
+BUG_DEFERRED_TAG = "deferred"
 SUGGESTION_OPEN_TAG = "open"
 
 REVIEW_TAGS = {
