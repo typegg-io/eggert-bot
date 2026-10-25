@@ -6,7 +6,7 @@ import pytest
 import seed_data
 
 from database.typegg import db as typegg_db
-from database.typegg.match_results import get_encounter_stats, get_opponent_encounters
+from database.typegg.match_results import get_encounter_stats, get_match_stats, get_opponent_encounters
 from utils.flags import Flags
 
 USER_ID = "runner"
@@ -90,3 +90,36 @@ def test_a_ghost_is_not_an_encounter(encounters):
     stats = get_encounter_stats(USER_ID, flags=Flags())
 
     assert [(row["opponentId"], row["totalEncounters"]) for row in stats] == [(OPPONENT_ID, 2)]
+
+
+def add_match(connection, match_id: str, results: list[tuple[str, int, str]]) -> None:
+    """Insert one October match from (userId, placement, completionType) rows."""
+    timestamp = "2026-10-05T12:00:00.000Z"
+    connection.execute("INSERT INTO matches VALUES (?, 'q1', ?, 'quickplay', 2)", [match_id, timestamp])
+    connection.executemany(
+        "INSERT INTO match_results VALUES (?, ?, NULL, ?, 1, 0, 0, 0, 0, 500, 1, ?, ?, ?, NULL)",
+        [(match_id, user_id, user_id, placement, completion, timestamp)
+         for user_id, placement, completion in results],
+    )
+    connection.commit()
+
+
+def record() -> tuple[int, int]:
+    """Return the runner's wins and losses against the rival."""
+    row = next(row for row in get_encounter_stats(USER_ID, flags=Flags()) if row["opponentId"] == OPPONENT_ID)
+    return row["wins"], row["losses"]
+
+
+def test_a_mutual_dnf_is_nobodys_win(encounters):
+    """Both quit, so the placement between them decides nothing."""
+    add_match(encounters, "both-quit", [(USER_ID, 2, "quit"), (OPPONENT_ID, 3, "dnf")])
+
+    assert record() == (2, 0)
+
+
+def test_a_quit_placed_first_still_loses(encounters):
+    """Matches imported before typegg's 2026-09-10 fix can place a quitter above a finisher."""
+    add_match(encounters, "stale", [(USER_ID, 1, "quit"), (OPPONENT_ID, 2, "finished")])
+
+    assert record() == (2, 1)
+    assert get_match_stats(USER_ID, flags=Flags())["matchWins"] == 2

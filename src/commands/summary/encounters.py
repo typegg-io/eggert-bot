@@ -26,6 +26,12 @@ sorts = ["wins", "losses", "winrate", "wpm", "-winrate", "-wpm"]
 class MissingRaceData(Exception):
     """Raised when a match is on record but one side's race is not."""
 
+
+def win_rate(en) -> float:
+    """Return wins over decided matches, which a mutual DNF is not."""
+    decided = en["wins"] + en["losses"]
+    return en["wins"] / decided if decided else 0
+
 info = CommandInfo(
     name="encounters",
     aliases=["en"],
@@ -78,10 +84,10 @@ async def run(ctx: BotContext, profile: Profile, sort: str) -> None:
             encounters.sort(key=lambda x: -x[sort])
         case "winrate":
             encounters = [en for en in encounters if en["totalEncounters"] >= min_threshold]
-            encounters.sort(key=lambda x: -(x["wins"] / (x["wins"] + x["losses"])))
+            encounters.sort(key=lambda x: -win_rate(x))
         case "-winrate":
             encounters = [en for en in encounters if en["totalEncounters"] >= min_threshold]
-            encounters.sort(key=lambda x: x["wins"] / (x["wins"] + x["losses"]))
+            encounters.sort(key=win_rate)
         case "wpm":
             encounters = [
                 en for en in encounters
@@ -146,7 +152,6 @@ async def run(ctx: BotContext, profile: Profile, sort: str) -> None:
         count = en["totalEncounters"]
         wins = en["wins"]
         losses = en["losses"]
-        win_rate = wins / (wins + losses)
         if not en["userWpm"] or not en["opponentWpm"]:
             average = "n/a"
         else:
@@ -156,7 +161,7 @@ async def run(ctx: BotContext, profile: Profile, sort: str) -> None:
 
         description += (
             f"{i + 1}. **{opponent}** - {count:,}x | "
-            f"{wins:,}W—{losses:,}L, {win_rate:.2%} | "
+            f"{wins:,}W—{losses:,}L, {win_rate(en):.2%} | "
             f"{average}\n"
         )
 
@@ -228,14 +233,14 @@ async def run_head_to_head(ctx: BotContext, profile1: Profile, profile2: Profile
         p2["accuracy"] += match["opponentAccuracy"]
         p2["placement"] += match["opponentPlacement"]
 
-        winner, loser = p1, p2
-        if match["opponentPlacement"] < match["userPlacement"]:
-            winner, loser = loser, winner
-
-        winner["wins"] += 1
-        winner["currentStreak"] += 1
-        winner["bestStreak"] = max(winner["currentStreak"], winner["bestStreak"])
-        loser["currentStreak"] = 0
+        if match["userWin"] or match["opponentWin"]:
+            winner, loser = (p1, p2) if match["userWin"] else (p2, p1)
+            winner["wins"] += 1
+            winner["currentStreak"] += 1
+            winner["bestStreak"] = max(winner["currentStreak"], winner["bestStreak"])
+            loser["currentStreak"] = 0
+        else:
+            p1["currentStreak"] = p2["currentStreak"] = 0
 
         wpm_delta = match["userWpm"] - match["opponentWpm"]
 

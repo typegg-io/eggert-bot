@@ -221,6 +221,11 @@ db.run("""
         opp.accuracy as opponentAccuracy,
         opp.completionType != 'finished' AS opponentDnf,
         opp.startTime as opponentStartTime,
+        -- Non-finishers still carry placements, so only a finisher can win.
+        mr.completionType = 'finished'
+            AND (opp.completionType != 'finished' OR mr.placement < opp.placement) AS userWin,
+        opp.completionType = 'finished'
+            AND (mr.completionType != 'finished' OR opp.placement < mr.placement) AS opponentWin,
         COALESCE(opp.botId, '') != '' AS isBot,
         mr.timestamp AS timestamp,
         m.gamemode,

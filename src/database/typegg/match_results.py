@@ -74,8 +74,8 @@ def get_encounter_stats(user_id: str, flags: Flags = None) -> list[sqlite3.Row]:
             COALESCE(MAX(NULLIF(opponentUsername, opponentId)), MAX(opponentUsername)) AS opponentUsername,
             MAX(isBot) AS isBot,
             COUNT(*) as totalEncounters,
-            SUM(CASE WHEN userPlacement < opponentPlacement THEN 1 ELSE 0 END) as wins,
-            SUM(CASE WHEN userPlacement > opponentPlacement THEN 1 ELSE 0 END) as losses,
+            SUM(userWin) as wins,
+            SUM(opponentWin) as losses,
             AVG(CASE WHEN NOT userDnf THEN userWpm END) as userWpm,
             AVG(CASE WHEN NOT opponentDnf THEN opponentWpm END) as opponentWpm,
             MAX(timestamp) AS lastEncounter
@@ -124,7 +124,7 @@ def get_match_stats(user_id: str, flags: Flags = None) -> list[sqlite3.Row]:
     results = db.fetch_one(f"""
         SELECT
             COUNT(DISTINCT e.matchId) AS totalMatches,
-            COUNT(DISTINCT CASE WHEN userPlacement = 1 THEN e.matchId END) AS matchWins
+            COUNT(DISTINCT CASE WHEN userPlacement = 1 AND NOT userDnf THEN e.matchId END) AS matchWins
         FROM encounters e
         {join_clause}
         {where_clause}
