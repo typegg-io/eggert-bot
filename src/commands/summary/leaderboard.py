@@ -1,6 +1,6 @@
 from discord.ext import commands
 
-from api.leaders import get_leaders, get_multiplayer_leaders
+from api.leaders import get_leaders
 from command_info import CommandInfo
 from commands.base import Command, enforce_daily_quote, take_universe as resolve_universe
 from commands.quotes.quoteleaderboard import run as run_quoteleaderboard
@@ -460,18 +460,15 @@ async def run_multiplayer(ctx: BotContext, category: dict) -> None:
     message.timeout = 60
     initial_send = message.start()
 
-    results = await get_multiplayer_leaders()
+    results = await get_leaders(sort="quickplayWpm", per_page=100)
     leaderboard = [
-        {
-            "rank": item["rank"],
-            "username": item["username"],
-            "country": item.get("country_code"),
-            "userId": item["user_id"],
-            "average": item["best_wpm_avg"],
-            "difficulty": item["best_difficulty_avg"],
-            "highlight": item["user_id"] == ctx.user["userId"],
+        user | {
+            "rank": i + 1,
+            "average": user["stats"]["quickplay"]["wpm"],
+            "difficulty": user["stats"]["quickplay"]["difficulty"],
+            "highlight": user["userId"] == ctx.user["userId"],
         }
-        for item in results["items"]
+        for i, user in enumerate(results["users"])
     ]
 
     def mp_formatter(user) -> str:
