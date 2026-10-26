@@ -87,6 +87,9 @@ async def run(ctx: BotContext, profile: Profile) -> None:
         limit=100,
     )
 
+    if not race_list:
+        raise NoRacesFiltered(profile["username"])
+
     quote_list = get_quotes()
     hide_raw_pp = ctx.flags.raw and not ctx.user["isGgPlus"]
 
