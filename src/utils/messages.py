@@ -13,6 +13,7 @@ from context import BotContext
 from database.bot.users import update_leaderboard_page
 from utils import files
 from utils.colors import ERROR, SUCCESS, WARNING
+from utils.errors import BotError
 from utils.flags import get_flag_title, is_foreign_universe
 from utils.schemas import Profile
 from utils.strings import LOADING, date_range_subtext
@@ -180,6 +181,9 @@ class Message(View):
 
     def build_embeds(self) -> None:
         """Assembles the embed(s) for the message."""
+        if not self.pages:
+            raise BotError("No Results", "There is nothing to display.")
+
         for i, page in enumerate(self.pages):
             title = page.title if page.title else self.title
             if page.flag_title:

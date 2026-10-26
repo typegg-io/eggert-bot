@@ -1,7 +1,14 @@
 """Tests for error embeds that the global handler builds from a command's CommandInfo."""
 
+import asyncio
+from types import SimpleNamespace
+
+import pytest
+
 from command_info import CommandInfo
-from utils.errors import MissingArguments
+from utils.errors import BotError, MissingArguments
+from utils.flags import Flags
+from utils.messages import Message
 
 
 def test_missing_arguments_renders_for_every_command(command_modules):
@@ -22,6 +29,24 @@ def test_usage_line_has_no_trailing_space_without_parameters():
     """A command with no parameters still renders a clean usage line."""
     embed = MissingArguments().usage_embed(CommandInfo(name="ping", aliases=[], description=""))
     assert "`-ping`" in embed.description
+
+
+def test_empty_pages_raise_a_bot_error():
+    """A command whose filters match nothing gets an embed, not an IndexError."""
+
+    async def build_with_no_pages() -> None:
+        """Build a message holding no pages, inside a running loop."""
+        ctx = SimpleNamespace(
+            flags=Flags(),
+            user={"theme": {"embed": 0}, "timezone": "UTC"},
+            author=SimpleNamespace(id=1),
+        )
+        message = Message(ctx, pages=[])
+
+        with pytest.raises(BotError):
+            message.build_embeds()
+
+    asyncio.run(build_with_no_pages())
 
 
 def test_usage_line_includes_parameters_when_present():
