@@ -185,6 +185,18 @@ def link_user(discord_id: str, user_id: str) -> list[str]:
     return [row["discordId"] for row in superseded]
 
 
+def link_if_free(discord_id: str, user_id: str) -> str:
+    """Link only when neither side is linked yet. Returns 'linked', 'already' or 'conflict'."""
+    user = get_user(str(discord_id))
+    if user["userId"] == user_id:
+        return "already"
+    if user["userId"] or get_discord_id(user_id):
+        return "conflict"
+
+    link_user(str(discord_id), user_id)
+    return "linked"
+
+
 def unlink_user(discord_id: str) -> None:
     """Removes the link between a Discord ID and a User ID."""
     db.run("""

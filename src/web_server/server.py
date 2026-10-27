@@ -15,6 +15,7 @@ from web_server.routes.chat import receive_message
 from web_server.routes.compare import compare_page
 from web_server.routes.dashboard import dashboard_page, dashboard_stats
 from web_server.routes.help import help_page
+from web_server.routes.link import link_account, link_status
 from web_server.routes.member_count import member_count
 from web_server.routes.quotes import create_quote, patch_quote, remove_quote
 from web_server.routes.sources import create_source, patch_source, remove_source
@@ -51,6 +52,8 @@ class WebServer(commands.Cog):
 
         # Routes
         self.app.router.add_post("/verify", partial(verify_user, self))
+        self.app.router.add_post("/link", partial(link_account, self))
+        self.app.router.add_get("/users/{userId}/link", partial(link_status, self))
         self.app.router.add_post("/update-nwpm-role", partial(update_nwpm_role, self))
         self.app.router.add_post("/update-gg-plus", partial(update_gg_plus, self))
         self.app.router.add_post("/chat/receive", receive_message)
