@@ -13,7 +13,7 @@ from web_server.utils import error_response, validate_authorization
 async def create_quote(request: web.Request) -> web.Response:
     """Create a new quote (POST /quotes)."""
     auth_error = validate_authorization(request)
-    if auth_error:
+    if auth_error is not None:
         return auth_error
 
     try:
@@ -45,7 +45,7 @@ async def create_quote(request: web.Request) -> web.Response:
 async def patch_quote(request: web.Request) -> web.Response:
     """Update a quote (PATCH /quotes/{quoteId})."""
     auth_error = validate_authorization(request)
-    if auth_error:
+    if auth_error is not None:
         return auth_error
 
     quote_id = request.match_info.get("quoteId")
@@ -80,7 +80,7 @@ async def patch_quote(request: web.Request) -> web.Response:
 async def remove_quote(request: web.Request) -> web.Response:
     """Delete a quote (DELETE /quotes/{quoteId})."""
     auth_error = validate_authorization(request)
-    if auth_error:
+    if auth_error is not None:
         return auth_error
 
     quote_id = request.match_info.get("quoteId")

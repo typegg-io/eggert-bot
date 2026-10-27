@@ -12,7 +12,7 @@ from web_server.utils import error_response, validate_authorization
 async def create_source(request: web.Request) -> web.Response:
     """Create a new source (POST /sources)."""
     auth_error = validate_authorization(request)
-    if auth_error:
+    if auth_error is not None:
         return auth_error
 
     try:
@@ -44,7 +44,7 @@ async def create_source(request: web.Request) -> web.Response:
 async def patch_source(request: web.Request) -> web.Response:
     """Update a source (PATCH /sources/{sourceId})."""
     auth_error = validate_authorization(request)
-    if auth_error:
+    if auth_error is not None:
         return auth_error
 
     source_id = request.match_info.get("sourceId")
@@ -76,7 +76,7 @@ async def patch_source(request: web.Request) -> web.Response:
 async def remove_source(request: web.Request) -> web.Response:
     """Delete a source (DELETE /sources/{sourceId})."""
     auth_error = validate_authorization(request)
-    if auth_error:
+    if auth_error is not None:
         return auth_error
 
     source_id = request.match_info.get("sourceId")

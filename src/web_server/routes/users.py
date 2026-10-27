@@ -13,7 +13,7 @@ from web_server.utils import error_response, validate_authorization
 async def import_user(request: web.Request) -> web.Response:
     """Import a user's latest races in the background (POST /users/{userId}/import)."""
     auth_error = validate_authorization(request)
-    if auth_error:
+    if auth_error is not None:
         return auth_error
 
     user_id = request.match_info.get("userId")
@@ -37,7 +37,7 @@ async def import_user(request: web.Request) -> web.Response:
 async def delete_user(request: web.Request) -> web.Response:
     """Delete a user, removing all their data (DELETE /users/{userId})."""
     auth_error = validate_authorization(request)
-    if auth_error:
+    if auth_error is not None:
         return auth_error
 
     user_id = request.match_info.get("userId")

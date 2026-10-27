@@ -19,7 +19,7 @@ async def update_gg_plus(cog: "WebServer", request: web.Request) -> web.Response
     """Update a user's GG+ subscription status in the database."""
 
     auth_error = validate_authorization(request)
-    if auth_error:
+    if auth_error is not None:
         return auth_error
 
     try:

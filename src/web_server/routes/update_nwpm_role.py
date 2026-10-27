@@ -19,7 +19,7 @@ async def update_nwpm_role(cog: "WebServer", request: web.Request) -> web.Respon
 
     # Verify authorization
     auth_error = validate_authorization(request)
-    if auth_error:
+    if auth_error is not None:
         return auth_error
 
     # Parse request data

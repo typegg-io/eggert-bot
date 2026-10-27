@@ -13,7 +13,7 @@ GLOBAL_EMOTE_PLUS = "<:gc_gg1:1493934783078596669>" + "<:gc_gg2:1493934844441395
 async def receive_message(request: web.Request) -> web.Response:
     """Forward a site chat message to Discord (POST /chat/receive)."""
     auth_error = validate_authorization(request)
-    if auth_error:
+    if auth_error is not None:
         return auth_error
 
     try:
