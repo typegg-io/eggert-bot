@@ -37,10 +37,17 @@ from web_server.utils import assign_user_roles
 
 users = get_user_ids()
 total_commands = get_command_count()
+# discord.py reads ’ as a closing quote, so an apostrophe breaks argument parsing.
+APOSTROPHES = str.maketrans("‘’‚‛", "''''")
 # One write per server per restart, rather than one on every command.
 named_servers = set()
 
 _locked = False
+
+
+def normalize_apostrophes(content: str) -> str:
+    """Return the content with typographic apostrophes flattened to ASCII."""
+    return content.translate(APOSTROPHES)
 
 
 def set_lockdown(state: bool) -> None:
@@ -70,6 +77,7 @@ class Eggert(commands.Bot):
         """Return the context, with flags stripped and parsed off the message."""
         if message.content.startswith(BOT_PREFIX):
             original_content = message.content
+            message.content = normalize_apostrophes(message.content)
             cmd_name = message.content.split()[0][len(BOT_PREFIX):]
             cmd = self.get_command(cmd_name)
             if cmd and hasattr(cmd.cog, "ignore_flags"):
@@ -79,7 +87,7 @@ class Eggert(commands.Bot):
                 flags, cleaned, explicit_flags = parse_flags(message.content)
                 message.content = cleaned
                 ctx = await super().get_context(message, cls=cls)
-                message.content = original_content
+            message.content = original_content
         else:
             flags, explicit_flags = Flags(), {}
             ctx = await super().get_context(message, cls=cls)

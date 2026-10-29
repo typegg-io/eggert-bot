@@ -4,9 +4,12 @@ import asyncio
 from types import SimpleNamespace
 
 import pytest
+from discord.ext import commands
+from discord.ext.commands.view import StringView
 
+from bot_setup import normalize_apostrophes
 from command_info import CommandInfo
-from utils.errors import BotError, MissingArguments
+from utils.errors import BotError, MissingArguments, UnmatchedQuote
 from utils.flags import Flags
 from utils.messages import Message
 
@@ -55,3 +58,22 @@ def test_usage_line_includes_parameters_when_present():
         CommandInfo(name="stats", aliases=[], description="", parameters="[username]")
     )
     assert "`-stats [username]`" in embed.description
+
+
+@pytest.mark.parametrize("error_type", [
+    commands.ExpectedClosingQuoteError,
+    commands.UnexpectedQuoteError,
+    commands.InvalidEndOfQuotedStringError,
+])
+def test_a_quote_error_reaches_the_unmatched_quote_branch(error_type):
+    """Every quote failure discord.py raises renders one embed, not an Unexpected Error."""
+    assert issubclass(error_type, commands.ArgumentParsingError)
+    assert UnmatchedQuote().embed.title == "Unmatched Quote"
+
+
+def test_an_apostrophe_parses_as_plain_text():
+    """A word carrying an apostrophe is an argument, not an unclosed quote."""
+    view = StringView(normalize_apostrophes("-su I’d"))
+    view.get_word()
+    view.skip_ws()
+    assert view.get_quoted_word() == "I'd"

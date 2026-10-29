@@ -17,6 +17,7 @@ from utils.errors import (
     MissingUsername,
     UnexpectedError,
     UnknownCommand,
+    UnmatchedQuote,
     UserBanned,
 )
 from utils.logging import get_log_message, log_error
@@ -52,6 +53,9 @@ class ErrorHandler(commands.Cog):
                 show_tip=isinstance(error, MissingUsername),
             )
             return await send_error(ctx, missing_arguments)
+
+        if isinstance(error, commands.ArgumentParsingError):
+            return await send_error(ctx, UnmatchedQuote().embed)
 
         if isinstance(error, commands.CommandOnCooldown):
             return await send_error(ctx, CommandOnCooldown(error.retry_after).embed)

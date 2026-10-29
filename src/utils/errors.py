@@ -191,6 +191,18 @@ class UnknownCommand(CommandError):
         )
 
 
+class UnmatchedQuote(CommandError):
+    """Raised when a quote mark in the command text breaks argument parsing."""
+
+    @property
+    def embed(self) -> Embed:
+        """Return the embed shown for this error."""
+        return Embed(
+            title="Unmatched Quote",
+            description="A quote mark in your command could not be matched.\nTry removing it.",
+        )
+
+
 @dataclass
 class UnexpectedError(CommandError):
     """Global catch-all case for unexpected exceptions."""
