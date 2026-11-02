@@ -525,7 +525,9 @@ async def run_championship(ctx: BotContext, category: dict) -> None:
         bold = "**" if user["userId"] == ctx.user["userId"] else ""
         name = username_with_flag(user)
         progress = f"{user["completed"]}/{results["poolSize"]}"
-        return f"{rank(user["rank"])} {bold}{name} - {format_stat(user["score"])} pp ({progress}){bold}\n"
+        score = int(user["score"])
+        average = round(user["score"] / user["completed"])
+        return f"{rank(user["rank"])} {bold}{name} - {score:,} pp ({average} avg) ({progress}){bold}\n"
 
     pages = paginate_data(leaderboard, qualifier_formatter, page_count=5, per_page=20)
 

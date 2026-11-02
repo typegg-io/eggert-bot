@@ -1101,7 +1101,7 @@ def test_the_quote_characters_board_totals_only_the_universe(seeded, monkeypatch
 
 
 def test_the_qualifier_board_shows_score_and_progress(seeded, monkeypatch):
-    """A row reads as score then quotes played out of the pool."""
+    """A row reads as whole score, average per quote played, then quotes played out of the pool."""
     from commands.summary import leaderboard
 
     rows = []
@@ -1115,7 +1115,8 @@ def test_the_qualifier_board_shows_score_and_progress(seeded, monkeypatch):
     monkeypatch.setattr(leaderboard, "paginate_data", recording_paginate)
     asyncio.run(invoke("-lb qualifiers"))
 
-    assert "41,500.12 pp (50/50)" in rows[0]
+    assert "41,500 pp (830 avg) (50/50)" in rows[0]
+    assert "41,499 pp (847 avg) (49/50)" in rows[1]
 
 
 def test_an_empty_qualifier_board_says_so(seeded, monkeypatch):
