@@ -128,8 +128,8 @@ appends it by hand.
 **On a board, ask how much of it you hold.** The API sorts on `wpm` and returns no `rank` field, so
 ranks come from enumerating the rows. Swapping the column alone relabels the rows without reordering
 them, which is wrong either way. Re-sorting locally is only honest when the fetch is deep enough that
-nobody outside it belongs in the view. `-dailyleaderboard` and `-dailygraph` fetch `results=100` and
-show ten, so a re-sort is accurate to 100 places. `-quoteleaderboard` reads
+nobody outside it belongs in the view. `-dailyleaderboard` and `-dailygraph` fetch `results=1000` and
+show ten, so a re-sort is accurate to 1000 places. `-quoteleaderboard` reads
 `GET /v1/quotes/{quoteId}`, which returns exactly ten rows and takes no size parameter, so re-sorting
 those ten would miss anyone whose raw score belongs in the top ten but whose real score did not
 place. That is why it has no `raw`.

@@ -201,7 +201,7 @@ async def daily_quote_reminder(bot: commands.Bot) -> None:
     day = date.strftime("%Y-%m-%d")
     daily_quote = await get_daily_quote(day, results=100)
     quote_id = daily_quote["quote"]["quoteId"]
-    # The leaderboard stops at 100, so it can prove someone played but never that they did not.
+    # This fetch stops at 100, so it can prove someone played but never that they did not.
     daily_users = {score["userId"] for score in daily_quote["leaderboard"]}
 
     for member in role.members:

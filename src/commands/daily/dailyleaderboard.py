@@ -37,9 +37,9 @@ class DailyLeaderboard(Command):
     async def dailyleaderboard(self, ctx: BotContext):
         """Fetch the daily quote named by the number or date flag, then paginate its leaderboard."""
         try:
-            daily_quote = await get_daily_quote(number=int(ctx.flags.number), results=100)
+            daily_quote = await get_daily_quote(number=int(ctx.flags.number), results=1000)
         except TypeError:
-            daily_quote = await get_daily_quote(ctx.flags.date.strftime("%Y-%m-%d"), results=100)
+            daily_quote = await get_daily_quote(ctx.flags.date.strftime("%Y-%m-%d"), results=1000)
 
         title = f"Daily Quote #{daily_quote["dayNumber"]:,}"
         await display_daily_quote(ctx, daily_quote, title, paginate=True, raw=ctx.flags.raw)
@@ -64,7 +64,7 @@ async def display_daily_quote(
     hide_raw_pp = raw and not ctx.user["isGgPlus"]
     quote_description = daily_quote_display(daily_quote)
 
-    # The API ranks on wpm, so raw ranks only hold within the 100 entries fetched.
+    # The API ranks on wpm, so raw ranks only hold within the entries fetched.
     if raw:
         title += " (Raw)"
         leaderboard.sort(key=lambda score: -score["rawWpm"])

@@ -42,9 +42,9 @@ class DailyGraph(Command):
     async def dailygraph(self, ctx: BotContext):
         """Fetch the daily quote named by the number or date flag, then graph it."""
         try:
-            daily_quote = await get_daily_quote(number=int(ctx.flags.number), results=100, get_keystrokes=True)
+            daily_quote = await get_daily_quote(number=int(ctx.flags.number), results=1000, get_keystrokes=True)
         except TypeError:
-            daily_quote = await get_daily_quote(ctx.flags.date.strftime("%Y-%m-%d"), results=100, get_keystrokes=True)
+            daily_quote = await get_daily_quote(ctx.flags.date.strftime("%Y-%m-%d"), results=1000, get_keystrokes=True)
 
         await run(ctx, daily_quote)
 
@@ -104,7 +104,7 @@ async def send_leaderboard_graph(
     url: str,
 ) -> None:
     """Graph a leaderboard's top 10, plus a page centred on the caller when they placed."""
-    # The API ranks on wpm, so raw ranks only hold within the 100 entries fetched.
+    # The API ranks on wpm, so raw ranks only hold within the entries fetched.
     if ctx.flags.raw:
         leaderboard.sort(key=lambda score: -score["rawWpm"])
 
