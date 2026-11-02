@@ -78,6 +78,8 @@ INVOCATIONS = [
     "-leaderboard firsts",
     "-lb podium -solo",
     "-lb top10s -fr",
+    "-lb qualifiers",
+    "-lb tggc",
     "-improvement",
     "-improvement acc",
     "-imp multiplayer pp",
@@ -559,6 +561,24 @@ RACE_TOTALS = {
 }
 
 
+def qualifier_payload() -> dict:
+    """Return a qualifier board holding every seeded profile."""
+    users = [
+        {
+            "rank": position + 1,
+            "userId": profile["userId"],
+            "username": profile["username"],
+            "country": profile.get("country"),
+            "isGgPlus": False,
+            "score": 41500.129 - position,
+            "completed": 50 - position,
+            "isEligible": position == 0,
+        }
+        for position, profile in enumerate(PROFILES.values())
+    ]
+    return {"users": users, "poolSize": 50, "totalCount": len(users)}
+
+
 async def fake_request(url: str, params: dict = None, **kwargs) -> dict:
     """Answer the API calls the seeded commands make, and name any that is unaccounted for."""
     if url.endswith("/v1/daily"):
@@ -567,6 +587,9 @@ async def fake_request(url: str, params: dict = None, **kwargs) -> dict:
     # The leaderboard writes its rank and formatter into each row.
     if url.endswith("/v1/leaders"):
         return {"users": [dict(profile) for profile in PROFILES.values()]}
+
+    if url.endswith("/qualifier"):
+        return qualifier_payload()
 
     for user_id, profile in PROFILES.items():
         if url.endswith(f"/users/{user_id}"):
@@ -1075,6 +1098,47 @@ def test_the_quote_characters_board_totals_only_the_universe(seeded, monkeypatch
     asyncio.run(invoke("-leaderboard quotechars", universe="es"))
 
     assert footers[-1] == f"{spanish:,} Total Quote Characters"
+
+
+def test_the_qualifier_board_shows_score_and_progress(seeded, monkeypatch):
+    """A row reads as score then quotes played out of the pool."""
+    from commands.summary import leaderboard
+
+    rows = []
+    paginate_data = leaderboard.paginate_data
+
+    def recording_paginate(data, formatter, **kwargs):
+        """Record each formatted row, since the fake message drops the edit that carries it."""
+        rows.extend(formatter(row) for row in data)
+        return paginate_data(data, formatter, **kwargs)
+
+    monkeypatch.setattr(leaderboard, "paginate_data", recording_paginate)
+    asyncio.run(invoke("-lb qualifiers"))
+
+    assert "41,500.12 pp (50/50)" in rows[0]
+
+
+def test_an_empty_qualifier_board_says_so(seeded, monkeypatch):
+    """A board with no rows has no pages to paginate."""
+    from commands.summary import leaderboard
+
+    descriptions = []
+    Page = leaderboard.Page
+
+    async def empty_board(*args, **kwargs):
+        """Return a qualifier board nobody is on."""
+        return {"users": [], "poolSize": 50, "totalCount": 0}
+
+    def recording_page(*args, **kwargs):
+        """Record each page description, since the fake message drops the edit that carries it."""
+        descriptions.append(kwargs.get("description"))
+        return Page(*args, **kwargs)
+
+    monkeypatch.setattr(leaderboard, "Page", recording_page)
+    monkeypatch.setattr(leaderboard, "get_qualifier", empty_board)
+    asyncio.run(invoke("-lb qualifiers"))
+
+    assert descriptions[-1] == "No qualifier scores yet."
 
 
 @pytest.mark.parametrize("invocation, gg_plus, buttons", [

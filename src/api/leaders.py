@@ -29,3 +29,14 @@ async def get_leaders(
             "universe": universe,
         },
     )
+
+
+async def get_qualifier(slug: str, page: int = 1, per_page: int = 10) -> dict[str, Any]:
+    """Return one page of a championship's qualifier leaderboard."""
+    return await request(
+        url=f"{API_URL}/v1/championships/{slug}/qualifier",
+        params={
+            "page": page,
+            "perPage": per_page,
+        },
+    )

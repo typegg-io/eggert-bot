@@ -1,6 +1,6 @@
 from discord.ext import commands
 
-from api.leaders import get_leaders
+from api.leaders import get_leaders, get_qualifier
 from command_info import CommandInfo
 from commands.base import Command, enforce_daily_quote, take_universe as resolve_universe
 from commands.quotes.quoteleaderboard import run as run_quoteleaderboard
@@ -126,6 +126,12 @@ categories = {
         "formatter": lambda user: f"{format_stat(user["average"])} WPM ({format_stat(user["difficulty"])}★)",
     },
 
+    # Championship leaderboards
+    "qualifiers": {
+        "title": "TGGC Qualifiers",
+        "championship": True,
+    },
+
     # Custom leaderboards
     "submissions": {
         "title": "Quote Submissions",
@@ -152,6 +158,8 @@ categories = {
 }
 
 DAILY_CATEGORIES = {"daily", "streak", "dailyquotes", "dailywins", "dailyseconds", "dailytoptens"}
+
+CHAMPIONSHIP_SLUG = "2026"
 
 info = CommandInfo(
     name="leaderboard",
@@ -220,6 +228,9 @@ class Leaderboard(Command):
         if category_info.get("multiplayer"):
             return await run_multiplayer(ctx, category_info)
 
+        if category_info.get("championship"):
+            return await run_championship(ctx, category_info)
+
         if not category_info.get("formatter"):
             return await run_custom(ctx, category_info, args)
 
@@ -262,6 +273,7 @@ def is_statusless(leaderboard: str) -> bool:
         "daily", "streak", "dailyquotes", "quickplay",
         "dailywins", "dailyseconds", "dailytoptens",
         "quotechars", "firsts", "podiums", "toptens",
+        "qualifiers",
     ]
 
 
@@ -482,5 +494,45 @@ async def run_multiplayer(ctx: BotContext, category: dict) -> None:
     message.pages = pages
     message.page_count = len(pages)
     message.paginated = True
+
+    await message.finish(initial_send)
+
+
+async def run_championship(ctx: BotContext, category: dict) -> None:
+    """Send the current championship's qualifier leaderboard, behind a skeleton message."""
+    await take_universe(ctx, False)
+    title = f"{category["title"]} Leaderboard"
+    skeleton_page = Page(
+        title=title,
+        description="\n".join(f"{rank(i + 1)} {LOADING}" for i in range(20)),
+        flag_title=True,
+    )
+    message = Message(ctx, page=skeleton_page)
+    message.timeout = 60
+    initial_send = message.start()
+
+    results = await get_qualifier(CHAMPIONSHIP_SLUG, per_page=100)
+    leaderboard = results["users"]
+
+    if not leaderboard:
+        message.title = title
+        message.pages = [Page(description="No qualifier scores yet.", flag_title=True)]
+
+        return await message.finish(initial_send)
+
+    def qualifier_formatter(user) -> str:
+        """Format one qualifier row."""
+        bold = "**" if user["userId"] == ctx.user["userId"] else ""
+        name = username_with_flag(user)
+        progress = f"{user["completed"]}/{results["poolSize"]}"
+        return f"{rank(user["rank"])} {bold}{name} - {format_stat(user["score"])} pp ({progress}){bold}\n"
+
+    pages = paginate_data(leaderboard, qualifier_formatter, page_count=5, per_page=20)
+
+    message.title = title
+    message.pages = pages
+    message.page_count = len(pages)
+    message.paginated = True
+    message.footer = f"{results["totalCount"]:,} Players"
 
     await message.finish(initial_send)
