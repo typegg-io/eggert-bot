@@ -8,7 +8,7 @@ from discord import Embed, File, Forbidden, Game
 from discord.ext import commands, tasks
 
 from api.daily_quotes import get_daily_quote
-from api.users import get_profile, get_race
+from api.users import get_profile, get_race, get_races
 from commands.daily.dailyleaderboard import display_daily_quote
 from config import DAILY_QUOTE_CHANNEL_ID, DAILY_QUOTE_ROLE_ID, SITE_URL, SOURCE_DIR, TYPEGG_GUILD_ID
 from database.bot.users import get_user
@@ -186,13 +186,22 @@ async def daily_quote_ping(bot: commands.Bot) -> None:
     )
 
 
+async def has_played_daily(user_id: str, quote_id: str, date: str) -> bool:
+    """Return whether a user raced the daily quote on a given day."""
+    races = await get_races(user_id, start_date=date, quote_id=quote_id, per_page=1)
+    return races["totalCount"] > 0
+
+
 async def daily_quote_reminder(bot: commands.Bot) -> None:
     """Sends out a DM reminder to anyone on a daily streak who hasn't completed the daily quote."""
     guild = bot.get_guild(TYPEGG_GUILD_ID)
     role = guild.get_role(DAILY_QUOTE_ROLE_ID)
 
     date = parse_date("today")
-    daily_quote = await get_daily_quote(date.strftime("%Y-%m-%d"), results=100)
+    day = date.strftime("%Y-%m-%d")
+    daily_quote = await get_daily_quote(day, results=100)
+    quote_id = daily_quote["quote"]["quoteId"]
+    # The leaderboard stops at 100, so it can prove someone played but never that they did not.
     daily_users = {score["userId"] for score in daily_quote["leaderboard"]}
 
     for member in role.members:
@@ -204,10 +213,13 @@ async def daily_quote_reminder(bot: commands.Bot) -> None:
             continue
 
         user_id = bot_user["userId"]
+        if user_id in daily_users:
+            continue
+
         profile = await get_profile(user_id)
         current_streak = profile["stats"]["dailyQuotes"]["streak"]
 
-        if current_streak >= 10 and user_id not in daily_users:
+        if current_streak >= 10 and not await has_played_daily(user_id, quote_id, day):
             embed = Embed(
                 title=":warning: Your daily streak expires soon! :warning:",
                 description=(
