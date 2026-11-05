@@ -22,4 +22,4 @@ class Brothers(Command):
     @usable_in(GENERAL_CHANNEL_ID)
     async def brothers(self, ctx: BotContext):
         """Send the link, in the general channel only."""
-        await ctx.send("https://www.youtube.com/watch?v=2BWgmYHAxs4")
+        await ctx.send("https://youtu.be/OYdk3bSqlDQ")
